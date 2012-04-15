@@ -234,6 +234,13 @@ var selected_sprite = null;
 var viewport_x = 0;
 var viewport_y = 0;
 
+function resetCanvas()
+{
+    canvas.width = $("#main").width();
+    canvas.height = $("#main").height();
+    ctx=canvas.getContext("2d");
+}
+
 function findSprite(x, y)
 {
     for (i in sprites)
@@ -271,13 +278,13 @@ function clicked(e)
 function draw()
 {
     ctx.fillStyle = "rgb(0,0,0)";
-    ctx.fillRect(0, 0, 500, 500);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.save()
     if (own_actor != null)
     {
-        viewport_x = -(own_actor.x() - 250);
-        viewport_y = -(own_actor.y() - 250);
+        viewport_x = -(own_actor.x() - canvas.width / 2);
+        viewport_y = -(own_actor.y() - canvas.height / 2);
         ctx.translate(viewport_x, viewport_y);
     }
 
@@ -415,7 +422,9 @@ function init()
     canvas = $("#screen")[0];
     $("#screen").click(clicked);
 
-    ctx = canvas.getContext("2d");
+    $(window).resize(function() { resetCanvas(); draw(); });
+
+    resetCanvas();
 
     socket = new WebSocket("ws://"+window.location.hostname+":8080/socket");
     socket.onmessage = onmessage;
