@@ -92,7 +92,7 @@ class PlayerActor(Actor):
     @expose
     def walk_to(self, x, y):
         x, y = float(x), float(y)
-        self.set_path([ (x, y), (self.x(), self.y()) ])
+        self.set_path([ (self.x(), self.y()), (x, y) ])
 
     @expose
     def boo(self):

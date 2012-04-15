@@ -21,8 +21,8 @@ class Instance:
         self.area = None
 
     def load_map(self, map_id):
-        map_url = "www/%s.json" % (map_id,)
-        self.area = area_factory.load_area(map_url)
+        map_url = "%s.json" % (map_id,)
+        self.area = container.load_area(map_url)
 
     def call(self, command, actor_id, kwargs):
         actor = self.area.actors[actor_id]
@@ -30,13 +30,20 @@ class Instance:
         self.send_to_all("actor_update", **actor.external())
         return "[]"
 
+    def player_joins(self, player_id):
+        self.players[player_id] = dict(connected=False)
+        log.debug("Player joined: %s", player_id)
+
+    def create_instance(self, map_id):
+        log.debug("Instance created %s", map_id)
+
     def register_actor(self, player_id, room_id='lobby', door_id='entrance'):
         if player_id in self.area.actors:
             self.deregister_actor(player_id)
 
         actor = PlayerActor(player_id, 10, 10)
         self.area.actors[player_id] = actor
-        self.area.actor_enters(actor, room, door)
+        self.area.actor_enters(actor, room_id, door_id)
         self.send_to_all("actor_joined", **actor.external())
 
     def deregister_actor(self, player_id):

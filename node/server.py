@@ -57,6 +57,8 @@ def handle_socket(ws):
                 ws.send(dumps)
             except Empty, err:
                 ws.send(simplejson.dumps([{'command':"heartbeat"}]))
+    except:
+        log.exception("Exception from websocket")
     finally:
         if instance:
             if instance.deregister(player_id, queue):
@@ -81,11 +83,10 @@ def handle_gamesocket(ws):
 
 
 def game_handle(environ, response):
-    _, instance_uid, actor_id, command = environ['PATH_INFO'].split("/")
+    _, url, instance_uid, actor_id, command = environ['PATH_INFO'].split("/")
     params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
-    instance_uid = params['instance_uid']
     instance = instances[instance_uid]
-    returned = instance.call(path, dict(params))
+    returned = instance.call(command, actor_id, dict(params))
     response('200 OK', [
         ('content-type', 'text/javascript'),
         ('content-length', len(returned)),

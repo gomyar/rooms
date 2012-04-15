@@ -261,8 +261,9 @@ function clicked(e)
     }
     else 
     {
-        jQuery.post("/game/walk_to", { player_id : player_id, instance_uid: instance_uid, x : click_x,
-            y : click_y }, function () { console.log("Ok"); });
+        jQuery.post("/game/"+instance_uid+"/"+player_id+"/walk_to", { 
+            x : click_x, y : click_y },
+            function () { console.log("Ok"); });
     }
 
 }
