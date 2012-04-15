@@ -95,8 +95,10 @@ class PlayerActor(Actor):
         self.set_path([ (self.x(), self.y()), (x, y) ])
 
     @expose
-    def boo(self):
-        return "Boo"
+    def commands(self):
+        return [
+            { 'name': 'Sleep' },
+        ]
 
     def moo(self):
         return "Moo"

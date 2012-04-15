@@ -24,6 +24,21 @@ function distance(x1, y1, x2, y2)
     return Math.sqrt((x2-x1)^2, (y2-y1)^2);
 }
 
+function service_call(url, data, callback)
+{
+    $.ajax({
+        'url': url,
+        'data': data,
+        'success': function(data) {
+            callback(jQuery.parseJSON(data));
+        },
+        'error': function(jqXHR, errorText) {
+            alert("Error calling "+url+" : "+errorText);
+        },
+        'type': 'POST'
+    });
+}
+
 var now = get_now();
 
 function Sprite(id)
@@ -39,6 +54,7 @@ function Sprite(id)
     this.width = 50;
     this.height = 50;
     this.selected = false;
+    this.hovered = false;
     this.img = new Image();
     this.img.src = "/walkingman.png";
 }
@@ -52,6 +68,9 @@ Sprite.prototype.is_walking = function()
 
 Sprite.prototype.draw = function(ctx)
 {
+    if (this.hovered == true)
+        draw_rect(this.x()-2-this.width/2, this.y()-2-this.height/2,
+            this.width + 4, this.height + 4, "rgb(200,200,0)");
     if (this.selected == true)
         draw_rect(this.x()-2-this.width/2, this.y()-2-this.height/2,
             this.width + 4, this.height + 4, "rgb(0,200,0)");
@@ -212,8 +231,8 @@ Sprite.prototype.atPosition = function(x, y)
 {
     x1 = this.x() - this.width / 2;
     y1 = this.y() - this.height / 2;
-    x2 = x1 + this.width / 2;
-    y2 = y1 + this.height / 2;
+    x2 = x1 + this.width;
+    y2 = y1 + this.height;
     return x > x1 && x < x2 && y > y1 && y < y2;
 }
 
@@ -230,9 +249,11 @@ Sprite.prototype.deselect = function()
 var canvas;
 var ctx;
 var sprites = {};
-var selected_sprite = null;
+var selected_sprite;
+var hovered_sprite;
 var viewport_x = 0;
 var viewport_y = 0;
+var shown_commands;
 
 function resetCanvas()
 {
@@ -244,35 +265,80 @@ function resetCanvas()
 function findSprite(x, y)
 {
     for (i in sprites)
-        if (sprites[i].atPosition(click_x, click_y))
+        if (sprites[i].atPosition(x, y))
             return sprites[i];
     return null;
-   
 }
 
-function clicked(e)
+function show_commands(commands)
 {
-    click_x = e.clientX - $("#screen").position().left - viewport_x;
-    click_y = e.clientY - $("#screen").position().top - viewport_y;
+    shown_commands = commands;
+    $(".actor_commands").remove();
+    var command_div = $("<div>", { 'class': 'actor_commands' });
+    command_div.css("left", selected_sprite.x() + viewport_x + 25);
+    command_div.css("top", selected_sprite.y() + viewport_y - 25);
+
+    for (i in commands)
+    {
+        var command = commands[i];
+        command_div.append($("<div>", { 'class': 'command_button', 'text': command.name } ));
+    }
+    $("#main").append(command_div);
+}
+
+function select_sprite(sprite)
+{
+    if (selected_sprite != null)
+        selected_sprite.deselect();
+    selected_sprite = sprite;
+    selected_sprite.select();
+    service_call("/game/" + instance_uid + "/" + player_id + "/commands", {},
+        show_commands);
+}
+
+function canvas_clicked(e)
+{
+    var click_x = e.clientX - $("#screen").position().left - viewport_x;
+    var click_y = e.clientY - $("#screen").position().top - viewport_y;
     console.log("clicked "+click_x+","+click_y);
+
+    $(".actor_commands").remove();
 
     sprite = findSprite(click_x, click_y);
     if (sprite)
     {
         console.log("found: "+sprite);
-        if (selected_sprite != null)
-            selected_sprite.deselect();
-        selected_sprite = sprite;
-        selected_sprite.select();
-        return;
+        select_sprite(sprite);
     }
     else 
     {
-        jQuery.post("/game/"+instance_uid+"/"+player_id+"/walk_to", { 
-            x : click_x, y : click_y },
+        service_call("/game/"+instance_uid+"/"+player_id+"/walk_to",
+            { x : click_x, y : click_y },
             function () { console.log("Ok"); });
     }
+}
 
+function canvas_mousemove(e)
+{
+    var click_x = e.clientX - $("#screen").position().left - viewport_x;
+    var click_y = e.clientY - $("#screen").position().top - viewport_y;
+
+    var sprite = findSprite(click_x, click_y);
+    if (sprite)
+    {
+        sprite.hovered = true;
+        hovered_sprite = sprite;
+
+        $(canvas).css('cursor', 'pointer');
+        setTimeout(draw, 20);
+    }
+    else
+    {
+        if (hovered_sprite != null)
+            hovered_sprite.hovered = false;
+        hovered_sprite = null;
+        $(canvas).css('cursor', 'auto');
+    }
 }
 
 function draw()
@@ -298,7 +364,7 @@ function draw()
 
     ctx.restore();
 
-    setTimeout(draw, 10);
+    setTimeout(draw, 20);
 }
 
 function draw_rect(x, y, width, height, color)
@@ -344,7 +410,6 @@ function load_map(map_url)
 {
     jQuery.get(map_url, function(data) {
         console.log("Loaded map: "+data);
-//        parsed = jQuery.parseJSON(data);
         parsed = data;
 
         map = parsed.rooms.pitch.objects;
@@ -420,7 +485,8 @@ function init()
     $("#player_overlay").css("display", "none");
 
     canvas = $("#screen")[0];
-    $("#screen").click(clicked);
+    $(canvas).click(canvas_clicked);
+    $(canvas).mousemove(canvas_mousemove);
 
     $(window).resize(function() { resetCanvas(); draw(); });
 

@@ -26,9 +26,9 @@ class Instance:
 
     def call(self, command, actor_id, kwargs):
         actor = self.area.actors[actor_id]
-        actor.interface_call(command, **kwargs)
+        value = actor.interface_call(command, **kwargs)
         self.send_to_all("actor_update", **actor.external())
-        return "[]"
+        return value
 
     def player_joins(self, player_id):
         self.players[player_id] = dict(connected=False)

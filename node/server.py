@@ -87,6 +87,10 @@ def game_handle(environ, response):
     params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
     instance = instances[instance_uid]
     returned = instance.call(command, actor_id, dict(params))
+    if returned:
+        returned = simplejson.dumps(returned)
+    else:
+        returned = "[]"
     response('200 OK', [
         ('content-type', 'text/javascript'),
         ('content-length', len(returned)),
