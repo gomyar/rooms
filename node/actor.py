@@ -18,9 +18,10 @@ class Actor(object):
 
     def __init__(self, player_id, x = 0, y = 0):
         self.player_id = player_id
-        self.path = [ (x, y, get_now() ), (x, y, get_now() ) ]
+        self.set_position(x, y)
         self.speed = 200.0
         self.room = None
+        self.state = "idle"
 
     def interface_call(self, func_name, *args, **kwargs):
         if func_name not in Actor.exposed_methods:
@@ -70,6 +71,8 @@ class Actor(object):
         inc = (now - start_time) / diff_t
         return start_y + diff_y * inc
 
+    def set_position(self, x, y):
+        self.path = [ (x, y, get_now() ), (x, y, get_now() ) ]
 
     def set_path(self, path):
         self.path = []
@@ -84,21 +87,3 @@ class Actor(object):
 
     def time_to_move(self, x1, y1, x2, y2):
         return distance(x1, y1, x2, y2) / self.speed
-
-class PlayerActor(Actor):
-    def __init__(self, player_id, x = 0, y = 0):
-        super(PlayerActor, self).__init__(player_id, x, y)
-
-    @expose
-    def walk_to(self, x, y):
-        x, y = float(x), float(y)
-        self.set_path([ (self.x(), self.y()), (x, y) ])
-
-    @expose
-    def commands(self):
-        return [
-            { 'name': 'Sleep' },
-        ]
-
-    def moo(self):
-        return "Moo"

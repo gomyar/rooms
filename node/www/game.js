@@ -292,7 +292,7 @@ function select_sprite(sprite)
         selected_sprite.deselect();
     selected_sprite = sprite;
     selected_sprite.select();
-    service_call("/game/" + instance_uid + "/" + player_id + "/commands", {},
+    service_call("/game/" + instance_uid + "/" + sprite.id + "/commands", {},
         show_commands);
 }
 

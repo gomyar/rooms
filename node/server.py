@@ -31,8 +31,15 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger()
 
 instances = dict()
+sessions = dict()
 
 master = None
+
+def _read_cookies(environ):
+    cookie_str = environ['HTTP_COOKIE']
+    cookies = cookie_str.split(';')
+    cookies = map(lambda c: c.strip().split('='), cookies)
+    return dict(cookies)
 
 @websocket.WebSocketWSGI
 def handle_socket(ws):
@@ -40,12 +47,14 @@ def handle_socket(ws):
     queue = LightQueue()
     instance = None
     try:
+        cookies = _read_cookies(ws.environ)
         player_id = ws.wait()
         instance_uid = ws.wait()
         instance = instances[instance_uid]
-        ws.send(simplejson.dumps([instance.sync()]))
         log.debug("registering %s at %s", player_id, instance_uid)
         instance.register(player_id, queue)
+        sessions[cookies['sessionid']] = player_id
+        ws.send(simplejson.dumps([instance.sync(player_id)]))
         while not ws.websocket_closed:
             try:
                 command = queue.get(timeout=5)
@@ -53,7 +62,6 @@ def handle_socket(ws):
                 while queue.qsize() > 0:
                     commands.append(queue.get())
                 dumps = simplejson.dumps(commands)
-#                log.debug("Dumping: %s", (dumps,))
                 ws.send(dumps)
             except Empty, err:
                 ws.send(simplejson.dumps([{'command':"heartbeat"}]))
@@ -84,9 +92,11 @@ def handle_gamesocket(ws):
 
 def game_handle(environ, response):
     _, url, instance_uid, actor_id, command = environ['PATH_INFO'].split("/")
+    cookies = _read_cookies(environ)
     params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
     instance = instances[instance_uid]
-    returned = instance.call(command, actor_id, dict(params))
+    returned = instance.call(command, sessions[cookies['sessionid']],
+        actor_id, dict(params))
     if returned:
         returned = simplejson.dumps(returned)
     else:

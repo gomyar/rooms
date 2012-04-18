@@ -6,7 +6,7 @@ import eventlet
 import simplejson
 
 from actor import Actor
-from actor import PlayerActor
+from player_actor import PlayerActor
 import container
 
 import logging
@@ -24,8 +24,9 @@ class Instance:
         map_url = "%s.json" % (map_id,)
         self.area = container.load_area(map_url)
 
-    def call(self, command, actor_id, kwargs):
-        actor = self.area.actors[actor_id]
+    def call(self, command, player_id, actor_id, kwargs):
+        player = self.players[player_id]['player']
+        actor = player.room.actors[actor_id]
         value = actor.interface_call(command, **kwargs)
         self.send_to_all("actor_update", **actor.external())
         return value
@@ -42,6 +43,8 @@ class Instance:
             self.deregister_actor(player_id)
 
         actor = PlayerActor(player_id, 10, 10)
+        self.players[player_id]['player'] = actor
+        self.players[player_id]['connected'] = True
         self.area.actors[player_id] = actor
         self.area.actor_enters(actor, room_id, door_id)
         self.send_to_all("actor_joined", **actor.external())
@@ -59,11 +62,13 @@ class Instance:
     def actors_dict(self):
         return map(lambda a: a.external(), self.area.actors.values())
 
-    def sync(self):
+    def sync(self, player_id):
+        player = self.area.actors[player_id]
         return {
             "command": "sync",
             "kwargs" : {
-                "actors" : self.actors_dict(),
+                "actors" : map(lambda a: a.external(),
+                    player.room.actors.values()),
                 "now" : time.time(),
                 "map" : "map1.json",
             }
