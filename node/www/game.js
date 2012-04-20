@@ -292,8 +292,10 @@ function select_sprite(sprite)
         selected_sprite.deselect();
     selected_sprite = sprite;
     selected_sprite.select();
-    service_call("/game/" + instance_uid + "/" + sprite.id + "/commands", {},
-        show_commands);
+    if (sprite.id == player_id)
+        service_call("/game/" + instance_uid + "/" + sprite.id + "/exposed_commands", {}, show_commands);
+    else
+        service_call("/game/" + instance_uid + "/" + sprite.id + "/exposed_methods", {}, show_commands);
 }
 
 function canvas_clicked(e)

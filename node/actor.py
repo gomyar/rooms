@@ -1,30 +1,47 @@
 import math
 import time
 
+
 def distance(x1, y1, x2, y2):
     return math.hypot(x2 - x1, y2 - y1)
+
 
 def get_now():
     return time.time()
 
+
 def expose(func):
-    Actor.exposed_methods.add(func.__name__)
+    Actor._exposed_methods.add(func.__name__)
     def call(*args, **kwargs):
         return func(*args, **kwargs)
     return call
 
+def command(func):
+    Actor._exposed_commands.add(func.__name__)
+    def call(*args, **kwargs):
+        return func(*args, **kwargs)
+    return call
+
+
 class Actor(object):
-    exposed_methods = set()
+    _exposed_commands = set()
+    _exposed_methods = set()
 
     def __init__(self, player_id, x = 0, y = 0):
         self.player_id = player_id
         self.set_position(x, y)
         self.speed = 200.0
         self.room = None
+        self.instance = None
         self.state = "idle"
 
-    def interface_call(self, func_name, *args, **kwargs):
-        if func_name not in Actor.exposed_methods:
+    def interface_call(self, func_name, player, *args, **kwargs):
+        if func_name not in Actor._exposed_methods:
+            raise Exception("Illegal call to %s in %s", func_name, self)
+        return getattr(self, func_name)(player, *args, **kwargs)
+
+    def command_call(self, func_name, *args, **kwargs):
+        if func_name not in Actor._exposed_commands:
             raise Exception("Illegal call to %s in %s", func_name, self)
         return getattr(self, func_name)(*args, **kwargs)
 
@@ -87,3 +104,14 @@ class Actor(object):
 
     def time_to_move(self, x1, y1, x2, y2):
         return distance(x1, y1, x2, y2) / self.speed
+
+    def exposed_methods(self, actor):
+        return [dict(name=method) for method in self._exposed_methods]
+    _exposed_methods.add(exposed_methods.__name__)
+
+    def exposed_commands(self):
+        return [dict(name=command) for command in Actor._exposed_commands]
+    _exposed_commands.add(exposed_commands.__name__)
+
+    def add_chat_message(self, msg, *args):
+        self.instance.send_message(self.player_id, msg % args)

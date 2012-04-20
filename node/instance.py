@@ -27,7 +27,10 @@ class Instance:
     def call(self, command, player_id, actor_id, kwargs):
         player = self.players[player_id]['player']
         actor = player.room.actors[actor_id]
-        value = actor.interface_call(command, **kwargs)
+        if player == actor:
+            value = actor.command_call(command, **kwargs)
+        else:
+            value = actor.interface_call(command, player, **kwargs)
         self.send_to_all("actor_update", **actor.external())
         return value
 
@@ -46,6 +49,7 @@ class Instance:
         self.players[player_id]['player'] = actor
         self.players[player_id]['connected'] = True
         self.area.actors[player_id] = actor
+        actor.instance = self
         self.area.actor_enters(actor, room_id, door_id)
         self.send_to_all("actor_joined", **actor.external())
 
@@ -54,6 +58,9 @@ class Instance:
             actor = self.area.actors.pop(player_id)
             self.area.actor_exits(actor)
             self.send_to_all("actor_left", player_id=player_id)
+
+    def send_message(self, player_id, msg):
+        self.queues[player_id].put(dict(command="log", kwargs={'msg': msg}))
 
     def send_to_all(self, command, **kwargs):
         for queue in self.queues:
