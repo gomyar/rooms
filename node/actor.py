@@ -107,20 +107,10 @@ class Actor(object):
         return distance(x1, y1, x2, y2) / self.speed
 
     def _all_exposed_methods(self):
-        all_members = dir(self)
-        members = []
-        for m in all_members:
-            if hasattr(getattr(self, m), "is_exposed"):
-                members.append(m)
-        return members
+        return [m for m in dir(self) if hasattr(getattr(self, m), "is_exposed")]
 
     def _all_exposed_commands(self):
-        all_members = dir(self)
-        members = []
-        for m in all_members:
-            if hasattr(getattr(self, m), "is_command"):
-                members.append(m)
-        return members
+        return [m for m in dir(self) if hasattr(getattr(self, m), "is_command")]
 
     def exposed_methods(self, actor):
         return [dict(name=method) for method in self._all_exposed_methods()]
