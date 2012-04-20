@@ -65,7 +65,8 @@ class Instance:
             self.send_to_all("actor_left", player_id=player_id)
 
     def send_message(self, player_id, msg):
-        self.queues[player_id].put(dict(command="log", kwargs={'msg': msg}))
+        for queue in self.player_queues[player_id]:
+            queue.put(dict(command="log", kwargs={'msg': msg}))
 
     def send_to_all(self, command, **kwargs):
         for queue in self.queues:
