@@ -16,9 +16,3 @@ class Bed(Actor):
     def get_out(self, player):
         player.state = "idle"
         self.state = "idle"
-
-    @expose
-    def commands(self):
-        return [
-            { 'name': 'Get in' },
-        ]

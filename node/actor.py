@@ -1,5 +1,6 @@
 import math
 import time
+import inspect
 
 
 def distance(x1, y1, x2, y2):
@@ -11,22 +12,20 @@ def get_now():
 
 
 def expose(func):
-    Actor._exposed_methods.add(func.__name__)
+    func.is_exposed = True
     def call(*args, **kwargs):
         return func(*args, **kwargs)
+    call.is_exposed = True
     return call
 
 def command(func):
-    Actor._exposed_commands.add(func.__name__)
+    func.is_command = True
     def call(*args, **kwargs):
         return func(*args, **kwargs)
+    call.is_command = True
     return call
 
-
 class Actor(object):
-    _exposed_commands = set()
-    _exposed_methods = set()
-
     def __init__(self, player_id, x = 0, y = 0):
         self.player_id = player_id
         self.set_position(x, y)
@@ -36,14 +35,16 @@ class Actor(object):
         self.state = "idle"
 
     def interface_call(self, func_name, player, *args, **kwargs):
-        if func_name not in Actor._exposed_methods:
+        func = getattr(self, func_name)
+        if not hasattr(func, "is_exposed"):
             raise Exception("Illegal call to %s in %s", func_name, self)
-        return getattr(self, func_name)(player, *args, **kwargs)
+        return func(player, *args, **kwargs)
 
     def command_call(self, func_name, *args, **kwargs):
-        if func_name not in Actor._exposed_commands:
+        func = getattr(self, func_name)
+        if not hasattr(func, "is_command"):
             raise Exception("Illegal call to %s in %s", func_name, self)
-        return getattr(self, func_name)(*args, **kwargs)
+        return func(*args, **kwargs)
 
     def external(self):
         return dict(player_id=self.player_id, path=self.path, speed=self.speed)
@@ -105,13 +106,27 @@ class Actor(object):
     def time_to_move(self, x1, y1, x2, y2):
         return distance(x1, y1, x2, y2) / self.speed
 
+    def _all_exposed_methods(self):
+        all_members = dir(self)
+        members = []
+        for m in all_members:
+            if hasattr(getattr(self, m), "is_exposed"):
+                members.append(m)
+        return members
+
+    def _all_exposed_commands(self):
+        all_members = dir(self)
+        members = []
+        for m in all_members:
+            if hasattr(getattr(self, m), "is_command"):
+                members.append(m)
+        return members
+
     def exposed_methods(self, actor):
-        return [dict(name=method) for method in self._exposed_methods]
-    _exposed_methods.add(exposed_methods.__name__)
+        return [dict(name=method) for method in self._all_exposed_methods()]
 
     def exposed_commands(self):
-        return [dict(name=command) for command in Actor._exposed_commands]
-    _exposed_commands.add(exposed_commands.__name__)
+        return [dict(name=command) for command in self._all_exposed_commands()]
 
     def add_chat_message(self, msg, *args):
         self.instance.send_message(self.player_id, msg % args)

@@ -28,10 +28,15 @@ class Instance:
         player = self.players[player_id]['player']
         actor = player.room.actors[actor_id]
         if player == actor:
+            if command == "exposed_commands":
+                return actor.exposed_commands()
             value = actor.command_call(command, **kwargs)
+            self.send_to_all("actor_update", **actor.external())
         else:
+            if command == "exposed_methods":
+                return actor.exposed_methods(player)
             value = actor.interface_call(command, player, **kwargs)
-        self.send_to_all("actor_update", **actor.external())
+            self.send_to_all("actor_update", **actor.external())
         return value
 
     def player_joins(self, player_id):
