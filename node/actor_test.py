@@ -4,10 +4,28 @@ import mock
 import time
 
 from actor import Actor
+from actor import expose
+
+
+class MockActor(Actor):
+    def __init__(self, actor_id):
+        super(MockActor, self).__init__(actor_id)
+        self._mock_me_called = False
+        self.state = "stop"
+
+    @expose(state="go")
+    def mock_me(self, actor):
+        self._mock_me_called = True
+
+    @expose()
+    def mock_you(self, actor):
+        self._mock_me_called = True
+
 
 class ActorTest(unittest.TestCase):
     def setUp(self):
         self.actor = Actor("actor1", 10, 10)
+        self.mock_actor = MockActor("mock")
         self.now = 0.0
         time.time = mock.Mock(return_value=self.now)
 
@@ -51,3 +69,15 @@ class ActorTest(unittest.TestCase):
 
         time.time = mock.Mock(return_value=4.5)
         self.assertEquals(4.0, self.actor.y())
+
+    def testAllowedMethod(self):
+        self.assertFalse(self.mock_actor._can_call_method(self.actor,
+            "mock_me"))
+        self.assertEquals([{'name':'mock_you'}], self.mock_actor.exposed_methods(self.actor))
+
+        self.mock_actor.state = "go"
+
+        self.assertTrue(self.mock_actor._can_call_method(self.actor,
+            "mock_me"))
+        self.assertEquals([{'name':'mock_me'}, {'name':'mock_you'}],
+            self.mock_actor.exposed_methods(self.actor))

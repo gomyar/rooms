@@ -6,6 +6,30 @@ var player_id;
 
 var redraw_until;
 
+function command_chat()
+{
+    service_call("/game/" + instance_uid + "/" + selected_sprite.id + "/chat", {}, function () { console.log("Unneeded callback"); });
+}
+
+function command_sleep_in()
+{
+}
+
+function command_walk_to()
+{
+}
+
+function command_get_out()
+{
+}
+
+var command_lookup = {
+    "chat": command_chat,
+    "sleep_in": command_sleep_in,
+    "walk_to": command_walk_to,
+    "get_out": command_get_out
+};
+
 function get_now()
 {
     local_now = new Date().getTime();
@@ -272,7 +296,9 @@ function show_commands(commands)
     for (i in commands)
     {
         var command = commands[i];
-        command_div.append($("<div>", { 'class': 'command_button', 'text': command.name } ));
+        var command_item = $("<div>", { 'class': 'command_button', 'text': command.name } );
+        command_item.click(command_lookup[command.name]());
+        command_div.append(command_item);
     }
     $("#main").append(command_div);
 }
@@ -450,6 +476,7 @@ function onmessage(msg)
                     own_actor = sprite;
             }
             load_map(message.kwargs.map);
+            requestRedraw();
         }
         else if (message.command == "actor_update")
         {

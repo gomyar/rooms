@@ -11,19 +11,25 @@ def get_now():
     return time.time()
 
 
-def expose(func):
-    func.is_exposed = True
-    def call(*args, **kwargs):
-        return func(*args, **kwargs)
-    call.is_exposed = True
-    return call
+class expose:
+    def __init__(self, **filters):
+        self.filters = filters
 
-def command(func):
-    func.is_command = True
-    def call(*args, **kwargs):
-        return func(*args, **kwargs)
-    call.is_command = True
-    return call
+    def __call__(self, func):
+        func.is_exposed = True
+        func.filters = self.filters
+        return func
+
+
+class command:
+    def __init__(self, **filters):
+        self.filters = filters
+
+    def __call__(self, func):
+        func.is_command = True
+        func.filters = self.filters
+        return func
+
 
 class Actor(object):
     def __init__(self, player_id, x = 0, y = 0):
@@ -36,14 +42,14 @@ class Actor(object):
 
     def interface_call(self, func_name, player, *args, **kwargs):
         func = getattr(self, func_name)
-        if not hasattr(func, "is_exposed"):
-            raise Exception("Illegal call to %s in %s", func_name, self)
+        if not self._can_call_method(player, func_name):
+            raise Exception("Illegal call to %s in %s" % (func_name, self))
         return func(player, *args, **kwargs)
 
     def command_call(self, func_name, *args, **kwargs):
         func = getattr(self, func_name)
-        if not hasattr(func, "is_command"):
-            raise Exception("Illegal call to %s in %s", func_name, self)
+        if not self._can_call_command(func_name):
+            raise Exception("Illegal call to %s in %s" % (func_name, self))
         return func(*args, **kwargs)
 
     def external(self):
@@ -106,14 +112,31 @@ class Actor(object):
     def time_to_move(self, x1, y1, x2, y2):
         return distance(x1, y1, x2, y2) / self.speed
 
-    def _all_exposed_methods(self):
-        return [m for m in dir(self) if hasattr(getattr(self, m), "is_exposed")]
+    def _filters_equal(self, actor, filters):
+        for key, val in filters.items():
+            if getattr(actor, key) != val:
+                return False
+        return True
+
+    def _can_call_method(self, actor, method_name):
+        func = getattr(self, method_name)
+        return hasattr(func, "is_exposed") and \
+            self._filters_equal(self, func.filters)
+
+    def _can_call_command(self, method_name):
+        func = getattr(self, method_name)
+        return hasattr(func, "is_command") and \
+            self._filters_equal(self, func.filters)
+
+    def _all_exposed_methods(self, actor):
+        return [m for m in dir(self) if self._can_call_method(actor, m)]
 
     def _all_exposed_commands(self):
-        return [m for m in dir(self) if hasattr(getattr(self, m), "is_command")]
+        return [m for m in dir(self) if self._can_call_command(m)]
 
     def exposed_methods(self, actor):
-        return [dict(name=method) for method in self._all_exposed_methods()]
+        return [dict(name=method) for method in \
+            self._all_exposed_methods(actor)]
 
     def exposed_commands(self):
         return [dict(name=command) for command in self._all_exposed_commands()]
