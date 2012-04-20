@@ -4,6 +4,8 @@ var local_time;
 var instance_uid;
 var player_id;
 
+var redraw_until;
+
 function get_now()
 {
     local_now = new Date().getTime();
@@ -15,6 +17,7 @@ function set_now(now_time)
 {
     server_time = now_time * 1000;
     local_time = new Date().getTime();
+    redraw_until = get_now();
     console.log("Server time : "+new Date(server_time));
     console.log("Local time : "+new Date(local_time));
 }
@@ -45,12 +48,6 @@ function Sprite(id)
 {
     this.id = id;
     this.path = [ [ 0.0, 0.0, get_now() ], [ 0.0, 0.0, get_now() ] ];
-    this.start_time = get_now();
-    this.end_time = get_now();
-    this.start_x = 0;
-    this.start_y = 0;
-    this.end_x = 0;
-    this.end_y = 0;
     this.width = 50;
     this.height = 50;
     this.selected = false;
@@ -113,25 +110,6 @@ Sprite.prototype.draw = function(ctx)
     ctx.restore();
 }
 
-Sprite.prototype.set_position = function(x, y)
-{
-    this.start_x = x;
-    this.start_y = y;
-    this.end_x = x;
-    this.end_y = y;
-}
-
-Sprite.prototype.set_vector = function(start_x, start_y, end_x, end_y,
-    start_time, end_time)
-{
-    this.start_x = start_x;
-    this.start_y = start_y;
-    this.end_x = end_x;
-    this.end_y = end_y;
-    this.start_time = start_time;
-    this.end_time = end_time;
-}
-
 Sprite.prototype.current_vector = function()
 {
     now = get_now();
@@ -141,12 +119,15 @@ Sprite.prototype.current_vector = function()
     while (index < this.path.length - 2 && this.path[index + 1][2] * 1000 < now)
         index += 1;
 
-    start_point = this.path[index];
-    start_time = this.path[index][2] * 1000;
-    end_point = this.path[index + 1];
-    end_time = this.path[index + 1][2]* 1000;
+    var start_point = this.path[index];
+    var end_point = this.path[index + 1];
 
     return [ start_point, end_point ];
+}
+
+Sprite.prototype.end_time = function()
+{
+    return this.path[this.path.length-1][2] * 1000;
 }
 
 Sprite.prototype.x = function()
@@ -215,6 +196,16 @@ Sprite.prototype.walk_to = function(x, y, end_time)
         this.end_time = end_time;
     else
         this.end_time = this.start_time + 2000;
+    this.optionalRedraw();
+}
+
+Sprite.prototype.optionalRedraw = function()
+{
+    if (redraw_until <= this.end_time())
+    {
+        redraw_until = this.end_time();
+        requestRedraw();
+    }
 }
 
 Sprite.prototype.time_till = function(start_x, start_y, end_x, end_y)
@@ -332,7 +323,7 @@ function canvas_mousemove(e)
         hovered_sprite = sprite;
 
         $(canvas).css('cursor', 'pointer');
-        setTimeout(draw, 20);
+        requestRedraw();
     }
     else
     {
@@ -366,6 +357,12 @@ function draw()
 
     ctx.restore();
 
+    if (get_now() < redraw_until)
+        requestRedraw();
+}
+
+function requestRedraw()
+{
     setTimeout(draw, 20);
 }
 
@@ -458,6 +455,7 @@ function onmessage(msg)
         {
             console.log("Actor update: "+message.kwargs.player_id);
             sprites[message.kwargs.player_id].path = message.kwargs.path;
+            sprites[message.kwargs.player_id].optionalRedraw();
         }
         else if (message.command == "actor_joined")
         {
@@ -465,6 +463,7 @@ function onmessage(msg)
             sprite = new Sprite(message.kwargs.player_id);
             sprites[message.kwargs.player_id] = sprite;
             sprite.path = message.kwargs.path;
+            sprite.optionalRedraw();
 
             if (message.kwargs.player_id == player_id)
                 own_actor = sprite;
@@ -473,6 +472,7 @@ function onmessage(msg)
         {
             console.log("Actor left: "+message.kwargs.player_id);
             delete sprites[message.kwargs.player_id];
+            requestRedraw();
         }
         else if (message.command == "heartbeat")
         {
@@ -499,7 +499,7 @@ function init()
     socket.onopen = onopen;
 
     console.log("Drawing");
-    setTimeout(draw, 10);
+    requestRedraw();
 }
 
 // Thank you stackoverflow
