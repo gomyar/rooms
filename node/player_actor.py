@@ -5,8 +5,8 @@ from actor import command
 
 
 class PlayerActor(Actor):
-    def __init__(self, player_id = None, x = 0, y = 0):
-        super(PlayerActor, self).__init__(player_id, x, y)
+    def __init__(self, player_id = None, position=(0, 0)):
+        super(PlayerActor, self).__init__(player_id, position)
 
     @command()
     def walk_to(self, x, y):

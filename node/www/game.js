@@ -107,7 +107,7 @@ Sprite.prototype.draw = function(ctx)
         offset = 0;
 
     ctx.strokeStyle = "rgb(0,0,200)";
-    for (i=0;i<this.path.length-1;i++)
+    for (var i=0;i<this.path.length-1;i++)
     {
         ctx.beginPath();
         ctx.moveTo(this.path[i][0], this.path[i][1]);
@@ -279,7 +279,7 @@ function resetCanvas()
 
 function findSprite(x, y)
 {
-    for (i in sprites)
+    for (var i in sprites)
         if (sprites[i].atPosition(x, y))
             return sprites[i];
     return null;
@@ -293,7 +293,7 @@ function show_commands(commands)
     command_div.css("left", selected_sprite.x() + viewport_x + 25);
     command_div.css("top", selected_sprite.y() + viewport_y - 25);
 
-    for (i in commands)
+    for (var i in commands)
     {
         var command = commands[i];
         var command_item = $("<div>", { 'class': 'command_button', 'text': command.name } );
@@ -378,7 +378,7 @@ function draw()
 
     draw_map();
 
-    for (i in sprites)
+    for (var i in sprites)
         sprites[i].draw(ctx);
 
     ctx.restore();
@@ -412,7 +412,7 @@ var room = { width: 500, height: 500 };
 
 function draw_map()
 {
-    for (i=0; i<map.length; i++)
+    for (var i=0; i<map.length; i++)
     {
         tile = map[i];
         if (tile.type == "rect")
@@ -458,7 +458,7 @@ function onmessage(msg)
 {
     console.log("Got: "+msg.data);
     var messages = jQuery.parseJSON(msg.data);
-    for (i in messages)
+    for (var i in messages)
     {
         var message = messages[i];
         if (message.command == "sync")
@@ -467,16 +467,16 @@ function onmessage(msg)
             set_now(message.kwargs.now);
             actors = message.kwargs.actors;
             sprites = {};
-            for (i=0; i<actors.length; i++)
+            for (var i=0; i<actors.length; i++)
             {
-                sprite = new Sprite(actors[i].player_id);
+                sprite = new Sprite(actors[i].actor_id);
                 sprite.path = actors[i].path;
-                sprites[actors[i].player_id] = sprite;
-                if (actors[i].player_id == player_id)
+                sprites[actors[i].actor_id] = sprite;
+                if (actors[i].actor_id == player_id)
                     own_actor = sprite;
             }
             load_map(message.kwargs.map);
-            for (i in message.kwargs.player_log)
+            for (var i in message.kwargs.player_log)
             {
                 var text = message.kwargs.player_log[i].msg;
                 var time = message.kwargs.player_log[i].time;
@@ -486,9 +486,9 @@ function onmessage(msg)
         }
         else if (message.command == "actor_update")
         {
-            console.log("Actor update: "+message.kwargs.player_id);
-            sprites[message.kwargs.player_id].path = message.kwargs.path;
-            sprites[message.kwargs.player_id].optionalRedraw();
+            console.log("Actor update: "+message.kwargs.actor_id);
+            sprites[message.kwargs.actor_id].path = message.kwargs.path;
+            sprites[message.kwargs.actor_id].optionalRedraw();
         }
         else if (message.command == "actor_joined")
         {
@@ -558,7 +558,7 @@ function getParameter(paramName)
     var searchString = window.location.search.substring(1),
     i, val, params = searchString.split("&");
 
-    for (i=0;i<params.length;i++)
+    for (var i=0;i<params.length;i++)
     {
         val = params[i].split("=");
         if (val[0] == paramName)

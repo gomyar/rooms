@@ -29,7 +29,9 @@ function join(instance_id)
 <form method="post" action="/create_instance">
     {% csrf_token %}
     <select name="map_id">
-        <option value="map1">map1.json - football field</option>
+        {% for map in available_maps %}
+            <option value="{{ map.area_id }}">{{ map.area_name }}</option>
+        {% endfor %}
     </select>
     <input type="submit" value="Create"></input>
 </form>

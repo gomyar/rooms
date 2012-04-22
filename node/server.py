@@ -26,6 +26,8 @@ from instance import Instance
 from eventlet.queue import LightQueue
 from eventlet.queue import Empty
 
+from container import init_mongo
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger()
@@ -192,9 +194,18 @@ if __name__ == "__main__":
         default="localhost:8080", help="Address to serve node on",
         metavar="KS_NODE")
 
+    parser.add_option("-d", "--dbaddr", dest="dbaddr",
+        default="localhost:27017", help="Address of mongo server",
+        metavar="KS_DBADDR")
+
     (options, args) = parser.parse_args()
     host = options.address.split(":")[0]
     port = int(options.address.split(":")[1])
+
+    dbhost = options.dbaddr.split(":")[0]
+    dbport = int(options.dbaddr.split(":")[1])
+
+    init_mongo(dbhost, dbport)
 
     master_addr = options.master
 

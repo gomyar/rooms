@@ -32,10 +32,10 @@ class command:
 
 
 class Actor(object):
-    def __init__(self, actor_id, x = 0, y = 0):
+    def __init__(self, actor_id, position=(0, 0)):
         self.actor_id = actor_id
         self.path = []
-        self.set_position(x, y)
+        self.set_position(position)
         self.speed = 200.0
         self.room = None
         self.instance = None
@@ -103,7 +103,8 @@ class Actor(object):
         inc = (now - start_time) / diff_t
         return start_y + diff_y * inc
 
-    def set_position(self, x, y):
+    def set_position(self, position):
+        x, y = position
         self.path = [ (x, y, get_now() ), (x, y, get_now() ) ]
 
     def set_path(self, path):

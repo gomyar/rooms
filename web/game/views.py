@@ -7,11 +7,33 @@ import xmlrpclib
 from django.template import RequestContext
 from django.conf import settings
 
+from pymongo import Connection
+from pymongo.helpers import bson
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger()
 
 master = xmlrpclib.ServerProxy(settings.MASTER_ADDR)
+
+_mongo_connection = None
+
+def get_mongo_conn():
+    global _mongo_connection
+    if not _mongo_connection:
+        init_mongo()
+    return _mongo_connection
+
+def init_mongo(host='localhost', port=27017):
+    global _mongo_connection
+    _mongo_connection = Connection(host, port)
+
+
+def list_all_areas_for(owner_id):
+    rooms_db = get_mongo_conn().rooms_db
+    areas = rooms_db.areas.find({ 'owner_id': owner_id }, fields=['area_name'])
+    return map(lambda a: dict(area_name=a['area_name'], area_id=str(a['_id'])),
+        areas)
 
 @login_required
 def running_instances(request):
@@ -26,7 +48,8 @@ def running_instances(request):
             own_instance, user_id))
     else:
         return render_to_response("list_instances.html",
-            dict(instances=instances.values()),
+            dict(instances=instances.values(),
+            available_maps=list_all_areas_for(user_id)),
             context_instance=RequestContext(request))
 
 @login_required

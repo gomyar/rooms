@@ -1,10 +1,9 @@
 
 
 class Room(object):
-    def __init__(self, room_id=None, x=0, y=0, width=50, height=50):
+    def __init__(self, room_id=None, position=(0, 0), width=50, height=50):
         self.room_id = room_id
-        self.x = x
-        self.y = y
+        self.position = position
         self.width = width
         self.height = height
         self.map_objects = []
@@ -17,8 +16,10 @@ class Room(object):
         return "<Room %s>" % (self.room_id,)
 
     def actor_enters(self, actor, door_id):
+        import ipdb; ipdb.set_trace()
         self.actors[actor.actor_id] = actor
         actor.room = self
+        actor.set_position(self.actors[door_id].position)
 
     def actor_exits(self, actor):
         self.actors.pop(actor.actor_id)
