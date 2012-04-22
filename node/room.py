@@ -16,7 +16,6 @@ class Room(object):
         return "<Room %s>" % (self.room_id,)
 
     def actor_enters(self, actor, door_id):
-        import ipdb; ipdb.set_trace()
         self.actors[actor.actor_id] = actor
         actor.room = self
         actor.set_position(self.actors[door_id].position)
