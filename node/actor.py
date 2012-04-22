@@ -39,6 +39,7 @@ class Actor(object):
         self.room = None
         self.instance = None
         self.state = "idle"
+        self.log = []
 
     def interface_call(self, func_name, player, *args, **kwargs):
         func = getattr(self, func_name)
@@ -141,5 +142,10 @@ class Actor(object):
     def exposed_commands(self):
         return [dict(name=command) for command in self._all_exposed_commands()]
 
+    def add_log(self, msg, *args):
+        log_entry = { 'msg': msg % args, 'time': time.time() }
+        self.log.append(log_entry)
+        self.instance.send_event(self.player_id, "log", log_entry)
+
     def add_chat_message(self, msg, *args):
-        self.instance.send_message(self.player_id, msg % args)
+        self.add_log(msg, args)

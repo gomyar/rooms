@@ -476,6 +476,12 @@ function onmessage(msg)
                     own_actor = sprite;
             }
             load_map(message.kwargs.map);
+            for (i in message.kwargs.player_log)
+            {
+                var text = message.kwargs.player_log[i].msg;
+                var time = message.kwargs.player_log[i].time;
+                addLogEntry(text, time * 1000);
+            }
             requestRedraw();
         }
         else if (message.command == "actor_update")
@@ -494,14 +500,12 @@ function onmessage(msg)
 
             if (message.kwargs.player_id == player_id)
                 own_actor = sprite;
-            addLogEntry("Player entered room: "+message.kwargs.player_id);
         }
         else if (message.command == "actor_left")
         {
             console.log("Actor left: "+message.kwargs.player_id);
             delete sprites[message.kwargs.player_id];
             requestRedraw();
-            addLogEntry("Player exited room: "+message.kwargs.player_id);
         }
         else if (message.command == "log")
         {
@@ -514,9 +518,11 @@ function onmessage(msg)
     }
 }
 
-function addLogEntry(message)
+function addLogEntry(message, time)
 {
     var logtime = new Date(get_now()).toLocaleTimeString();
+    if (time != null)
+        logtime = new Date(time).toLocaleTimeString();
     $("#log").prepend(
         $("<div>", { 'class': 'logEntry' }).append(
             $("<div>", { 'class': 'logTime', 'text': logtime }),
