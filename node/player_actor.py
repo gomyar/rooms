@@ -15,4 +15,4 @@ class PlayerActor(Actor):
 
     @expose()
     def chat(self, actor):
-        actor.add_chat_message("Hi from %s", self.player_id)
+        actor.add_chat_message("Hi from %s", self.actor_id)

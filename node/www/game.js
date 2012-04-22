@@ -492,19 +492,19 @@ function onmessage(msg)
         }
         else if (message.command == "actor_joined")
         {
-            console.log("Actor joined: "+message.kwargs.player_id);
-            sprite = new Sprite(message.kwargs.player_id);
-            sprites[message.kwargs.player_id] = sprite;
+            console.log("Actor joined: "+message.kwargs.actor_id);
+            sprite = new Sprite(message.kwargs.actor_id);
+            sprites[message.kwargs.actor_id] = sprite;
             sprite.path = message.kwargs.path;
             sprite.optionalRedraw();
 
-            if (message.kwargs.player_id == player_id)
+            if (message.kwargs.actor_id == player_id)
                 own_actor = sprite;
         }
         else if (message.command == "actor_left")
         {
-            console.log("Actor left: "+message.kwargs.player_id);
-            delete sprites[message.kwargs.player_id];
+            console.log("Actor left: "+message.kwargs.actor_id);
+            delete sprites[message.kwargs.actor_id];
             requestRedraw();
         }
         else if (message.command == "log")
