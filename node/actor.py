@@ -32,14 +32,21 @@ class command:
 
 
 class Actor(object):
-    def __init__(self, player_id, x = 0, y = 0):
-        self.player_id = player_id
+    def __init__(self, actor_id, x = 0, y = 0):
+        self.actor_id = actor_id
+        self.path = []
         self.set_position(x, y)
         self.speed = 200.0
         self.room = None
         self.instance = None
         self.state = "idle"
         self.log = []
+
+    def __eq__(self, rhs):
+        return rhs and type(rhs) == type(self) and rhs.actor_id == self.actor_id
+
+    def __repr__(self):
+        return "<Actor %s>" % (self.actor_id,)
 
     def interface_call(self, func_name, player, *args, **kwargs):
         func = getattr(self, func_name)
@@ -54,7 +61,7 @@ class Actor(object):
         return func(*args, **kwargs)
 
     def external(self):
-        return dict(player_id=self.player_id, path=self.path, speed=self.speed)
+        return dict(actor_id=self.actor_id, path=self.path, speed=self.speed)
 
     def x(self):
         now = get_now()
@@ -145,7 +152,7 @@ class Actor(object):
     def add_log(self, msg, *args):
         log_entry = { 'msg': msg % args, 'time': time.time() }
         self.log.append(log_entry)
-        self.instance.send_event(self.player_id, "log", log_entry)
+        self.instance.send_event(self.actor_id, "log", log_entry)
 
     def add_chat_message(self, msg, *args):
         self.add_log(msg, *args)

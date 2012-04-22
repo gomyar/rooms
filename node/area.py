@@ -1,7 +1,7 @@
 
 from room import Room
 
-class Area:
+class Area(object):
     def __init__(self):
         self.actors = dict()
         self.rooms = dict()
