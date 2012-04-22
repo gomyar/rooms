@@ -1,3 +1,12 @@
+body
+{
+    padding : 0px;
+    margin : 0px;
+    border : 0px;
+    font-family : helvetica;
+    color : white;
+}
+
 #screen
 {
     position : absolute;
@@ -5,20 +14,77 @@
     left : 0px;
 }
 
-#main
+div#main
 {
-    width : 100%;
-    height : 100%;
+    position : absolute;
+    top : 0px;
+    left : 0px;
+    right : 0px;
+    bottom : 200px;
 }
 
 div.actor_commands
 {
     position : absolute;
     width : 100px;
-    background-color : darkblue;
+    background-color : blue;
+    color : white;
+    font-style : bold;
 }
 
 div.actor_commands div.command_button
 {
     height : 20px;
+    background-color : darkblue;
+    cursor : pointer;
+    margin : 1px solid blue;
+}
+
+div.actor_commands div.command_button:hover
+{
+    margin : 1px solid white;
+    background-color : blue;
+}
+
+div#logOuter
+{
+    position : absolute;
+    width : 100%;
+    height : 200px;
+    bottom : 0px;
+    background-color : black;
+    overflow : hidden;
+}
+
+div#logOuter div#log
+{
+    height : 200px;
+    overflow : scroll;
+    text-indent: 10px;
+}
+
+div#logOuter div#logTitle
+{
+    font-size: 12px;
+    border-top : 1px solid grey;
+    border-bottom : 1px solid grey;
+}
+
+
+div#logOuter div#log div.logEntry
+{
+    color : white;
+    font-size : 12px;
+}
+
+div#logOuter div#log div.logEntry div.logTime
+{
+    display : inline;
+    width : 50px;
+    margin-right : 10px;
+}
+
+div#logOuter div#log div.logEntry div.logText
+{
+    display : inline;
 }

@@ -297,7 +297,7 @@ function show_commands(commands)
     {
         var command = commands[i];
         var command_item = $("<div>", { 'class': 'command_button', 'text': command.name } );
-        command_item.click(command_lookup[command.name]());
+        command_item.click(function() { $(".actor_commands").remove(); command_lookup[command.name](); });
         command_div.append(command_item);
     }
     $("#main").append(command_div);
@@ -494,18 +494,35 @@ function onmessage(msg)
 
             if (message.kwargs.player_id == player_id)
                 own_actor = sprite;
+            addLogEntry("Player entered room: "+message.kwargs.player_id);
         }
         else if (message.command == "actor_left")
         {
             console.log("Actor left: "+message.kwargs.player_id);
             delete sprites[message.kwargs.player_id];
             requestRedraw();
+            addLogEntry("Player exited room: "+message.kwargs.player_id);
+        }
+        else if (message.command == "log")
+        {
+            addLogEntry(message.kwargs.msg);
         }
         else if (message.command == "heartbeat")
         {
             console.log("heartbeat");
         }
     }
+}
+
+function addLogEntry(message)
+{
+    var logtime = new Date(get_now()).toLocaleTimeString();
+    $("#log").prepend(
+        $("<div>", { 'class': 'logEntry' }).append(
+            $("<div>", { 'class': 'logTime', 'text': logtime }),
+            $("<div>", { 'class': 'logText', 'text': message })
+        )
+    );
 }
 
 function init()
