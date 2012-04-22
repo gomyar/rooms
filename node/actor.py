@@ -148,4 +148,4 @@ class Actor(object):
         self.instance.send_event(self.player_id, "log", log_entry)
 
     def add_chat_message(self, msg, *args):
-        self.add_log(msg, args)
+        self.add_log(msg, *args)
