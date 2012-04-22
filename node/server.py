@@ -140,6 +140,23 @@ def control_handle(environ, response):
     return returned
 
 
+def room_handle(environ, response):
+    _, url, instance_uid = environ['PATH_INFO'].split("/")
+    cookies = _read_cookies(environ)
+    instance = instances[instance_uid]
+    returned = instance.area.actors[sessions[cookies['sessionid']]].room.external()
+    if returned:
+        returned = simplejson.dumps(returned)
+    else:
+        returned = "[]"
+    response('200 OK', [
+        ('content-type', 'text/javascript'),
+        ('content-length', len(returned)),
+    ])
+    return returned
+
+
+
 def check_player_joined(player_id):
     for instance in instances.values():
         if player_id in instance.players:
@@ -162,6 +179,8 @@ def root(environ, response):
         return game_handle(environ, response)
     elif environ['PATH_INFO'].startswith('/control/'):
         return control_handle(environ, response)
+    elif environ['PATH_INFO'].startswith('/room/'):
+        return room_handle(environ, response)
     elif environ['PATH_INFO'] == '/':
         if check_player_joined(_get_param(environ, 'player_id')):
             return www_file('/index.html', response)

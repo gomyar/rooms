@@ -61,7 +61,8 @@ class Actor(object):
         return func(*args, **kwargs)
 
     def external(self):
-        return dict(actor_id=self.actor_id, path=self.path, speed=self.speed)
+        return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
+            path=self.path, speed=self.speed)
 
     def x(self):
         now = get_now()
@@ -102,6 +103,9 @@ class Actor(object):
             return end_y
         inc = (now - start_time) / diff_t
         return start_y + diff_y * inc
+
+    def position(self):
+        return (self.x(), self.y())
 
     def set_position(self, position):
         x, y = position

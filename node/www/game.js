@@ -261,6 +261,15 @@ Sprite.prototype.deselect = function()
     this.selected = false;
 }
 
+function draw_door(ctx)
+{
+    ctx.strokeStyle = "rgb(255,255,255)";
+    ctx.beginPath();
+    ctx.arc(this.x(),this.y(),40,0,Math.PI*2);
+    ctx.closePath();
+    ctx.stroke();
+}
+
 var canvas;
 var ctx;
 var sprites = {};
@@ -374,7 +383,7 @@ function draw()
     }
 
     ctx.fillStyle = "rgb(0,100,0)";
-    ctx.fillRect(0, 0, room.width, room.height);
+    ctx.fillRect(room.position[0], room.position[1], room.width, room.height);
 
     draw_map();
 
@@ -434,12 +443,7 @@ function draw_map()
 function load_map(map_url)
 {
     jQuery.get(map_url, function(data) {
-        console.log("Loaded map: "+data);
-        parsed = data;
-
-        map = parsed.rooms.pitch.objects;
-        room = parsed.rooms.pitch;
-        console.log("Parsed map: "+parsed);
+        room = jQuery.parseJSON(data);
     });
 }
 
@@ -469,13 +473,24 @@ function onmessage(msg)
             sprites = {};
             for (var i=0; i<actors.length; i++)
             {
-                sprite = new Sprite(actors[i].actor_id);
-                sprite.path = actors[i].path;
-                sprites[actors[i].actor_id] = sprite;
-                if (actors[i].actor_id == player_id)
-                    own_actor = sprite;
+                var actor = actors[i];
+                if (actor.actor_type == "PlayerActor")
+                {
+                    sprite = new Sprite(actor.actor_id);
+                    sprite.path = actor.path;
+                    sprites[actor.actor_id] = sprite;
+                    if (actor.actor_id == player_id)
+                        own_actor = sprite;
+                }
+                else if (actor.actor_type == "Door")
+                {
+                    sprite = new Sprite(actor.actor_id);
+                    sprite.draw = draw_door;
+                    sprite.path = actor.path;
+                    sprites[actor.actor_id] = sprite;
+                }
             }
-            load_map(message.kwargs.map);
+            load_map('/room/'+instance_uid);
             for (var i in message.kwargs.player_log)
             {
                 var text = message.kwargs.player_log[i].msg;

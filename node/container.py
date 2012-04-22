@@ -100,7 +100,7 @@ def serialize_door(obj):
     data.update(dict(
         exit_room_id=obj.exit_room.room_id,
         exit_door_id=obj.exit_door_id,
-        position=obj.position,
+        position=(obj.x(), obj.y()),
     ))
     return data
 
@@ -108,7 +108,7 @@ def create_door(data):
     door = Door()
     door.exit_room_id = data['exit_room_id']
     door.exit_door_id = data['exit_door_id']
-    door.position = data['position']
+    door.set_position(data['position'])
     return door
 
 

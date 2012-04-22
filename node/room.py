@@ -15,10 +15,14 @@ class Room(object):
     def __repr__(self):
         return "<Room %s>" % (self.room_id,)
 
+    def external(self):
+        return dict(room_id=self.room_id, position=self.position,
+            width=self.width, height=self.height, map_objects=self.map_objects)
+
     def actor_enters(self, actor, door_id):
         self.actors[actor.actor_id] = actor
         actor.room = self
-        actor.set_position(self.actors[door_id].position)
+        actor.set_position(self.actors[door_id].position())
 
     def actor_exits(self, actor):
         self.actors.pop(actor.actor_id)
