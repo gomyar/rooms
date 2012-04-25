@@ -254,6 +254,11 @@ Sprite.prototype.atPosition = function(x, y)
 Sprite.prototype.select = function()
 {
     this.selected = true;
+    if (this.id == player_id)
+        service_call("/game/" + instance_uid + "/" + this.id + "/exposed_commands", {}, show_commands);
+    else
+        service_call("/game/" + instance_uid + "/" + this.id + "/exposed_methods", {}, show_commands);
+
 }
 
 Sprite.prototype.deselect = function()
@@ -268,6 +273,17 @@ function draw_door(ctx)
     ctx.arc(this.x(),this.y(),40,0,Math.PI*2);
     ctx.closePath();
     ctx.stroke();
+}
+
+function exited(data)
+{
+    console.log("Exited successfully");
+}
+
+function exit_door()
+{
+    service_call("/game/" + instance_uid + "/" + player_id + "/exit",
+        { "door_id": this.id }, exited)
 }
 
 var canvas;
@@ -318,10 +334,6 @@ function select_sprite(sprite)
         selected_sprite.deselect();
     selected_sprite = sprite;
     selected_sprite.select();
-    if (sprite.id == player_id)
-        service_call("/game/" + instance_uid + "/" + sprite.id + "/exposed_commands", {}, show_commands);
-    else
-        service_call("/game/" + instance_uid + "/" + sprite.id + "/exposed_methods", {}, show_commands);
 }
 
 function canvas_clicked(e)
@@ -417,7 +429,7 @@ function fill_rect(x, y, width, height, color)
 }
 
 var map = [];
-var room = { width: 500, height: 500 };
+var room = { width: 500, height: 500, position: [0, 0] };
 
 function draw_map()
 {
@@ -486,6 +498,7 @@ function onmessage(msg)
                 {
                     sprite = new Sprite(actor.actor_id);
                     sprite.draw = draw_door;
+                    sprite.select = exit_door;
                     sprite.path = actor.path;
                     sprites[actor.actor_id] = sprite;
                 }

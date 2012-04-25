@@ -22,6 +22,7 @@ def serialize_actor(obj):
     )
 
 def _deserialize_actor(actor, data):
+    actor.actor_id = data['actor_id']
     actor.path = data['path']
     actor.speed = data['speed']
     actor.room_id = data['room_id']
@@ -106,6 +107,7 @@ def serialize_door(obj):
 
 def create_door(data):
     door = Door()
+    _deserialize_actor(door, data)
     door.exit_room_id = data['exit_room_id']
     door.exit_door_id = data['exit_door_id']
     door.set_position(data['position'])

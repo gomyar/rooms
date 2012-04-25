@@ -16,3 +16,7 @@ class PlayerActor(Actor):
     @expose()
     def chat(self, actor):
         actor.add_chat_message("Hi from %s", self.actor_id)
+
+    @command()
+    def exit(self, door_id):
+        self.room.exit_through_door(door_id)

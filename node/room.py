@@ -27,3 +27,8 @@ class Room(object):
     def actor_exits(self, actor):
         self.actors.pop(actor.actor_id)
         actor.room = None
+
+    def exit_through_door(self, actor, door_id):
+        door = self.actors[door_id]
+        self.actor_exits(actor)
+        door.exit_room.actor_enters(actor, door.exit_door_id)
