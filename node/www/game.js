@@ -5,6 +5,7 @@ var instance_uid;
 var player_id;
 
 var redraw_until;
+var walk_timeout = 0;
 
 function command_chat()
 {
@@ -208,21 +209,6 @@ Sprite.prototype.y = function()
     return start_y + diff_y * inc;
 }
 
-Sprite.prototype.walk_to = function(x, y, end_time)
-{
-    console.log("sprite: "+this.id+" walking to "+x+","+y);
-    this.start_x = this.x();
-    this.start_y = this.y();
-    this.end_x = x;
-    this.end_y = y;
-    this.start_time = get_now();
-    if (end_time != null)
-        this.end_time = end_time;
-    else
-        this.end_time = this.start_time + 2000;
-    this.optionalRedraw();
-}
-
 Sprite.prototype.optionalRedraw = function()
 {
     if (redraw_until <= this.end_time())
@@ -280,10 +266,28 @@ function exited(data)
     console.log("Exited successfully");
 }
 
-function exit_door()
+function timeTo(start, end, speed)
+{
+    var x = end[0] - start[0];
+    var y = end[1] - start[1];
+    return Math.sqrt(x * x + y * y) / speed;
+}
+
+function exit_through_door()
+{
+    var door_id = this.id;
+    walk_to(this.x(), this.y());
+    var timeTill = timeTo([own_actor.x(), own_actor.y()],
+        [this.x(), this.y()], 200) * 1000.0;
+    walk_timeout = setTimeout(function() {
+        exit_door(door_id);
+    }, timeTill);
+}
+
+function exit_door(door_id)
 {
     service_call("/game/" + instance_uid + "/" + player_id + "/exit",
-        { "door_id": this.id }, exited)
+        { "door_id": door_id }, exited)
 }
 
 var canvas;
@@ -352,10 +356,17 @@ function canvas_clicked(e)
     }
     else 
     {
-        service_call("/game/"+instance_uid+"/"+player_id+"/walk_to",
-            { x : click_x, y : click_y },
-            function () { console.log("Ok"); });
+        walk_to(click_x, click_y)
     }
+}
+
+function walk_to(x, y)
+{
+    if (walk_timeout)
+        clearTimeout(walk_timeout);
+    service_call("/game/"+instance_uid+"/"+player_id+"/walk_to",
+        { x : x, y : y },
+        function () { console.log("Ok"); });
 }
 
 function canvas_mousemove(e)
@@ -498,7 +509,7 @@ function onmessage(msg)
                 {
                     sprite = new Sprite(actor.actor_id);
                     sprite.draw = draw_door;
-                    sprite.select = exit_door;
+                    sprite.select = exit_through_door;
                     sprite.path = actor.path;
                     sprites[actor.actor_id] = sprite;
                 }
