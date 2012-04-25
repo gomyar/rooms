@@ -56,7 +56,7 @@ def handle_socket(ws):
         log.debug("registering %s at %s", player_id, instance_uid)
         instance.register(player_id, queue)
         sessions[cookies['sessionid']] = player_id
-        ws.send(simplejson.dumps([instance.sync(player_id)]))
+        instance.send_sync(player_id)
         while not ws.websocket_closed:
             try:
                 command = queue.get(timeout=5)

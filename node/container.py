@@ -91,8 +91,9 @@ def create_area(data):
             for actor in room.actors.values():
                 actor.room = room
         # hook up doors
-        for door in filter(lambda r: type(r) is Door, room.actors.values()):
-            door.exit_room = area.rooms[door.exit_room_id]
+        for room in area.rooms.values():
+            for door in room.all_doors():
+                door.exit_room = area.rooms[door.exit_room_id]
     return area
 
 # Door

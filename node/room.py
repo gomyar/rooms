@@ -1,4 +1,6 @@
 
+from door import Door
+
 
 class Room(object):
     def __init__(self, room_id=None, position=(0, 0), width=50, height=50):
@@ -32,3 +34,6 @@ class Room(object):
         door = self.actors[door_id]
         self.actor_exits(actor)
         door.exit_room.actor_enters(actor, door.exit_door_id)
+
+    def all_doors(self):
+        return filter(lambda r: type(r) is Door, self.actors.values())

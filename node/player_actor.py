@@ -19,4 +19,5 @@ class PlayerActor(Actor):
 
     @command()
     def exit(self, door_id):
-        self.room.exit_through_door(door_id)
+        self.room.exit_through_door(self, door_id)
+        self.instance.send_sync(self.actor_id)

@@ -72,6 +72,10 @@ class Instance:
         for queue in self.queues:
             queue.put(dict(command=command, kwargs=kwargs))
 
+    def send_sync(self, player_id):
+        for queue in self.player_queues[player_id]:
+            queue.put(self.sync(player_id))
+
     def actors_dict(self):
         return map(lambda a: a.external(), self.area.actors.values())
 

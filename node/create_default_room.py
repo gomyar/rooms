@@ -17,7 +17,7 @@ area.rooms['lobby'] = lobby
 
 area.rooms['foyer'] = foyer
 
-area.create_door(lobby, foyer, (500, 250), (0, 250))
+area.create_door(lobby, foyer, (500, 250), (500, 250))
 
 area.entry_point_room_id = "lobby"
 area.entry_point_door_id = "door_foyer_500_250"
