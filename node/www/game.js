@@ -405,10 +405,8 @@ function draw()
         ctx.translate(viewport_x, viewport_y);
     }
 
-    ctx.fillStyle = "rgb(0,100,0)";
-    ctx.fillRect(room.position[0], room.position[1], room.width, room.height);
 
-    draw_map();
+    draw_room();
 
     for (var i in sprites)
         sprites[i].draw(ctx);
@@ -439,27 +437,18 @@ function fill_rect(x, y, width, height, color)
     ctx.fillRect(x, y, width, height);
 }
 
-var map = [];
-var room = { width: 500, height: 500, position: [0, 0] };
+var room = { width: 500, height: 500, position: [0, 0], map_objects: [] };
 
-function draw_map()
+function draw_room()
 {
-    for (var i=0; i<map.length; i++)
+    ctx.fillStyle = "rgb(0,100,0)";
+    ctx.fillRect(room.position[0], room.position[1], room.width, room.height);
+
+    for (var i=0; i<room.map_objects.length; i++)
     {
-        tile = map[i];
-        if (tile.type == "rect")
-            fill_rect(tile.x, tile.y, tile.width,
-                tile.height, "rgb(100,100,140)");
-        if (tile.type == "poly")
-        {
-            ctx.fillStyle = "rgb(100,100,140)";
-            ctx.beginPath();
-            ctx.moveTo(tile.vertices[0][0], tile.vertices[0][1]);
-            for (v=1; v<tile.vertices.length; v++)
-                ctx.lineTo(tile.vertices[v][0], tile.vertices[v][1]);
-            ctx.closePath();
-            ctx.fill();
-        }
+        var map_object = room.map_objects[i];
+        ctx.fillStyle = "rgb(100,100,100)";
+        ctx.fillRect(map_object.position[0], map_object.position[1], map_object.width, map_object.height);
     }
 }
 

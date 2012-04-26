@@ -2,6 +2,16 @@
 from door import Door
 
 
+class RoomObject(object):
+    def __init__(self, width, height, position=(0, 0)):
+        self.width = width
+        self.height = height
+        self.position = position
+
+    def external(self):
+        return dict(width=self.width, height=self.height,
+            position=self.position)
+
 class Room(object):
     def __init__(self, room_id=None, position=(0, 0), width=50, height=50):
         self.room_id = room_id
@@ -17,9 +27,16 @@ class Room(object):
     def __repr__(self):
         return "<Room %s>" % (self.room_id,)
 
+    def add_object(self, map_object, rel_position=(0, 0)):
+        position = (self.position[0] + rel_position[0],
+            self.position[1] + rel_position[1])
+        map_object.position = position
+        self.map_objects.append(map_object)
+
     def external(self):
         return dict(room_id=self.room_id, position=self.position,
-            width=self.width, height=self.height, map_objects=self.map_objects)
+            width=self.width, height=self.height,
+            map_objects=[m.external() for m in self.map_objects])
 
     def actor_enters(self, actor, door_id):
         self.actors[actor.actor_id] = actor

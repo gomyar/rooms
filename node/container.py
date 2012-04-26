@@ -7,6 +7,7 @@ from pymongo.helpers import bson
 from actor import Actor
 from player_actor import PlayerActor
 from room import Room
+from room import RoomObject
 from area import Area
 from door import Door
 
@@ -64,6 +65,18 @@ def create_room(data):
     room._actor_ids = data['actor_ids']
     return room
 
+# RoomObject
+def serialize_roomobject(obj):
+    return dict(
+        width=obj.width,
+        height=obj.height,
+        position=obj.position,
+    )
+
+def create_roomobject(data):
+    room_object = RoomObject(data['width'], data['height'], data['position'])
+    return room_object
+
 # Area
 def serialize_area(obj):
     return dict(
@@ -119,6 +132,7 @@ object_serializers = dict(
     Actor=serialize_actor,
     PlayerActor=serialize_player_actor,
     Room=serialize_room,
+    RoomObject=serialize_roomobject,
     Area=serialize_area,
     Door=serialize_door,
 )
@@ -126,6 +140,7 @@ object_serializers = dict(
 object_factories = dict(
     Actor=create_actor,
     Room=create_room,
+    RoomObject=create_roomobject,
     Area=create_area,
     Door=create_door,
 )

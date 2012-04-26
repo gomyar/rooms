@@ -10,8 +10,10 @@ area.area_name = "default"
 area.owner_id = 1
 
 lobby = Room('lobby', (0, 0), 500, 500)
+lobby.add_object(RoomObject(50, 20), (20, 20))
 
 foyer = Room('foyer', (500, -300), 800, 800)
+foyer.add_object(RoomObject(200, 200), (300, 300))
 
 area.rooms['lobby'] = lobby
 
