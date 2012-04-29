@@ -66,14 +66,14 @@ class Actor(object):
 
     def x(self):
         now = get_now()
-        if now > self.path[-1][2]:
+        path = list(self.path)
+        start = path[0]
+        while path and now > path[0][2]:
+            start = path.pop(0)
+        if not path:
             return self.path[-1][0]
-        index = 0
-        while index < len(self.path) -2 and self.path[index][2] < now:
-            index += 1
-
-        start_x, start_y, start_time = self.path[index]
-        end_x, end_y, end_time = self.path[index + 1]
+        start_x, start_y, start_time = start
+        end_x, end_y, end_time = path[0]
 
         if now > end_time:
             return end_x
@@ -86,14 +86,14 @@ class Actor(object):
 
     def y(self):
         now = get_now()
-        if now > self.path[-1][2]:
+        path = list(self.path)
+        start = path[0]
+        while path and now > path[0][2]:
+            start = path.pop(0)
+        if not path:
             return self.path[-1][1]
-        index = 0
-        while index < len(self.path) -2 and self.path[index][2] < now:
-            index += 1
-
-        start_x, start_y, start_time = self.path[index]
-        end_x, end_y, end_time = self.path[index + 1]
+        start_x, start_y, start_time = start
+        end_x, end_y, end_time = path[0]
 
         if now > end_time:
             return end_y

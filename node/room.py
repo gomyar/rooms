@@ -50,6 +50,11 @@ class Room(object):
         return "<Room %s at %s w:%s h:%s>" % (self.room_id,self.position,
             self.width, self.height)
 
+    def get_path(self, start, end):
+        start = (int(start[0]), int(start[1]))
+        end = (int(end[0]), int(end[1]))
+        return geog.get_path(self, start, end)
+
     def add_object(self, map_object, rel_position=(0, 0)):
         position = (self.position[0] + rel_position[0],
             self.position[1] + rel_position[1])

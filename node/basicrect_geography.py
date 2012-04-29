@@ -19,19 +19,35 @@ class Rect:
     def on_horizontal(self, y):
         return self.y2 > y and self.y1 < y
 
-    def subdivide_horizontal(self, y):
-        return [Rect(self.x1, self.y1, self.x2, y), Rect(self.x1, y,
-            self.x2, self.y2)]
+    def on_vertical(self, x):
+        return self.x2 > x and self.x1 < x
+
+    def is_north(self, position):
+        return position[1] == self.y1
+
+    def is_south(self, position):
+        return position[1] == self.y2
+
+    def is_west(self, position):
+        return position[0] == self.x1
+
+    def is_east(self, position):
+        return position[0] == self.x2
+
+    def at(self, position):
+        return self.x1 <= position[0] and self.y1 <= position[1] and \
+            self.x2 >= position[0] and self.y2 >= position[1]
 
     def overlaps(self, rect):
         return (self.x1 < rect.x2 and self.y1 < rect.y2 and \
                 self.x2 > rect.x1 and self.y2 > rect.y1)
 
-    def on_vertical(self, x):
-        return self.x2 > x and self.x1 < x
+    def subdivide_horizontal(self, y):
+        return [Rect(self.x1, self.y1, self.x2, y), Rect(self.x1, y + 1,
+            self.x2, self.y2)]
 
     def subdivide_vertical(self, x):
-        return [Rect(self.x1, self.y1, x, self.y2), Rect(x, self.y1,
+        return [Rect(self.x1, self.y1, x, self.y2), Rect(x + 1, self.y1,
             self.x2, self.y2)]
 
     def external(self):
@@ -82,10 +98,84 @@ class Rect:
         return x2, y2
 
 
-class BasicRectGeography:
-    def get_path(self, room, start, end):
-        return [ start, end ]
+class RectCollection:
+    def __init__(self, rects):
+        self.rects = rects
 
+    def rect_at(self, position):
+        for rect in self.rects:
+            if rect.at(position):
+                return rect
+        return None
+
+
+def _is_above(start, end):
+    return end[1] < start[1]
+
+def _is_below(start, end):
+    return end[1] > start[1]
+
+def _is_left(start, end):
+    return end[0] < start[0]
+
+def _is_right(start, end):
+    return end[0] > start[0]
+
+def _is_north(start, end):
+    return _is_above(start, end) and \
+        (abs(end[1] - start[1]) > abs(end[0] - start[0]))
+
+def _is_south(start, end):
+    return _is_below(start, end) and \
+        (abs(end[1] - start[1]) > abs(end[0] - start[0]))
+
+def _is_east(start, end):
+    return _is_right(start, end) and \
+        (abs(end[1] - start[1]) < abs(end[0] - start[0]))
+
+def _is_west(start, end):
+    return _is_left(start, end) and \
+        (abs(end[1] - start[1]) < abs(end[0] - start[0]))
+
+
+class BasicRectGeography:
+    def __init__(self):
+        self.rooms = dict()
+
+    def rect_at(self, room, position):
+        return self.get_rects_for(room).rect_at(position)
+
+    def get_path(self, room, start, end):
+        rect = self.rect_at(room, start)
+        if rect.at(end):
+            return [ start, end ]
+
+        else:
+            edge = rect.line_intersects_rect([start, end])
+            next_rect = None
+            if rect.is_north(edge) and _is_above(start, end):
+                exit = (edge[0], edge[1] - 2)
+                next_rect = self.rect_at(room, exit)
+            if rect.is_south(edge) and _is_below(start, end):
+                exit = (edge[0], edge[1] + 2)
+                next_rect = self.rect_at(room, exit)
+            if rect.is_east(edge) and _is_right(start, end):
+                exit = (edge[0] + 2, edge[1])
+                next_rect = self.rect_at(room, exit)
+            if rect.is_west(edge) and _is_left(start, end):
+                exit = (edge[0] - 2, edge[1])
+                next_rect = self.rect_at(room, exit)
+            if next_rect:
+                return [ start, edge ] + self.get_path(room, exit, end)
+
+
+
+            return [ start, edge ]
+
+    def get_rects_for(self, room):
+        if room not in self.rooms:
+            self.rooms[room] = RectCollection(self.subdivide(room))
+        return self.rooms[room]
 
     def subdivide(self, room):
         rects = [Rect(*room.wall_positions())]

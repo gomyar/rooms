@@ -5,6 +5,10 @@ from basicrect_geography import BasicRectGeography
 from basicrect_geography import Rect
 from room import Room
 from room import RoomObject
+from basicrect_geography import _is_north
+from basicrect_geography import _is_south
+from basicrect_geography import _is_east
+from basicrect_geography import _is_west
 
 
 class BasicRectGeographyTest(unittest.TestCase):
@@ -22,11 +26,20 @@ class BasicRectGeographyTest(unittest.TestCase):
 
         path = self.basicrect.get_path(self.room, (10, 10), (40, 40))
 
-#        self.assertEquals([(10, 10), (20, 20), (30, 20), (40, 40)], path)
+        self.assertEquals([(10, 10), (20, 20), (30, 20), (40, 40)], path)
 
         path = self.basicrect.get_path(self.room, (5, 10), (40, 40))
 
-#        self.assertEquals([(10, 10), (20, 22), (20, 30), (40, 40)], path)
+        self.assertEquals([(10, 10), (20, 22), (20, 30), (40, 40)], path)
+
+    def testPositionsAreEastOrNorth(self):
+        self.assertTrue(_is_north((0, 0), (-5, -10)))
+        self.assertTrue(_is_north((0, 0), (5, -10)))
+        self.assertTrue(_is_west((0, 0), (-15, -10)))
+        self.assertTrue(_is_east((0, 0), (15, -10)))
+        self.assertTrue(_is_east((0, 0), (15, -5)))
+        self.assertTrue(_is_east((0, 0), (15, 5)))
+        self.assertTrue(_is_east((0, 0), (15, 10)))
 
     def testIntersectsRectWall(self):
         rect = Rect(0, 0, 10, 10)
@@ -62,13 +75,13 @@ class BasicRectGeographyTest(unittest.TestCase):
         self.assertEquals(8, len(rects))
         self.assertEquals([
             Rect(0, 0, 20, 20),
-            Rect(0, 20, 20, 30),
-            Rect(0, 30, 20, 50),
-            Rect(20, 0, 30, 20),
-            Rect(30, 0, 50, 20),
-            Rect(30, 20, 50, 30),
-            Rect(20, 30, 30, 50),
-            Rect(30, 30, 50, 50),
+            Rect(0, 21, 20, 30),
+            Rect(0, 31, 20, 50),
+            Rect(21, 0, 30, 20),
+            Rect(31, 0, 50, 20),
+            Rect(31, 21, 50, 30),
+            Rect(21, 31, 30, 50),
+            Rect(31, 31, 50, 50),
         ], rects)
 
     def testRectOverlaps(self):

@@ -11,7 +11,8 @@ class PlayerActor(Actor):
     @command()
     def walk_to(self, x, y):
         x, y = float(x), float(y)
-        self.set_path([ (self.x(), self.y()), (x, y) ])
+        path = self.room.get_path((self.x(), self.y()), (x, y))
+        self.set_path(path)
 
     @expose()
     def chat(self, actor):

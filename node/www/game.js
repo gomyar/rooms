@@ -7,6 +7,8 @@ var player_id;
 var redraw_until;
 var walk_timeout = 0;
 
+var previous_paths = [];
+
 function command_chat()
 {
     service_call("/game/" + instance_uid + "/" + selected_sprite.id + "/chat", {}, function () { console.log("Unneeded callback"); });
@@ -408,6 +410,20 @@ function draw()
 
     draw_room();
 
+    ctx.strokeStyle = "rgb(0,0,100)";
+    for (var p=0; p<previous_paths.length; p++)
+    {
+        var path = previous_paths[p];
+        for (var i=0; i<path.length - 1; i++)
+        {
+            ctx.beginPath();
+            ctx.moveTo(path[i][0], path[i][1]);
+            ctx.lineTo(path[i+1][0], path[i+1][1]);
+            ctx.stroke();
+        }
+    }
+
+
     for (var i in sprites)
         sprites[i].draw(ctx);
 
@@ -498,6 +514,7 @@ function onmessage(msg)
                 if (actor.actor_type == "PlayerActor")
                 {
                     sprite = new Sprite(actor.actor_id);
+                    previous_paths[previous_paths.length] = sprite.path;
                     sprite.path = actor.path;
                     sprites[actor.actor_id] = sprite;
                     if (actor.actor_id == player_id)
@@ -524,6 +541,7 @@ function onmessage(msg)
         else if (message.command == "actor_update")
         {
             console.log("Actor update: "+message.kwargs.actor_id);
+            previous_paths[previous_paths.length] = sprites[message.kwargs.actor_id].path;
             sprites[message.kwargs.actor_id].path = message.kwargs.path;
             sprites[message.kwargs.actor_id].optionalRedraw();
         }
