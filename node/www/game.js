@@ -450,6 +450,15 @@ function draw_room()
         ctx.fillStyle = "rgb(100,100,100)";
         ctx.fillRect(map_object.position[0], map_object.position[1], map_object.width, map_object.height);
     }
+
+    for (var i in room.subdivided)
+    {
+        var rect = room.subdivided[i];
+        ctx.fillStyle = "rgb(200, 0, 0)";
+        ctx.fillRect(rect[0], rect[1], rect[2]-rect[0], rect[3]-rect[1]);
+        ctx.strokeStyle = "rgb(255, 200, 0)";
+        ctx.strokeRect(rect[0], rect[1], rect[2]-rect[0], rect[3]-rect[1]);
+    }
 }
 
 function load_map(map_url)

@@ -59,7 +59,7 @@ def handle_socket(ws):
         instance.send_sync(player_id)
         while not ws.websocket_closed:
             try:
-                command = queue.get(timeout=5)
+                command = queue.get(timeout=30)
                 commands = [ command ]
                 while queue.qsize() > 0:
                     commands.append(queue.get())

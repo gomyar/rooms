@@ -1,6 +1,9 @@
 
 from door import Door
 
+from basicrect_geography import BasicRectGeography
+
+geog = BasicRectGeography()
 
 class RoomObject(object):
     def __init__(self, width, height, position=(0, 0)):
@@ -8,9 +11,28 @@ class RoomObject(object):
         self.height = height
         self.position = position
 
+    def __repr__(self):
+        return "<RoomObject %s, %s, %s, %s>" % self.wall_positions()
+
     def external(self):
         return dict(width=self.width, height=self.height,
             position=self.position)
+
+    def left(self):
+        return self.position[0]
+
+    def top(self):
+        return self.position[1]
+
+    def right(self):
+        return self.position[0] + self.width
+
+    def bottom(self):
+        return self.position[1] + self.height
+
+    def wall_positions(self):
+        return (self.left(), self.top(), self.right(), self.bottom())
+
 
 class Room(object):
     def __init__(self, room_id=None, position=(0, 0), width=50, height=50):
@@ -25,7 +47,8 @@ class Room(object):
         return rhs and self.room_id == rhs.room_id
 
     def __repr__(self):
-        return "<Room %s>" % (self.room_id,)
+        return "<Room %s at %s w:%s h:%s>" % (self.room_id,self.position,
+            self.width, self.height)
 
     def add_object(self, map_object, rel_position=(0, 0)):
         position = (self.position[0] + rel_position[0],
@@ -36,7 +59,8 @@ class Room(object):
     def external(self):
         return dict(room_id=self.room_id, position=self.position,
             width=self.width, height=self.height,
-            map_objects=[m.external() for m in self.map_objects])
+            map_objects=[m.external() for m in self.map_objects],
+            subdivided=[r.external() for r in geog.subdivide(self)])
 
     def actor_enters(self, actor, door_id):
         self.actors[actor.actor_id] = actor
@@ -54,3 +78,18 @@ class Room(object):
 
     def all_doors(self):
         return filter(lambda r: type(r) is Door, self.actors.values())
+
+    def left(self):
+        return self.position[0]
+
+    def top(self):
+        return self.position[1]
+
+    def right(self):
+        return self.position[0] + self.width
+
+    def bottom(self):
+        return self.position[1] + self.height
+
+    def wall_positions(self):
+        return (self.left(), self.top(), self.right(), self.bottom())
