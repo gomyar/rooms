@@ -29,32 +29,31 @@ class BasicRectGeographyTest(unittest.TestCase):
 #        self.assertEquals([(10, 10), (20, 22), (20, 30), (40, 40)], path)
 
     def testIntersectsRectWall(self):
-        rect = (0, 0, 10, 10)
+        rect = Rect(0, 0, 10, 10)
         line = [ (5, 5), (15, 5) ]
-        self.assertEquals((10, 5), self.basicrect.line_intersectsRect(line,
-            rect))
+        self.assertEquals((10, 5), rect.line_intersects_rect(line))
         line = [ (5, 5), (5, 15) ]
-        self.assertEquals((5, 10), self.basicrect.line_intersectsRect(line,
-            rect))
+        self.assertEquals((5, 10), rect.line_intersects_rect(line))
 
         line = [ (5, 5), (15, 10) ]
-        self.assertEquals((10, 7), self.basicrect.line_intersectsRect(line,
-            rect))
+        self.assertEquals((10, 7), rect.line_intersects_rect(line))
         line = [ (5, 5), (15, 8) ]
-        self.assertEquals((10, 6), self.basicrect.line_intersectsRect(line,
-            rect))
+        self.assertEquals((10, 6), rect.line_intersects_rect(line))
 
         line = [ (5, 5), (8, 15) ]
-        self.assertEquals((6, 10), self.basicrect.line_intersectsRect(line,
-            rect))
+        self.assertEquals((6, 10), rect.line_intersects_rect(line))
 
         line = [ (5, 5), (0, -5) ]
-        self.assertEquals((2, 0), self.basicrect.line_intersectsRect(line,
-            rect))
+        self.assertEquals((2, 0), rect.line_intersects_rect(line))
 
         line = [ (5, 5), (-5, 0) ]
-        self.assertEquals((0, 2), self.basicrect.line_intersectsRect(line,
-            rect))
+        self.assertEquals((0, 2), rect.line_intersects_rect(line))
+
+    def testLineLength(self):
+        rect = Rect(0, 0, 10, 10)
+        self.assertEquals(10, rect.lengthof((0, 0), (10, 0)))
+        self.assertEquals(20, rect.lengthof((0, 0), (0, 20)))
+        self.assertEquals(28, int(rect.lengthof((0, 0), (20, 20))))
 
     def testSubdivide(self):
         self.room.add_object(RoomObject(10, 10), (20, 20))

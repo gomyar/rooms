@@ -5,7 +5,7 @@ from actor import command
 
 
 class PlayerActor(Actor):
-    def __init__(self, player_id = None, position=(0, 0)):
+    def __init__(self, player_id=None, position=(0, 0)):
         super(PlayerActor, self).__init__(player_id, position)
 
     @command()

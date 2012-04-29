@@ -5,11 +5,18 @@ import mock
 from eventlet.queue import LightQueue
 
 from instance import Instance
+from area import Area
+from room import Room
 
 class InstanceTest(unittest.TestCase):
     def setUp(self):
         self.instance = Instance()
         self.queue = LightQueue()
+        self.area = Area()
+        self.area.rooms['1'] = Room()
+        self.area.entry_point_room_id = '1'
+        self.instance.area = self.area
+        self.instance.player_joins("1")
         self.instance.register("1", self.queue)
         self.now = 0.0
         time.time = mock.Mock(return_value=self.now)

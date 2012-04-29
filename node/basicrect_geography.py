@@ -37,50 +37,55 @@ class Rect:
     def external(self):
         return (self.x1, self.y1, self.x2, self.y2)
 
+    def edges(self):
+        return (self.x1, self.y1, self.x2, self.y2)
+
+    def lengthof(self, start, end):
+        return math.hypot(end[0] - start[0], end[1] - start[1])
+
+    def _intersect_vertical(self, x1, y1, x2, y2, x):
+        w = x2 - x1
+        h = y2 - y1
+        l = math.hypot(w, h)
+        ww = x - x1
+        return y1 + (h * ww / w)
+
+    def _intersect_horizontal(self, x1, y1, x2, y2, y):
+        w = x2 - x1
+        h = y2 - y1
+        l = math.hypot(w, h)
+        hh = y - y1
+        return x1 + (w * hh / h)
+
+    def line_intersects_rect(self, line):
+        start, end = line
+        x1, y1 = start
+        x2, y2 = end
+        left, top, right, bottom = self.edges()
+
+        if x2 > right:
+            y2 = self._intersect_vertical(x1, y1, x2, y2, right)
+            x2 = right
+
+        if x2 < left:
+            y2 = self._intersect_vertical(x1, y1, x2, y2, left)
+            x2 = left
+
+        if y2 > bottom:
+            x2 = self._intersect_horizontal(x1, y1, x2, y2, bottom)
+            y2 = bottom
+
+        if y2 < top:
+            x2 = self._intersect_horizontal(x1, y1, x2, y2, top)
+            y2 = top
+
+        return x2, y2
+
 
 class BasicRectGeography:
     def get_path(self, room, start, end):
         return [ start, end ]
 
-    def line_intersectsRect(self, line, rect):
-        start, end = line
-        x1, y1 = start
-        x2, y2 = end
-        left, top, right, bottom = rect
-
-        if x2 > right:
-            w = x2 - x1
-            h = y2 - y1
-            l = math.hypot(w, h)
-            ww = right - x1
-            y2 = y1 + (h * ww / w)
-            x2 = right
-
-        if x2 < left:
-            w = x2 - x1
-            h = y2 - y1
-            l = math.hypot(w, h)
-            ww = left - x1
-            y2 = y1 + (h * ww / w)
-            x2 = left
-
-        if y2 > bottom:
-            w = x2 - x1
-            h = y2 - y1
-            l = math.hypot(w, h)
-            hh = bottom - y1
-            x2 = x1 + (w * hh / h)
-            y2 = bottom
-
-        if y2 < top:
-            w = x2 - x1
-            h = y2 - y1
-            l = math.hypot(w, h)
-            hh = top - y1
-            x2 = x1 + (w * hh / h)
-            y2 = top
-
-        return x2, y2
 
     def subdivide(self, room):
         rects = [Rect(*room.wall_positions())]
