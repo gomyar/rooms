@@ -62,10 +62,15 @@ class Room(object):
             map_objects=[m.external() for m in self.map_objects],
             subdivided=[r.external() for r in geog.subdivide(self)])
 
-    def actor_enters(self, actor, door_id):
+    def actor_enters(self, actor, door_id=None):
         self.actors[actor.actor_id] = actor
         actor.room = self
-        actor.set_position(self.actors[door_id].position())
+        if door_id:
+            actor.set_position(self.actors[door_id].position())
+        else:
+            entry_x = self.position[0] + self.width / 2
+            entry_y = self.position[1] + self.height / 2
+            actor.set_position((entry_x, entry_y))
 
     def actor_exits(self, actor):
         self.actors.pop(actor.actor_id)

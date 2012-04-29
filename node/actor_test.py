@@ -24,7 +24,7 @@ class MockActor(Actor):
 
 class ActorTest(unittest.TestCase):
     def setUp(self):
-        self.actor = Actor("actor1", 10, 10)
+        self.actor = Actor("actor1", (10, 10))
         self.mock_actor = MockActor("mock")
         self.now = 0.0
         time.time = mock.Mock(return_value=self.now)

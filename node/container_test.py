@@ -14,7 +14,7 @@ class ContainerTest(unittest.TestCase):
         self.area.rooms['lobby'] = Room('lobby')
         actor = Actor('actor1')
         self.area.actors['actor1'] = actor
-        self.area.actor_enters(actor, 'lobby', 'main_entrance')
+        self.area.actor_enters(actor, 'lobby')
 
     def testJsonPickle(self):
         pickled = serialize_area(self.area)

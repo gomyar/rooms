@@ -11,7 +11,7 @@ class Area(object):
         self.rooms = dict()
         self.owner_id = ""
 
-    def actor_enters(self, actor, room_id, door_id):
+    def actor_enters(self, actor, room_id, door_id=None):
         self.rooms[room_id].actor_enters(actor, door_id)
 
     def actor_exits(self, actor):

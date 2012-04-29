@@ -21,10 +21,15 @@ class InstanceTest(unittest.TestCase):
         self.now = 0.0
         time.time = mock.Mock(return_value=self.now)
 
+    def testActorStartPositionInRoom(self):
+        self.assertEquals(25, self.instance.players['1']['player'].x())
+        self.assertEquals(25, self.instance.players['1']['player'].y())
+
     def testBasicCommand(self):
         self.assertEquals('actor_joined', self.queue.get_nowait()['command'])
 
-        self.instance.call("walk_to", kwargs={ 'player_id': '1', 'x': 20, 'y': 10})
+        self.instance.call("walk_to", "1", "1",
+            kwargs={ 'x': 20, 'y': 10})
 
         self.assertEquals('actor_update', self.queue.get_nowait()['command'])
 
