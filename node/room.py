@@ -1,9 +1,9 @@
 
 from door import Door
 
-from basicrect_geography import BasicRectGeography
+from basicsquare_geography import BasicSquareGeography
 
-geog = BasicRectGeography()
+geog = BasicSquareGeography()
 
 class RoomObject(object):
     def __init__(self, width, height, position=(0, 0)):
@@ -17,6 +17,10 @@ class RoomObject(object):
     def external(self):
         return dict(width=self.width, height=self.height,
             position=self.position)
+
+    def at(self, x, y):
+        return self.position[0] <= x and self.position[0] + self.width >= x \
+            and self.position[1] <= y and self.position[1] + self.height >= y
 
     def left(self):
         return self.position[0]
@@ -50,6 +54,12 @@ class Room(object):
         return "<Room %s at %s w:%s h:%s>" % (self.room_id,self.position,
             self.width, self.height)
 
+    def object_at(self, x, y):
+        for map_object in self.map_objects:
+            if map_object.at(x, y):
+                return True
+        return False
+
     def get_path(self, start, end):
         start = (int(start[0]), int(start[1]))
         end = (int(end[0]), int(end[1]))
@@ -65,7 +75,7 @@ class Room(object):
         return dict(room_id=self.room_id, position=self.position,
             width=self.width, height=self.height,
             map_objects=[m.external() for m in self.map_objects],
-            subdivided=[r.external() for r in geog.subdivide(self)])
+        )
 
     def actor_enters(self, actor, door_id=None):
         self.actors[actor.actor_id] = actor

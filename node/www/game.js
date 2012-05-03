@@ -113,6 +113,11 @@ Sprite.prototype.draw = function(ctx)
     for (var i=0;i<this.path.length-1;i++)
     {
         ctx.beginPath();
+        ctx.arc(this.path[i+1][0], this.path[i+1][1],10,0,Math.PI*2);
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.beginPath();
         ctx.moveTo(this.path[i][0], this.path[i][1]);
         ctx.lineTo(this.path[i+1][0], this.path[i+1][1]);
         ctx.stroke();
