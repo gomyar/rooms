@@ -46,6 +46,26 @@ class BasicSquareTest(unittest.TestCase):
         self.assertEquals(None, rects.rect_at(3, 3))
         self.assertEquals(Rect(40, 40, 10, 10), rects.rect_at(4, 4))
 
+    def testNextPoint(self):
+        self.geog = BasicSquareGeography(rect_width=10, rect_height=10)
+        self.room = Room("r1", (0, 0), 50, 50)
+
+        self.assertEquals((28, 15), self.geog._next_point((20, 20), (40, 10)))
+
+    def testLinearPath(self):
+        self.geog = BasicSquareGeography(rect_width=10, rect_height=10)
+        self.room = Room("r1", (0, 0), 50, 50)
+        self.assertEquals([(10, 10), (17, 17), (24, 24), (31, 31), (38, 38),
+            (45, 45), (50, 50)], list(self.geog._line((10, 10),
+            (50, 50))))
+
+
+    def testReal(self):
+        self.room = Room("r1", (0, 0), 400, 400)
+        path = self.geog.get_path(self.room, (388, 187), (441, 264))
+
+        self.assertEquals([], path)
+
     def testNextRect(self):
         self.geog = BasicSquareGeography(rect_width=10, rect_height=10)
         self.room = Room("r1", (0, 0), 50, 50)
@@ -75,6 +95,7 @@ class BasicSquareTest(unittest.TestCase):
         self.room.add_object(RoomObject(100, 100), (100, 100))
 
         self.assertEquals(None, self.geog._get_rects_for(self.room)[113, 128])
+        import ipdb; ipdb.set_trace()
         path = self.geog.get_path(self.room, (50, 200), (200, 50))
 
         self.assertEquals([(50, 200), (90, 120), (90, 110), (90, 100),

@@ -88,34 +88,34 @@ class BasicSquareGeography:
             self.rooms[room] = self._subdivide(room)
         return self.rooms[room]
 
-    def get_path(self, room, start, end, current=None):
-        current = current or start
-        # get line to end
-        w = (end[0] - current[0])
-        h = (end[1] - current[1])
-        slope = h / w if w else h
+    def _line(self, start, end):
+        w = (end[0] - start[0])
+        h = (end[1] - start[1])
         length = math.hypot(w, h)
-        x_hop = w * 10 / length
-        y_hop = h * 10 / length
+        for i, x in enumerate(xrange(0, int(length), int(10))):
+            yield (int(start[0] + i * w * 10 / length),
+                    int(start[1] + i * h * 10 / length))
+        yield end
 
-        # walk line, if endpoint found, start from last good point
-        path = [current]
+    def get_path(self, room, start, end):
         rects = self._get_rects_for(room)
         if not rects[start]:
             raise Exception("Invalid start point for path: %s" % (start,))
-        point = current
-        next_point = (int(point[0] + x_hop), int(point[1] + y_hop))
-        index = 0
-        while rects[next_point] and index < length / 10:
-            point = next_point
-            next_point = (int(point[0] + x_hop), int(point[1] + y_hop))
-            index += 1
-        if rects[next_point]:
-            return path + [next_point, end]
-        else:
-            next_rect = rects[point].next_rect(start, end)
-            if next_rect:
-                return path + self.get_path(room, start, end,
-                    next_rect.center())
+        line = self._line(start, end)
+        point = line.next()
+        path = [start]
+
+        while point:
+            next_point = line.next()
+            if not rects[next_point]:
+                path.append(point)
+                # try square dirs
+                next_rect = rects[point].next_rect(start, end)
+                if not next_rect:
+                    return path
+                else:
+                    line = self._line(next_rect.center(), end)
+                    point = line.next()
             else:
-                return path + [point]
+                point = next_point
+        return path
