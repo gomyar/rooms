@@ -3,6 +3,9 @@ from door import Door
 
 from basicsquare_geography import BasicSquareGeography
 
+import logging
+log = logging.getLogger("rooms")
+
 geog = BasicSquareGeography()
 
 class RoomObject(object):
@@ -63,7 +66,10 @@ class Room(object):
     def get_path(self, start, end):
         start = (int(start[0]), int(start[1]))
         end = (int(end[0]), int(end[1]))
-        return geog.get_path(self, start, end)
+        try:
+            return geog.get_path(self, start, end)
+        except Exception, e:
+            log.exception("Error %s getting path from %s to %s", e, start, end)
 
     def add_object(self, map_object, rel_position=(0, 0)):
         position = (self.position[0] + rel_position[0],

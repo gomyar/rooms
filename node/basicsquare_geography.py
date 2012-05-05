@@ -8,6 +8,8 @@ class Rect:
         self.y1 = y1
         self.x2 = x2
         self.y2 = y2
+        self.rect_collection = None
+        self.position = None
 
     def __repr__(self):
         return "<Rect %s, %s, %s, %s>" % (self.x1, self.y1, self.x2, self.y2)
@@ -15,6 +17,26 @@ class Rect:
     def __eq__(self, rhs):
         return rhs and rhs.x1 == self.x1 and rhs.y1 == self.y1 and \
             rhs.x2 == self.x2 and rhs.x2 == self.x2
+
+    def center(self):
+        return (self.x1 + self.x2 / 2, self.y1 + self.y2 / 2)
+
+    def next_rect(self, start, end):
+        x_dir = (end[0] - start[0])
+        y_dir = (end[1] - start[1])
+        rwidth = self.rect_collection.rect_width
+        rheight = self.rect_collection.rect_height
+        x_dir = int(x_dir / abs(x_dir)) if abs(x_dir) >= rwidth else 0
+        y_dir = int(y_dir / abs(y_dir)) if abs(y_dir) >= rheight else 0
+        rect = self.rect_collection.rect_at(self.position[0] + x_dir,
+            self.position[1])
+        if not rect or rect == self:
+            rect = self.rect_collection.rect_at(self.position[0],
+                self.position[1] + y_dir)
+        if rect != self:
+            return rect
+        else:
+            return None
 
 
 class RectCollection:
@@ -28,6 +50,12 @@ class RectCollection:
 
     def add_rect(self, x, y, rect):
         self.rects[(x, y)] = rect
+        rect.rect_collection = self
+        rect.position = (x, y)
+
+    def remove_rect_at(self, x, y):
+        rect = self.rects.pop((x, y))
+        rect.rect_collection = None
 
     def __getitem__(self, position):
         x, y = position[0], position[1]
@@ -60,31 +88,34 @@ class BasicSquareGeography:
             self.rooms[room] = self._subdivide(room)
         return self.rooms[room]
 
-    def get_path(self, room, start, end):
+    def get_path(self, room, start, end, current=None):
+        current = current or start
         # get line to end
-        w = (end[0] - start[0])
-        h = (end[1] - start[1])
+        w = (end[0] - current[0])
+        h = (end[1] - current[1])
         slope = h / w if w else h
         length = math.hypot(w, h)
         x_hop = w * 10 / length
         y_hop = h * 10 / length
 
         # walk line, if endpoint found, start from last good point
-        path = [start]
+        path = [current]
         rects = self._get_rects_for(room)
-        point = start
+        if not rects[start]:
+            raise Exception("Invalid start point for path: %s" % (start,))
+        point = current
         next_point = (int(point[0] + x_hop), int(point[1] + y_hop))
         index = 0
         while rects[next_point] and index < length / 10:
             point = next_point
             next_point = (int(point[0] + x_hop), int(point[1] + y_hop))
             index += 1
-            path.append(point)
-
-        # try to walk to adjacent square, if none, return path
-
-        # repeat
-        if len(path) > 1:
-            return path
+        if rects[next_point]:
+            return path + [next_point, end]
         else:
-            return [path[0], point]
+            next_rect = rects[point].next_rect(start, end)
+            if next_rect:
+                return path + self.get_path(room, start, end,
+                    next_rect.center())
+            else:
+                return path + [point]
