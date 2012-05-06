@@ -69,6 +69,22 @@ function service_call(url, data, callback)
     });
 }
 
+function draw_previous_paths(ctx)
+{
+    ctx.strokeStyle = "rgb(0,0,100)";
+    for (var p=0; p<previous_paths.length; p++)
+    {
+        var path = previous_paths[p];
+        for (var i=0; i<path.length - 1; i++)
+        {
+            ctx.beginPath();
+            ctx.moveTo(path[i][0], path[i][1]);
+            ctx.lineTo(path[i+1][0], path[i+1][1]);
+            ctx.stroke();
+        }
+    }
+}
+
 var now = get_now();
 
 function Sprite(id)
@@ -90,6 +106,31 @@ Sprite.prototype.is_walking = function()
     return get_now() < this.path[this.path.length-1][2] * 1000;
 }
 
+Sprite.prototype.drawPath = function(ctx)
+{
+    draw_previous_paths(ctx);
+    ctx.strokeStyle = "rgb(0,0,200)";
+    for (var i=0;i<this.path.length-1;i++)
+    {
+        ctx.beginPath();
+        ctx.arc(this.path[i+1][0], this.path[i+1][1],10,0,Math.PI*2);
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(this.path[i][0], this.path[i][1]);
+        ctx.lineTo(this.path[i+1][0], this.path[i+1][1]);
+        ctx.stroke();
+    }
+
+    ctx.strokeStyle = "rgb(200,200,200)";
+    ctx.beginPath();
+    ctx.moveTo(vector[0][0], vector[0][1]);
+    ctx.lineTo(vector[1][0], vector[1][1]);
+    ctx.stroke();
+
+}
+
 Sprite.prototype.draw = function(ctx)
 {
     if (this.hovered == true)
@@ -109,26 +150,9 @@ Sprite.prototype.draw = function(ctx)
     else
         offset = 0;
 
-    ctx.strokeStyle = "rgb(0,0,200)";
-    for (var i=0;i<this.path.length-1;i++)
-    {
-        ctx.beginPath();
-        ctx.arc(this.path[i+1][0], this.path[i+1][1],10,0,Math.PI*2);
-        ctx.closePath();
-        ctx.stroke();
+//    this.drawPath(ctx);
 
-        ctx.beginPath();
-        ctx.moveTo(this.path[i][0], this.path[i][1]);
-        ctx.lineTo(this.path[i+1][0], this.path[i+1][1]);
-        ctx.stroke();
-    }
-    ctx.strokeStyle = "rgb(200,200,200)";
-    ctx.beginPath();
-    ctx.moveTo(vector[0][0], vector[0][1]);
-    ctx.lineTo(vector[1][0], vector[1][1]);
-    ctx.stroke();
-
-    ctx.save();
+     ctx.save();
     ctx.translate(this.x(), this.y());
 
     ctx.strokeStyle = "rgb(0,0,0)";
@@ -415,19 +439,6 @@ function draw()
 
     draw_room();
 
-    ctx.strokeStyle = "rgb(0,0,100)";
-    for (var p=0; p<previous_paths.length; p++)
-    {
-        var path = previous_paths[p];
-        for (var i=0; i<path.length - 1; i++)
-        {
-            ctx.beginPath();
-            ctx.moveTo(path[i][0], path[i][1]);
-            ctx.lineTo(path[i+1][0], path[i+1][1]);
-            ctx.stroke();
-        }
-    }
-
 
     for (var i in sprites)
         sprites[i].draw(ctx);
@@ -535,6 +546,7 @@ function onmessage(msg)
                 }
             }
             load_map('/room/'+instance_uid);
+            $("#log").empty();
             for (var i in message.kwargs.player_log)
             {
                 var text = message.kwargs.player_log[i].msg;

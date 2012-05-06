@@ -52,7 +52,8 @@ def serialize_room(obj):
         width = obj.width,
         height = obj.height,
         map_objects = obj.map_objects,
-        actor_ids = [actor_id for actor_id, _ in obj.actors.items()]
+        actor_ids = [actor_id for actor_id, _ in obj.actors.items()],
+        description = obj.description,
     )
 
 def create_room(data):
@@ -63,6 +64,7 @@ def create_room(data):
     room.height = data['height']
     room.map_objects = data['map_objects']
     room._actor_ids = data['actor_ids']
+    room.description = data['description']
     return room
 
 # RoomObject

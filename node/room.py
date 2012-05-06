@@ -42,8 +42,10 @@ class RoomObject(object):
 
 
 class Room(object):
-    def __init__(self, room_id=None, position=(0, 0), width=50, height=50):
+    def __init__(self, room_id=None, position=(0, 0), width=50, height=50,
+            description=None):
         self.room_id = room_id
+        self.description = description or room_id
         self.position = position
         self.width = width
         self.height = height
@@ -102,6 +104,7 @@ class Room(object):
         door = self.actors[door_id]
         self.actor_exits(actor)
         door.exit_room.actor_enters(actor, door.exit_door_id)
+        actor.add_log("You entered %s", door.exit_room.description)
 
     def all_doors(self):
         return filter(lambda r: type(r) is Door, self.actors.values())

@@ -55,12 +55,12 @@ class BasicSquareTest(unittest.TestCase):
 
         rects = self.geog._subdivide(self.room2)
 
-        self.assertEquals(21, len(rects))
+        self.assertEquals(19, len(rects))
 
         self.assertEquals(Rect(50, 5, 60, 15), rects.rect_at(0, 0))
-        self.assertEquals(Rect(50, 5, 60, 15), rects[0, 0])
-        self.assertEquals(Rect(50, 5, 60, 15), rects[9, 9])
-        self.assertEquals(Rect(60, 15, 70, 25), rects[10, 10])
+        self.assertEquals(Rect(50, 5, 60, 15), rects[50, 5])
+        self.assertEquals(Rect(50, 5, 60, 15), rects[59, 14])
+        self.assertEquals(Rect(60, 15, 70, 25), rects[60, 15])
         self.assertEquals(Rect(60, 5, 70, 15), rects.rect_at(1, 0))
         self.assertEquals(Rect(60, 15, 70, 25), rects.rect_at(1, 1))
         self.assertEquals(None, rects.rect_at(2, 2))
