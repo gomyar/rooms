@@ -9,6 +9,17 @@ var walk_timeout = 0;
 
 var previous_paths = [];
 
+var opens_directions = {
+    'north': Math.PI / 2,
+    'south': Math.PI + Math.PI / 2,
+    'east': Math.PI,
+    'west': 0
+};
+
+var map_images = {
+    'floor_tile': 'maps/floor_tile.png'
+};
+
 function command_chat()
 {
     service_call("/game/" + instance_uid + "/" + selected_sprite.id + "/chat", {}, function () { console.log("Unneeded callback"); });
@@ -287,9 +298,10 @@ function draw_door(ctx)
 {
     ctx.strokeStyle = "rgb(255,255,255)";
     ctx.beginPath();
-    ctx.arc(this.x(),this.y(),40,0,Math.PI*2);
+    ctx.arc(this.x(),this.y(),40,this.opens_direction-Math.PI/2,this.opens_direction + Math.PI/2);
     ctx.closePath();
     ctx.stroke();
+    ctx.strokeText(""+this.opens_dir, this.x(), this.y());
 }
 
 function exited(data)
@@ -473,7 +485,8 @@ var room = { width: 500, height: 500, position: [0, 0], map_objects: [] };
 
 function draw_room()
 {
-    ctx.fillStyle = "rgb(0,100,0)";
+    var pattern = ctx.createPattern(images['floor_tile'], "repeat");
+    ctx.fillStyle = pattern;
     ctx.fillRect(room.position[0], room.position[1], room.width, room.height);
 
     for (var i=0; i<room.map_objects.length; i++)
@@ -542,6 +555,10 @@ function onmessage(msg)
                     sprite.draw = draw_door;
                     sprite.select = exit_through_door;
                     sprite.path = actor.path;
+                    sprite.width = 80;
+                    sprite.height = 80;
+                    sprite.opens_direction = opens_directions[actor.opens_direction];
+                    sprite.opens_dir= actor.opens_direction;
                     sprites[actor.actor_id] = sprite;
                 }
             }
@@ -620,8 +637,10 @@ function init()
     socket.onmessage = onmessage;
     socket.onopen = onopen;
 
-    console.log("Drawing");
-    requestRedraw();
+    loadImages(map_images, function() {
+        console.log("Drawing");
+        requestRedraw();
+    });
 }
 
 // Thank you stackoverflow

@@ -1,6 +1,7 @@
 
 from room import Room
 from door import Door
+from door import infer_direction
 
 class Area(object):
     def __init__(self):
@@ -30,3 +31,7 @@ class Area(object):
         door2.room = room2
         self.actors[door1_id] = door1
         self.actors[door2_id] = door2
+        door1.opens_direction = infer_direction(room1_position,
+            room2_position)
+        door2.opens_direction = infer_direction(room2_position,
+            room1_position)

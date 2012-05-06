@@ -19,7 +19,7 @@ area.rooms['cloakroom'] = cloakroom
 trophyroom = Room('trophyroom', (630, 720), 230, 160, description="The Trophyroom")
 area.rooms['trophyroom'] = trophyroom
 
-hall = Room('hall', (460, 410), 90, 320, description="The Hall")
+hall = Room('hall', (470, 410), 100, 320, description="The Hall")
 area.rooms['hall'] = hall
 
 lounge = Room('lounge', (210, 500), 250, 210, description="The Lounge")
@@ -46,13 +46,13 @@ area.rooms['billiardroom'] = billiardroom
 
 area.create_door(foyer, cloakroom, (410, 790), (400, 790))
 area.create_door(foyer, trophyroom, (620, 790), (630, 790))
-area.create_door(foyer, hall, (510, 730), (510, 720))
+area.create_door(foyer, hall, (510, 740), (510, 730))
 area.create_door(hall, diningroom, (510, 410), (510, 400))
 area.create_door(hall, library, (560, 540), (570, 540))
-area.create_door(hall, lounge, (460, 620), (450, 620))
+area.create_door(hall, lounge, (470, 620), (460, 620))
 area.create_door(lounge, kitchen, (260, 500), (260, 490))
 area.create_door(diningroom, kitchen, (390, 300), (380, 300))
-area.create_door(kitchen, pantry, (230, 230), (220, 230))
+area.create_door(kitchen, pantry, (230, 230), (230, 220))
 area.create_door(study, diningroom, (620, 340), (610, 340))
 area.create_door(study, billiardroom, (800, 290), (800, 280))
 area.create_door(library, study, (710, 460), (710, 450))
