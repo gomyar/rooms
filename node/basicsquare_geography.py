@@ -49,8 +49,9 @@ class Rect:
 
 
 class RectCollection:
-    def __init__(self, rect_width=10, rect_height=10):
+    def __init__(self, room_position, rect_width=10, rect_height=10):
         self.rects = dict()
+        self.room_position = room_position
         self.rect_width = rect_width
         self.rect_height = rect_height
 
@@ -67,7 +68,8 @@ class RectCollection:
         rect.rect_collection = None
 
     def _to_points(self, position):
-        return position[0] / self.rect_width, position[1] / self.rect_height
+        return ((position[0] - self.room_position[0]) / self.rect_width,
+            (position[1] - self.room_position[1]) / self.rect_height)
 
     def find_closest(self, position):
         x, y = self._to_points(position)
@@ -95,10 +97,12 @@ class BasicSquareGeography:
         self.rooms = dict()
 
     def _subdivide(self, room):
-        rects = RectCollection(self.rect_width, self.rect_height)
+        rects = RectCollection(room.position, self.rect_width,
+            self.rect_height)
         for x in range(0, room.width, self.rect_width):
             for y in range(0, room.height, self.rect_height):
-                if not room.object_at(x, y):
+                if not room.object_at(x + room.position[0], \
+                        y + room.position[1]):
                     x1 = x + room.position[0]
                     y1 = y + room.position[1]
                     x2 = x1 + self.rect_width

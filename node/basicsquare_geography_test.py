@@ -21,6 +21,8 @@ class BasicSquareTest(unittest.TestCase):
         self.assertEquals(Rect(0, 0, 10, 10), rects.rect_at(0, 0))
         self.assertEquals(Rect(10, 0, 20, 10), rects.rect_at(1, 0))
 
+        self.assertEquals(Rect(10, 10, 20, 20), rects[15, 15])
+
     def testSubdivide2(self):
         rects = self.geog._subdivide(self.room2)
 
@@ -28,6 +30,8 @@ class BasicSquareTest(unittest.TestCase):
 
         self.assertEquals(Rect(50, 5, 60, 15), rects.rect_at(0, 0))
         self.assertEquals(Rect(60, 5, 70, 15), rects.rect_at(1, 0))
+
+        self.assertEquals(Rect(60, 15, 70, 25), rects[61, 16])
 
     def testSubdivideWithMapObjects(self):
         self.room.add_object(RoomObject(10, 10), (20, 20))
@@ -45,6 +49,23 @@ class BasicSquareTest(unittest.TestCase):
         self.assertEquals(None, rects.rect_at(2, 2))
         self.assertEquals(None, rects.rect_at(3, 3))
         self.assertEquals(Rect(40, 40, 50, 50), rects.rect_at(4, 4))
+
+    def testSubdivideWithMapObjects2(self):
+        self.room2.add_object(RoomObject(60, 15), (20, 20))
+
+        rects = self.geog._subdivide(self.room2)
+
+        self.assertEquals(21, len(rects))
+
+        self.assertEquals(Rect(50, 5, 60, 15), rects.rect_at(0, 0))
+        self.assertEquals(Rect(50, 5, 60, 15), rects[0, 0])
+        self.assertEquals(Rect(50, 5, 60, 15), rects[9, 9])
+        self.assertEquals(Rect(60, 15, 70, 25), rects[10, 10])
+        self.assertEquals(Rect(60, 5, 70, 15), rects.rect_at(1, 0))
+        self.assertEquals(Rect(60, 15, 70, 25), rects.rect_at(1, 1))
+        self.assertEquals(None, rects.rect_at(2, 2))
+        self.assertEquals(None, rects.rect_at(3, 3))
+        self.assertEquals(Rect(90, 45, 100, 55), rects.rect_at(4, 4))
 
     def testLinearPath(self):
         self.geog = BasicSquareGeography(rect_width=10, rect_height=10)
