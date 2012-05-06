@@ -12,6 +12,8 @@ class PlayerActor(Actor):
     def walk_to(self, x, y):
         x, y = float(x), float(y)
         path = self.room.get_path((self.x(), self.y()), (x, y))
+        if not path or len(path) < 2:
+            raise Exception("Wrong path: %s" % (path,))
         self.set_path(path)
 
     @expose()

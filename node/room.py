@@ -70,6 +70,7 @@ class Room(object):
             return geog.get_path(self, start, end)
         except Exception, e:
             log.exception("Error %s getting path from %s to %s", e, start, end)
+            raise
 
     def add_object(self, map_object, rel_position=(0, 0)):
         position = (self.position[0] + rel_position[0],

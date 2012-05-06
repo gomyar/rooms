@@ -66,10 +66,22 @@ class RectCollection:
         rect = self.rects.pop((x, y))
         rect.rect_collection = None
 
+    def _to_points(self, position):
+        return position[0] / self.rect_width, position[1] / self.rect_height
+
+    def find_closest(self, position):
+        x, y = self._to_points(position)
+        for r in range(10):
+            dirs = [(x+r, y), (x, y+r), (x-r, y), (x, y-r),
+                (x+r, y+r), (x+r, y+r), (x-r, y-r), (x-r, y-r)]
+            for point in dirs:
+                rect = self.rect_at(point[0], point[1])
+                if rect:
+                    return rect
+        return None
+
     def __getitem__(self, position):
-        x, y = position[0], position[1]
-        x = position[0] / self.rect_width
-        y = position[1] / self.rect_height
+        x, y = self._to_points(position)
         return self.rect_at(x, y)
 
     def __len__(self):
@@ -112,7 +124,7 @@ class BasicSquareGeography:
     def get_path(self, room, start, end):
         rects = self._get_rects_for(room)
         if not rects[start]:
-            raise Exception("Invalid start point for path: %s" % (start,))
+            start = rects.find_closest(start).center()
         line = self._line(start, end)
         point = line.next()
         path = [start]
