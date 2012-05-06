@@ -19,21 +19,30 @@ class Rect:
             rhs.x2 == self.x2 and rhs.x2 == self.x2
 
     def center(self):
-        return (self.x1 + self.x2 / 2, self.y1 + self.y2 / 2)
+        return ((self.x1 + self.x2) / 2, (self.y1 + self.y2) / 2)
+
+    def _within(self, start, end):
+        ''' Rect is within the rect described by points start, end '''
+        x1 = min(start[0], end[0])
+        x2 = max(start[0], end[0])
+        y1 = min(start[1], end[1])
+        y2 = max(start[1], end[1])
+        return self.x2 > x1 and self.y2 > y1 and self.x1 < x2 and self.y1 < y2
 
     def next_rect(self, start, end):
+        ''' Next rect along the line described by points start, end '''
         x_dir = (end[0] - start[0])
         y_dir = (end[1] - start[1])
         rwidth = self.rect_collection.rect_width
         rheight = self.rect_collection.rect_height
-        x_dir = int(x_dir / abs(x_dir)) if abs(x_dir) >= rwidth else 0
-        y_dir = int(y_dir / abs(y_dir)) if abs(y_dir) >= rheight else 0
-        rect = self.rect_collection.rect_at(self.position[0] + x_dir,
+        x_hop = int(x_dir / abs(x_dir)) if abs(x_dir) >= rwidth else 0
+        y_hop = int(y_dir / abs(y_dir)) if abs(y_dir) >= rheight else 0
+        rect = self.rect_collection.rect_at(self.position[0] + x_hop,
             self.position[1])
-        if not rect or rect == self:
+        if not rect or rect == self or not rect._within(start, end):
             rect = self.rect_collection.rect_at(self.position[0],
-                self.position[1] + y_dir)
-        if rect != self:
+                self.position[1] + y_hop)
+        if rect and rect != self and rect._within(start, end):
             return rect
         else:
             return None
@@ -78,9 +87,12 @@ class BasicSquareGeography:
         for x in range(0, room.width, self.rect_width):
             for y in range(0, room.height, self.rect_height):
                 if not room.object_at(x, y):
+                    x1 = x + room.position[0]
+                    y1 = y + room.position[1]
+                    x2 = x1 + self.rect_width
+                    y2 = y1 + self.rect_height
                     rects.add_rect(x / self.rect_width, y / self.rect_height, \
-                        Rect(x + room.position[0], y + room.position[1],
-                            self.rect_width, self.rect_height))
+                        Rect(x1, y1, x2, y2))
         return rects
 
     def _get_rects_for(self, room):
@@ -105,17 +117,22 @@ class BasicSquareGeography:
         point = line.next()
         path = [start]
 
-        while point:
-            next_point = line.next()
-            if not rects[next_point]:
-                path.append(point)
-                # try square dirs
-                next_rect = rects[point].next_rect(start, end)
-                if not next_rect:
-                    return path
+        try:
+            while point:
+                next_point = line.next()
+                if not rects[next_point]:
+                    path.append(point)
+                    # try square dirs
+                    next_rect = rects[point].next_rect(start, end)
+                    if not next_rect:
+                        return path
+                    else:
+                        line = self._line(next_rect.center(), end)
+                        point = line.next()
+                        path.append(point)
                 else:
-                    line = self._line(next_rect.center(), end)
-                    point = line.next()
-            else:
-                point = next_point
+                    point = next_point
+        except StopIteration, ste:
+            path.append(end)
+
         return path
