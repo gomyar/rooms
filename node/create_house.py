@@ -9,53 +9,53 @@ area = Area()
 area.area_name = "mansion"
 area.owner_id = 1
 
-foyer = Room('foyer', (410, 740), 210, 260, description="The Foyer")
+foyer = Room('foyer', (820, 1480), 420, 520, description="The Foyer")
 area.rooms['foyer'] = foyer
 #lobby.add_object(RoomObject(200, 200), (300, 300))
 
-cloakroom = Room('cloakroom', (140, 720), 260, 160, description="The Cloakroom")
+cloakroom = Room('cloakroom', (280, 1440), 520, 320, description="The Cloakroom")
 area.rooms['cloakroom'] = cloakroom
 
-trophyroom = Room('trophyroom', (630, 720), 230, 160, description="The Trophyroom")
+trophyroom = Room('trophyroom', (1260, 1440), 260, 320, description="The Trophy Room")
 area.rooms['trophyroom'] = trophyroom
 
-hall = Room('hall', (470, 410), 100, 320, description="The Hall")
+hall = Room('hall', (940, 820), 200, 640, description="The Hall")
 area.rooms['hall'] = hall
 
-lounge = Room('lounge', (210, 500), 250, 210, description="The Lounge")
+lounge = Room('lounge', (420, 1000), 500, 420, description="The Lounge")
 area.rooms['lounge'] = lounge
 
-library = Room('library', (570, 460), 230, 250, description="The Library")
+library = Room('library', (1160, 920), 460, 500, description="The Library")
 area.rooms['library'] = library
 
-kitchen = Room('kitchen', (170, 230), 210, 260, description="The Kitchen")
+kitchen = Room('kitchen', (340, 460), 420, 520, description="The Kitchen")
 area.rooms['kitchen'] = kitchen
 
-study = Room('study', (620, 290), 260, 160, description="The Study")
+study = Room('study', (1240, 580), 520, 320, description="The Study")
 area.rooms['study'] = study
 
-diningroom = Room('diningroom', (390, 30), 220, 370, description="The Diningroom")
+diningroom = Room('diningroom', (780, 60), 440, 740, description="The Dining Room")
 area.rooms['diningroom'] = diningroom
 
-pantry = Room('pantry', (170, 30), 210, 190, description="The Pantry")
+pantry = Room('pantry', (340, 60), 420, 380, description="The Pantry")
 area.rooms['pantry'] = pantry
 
-billiardroom = Room('billiardroom', (620, 100), 250, 180, description="The Billiardroom")
+billiardroom = Room('billiardroom', (1240, 200), 500, 360, description="The Billiard Room")
 area.rooms['billiardroom'] = billiardroom
 
 
-area.create_door(foyer, cloakroom, (410, 790), (400, 790))
-area.create_door(foyer, trophyroom, (620, 790), (630, 790))
-area.create_door(foyer, hall, (510, 740), (510, 730))
-area.create_door(hall, diningroom, (510, 410), (510, 400))
-area.create_door(hall, library, (560, 540), (570, 540))
-area.create_door(hall, lounge, (470, 620), (460, 620))
-area.create_door(lounge, kitchen, (260, 500), (260, 490))
-area.create_door(diningroom, kitchen, (390, 300), (380, 300))
-area.create_door(kitchen, pantry, (230, 230), (230, 220))
-area.create_door(study, diningroom, (620, 340), (610, 340))
-area.create_door(study, billiardroom, (800, 290), (800, 280))
-area.create_door(library, study, (710, 460), (710, 450))
+area.create_door(foyer, cloakroom, (820, 1580), (800, 1580))
+area.create_door(foyer, trophyroom, (1240, 1580), (1260, 1580))
+area.create_door(foyer, hall, (1040, 1480), (1040, 1460))
+area.create_door(hall, diningroom, (1040, 820), (1040, 800))
+area.create_door(hall, library, (1140, 1080), (1160, 1080))
+area.create_door(hall, lounge, (940, 1240), (920, 1240))
+area.create_door(lounge, kitchen, (520, 1000), (520, 980))
+area.create_door(diningroom, kitchen, (780, 600), (760, 600))
+area.create_door(kitchen, pantry, (460, 460), (460, 440))
+area.create_door(study, diningroom, (1240, 680), (1220, 680))
+area.create_door(study, billiardroom, (1600, 580), (1600, 560))
+area.create_door(library, study, (1420, 920), (1420, 900))
 
 area.entry_point_room_id = "foyer"
 
