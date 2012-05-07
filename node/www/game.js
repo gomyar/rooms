@@ -17,7 +17,8 @@ var opens_directions = {
 };
 
 var map_images = {
-    'floor_tile': 'maps/floor_tile.png'
+    'floor_tile': 'maps/floor_tile.png',
+    'mansion_map': 'maps/mansion_map.png'
 };
 
 function command_chat()
@@ -166,10 +167,10 @@ Sprite.prototype.draw = function(ctx)
      ctx.save();
     ctx.translate(this.x(), this.y());
 
-    ctx.strokeStyle = "rgb(0,0,0)";
+/*    ctx.strokeStyle = "rgb(0,0,0)";
     ctx.fillStyle = "rgb(0,0,0)";
     ctx.fillText("("+Math.round(this.x())+","+Math.round(this.y())+")",
-        30, 0);
+        30, 0);*/
 
     ctx.rotate(angle);
     ctx.translate(- this.width / 2, - this.height / 2);
@@ -301,7 +302,6 @@ function draw_door(ctx)
     ctx.arc(this.x(),this.y(),40,this.opens_direction-Math.PI/2,this.opens_direction + Math.PI/2);
     ctx.closePath();
     ctx.stroke();
-    ctx.strokeText(""+this.opens_dir, this.x(), this.y());
 }
 
 function exited(data)
@@ -437,8 +437,8 @@ function canvas_mousemove(e)
 
 function draw()
 {
-    ctx.fillStyle = "rgb(0,0,0)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(images['mansion_map'], viewport_x, viewport_y);
 
     ctx.save()
     if (own_actor != null)
@@ -485,9 +485,9 @@ var room = { width: 500, height: 500, position: [0, 0], map_objects: [] };
 
 function draw_room()
 {
-    var pattern = ctx.createPattern(images['floor_tile'], "repeat");
+/*    var pattern = ctx.createPattern(images['floor_tile'], "repeat");
     ctx.fillStyle = pattern;
-    ctx.fillRect(room.position[0], room.position[1], room.width, room.height);
+    ctx.fillRect(room.position[0], room.position[1], room.width, room.height);*/
 
     for (var i=0; i<room.map_objects.length; i++)
     {

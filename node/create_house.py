@@ -16,7 +16,7 @@ area.rooms['foyer'] = foyer
 cloakroom = Room('cloakroom', (280, 1440), 520, 320, description="The Cloakroom")
 area.rooms['cloakroom'] = cloakroom
 
-trophyroom = Room('trophyroom', (1260, 1440), 260, 320, description="The Trophy Room")
+trophyroom = Room('trophyroom', (1260, 1440), 460, 320, description="The Trophy Room")
 area.rooms['trophyroom'] = trophyroom
 
 hall = Room('hall', (940, 820), 200, 640, description="The Hall")
