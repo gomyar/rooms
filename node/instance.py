@@ -115,3 +115,6 @@ class Instance:
             return True
         else:
             return False
+
+    def kickoff(self):
+        self.area.kickoff_npcs(self)

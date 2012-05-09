@@ -60,5 +60,11 @@ area.create_door(library, study, (1420, 920), (1420, 900))
 area.entry_point_room_id = "foyer"
 
 area.add_npc(NpcActor("butler"), 'foyer')
+area.add_npc(NpcActor("dilettante"), 'study')
+area.add_npc(NpcActor("gladys"), 'diningroom')
+area.add_npc(NpcActor("jezabel"), 'diningroom')
+area.add_npc(NpcActor("major"), 'trophyroom')
+area.add_npc(NpcActor("professor"), 'library')
+area.add_npc(NpcActor("aunt"), 'lounge')
 
 save_area(area)

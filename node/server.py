@@ -144,6 +144,7 @@ def room_handle(environ, response):
     _, url, instance_uid = environ['PATH_INFO'].split("/")
     cookies = _read_cookies(environ)
     instance = instances[instance_uid]
+    instance.kickoff()
     returned = instance.area.actors[sessions[cookies['sessionid']]].room.external()
     if returned:
         returned = simplejson.dumps(returned)

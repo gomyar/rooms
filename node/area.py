@@ -3,6 +3,8 @@ from room import Room
 from door import Door
 from door import infer_direction
 
+from npc_actor import NpcActor
+
 class Area(object):
     def __init__(self):
         self.area_name = None
@@ -21,6 +23,12 @@ class Area(object):
     def add_npc(self, npc_actor, room_id):
         self.actors[npc_actor.actor_id] = npc_actor
         self.actor_joined_instance(npc_actor, room_id)
+
+    def kickoff_npcs(self, instance):
+        npcs = [npc for npc in self.actors.values() if type(npc) is NpcActor]
+        for npc in npcs:
+            npc.instance = instance
+            npc.kickoff()
 
     def create_door(self, room1, room2, room1_position, room2_position):
         door1_id = "door_%s_%s_%s" % (room2.room_id, room1_position[0],
