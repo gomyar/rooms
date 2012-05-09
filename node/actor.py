@@ -36,7 +36,7 @@ class Actor(object):
         self.actor_id = actor_id
         self.path = []
         self.set_position(position)
-        self.speed = 200.0
+        self.speed = 150.0
         self.room = None
         self.instance = None
         self.state = "idle"

@@ -108,7 +108,7 @@ function Sprite(id)
     this.selected = false;
     this.hovered = false;
     this.img = new Image();
-    this.img.src = "/walkingman.png";
+    this.img.src = "/investigator.png";
 }
 
 var angle = 0;
@@ -321,7 +321,7 @@ function exit_through_door()
     var door_id = this.id;
     walk_to(this.x(), this.y());
     var timeTill = timeTo([own_actor.x(), own_actor.y()],
-        [this.x(), this.y()], 200) * 1000.0;
+        [this.x(), this.y()], own_actor.speed) * 1000.0;
     walk_timeout = setTimeout(function() {
         exit_door(door_id);
     }, timeTill);
@@ -545,6 +545,7 @@ function onmessage(msg)
                     sprite = new Sprite(actor.actor_id);
                     previous_paths[previous_paths.length] = sprite.path;
                     sprite.path = actor.path;
+                    sprite.speed = actor.speed;
                     sprites[actor.actor_id] = sprite;
                     if (actor.actor_id == player_id)
                         own_actor = sprite;
@@ -585,6 +586,7 @@ function onmessage(msg)
             sprite = new Sprite(message.kwargs.actor_id);
             sprites[message.kwargs.actor_id] = sprite;
             sprite.path = message.kwargs.path;
+            sprite.speed = message.kwargs.speed;
             sprite.optionalRedraw();
 
             if (message.kwargs.actor_id == player_id)
