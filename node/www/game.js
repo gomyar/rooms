@@ -107,11 +107,16 @@ function Sprite(id)
     this.height = 50;
     this.selected = false;
     this.hovered = false;
-    this.img = new Image();
-    this.img.src = "/investigator.png";
 }
 
 var angle = 0;
+
+Sprite.prototype.set_model = function(model)
+{
+    this.model = model;
+    this.img = new Image();
+    this.img.src = "/" + this.model + ".png";
+}
 
 Sprite.prototype.is_walking = function()
 {
@@ -524,6 +529,16 @@ function onopen()
     socket.send(instance_uid);
 }
 
+function create_actor_sprite(actor)
+{
+    sprite = new Sprite(actor.actor_id);
+    sprites[actor.actor_id] = sprite;
+    sprite.path = actor.path;
+    sprite.speed = actor.speed;
+    sprite.set_model(actor.model_type);
+    return sprite;
+}
+
 function onmessage(msg)
 {
     console.log("Got: "+msg.data);
@@ -542,14 +557,18 @@ function onmessage(msg)
                 var actor = actors[i];
                 if (actor.actor_type == "PlayerActor")
                 {
-                    sprite = new Sprite(actor.actor_id);
+                    var sprite = create_actor_sprite(actor);
                     previous_paths[previous_paths.length] = sprite.path;
-                    sprite.path = actor.path;
-                    sprite.speed = actor.speed;
                     sprites[actor.actor_id] = sprite;
                     if (actor.actor_id == player_id)
                         own_actor = sprite;
                 }
+                if (actor.actor_type == "NpcActor")
+                {
+                    var sprite = create_actor_sprite(actor);
+                    sprites[actor.actor_id] = sprite;
+                }
+
                 else if (actor.actor_type == "Door")
                 {
                     sprite = new Sprite(actor.actor_id);
@@ -580,24 +599,35 @@ function onmessage(msg)
             sprites[message.kwargs.actor_id].path = message.kwargs.path;
             sprites[message.kwargs.actor_id].optionalRedraw();
         }
-        else if (message.command == "actor_joined")
+        else if (message.command == "actor_joined_instance")
         {
             console.log("Actor joined: "+message.kwargs.actor_id);
-            sprite = new Sprite(message.kwargs.actor_id);
-            sprites[message.kwargs.actor_id] = sprite;
-            sprite.path = message.kwargs.path;
-            sprite.speed = message.kwargs.speed;
+            sprite = create_actor_sprite(message.kwargs);
             sprite.optionalRedraw();
 
             if (message.kwargs.actor_id == player_id)
                 own_actor = sprite;
         }
-        else if (message.command == "actor_left")
+        else if (message.command == "actor_left_instance")
         {
             console.log("Actor left: "+message.kwargs.actor_id);
             delete sprites[message.kwargs.actor_id];
             requestRedraw();
         }
+        else if (message.command == "actor_entered_room")
+        {
+            console.log("Actor entered: "+message.kwargs.actor_id);
+            var sprite = create_actor_sprite(message.kwargs);
+            sprites[message.kwargs.actor_id] = sprite;
+            sprite.optionalRedraw();
+        }
+        else if (message.command == "actor_exited_room")
+        {
+            console.log("Actor exited: "+message.kwargs.actor_id);
+            delete sprites[message.kwargs.actor_id];
+            requestRedraw();
+        }
+
         else if (message.command == "log")
         {
             addLogEntry(message.kwargs.msg);

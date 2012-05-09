@@ -12,11 +12,15 @@ class Area(object):
         self.rooms = dict()
         self.owner_id = ""
 
-    def actor_enters(self, actor, room_id, door_id=None):
-        self.rooms[room_id].actor_enters(actor, door_id)
+    def actor_joined_instance(self, actor, room_id):
+        self.rooms[room_id].actor_joined_instance(actor)
 
-    def actor_exits(self, actor):
-        self.rooms[actor.room.room_id].actor_exits(actor)
+    def actor_left_instance(self, actor):
+        self.rooms[actor.room.room_id].actor_left_instance(actor)
+
+    def add_npc(self, npc_actor, room_id):
+        self.actors[npc_actor.actor_id] = npc_actor
+        self.actor_joined_instance(npc_actor, room_id)
 
     def create_door(self, room1, room2, room1_position, room2_position):
         door1_id = "door_%s_%s_%s" % (room2.room_id, room1_position[0],

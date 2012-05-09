@@ -1,4 +1,5 @@
 
+from player_actor import PlayerActor
 from door import Door
 
 from basicsquare_geography import BasicSquareGeography
@@ -86,24 +87,31 @@ class Room(object):
             map_objects=[m.external() for m in self.map_objects],
         )
 
-    def actor_enters(self, actor, door_id=None):
+    def actor_enters(self, actor, door_id):
         self.actors[actor.actor_id] = actor
         actor.room = self
-        if door_id:
-            actor.set_position(self.actors[door_id].position())
-        else:
-            entry_x = self.position[0] + self.width / 2
-            entry_y = self.position[1] + self.height / 2
-            actor.set_position((entry_x, entry_y))
+        actor.set_position(self.actors[door_id].position())
 
-    def actor_exits(self, actor):
+    def actor_joined_instance(self, actor):
+        self.actors[actor.actor_id] = actor
+        actor.room = self
+        entry_x = self.position[0] + self.width / 2
+        entry_y = self.position[1] + self.height / 2
+        actor.set_position((entry_x, entry_y))
+
+    def actor_left_instance(self, actor):
         self.actors.pop(actor.actor_id)
         actor.room = None
 
     def exit_through_door(self, actor, door_id):
         door = self.actors[door_id]
-        self.actor_exits(actor)
+        self.actors.pop(actor.actor_id)
+        actor.send_to_players_in_room("actor_exited_room",
+            actor_id=actor.actor_id)
+        actor.room = None
         door.exit_room.actor_enters(actor, door.exit_door_id)
+        actor.send_to_players_in_room("actor_entered_room",
+            **actor.external())
         actor.add_log("You entered %s", door.exit_room.description)
 
     def all_doors(self):
@@ -123,3 +131,11 @@ class Room(object):
 
     def wall_positions(self):
         return (self.left(), self.top(), self.right(), self.bottom())
+
+    def all_characters(self):
+        return [actor for actor in self.actors.values() if \
+            issubclass(actor.__class__, CharacterActor)]
+
+    def all_players(self):
+        return [actor for actor in self.actors.values() if \
+            issubclass(actor.__class__, PlayerActor)]

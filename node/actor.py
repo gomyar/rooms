@@ -161,3 +161,6 @@ class Actor(object):
 
     def add_chat_message(self, msg, *args):
         self.add_log(msg, *args)
+
+    def send_to_all(self, event, **kwargs):
+        self.instance.send_to_all(event, **kwargs)

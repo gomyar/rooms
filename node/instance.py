@@ -54,14 +54,14 @@ class Instance:
         self.players[player_id]['connected'] = True
         self.area.actors[player_id] = actor
         actor.instance = self
-        self.area.actor_enters(actor, self.area.entry_point_room_id)
-        self.send_to_all("actor_joined", **actor.external())
+        self.area.actor_joined_instance(actor, self.area.entry_point_room_id)
+        self.send_to_all("actor_joined_instance", **actor.external())
 
     def deregister_actor(self, player_id):
         if player_id in self.area.actors:
             actor = self.area.actors.pop(player_id)
-            self.area.actor_exits(actor)
-            self.send_to_all("actor_left", player_id=player_id)
+            self.area.actor_left_instance(actor)
+            self.send_to_all("actor_left_instance", player_id=player_id)
 
     def send_event(self, player_id, event_id, kwargs):
         for queue in self.player_queues[player_id]:
@@ -70,6 +70,11 @@ class Instance:
     def send_to_all(self, command, **kwargs):
         for queue in self.queues:
             queue.put(dict(command=command, kwargs=kwargs))
+
+    def send_to_players(self, player_ids, command, **kwargs):
+        for player_id in player_ids:
+            for queue in self.player_queues[player_id]:
+                queue.put(dict(command=command, kwargs=kwargs))
 
     def send_sync(self, player_id):
         for queue in self.player_queues[player_id]:
