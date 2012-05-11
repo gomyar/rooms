@@ -5,9 +5,11 @@ from actor import command
 
 
 class NpcActor(CharacterActor):
-    def __init__(self, actor_id):
+    def __init__(self, actor_id, npc_script=None):
         super(NpcActor, self).__init__(actor_id)
         self.model_type = actor_id
+        self.npc_script = npc_script
+        self.speed = 90.0
 
     def external(self):
         ex = super(NpcActor, self).external()
@@ -22,8 +24,15 @@ class NpcActor(CharacterActor):
         self.set_path(path)
         self.send_to_players_in_room("actor_update", **self.external())
 
+    def load_script(self, script_class):
+        module = __import__("scripts.%s" % (script_class,),
+            fromlist=['scripts'])
+        script = getattr(module, script_class)()
+        script.npc = self
+        self.npc_script = script
+
     def kickoff(self):
-        self.walk_to(0, 0)
+        self.npc_script.kickoff()
 
     @expose()
     def chat(self, actor):

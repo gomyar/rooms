@@ -47,11 +47,14 @@ def create_player_actor(data):
 
 # NPCActor
 def serialize_npc_actor(obj):
-    return serialize_actor(obj)
+    data = serialize_actor(obj)
+    data['npc_script_class'] = obj.npc_script.__class__.__name__
+    return data
 
 def create_npc_actor(data):
     npc_actor = NpcActor(data['actor_id'])
     _deserialize_actor(npc_actor, data)
+    npc_actor.load_script(data['npc_script_class'])
     return npc_actor
 
 # Room
@@ -83,10 +86,12 @@ def serialize_roomobject(obj):
         width=obj.width,
         height=obj.height,
         position=obj.position,
+        object_type=obj.object_type,
     )
 
 def create_roomobject(data):
-    room_object = RoomObject(data['width'], data['height'], data['position'])
+    room_object = RoomObject(data['object_type'], data['width'],
+        data['height'], data['position'])
     return room_object
 
 # Area

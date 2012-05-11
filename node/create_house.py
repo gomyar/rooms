@@ -2,6 +2,7 @@
 
 from container import *
 from container import _encode
+from scripts.WanderingNpcScript import WanderingNpcScript
 
 init_mongo()
 
@@ -35,6 +36,7 @@ study = Room('study', (1240, 580), 520, 320, description="The Study")
 area.rooms['study'] = study
 
 diningroom = Room('diningroom', (780, 60), 440, 740, description="The Dining Room")
+diningroom.add_object(RoomObject("diningroom_table", 200, 440), (140, 120))
 area.rooms['diningroom'] = diningroom
 
 pantry = Room('pantry', (340, 60), 420, 380, description="The Pantry")
@@ -59,12 +61,12 @@ area.create_door(library, study, (1420, 920), (1420, 900))
 
 area.entry_point_room_id = "foyer"
 
-area.add_npc(NpcActor("butler"), 'foyer')
-area.add_npc(NpcActor("dilettante"), 'study')
-area.add_npc(NpcActor("gladys"), 'diningroom')
-area.add_npc(NpcActor("jezabel"), 'diningroom')
-area.add_npc(NpcActor("major"), 'trophyroom')
-area.add_npc(NpcActor("professor"), 'library')
-area.add_npc(NpcActor("aunt"), 'lounge')
+area.add_npc(NpcActor("butler", WanderingNpcScript()), 'foyer')
+area.add_npc(NpcActor("dilettante", WanderingNpcScript()), 'study')
+area.add_npc(NpcActor("gladys", WanderingNpcScript()), 'diningroom')
+area.add_npc(NpcActor("jezabel", WanderingNpcScript()), 'diningroom')
+area.add_npc(NpcActor("major", WanderingNpcScript()), 'trophyroom')
+area.add_npc(NpcActor("professor", WanderingNpcScript()), 'library')
+area.add_npc(NpcActor("aunt", WanderingNpcScript()), 'lounge')
 
 save_area(area)

@@ -18,7 +18,18 @@ var opens_directions = {
 
 var map_images = {
     'floor_tile': 'maps/floor_tile.png',
-    'mansion_map': 'maps/mansion_map.png'
+    'mansion_map': 'maps/mansion_map.png',
+
+    'aunt': "/character_models/aunt.png",
+    'dilettante': "/character_models/dilettante.png",
+    'investigator': "/character_models/investigator.png",
+    'major': "/character_models/major.png",
+    'butler': "/character_models/butler.png",
+    'gladys': "/character_models/gladys.png",
+    'jezabel': "/character_models/jezabel.png",
+    'professor': "/character_models/professor.png",
+
+    'diningroom_table': 'room_objects/diningroom_table.png'
 };
 
 function command_chat()
@@ -114,8 +125,7 @@ var angle = 0;
 Sprite.prototype.set_model = function(model)
 {
     this.model = model;
-    this.img = new Image();
-    this.img.src = "/" + this.model + ".png";
+    this.img = images[this.model];
 }
 
 Sprite.prototype.is_walking = function()
@@ -490,24 +500,12 @@ var room = { width: 500, height: 500, position: [0, 0], map_objects: [] };
 
 function draw_room()
 {
-/*    var pattern = ctx.createPattern(images['floor_tile'], "repeat");
-    ctx.fillStyle = pattern;
-    ctx.fillRect(room.position[0], room.position[1], room.width, room.height);*/
-
     for (var i=0; i<room.map_objects.length; i++)
     {
         var map_object = room.map_objects[i];
         ctx.fillStyle = "rgb(100,100,100)";
-        ctx.fillRect(map_object.position[0], map_object.position[1], map_object.width, map_object.height);
-    }
-
-    for (var i in room.subdivided)
-    {
-        var rect = room.subdivided[i];
-        ctx.fillStyle = "rgb(200, 0, 0)";
-        ctx.fillRect(rect[0], rect[1], rect[2]-rect[0], rect[3]-rect[1]);
-        ctx.strokeStyle = "rgb(255, 200, 0)";
-        ctx.strokeRect(rect[0], rect[1], rect[2]-rect[0], rect[3]-rect[1]);
+        ctx.drawImage(map_object.img, map_object.position[0], map_object.position[1], map_object.width, map_object.height);
+//        ctx.fillRect(map_object.position[0], map_object.position[1], map_object.width, map_object.height);
     }
 }
 
@@ -515,6 +513,11 @@ function load_map(map_url)
 {
     jQuery.get(map_url, function(data) {
         room = jQuery.parseJSON(data);
+        for (i in room.map_objects)
+        {
+            var map_object = room.map_objects[i];
+            map_object.img = images[map_object.object_type];
+        }
     });
 }
 

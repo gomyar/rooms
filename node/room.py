@@ -10,7 +10,8 @@ log = logging.getLogger("rooms")
 geog = BasicSquareGeography()
 
 class RoomObject(object):
-    def __init__(self, width, height, position=(0, 0)):
+    def __init__(self, object_type, width, height, position=(0, 0)):
+        self.object_type = object_type
         self.width = width
         self.height = height
         self.position = position
@@ -20,7 +21,7 @@ class RoomObject(object):
 
     def external(self):
         return dict(width=self.width, height=self.height,
-            position=self.position)
+            position=self.position, object_type=self.object_type)
 
     def at(self, x, y):
         return self.position[0] <= x and self.position[0] + self.width >= x \

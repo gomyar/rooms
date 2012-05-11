@@ -1,4 +1,6 @@
 
+import eventlet
+
 from room import Room
 from door import Door
 from door import infer_direction
@@ -28,7 +30,7 @@ class Area(object):
         npcs = [npc for npc in self.actors.values() if type(npc) is NpcActor]
         for npc in npcs:
             npc.instance = instance
-            npc.kickoff()
+            eventlet.spawn(npc.kickoff)
 
     def create_door(self, room1, room2, room1_position, room2_position):
         door1_id = "door_%s_%s_%s" % (room2.room_id, room1_position[0],
