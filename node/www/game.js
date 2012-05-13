@@ -9,7 +9,7 @@ var walk_timeout = 0;
 
 var previous_paths = [];
 
-var opens_directions = {
+var facing_directions = {
     'north': Math.PI / 2,
     'south': Math.PI + Math.PI / 2,
     'east': Math.PI,
@@ -29,8 +29,12 @@ var map_images = {
     'jezabel': "/character_models/jezabel.png",
     'professor': "/character_models/professor.png",
 
-    'diningroom_table': 'room_objects/diningroom_table.png'
+    'diningroom_table': 'room_objects/diningroom_table.png',
+    'diningroom_chair': 'room_objects/diningroom_chair.png',
+    'diningroom_chair_right': 'room_objects/diningroom_chair_right.png'
 };
+
+var background_img;
 
 function command_chat()
 {
@@ -453,7 +457,7 @@ function canvas_mousemove(e)
 function draw()
 {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(images['mansion_map'], viewport_x, viewport_y);
+    ctx.drawImage(background_img, viewport_x, viewport_y);
 
     ctx.save()
     if (own_actor != null)
@@ -503,9 +507,7 @@ function draw_room()
     for (var i=0; i<room.map_objects.length; i++)
     {
         var map_object = room.map_objects[i];
-        ctx.fillStyle = "rgb(100,100,100)";
         ctx.drawImage(map_object.img, map_object.position[0], map_object.position[1], map_object.width, map_object.height);
-//        ctx.fillRect(map_object.position[0], map_object.position[1], map_object.width, map_object.height);
     }
 }
 
@@ -580,7 +582,7 @@ function onmessage(msg)
                     sprite.path = actor.path;
                     sprite.width = 80;
                     sprite.height = 80;
-                    sprite.opens_direction = opens_directions[actor.opens_direction];
+                    sprite.opens_direction = facing_directions[actor.opens_direction];
                     sprite.opens_dir= actor.opens_direction;
                     sprites[actor.actor_id] = sprite;
                 }
@@ -655,6 +657,13 @@ function addLogEntry(message, time)
     );
 }
 
+function initBackgroundImage()
+{
+    background_img = images['mansion_map'];
+//    service_call("/room/" );
+    requestRedraw();
+}
+
 function init()
 {
     console.log("init");
@@ -673,8 +682,7 @@ function init()
     socket.onopen = onopen;
 
     loadImages(map_images, function() {
-        console.log("Drawing");
-        requestRedraw();
+        initBackgroundImage();
     });
 }
 

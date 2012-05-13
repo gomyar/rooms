@@ -87,11 +87,12 @@ def serialize_roomobject(obj):
         height=obj.height,
         position=obj.position,
         object_type=obj.object_type,
+        facing=obj.facing,
     )
 
 def create_roomobject(data):
     room_object = RoomObject(data['object_type'], data['width'],
-        data['height'], data['position'])
+        data['height'], data['position'], data['facing'])
     return room_object
 
 # Area

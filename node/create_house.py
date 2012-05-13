@@ -2,6 +2,7 @@
 
 from container import *
 from container import _encode
+from actor import *
 from scripts.WanderingNpcScript import WanderingNpcScript
 
 init_mongo()
@@ -36,7 +37,16 @@ study = Room('study', (1240, 580), 520, 320, description="The Study")
 area.rooms['study'] = study
 
 diningroom = Room('diningroom', (780, 60), 440, 740, description="The Dining Room")
-diningroom.add_object(RoomObject("diningroom_table", 200, 440), (140, 120))
+diningroom.add_object("diningroom_table",
+    RoomObject("diningroom_table", 160, 350), (160, 160))
+diningroom.add_object("diningroom_chair_l1",
+    RoomObject("diningroom_chair_right", 60, 40, facing=FACING_EAST), (120, 190))
+diningroom.add_object("diningroom_chair_l2",
+    RoomObject("diningroom_chair_right", 60, 40, facing=FACING_EAST), (120, 270))
+diningroom.add_object("diningroom_chair_l3",
+    RoomObject("diningroom_chair_right", 60, 40, facing=FACING_EAST), (120, 350))
+diningroom.add_object("diningroom_chair_l4",
+    RoomObject("diningroom_chair_right", 60, 40, facing=FACING_EAST), (120, 420))
 area.rooms['diningroom'] = diningroom
 
 pantry = Room('pantry', (340, 60), 420, 380, description="The Pantry")

@@ -1,16 +1,16 @@
 
 from actor import Actor
+from actor import FACING_NORTH
+from actor import FACING_SOUTH
+from actor import FACING_EAST
+from actor import FACING_WEST
 
-OPENS_NORTH = "north"
-OPENS_SOUTH = "south"
-OPENS_EAST = "east"
-OPENS_WEST = "west"
 
 open_dirs = {
-    (1, 0): OPENS_EAST,
-    (0, 1): OPENS_SOUTH,
-    (-1, 0): OPENS_WEST,
-    (0, -1): OPENS_NORTH,
+    (1, 0): FACING_EAST,
+    (0, 1): FACING_SOUTH,
+    (-1, 0): FACING_WEST,
+    (0, -1): FACING_NORTH,
 }
 
 
@@ -29,7 +29,7 @@ class Door(Actor):
         self.exit_room = exit_room
         self.exit_door_id = exit_door_id
         self.set_position(position)
-        self.opens_direction = OPENS_NORTH
+        self.opens_direction = FACING_NORTH
 
     def __eq__(self, rhs):
         return rhs and self.exit_room == rhs.exit_room and \

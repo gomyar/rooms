@@ -7,21 +7,30 @@ from basicsquare_geography import BasicSquareGeography
 import logging
 log = logging.getLogger("rooms")
 
+from actor import FACING_NORTH
+from actor import FACING_SOUTH
+from actor import FACING_EAST
+from actor import FACING_WEST
+
 geog = BasicSquareGeography()
 
+
 class RoomObject(object):
-    def __init__(self, object_type, width, height, position=(0, 0)):
+    def __init__(self, object_type, width, height, position=(0, 0),
+            facing=FACING_NORTH):
         self.object_type = object_type
         self.width = width
         self.height = height
         self.position = position
+        self.facing = facing
 
     def __repr__(self):
         return "<RoomObject %s, %s, %s, %s>" % self.wall_positions()
 
     def external(self):
         return dict(width=self.width, height=self.height,
-            position=self.position, object_type=self.object_type)
+            position=self.position, object_type=self.object_type,
+            facing=self.facing)
 
     def at(self, x, y):
         return self.position[0] <= x and self.position[0] + self.width >= x \
@@ -51,7 +60,7 @@ class Room(object):
         self.position = position
         self.width = width
         self.height = height
-        self.map_objects = []
+        self.map_objects = dict()
         self.actors = dict()
 
     def __eq__(self, rhs):
@@ -62,7 +71,7 @@ class Room(object):
             self.width, self.height)
 
     def object_at(self, x, y):
-        for map_object in self.map_objects:
+        for map_object in self.map_objects.values():
             if map_object.at(x, y):
                 return True
         return False
@@ -76,16 +85,16 @@ class Room(object):
             log.exception("Error %s getting path from %s to %s", e, start, end)
             raise
 
-    def add_object(self, map_object, rel_position=(0, 0)):
+    def add_object(self, object_id, map_object, rel_position=(0, 0)):
         position = (self.position[0] + rel_position[0],
             self.position[1] + rel_position[1])
         map_object.position = position
-        self.map_objects.append(map_object)
+        self.map_objects[object_id] = map_object
 
     def external(self):
         return dict(room_id=self.room_id, position=self.position,
             width=self.width, height=self.height,
-            map_objects=[m.external() for m in self.map_objects],
+            map_objects=[m.external() for m in self.map_objects.values()],
         )
 
     def actor_enters(self, actor, door_id):
@@ -98,7 +107,8 @@ class Room(object):
         actor.room = self
         entry_x = self.position[0] + self.width / 2
         entry_y = self.position[1] + self.height / 2
-        actor.set_position((entry_x, entry_y))
+        position = geog.get_available_position_closest_to(self, (entry_x, entry_y))
+        actor.set_position(position)
 
     def actor_left_instance(self, actor):
         self.actors.pop(actor.actor_id)

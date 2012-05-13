@@ -2,6 +2,11 @@ import math
 import time
 import inspect
 
+FACING_NORTH = "north"
+FACING_SOUTH = "south"
+FACING_EAST = "east"
+FACING_WEST = "west"
+
 
 def distance(x1, y1, x2, y2):
     return math.hypot(x2 - x1, y2 - y1)

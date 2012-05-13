@@ -73,7 +73,7 @@ class RectCollection:
 
     def find_closest(self, position):
         x, y = self._to_points(position)
-        for r in range(10):
+        for r in range(50):
             dirs = [(x+r, y), (x, y+r), (x-r, y), (x, y-r),
                 (x+r, y+r), (x+r, y+r), (x-r, y-r), (x-r, y-r)]
             for point in dirs:
@@ -124,6 +124,10 @@ class BasicSquareGeography:
             yield (int(start[0] + i * w * 10 / length),
                     int(start[1] + i * h * 10 / length))
         yield end
+
+    def get_available_position_closest_to(self, room, position):
+        rects = self._get_rects_for(room)
+        return rects.find_closest(position).center()
 
     def get_path(self, room, start, end):
         rects = self._get_rects_for(room)
