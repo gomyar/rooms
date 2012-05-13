@@ -4,6 +4,7 @@ from container import *
 from container import _encode
 from actor import *
 from scripts.WanderingNpcScript import WanderingNpcScript
+from scripts.ButlerScript import ButlerScript
 
 init_mongo()
 
@@ -71,7 +72,7 @@ area.create_door(library, study, (1420, 920), (1420, 900))
 
 area.entry_point_room_id = "foyer"
 
-area.add_npc(NpcActor("butler", WanderingNpcScript()), 'foyer')
+area.add_npc(NpcActor("butler", ButlerScript()), 'foyer')
 area.add_npc(NpcActor("dilettante", WanderingNpcScript()), 'study')
 area.add_npc(NpcActor("gladys", WanderingNpcScript()), 'diningroom')
 area.add_npc(NpcActor("jezabel", WanderingNpcScript()), 'diningroom')

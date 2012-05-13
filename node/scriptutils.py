@@ -1,7 +1,9 @@
 
+import random
+import time
+
 import eventlet
 
-import random
 
 class Script:
     def room(self):
@@ -18,3 +20,8 @@ class Script:
 
     def sleep(self, seconds):
         eventlet.sleep(seconds)
+
+    def walk_to(self, x, y):
+        self.npc.walk_to(x, y)
+        end_time = self.npc.path[-1][2]
+        self.sleep(end_time - time.time())

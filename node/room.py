@@ -1,5 +1,6 @@
 
 from player_actor import PlayerActor
+from npc_actor import NpcActor
 from door import Door
 
 from basicsquare_geography import BasicSquareGeography
@@ -150,3 +151,7 @@ class Room(object):
     def all_players(self):
         return [actor for actor in self.actors.values() if \
             issubclass(actor.__class__, PlayerActor)]
+
+    def all_npcs(self):
+        return [actor for actor in self.actors.values() if \
+            issubclass(actor.__class__, NpcActor)]

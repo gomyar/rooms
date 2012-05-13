@@ -53,6 +53,9 @@ class Actor(object):
     def __repr__(self):
         return "<Actor %s>" % (self.actor_id,)
 
+    def set_state(self, state):
+        self.state = state
+
     def interface_call(self, func_name, player, *args, **kwargs):
         func = getattr(self, func_name)
         if not self._can_call_method(player, func_name):
@@ -121,14 +124,17 @@ class Actor(object):
         last_x, last_y = path.pop(0)
         current_time = get_now()
         self.path.append( (last_x, last_y, current_time ) )
-        while path:
-            x, y = path.pop(0)
+        for point in path:
+            x, y = point
             current_time += self.time_to_move(last_x, last_y, x, y)
             self.path.append( (x, y, current_time ) )
             last_x, last_y = x, y
 
     def time_to_move(self, x1, y1, x2, y2):
         return distance(x1, y1, x2, y2) / self.speed
+
+    def distance_to(self, point):
+        return distance(self.x(), self.y(), point[0], point[1])
 
     def _filters_equal(self, actor, filters):
         for key, val in filters.items():
@@ -169,3 +175,6 @@ class Actor(object):
 
     def send_to_all(self, event, **kwargs):
         self.instance.send_to_all(event, **kwargs)
+
+    def event(self, event_id, **kwargs):
+        pass

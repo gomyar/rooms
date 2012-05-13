@@ -11,6 +11,18 @@ class NpcActor(CharacterActor):
         self.npc_script = npc_script
         self.speed = 90.0
 
+    def set_state(self, state):
+        super(NpcActor, self).set_state(state)
+        callback_method = "state_%s" % (state,)
+        if hasattr(self.npc_script, callback_method):
+            state_changed = getattr(self.npc_script, callback_method)
+            state_changed()
+
+    def event(self, event_id, *args, **kwargs):
+        event_method = "event_%s" % (event_id,)
+        if hasattr(self.npc_script, event_method):
+            getattr(self.npc_script, event_method)(*args, **kwargs)
+
     def external(self):
         ex = super(NpcActor, self).external()
         ex['model_type'] = self.model_type

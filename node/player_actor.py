@@ -9,6 +9,13 @@ class PlayerActor(CharacterActor):
         super(PlayerActor, self).__init__(player_id, position)
         self.model_type = "investigator"
 
+    def set_path(self, path):
+        super(PlayerActor, self).set_path(path)
+        for point in path:
+            for actor in self.room.all_npcs():
+                if actor.distance_to(point) < 100:
+                    actor.event("player_moved_nearby", self)
+
     def external(self):
         ex = super(PlayerActor, self).external()
         ex['model_type'] = self.model_type

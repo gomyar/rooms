@@ -130,6 +130,7 @@ def control_handle(environ, response):
         instance = Instance()
         instance.load_map(map_id)
         instances[uid] = instance
+        instance.kickoff()
         returned = '{"instance_uid": "%s"}' % (uid,)
         log.info("Instance created %s : %s", map_id, uid)
 
@@ -144,7 +145,6 @@ def room_handle(environ, response):
     _, url, instance_uid = environ['PATH_INFO'].split("/")
     cookies = _read_cookies(environ)
     instance = instances[instance_uid]
-    instance.kickoff()
     returned = instance.area.actors[sessions[cookies['sessionid']]].room.external()
     if returned:
         returned = simplejson.dumps(returned)
