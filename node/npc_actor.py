@@ -10,6 +10,9 @@ class NpcActor(CharacterActor):
         self.model_type = actor_id
         self.npc_script = npc_script
         self.speed = 90.0
+        self.previous_state = None
+        self.chat_script = None
+        self.current_chat = None
 
     def set_state(self, state):
         super(NpcActor, self).set_state(state)
@@ -17,6 +20,23 @@ class NpcActor(CharacterActor):
         if hasattr(self.npc_script, callback_method):
             state_changed = getattr(self.npc_script, callback_method)
             state_changed()
+
+    def chat(self, message):
+        if not self.chat_script:
+            raise Exception("No conversation")
+        choice = self.current_chat.said(message)
+        self.interacting_with.add_chat_message("%s says: %s",
+            self.interacting_with.actor_id, message)
+        if type(choice.response) is str:
+            self.interacting_with.add_chat_message("%s says: %s",
+                self.actor_id, choice.response)
+        self.current_chat = choice
+        if not self.current_chat.choices:
+            self.set_state(self.previous_state)
+            self.previous_state = None
+            self.interacting_with.set_state("idle")
+            self.interacting_with.interacting_with = None
+            self.interacting_with = None
 
     def event(self, event_id, *args, **kwargs):
         event_method = "event_%s" % (event_id,)
@@ -45,7 +65,3 @@ class NpcActor(CharacterActor):
 
     def kickoff(self):
         self.npc_script.kickoff()
-
-    @expose()
-    def chat(self, actor):
-        actor.add_chat_message("Hi from %s", self.actor_id)

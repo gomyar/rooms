@@ -46,6 +46,7 @@ class Actor(object):
         self.instance = None
         self.state = "idle"
         self.log = []
+        self.interacting_with = None
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and rhs.actor_id == self.actor_id
