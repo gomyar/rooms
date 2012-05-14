@@ -29,9 +29,9 @@ class PlayerActor(CharacterActor):
             raise Exception("Wrong path: %s" % (path,))
         self.set_path(path)
 
-    @expose()
-    def chat(self, actor):
-        actor.add_chat_message("Hi from %s", self.actor_id)
+    @command()
+    def chat(self, query_text):
+        self.interacting_with.chat(query_text)
 
     @command()
     def exit(self, door_id):

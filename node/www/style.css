@@ -50,9 +50,10 @@ div.actor_commands div.command_button:hover
 div#logOuter
 {
     position : absolute;
-    width : 100%;
+    width : 50%;
     height : 200px;
     bottom : 0px;
+    right : 0px;
     background-color : black;
     overflow : hidden;
 }
@@ -88,4 +89,38 @@ div#logOuter div#log div.logEntry div.logTime
 div#logOuter div#log div.logEntry div.logText
 {
     display : inline;
+}
+
+div#chatOuter
+{
+    position : absolute;
+    width : 50%;
+    height : 200px;
+    bottom : 0px;
+    overflow : hidden;
+    border-left : 1px solid grey;
+    border-right : 1px solid grey;
+}
+
+div#chatText
+{
+    width : 100%;
+    height : 100px;
+    font-size: 12px;
+    border-top : 1px solid grey;
+    border-bottom : 1px solid grey;
+    color : white;
+}
+
+div#chatChoices
+{
+    font-size: 12px;
+    width : 100%;
+    height : 100px;
+}
+
+div#chatChoices div.chatChoice
+{
+    font-weight : bold;
+    cursor: pointer;
 }

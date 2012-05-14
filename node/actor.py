@@ -65,6 +65,7 @@ class Actor(object):
 
     def command_call(self, func_name, *args, **kwargs):
         func = getattr(self, func_name)
+        import ipdb; ipdb.set_trace()
         if not self._can_call_command(func_name):
             raise Exception("Illegal call to %s in %s" % (func_name, self))
         return func(*args, **kwargs)
@@ -169,7 +170,10 @@ class Actor(object):
     def add_log(self, msg, *args):
         log_entry = { 'msg': msg % args, 'time': time.time() }
         self.log.append(log_entry)
-        self.instance.send_event(self.actor_id, "log", log_entry)
+        self.send_event("log", **log_entry)
+
+    def send_event(self, event_id, **kwargs):
+        self.instance.send_event(self.actor_id, event_id, **kwargs)
 
     def add_chat_message(self, msg, *args):
         self.add_log(msg, *args)

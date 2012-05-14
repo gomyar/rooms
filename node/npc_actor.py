@@ -1,7 +1,6 @@
 
 from character_actor import CharacterActor
 from actor import expose
-from actor import command
 
 
 class NpcActor(CharacterActor):
@@ -32,11 +31,37 @@ class NpcActor(CharacterActor):
                 self.actor_id, choice.response)
         self.current_chat = choice
         if not self.current_chat.choices:
-            self.set_state(self.previous_state)
-            self.previous_state = None
-            self.interacting_with.set_state("idle")
-            self.interacting_with.interacting_with = None
-            self.interacting_with = None
+            self.end_chat()
+            return []
+        else:
+            return self.current_chat.choices
+
+    def start_chat(self, player, chat):
+        player.set_state("chatting")
+        player.interacting_with = self
+
+        self.previous_state = self.state
+        self.set_state("chatting")
+        self.interacting_with = player
+        self.chat_script = chat
+        self.current_chat = chat
+
+        player.add_chat_message(chat.query_text)
+        player.add_chat_message(chat.response)
+
+        player.send_event("start_chat", actor_id=self.actor_id,
+            msg=chat.response, choices=chat.choice_list())
+
+    def end_chat(self):
+        self.set_state(self.previous_state)
+        self.interacting_with.send_event("end_chat")
+        self.previous_state = None
+        self.interacting_with.set_state("idle")
+        self.interacting_with.interacting_with = None
+        self.interacting_with = None
+        self.current_chat = None
+        self.chat_script = None
+
 
     def event(self, event_id, *args, **kwargs):
         event_method = "event_%s" % (event_id,)

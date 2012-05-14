@@ -27,17 +27,7 @@ class Script:
         self.sleep(end_time - time.time())
 
     def start_chat(self, actor, chat):
-        actor.set_state("chatting")
-        actor.interacting_with = self.npc
-
-        self.npc.previous_state = self.npc.state
-        self.npc.set_state("chatting")
-        self.npc.interacting_with = actor
-        self.npc.chat_script = chat
-        self.npc.current_chat = chat
-
-        actor.add_chat_message(chat.query_text)
-        actor.add_chat_message(chat.response)
+        self.npc.start_chat(actor, chat)
 
 
 class Chat:
@@ -52,6 +42,9 @@ class Chat:
             if choice.query_text == message:
                 return choice
         raise Exception("Not understood")
+
+    def choice_list(self):
+        return [str(choice.query_text) for choice in self.choices]
 
 
 def chat(query_text, response, choices=[]):

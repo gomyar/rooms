@@ -63,7 +63,7 @@ class Instance:
             self.area.actor_left_instance(actor)
             self.send_to_all("actor_left_instance", player_id=player_id)
 
-    def send_event(self, player_id, event_id, kwargs):
+    def send_event(self, player_id, event_id, **kwargs):
         for queue in self.player_queues[player_id]:
             queue.put(dict(command=event_id, kwargs=kwargs))
 

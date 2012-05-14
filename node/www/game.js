@@ -457,7 +457,8 @@ function canvas_mousemove(e)
 function draw()
 {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(background_img, viewport_x, viewport_y);
+    if (background_img != null)
+        ctx.drawImage(background_img, viewport_x, viewport_y);
 
     ctx.save()
     if (own_actor != null)
@@ -641,6 +642,29 @@ function onmessage(msg)
         {
             console.log("heartbeat");
         }
+        else if (message.command == "start_chat")
+        {
+            console.log("Start chat with: "+message.kwargs);
+            $("#chatText").text(message.kwargs.msg);
+            for (i in message.kwargs.choices)
+            {
+                var choice = message.kwargs.choices[i];
+                var choice_div = $("<div>", { "class": "chatChoice" });
+                choice_div.text(choice);
+                choice_div.click(function(e){
+                    service_call("/game/" + instance_uid + "/" + message.kwargs.actor_id + "/chat", { "query_text": choice }, function() {
+                        console.log("said: "+choice);}
+                    );
+                });
+                $("#chatChoices").append(choice_div);
+
+            }
+        }
+        else if (message.command == "end_chat")
+        {
+            console.log("End chat with: "+message.kwargs);
+        }
+
     }
 }
 
