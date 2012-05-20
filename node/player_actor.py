@@ -30,10 +30,6 @@ class PlayerActor(CharacterActor):
         self.set_path(path)
 
     @command()
-    def chat(self, query_text):
-        self.interacting_with.chat(query_text)
-
-    @command()
     def exit(self, door_id):
         self.room.exit_through_door(self, door_id)
         self.instance.send_sync(self.actor_id)

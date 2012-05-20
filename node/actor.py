@@ -46,7 +46,6 @@ class Actor(object):
         self.instance = None
         self.state = "idle"
         self.log = []
-        self.interacting_with = None
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and rhs.actor_id == self.actor_id
@@ -65,7 +64,6 @@ class Actor(object):
 
     def command_call(self, func_name, *args, **kwargs):
         func = getattr(self, func_name)
-        import ipdb; ipdb.set_trace()
         if not self._can_call_command(func_name):
             raise Exception("Illegal call to %s in %s" % (func_name, self))
         return func(*args, **kwargs)
@@ -120,6 +118,10 @@ class Actor(object):
     def set_position(self, position):
         x, y = position
         self.path = [ (x, y, get_now() ), (x, y, get_now() ) ]
+
+    def stop_walking(self):
+        self.set_position(self.position())
+        self.send_actor_update()
 
     def set_path(self, path):
         self.path = []
@@ -183,3 +185,6 @@ class Actor(object):
 
     def event(self, event_id, **kwargs):
         pass
+
+    def send_actor_update(self):
+        self.send_to_players_in_room("actor_update", **self.external())

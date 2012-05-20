@@ -1,4 +1,6 @@
 
+import eventlet
+
 from character_actor import CharacterActor
 from actor import expose
 
@@ -12,56 +14,39 @@ class NpcActor(CharacterActor):
         self.previous_state = None
         self.chat_script = None
         self.current_chat = None
+        self.gthread = None
 
     def set_state(self, state):
         super(NpcActor, self).set_state(state)
         callback_method = "state_%s" % (state,)
+        if self.gthread:
+            try:
+                self.gthread.kill()
+            except:
+                pass
         if hasattr(self.npc_script, callback_method):
             state_changed = getattr(self.npc_script, callback_method)
-            state_changed()
+            self.gthread = eventlet.spawn(state_changed)
 
-    def chat(self, message):
-        if not self.chat_script:
-            raise Exception("No conversation")
-        choice = self.current_chat.said(message)
-        self.interacting_with.add_chat_message("%s says: %s",
-            self.interacting_with.actor_id, message)
-        if type(choice.response) is str:
-            self.interacting_with.add_chat_message("%s says: %s",
-                self.actor_id, choice.response)
-        self.current_chat = choice
-        if not self.current_chat.choices:
-            self.end_chat()
-            return []
-        else:
-            return self.current_chat.choices
-
-    def start_chat(self, player, chat):
-        player.set_state("chatting")
-        player.interacting_with = self
-
-        self.previous_state = self.state
+    @expose()
+    def chat(self, player, message=""):
+        if self.state != "chatting":
+            self.previous_state = self.state
+            self.chat_script = self.npc_script.chat(player)
+            self.current_chat = self.chat_script
         self.set_state("chatting")
-        self.interacting_with = player
-        self.chat_script = chat
-        self.current_chat = chat
-
-        player.add_chat_message(chat.query_text)
-        player.add_chat_message(chat.response)
-
-        player.send_event("start_chat", actor_id=self.actor_id,
-            msg=chat.response, choices=chat.choice_list())
-
-    def end_chat(self):
-        self.set_state(self.previous_state)
-        self.interacting_with.send_event("end_chat")
-        self.previous_state = None
-        self.interacting_with.set_state("idle")
-        self.interacting_with.interacting_with = None
-        self.interacting_with = None
-        self.current_chat = None
-        self.chat_script = None
-
+        if message:
+            player.add_chat_message("%s says: %s", player.actor_id, message)
+        choice = self.current_chat.said(message)
+        if choice.response and type(choice.response) is str:
+            player.add_chat_message("%s says: %s", self.actor_id,
+                choice.response)
+        self.current_chat = choice
+        if not self.current_chat.choice_list():
+            player.send_event("end_chat", actor_id=self.actor_id)
+        else:
+            player.send_event("chat", actor_id=self.actor_id,
+                msg=choice.response, choices=choice.choice_list())
 
     def event(self, event_id, *args, **kwargs):
         event_method = "event_%s" % (event_id,)
@@ -79,7 +64,10 @@ class NpcActor(CharacterActor):
         if not path or len(path) < 2:
             raise Exception("Wrong path: %s" % (path,))
         self.set_path(path)
-        self.send_to_players_in_room("actor_update", **self.external())
+        self.send_actor_update()
+
+    def path_end_time(self):
+        return self.path[-1][2]
 
     def load_script(self, script_class):
         module = __import__("scripts.%s" % (script_class,),

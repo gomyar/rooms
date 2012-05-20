@@ -23,11 +23,15 @@ class Script:
 
     def walk_to(self, x, y):
         self.npc.walk_to(x, y)
-        end_time = self.npc.path[-1][2]
+        end_time = self.npc.path_end_time()
         self.sleep(end_time - time.time())
 
-    def start_chat(self, actor, chat):
-        self.npc.start_chat(actor, chat)
+    def state_chatting(self):
+        print "Chatting...."
+        self.npc.stop_walking()
+        self.sleep(10)
+        print "Waking up..."
+        self.npc.set_state(self.npc.previous_state)
 
 
 class Chat:

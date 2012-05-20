@@ -642,17 +642,18 @@ function onmessage(msg)
         {
             console.log("heartbeat");
         }
-        else if (message.command == "start_chat")
+        else if (message.command == "chat")
         {
             console.log("Start chat with: "+message.kwargs);
             $("#chatText").text(message.kwargs.msg);
+            $("#chatChoices").empty();
             for (i in message.kwargs.choices)
             {
                 var choice = message.kwargs.choices[i];
                 var choice_div = $("<div>", { "class": "chatChoice" });
                 choice_div.text(choice);
                 choice_div.click(function(e){
-                    service_call("/game/" + instance_uid + "/" + message.kwargs.actor_id + "/chat", { "query_text": choice }, function() {
+                    service_call("/game/" + instance_uid + "/" + message.kwargs.actor_id + "/chat", { "message": choice }, function() {
                         console.log("said: "+choice);}
                     );
                 });
@@ -663,8 +664,9 @@ function onmessage(msg)
         else if (message.command == "end_chat")
         {
             console.log("End chat with: "+message.kwargs);
+            $("#chatText").empty();
+            $("#chatChoices").empty();
         }
-
     }
 }
 
