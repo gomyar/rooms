@@ -12,8 +12,7 @@ class NpcActor(CharacterActor):
         self.npc_script = npc_script
         self.speed = 90.0
         self.previous_state = None
-        self.chat_script = None
-        self.current_chat = None
+        self.chat_scripts = dict()
         self.gthread = None
 
     def set_state(self, state):
@@ -36,7 +35,11 @@ class NpcActor(CharacterActor):
         self.set_state("chatting")
         script = self.chat_scripts[player.actor_id]
         response = script.said(message)
+        if message:
+            player.add_chat_message("You say : %s", message)
+            player.add_chat_message("%s says: %s", self.actor_id, response)
         if not script.choice_list():
+            script.reset()
             player.send_event("end_chat", actor_id=self.actor_id)
         else:
             player.send_event("chat", actor_id=self.actor_id,

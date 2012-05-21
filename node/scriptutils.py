@@ -4,7 +4,8 @@ import time
 
 import eventlet
 
-from chat import Chat
+from chat import chat
+from chat import choice as c
 
 class Script:
     def room(self):
@@ -28,10 +29,6 @@ class Script:
         self.sleep(end_time - time.time())
 
     def state_chatting(self):
-        print "Chatting...."
         self.npc.stop_walking()
         self.sleep(10)
-        print "Waking up..."
         self.npc.set_state(self.npc.previous_state)
-
-

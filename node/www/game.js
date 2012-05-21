@@ -652,8 +652,9 @@ function onmessage(msg)
                 var choice = message.kwargs.choices[i];
                 var choice_div = $("<div>", { "class": "chatChoice" });
                 choice_div.text(choice);
+                $(choice_div).attr('choice', choice);
                 choice_div.click(function(e){
-                    service_call("/game/" + instance_uid + "/" + message.kwargs.actor_id + "/chat", { "message": choice }, function() {
+                    service_call("/game/" + instance_uid + "/" + message.kwargs.actor_id + "/chat", { "message": $(this).attr('choice') }, function() {
                         console.log("said: "+choice);}
                     );
                 });

@@ -4,9 +4,7 @@ import unittest
 from chat import Conversation
 from chat import RespondChoice
 from chat import chat
-from chat import tag
 from chat import choice
-from chat import goto
 
 
 class ChatTest(unittest.TestCase):
@@ -35,14 +33,13 @@ class ChatTest(unittest.TestCase):
         self.assertEquals([], self.chat.choice_list())
 
     def testTaggedChoices(self):
-        self.chat = chat([
-            tag("top", choice("question1", "answer1", [
-                choice("question2", "answer2", [
-                        choice("done", goto("top", "ok then")),
-                    ]),
-                ])
-            )
-        ])
+        self.chat = chat(
+            choice("question1", "answer1",
+                choice("question2", "answer2",
+                        choice("done", "ok then")
+                ),
+            ),
+        )
 
         self.assertEquals(['question1'], self.chat.choice_list())
         self.assertEquals("answer1", self.chat.said("question1"))
@@ -52,6 +49,7 @@ class ChatTest(unittest.TestCase):
         self.assertEquals("ok then", self.chat.said("done"))
         self.assertEquals(['question1'], self.chat.choice_list())
 
+'''
         @hasnt_talked_to_butler_before
         "hello jeeves", "hello, sir"
             "where is laddy chatterly?", "in the boardroom, sir"
@@ -88,7 +86,7 @@ class ChatTest(unittest.TestCase):
                 ),
             ),
         }
-
+'''
 
 #    def testListOfChoices(self):
 #        self.chat = chat(

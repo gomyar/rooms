@@ -16,14 +16,14 @@ class ButlerScript(Script):
             self.walk_to(930, 1590)
 
     def chat(self, player):
-        return chat("", "", [
-            chat("", "Good evening, Sir", [
-                chat("Have all the guests arrived yet?", "Not quite, Sir", [
-                    chat("When is dinner starting?", "Around 9, Sir"),
-                    chat("Where is the owner?",
+        return chat(
+            c("Hullo Jeeves", "Good evening, Sir",
+                c("Have all the guests arrived yet?", "Not quite, Sir",
+                    c("When is dinner starting?", "Around 9, Sir"),
+                    c("Where is the owner?",
                         "Lady Pinkerton in in the dining room, Sir"),
-                ]),
-                chat("Yes, thank you Jeeves, any chance of a drink?",
+                ),
+                c("Yes, thank you Jeeves, any chance of a drink?",
                     "The Lounge is straight ahead on the left, Sir")
-            ])
-        ])
+            )
+        )
