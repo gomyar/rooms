@@ -32,21 +32,15 @@ class NpcActor(CharacterActor):
     def chat(self, player, message=""):
         if self.state != "chatting":
             self.previous_state = self.state
-            self.chat_script = self.npc_script.chat(player)
-            self.current_chat = self.chat_script
+            self.chat_scripts[player.actor_id] = self.npc_script.chat(player)
         self.set_state("chatting")
-        if message:
-            player.add_chat_message("%s says: %s", player.actor_id, message)
-        choice = self.current_chat.said(message)
-        if choice.response and type(choice.response) is str:
-            player.add_chat_message("%s says: %s", self.actor_id,
-                choice.response)
-        self.current_chat = choice
-        if not self.current_chat.choice_list():
+        script = self.chat_scripts[player.actor_id]
+        response = script.said(message)
+        if not script.choice_list():
             player.send_event("end_chat", actor_id=self.actor_id)
         else:
             player.send_event("chat", actor_id=self.actor_id,
-                msg=choice.response, choices=choice.choice_list())
+                msg=response, choices=script.choice_list())
 
     def event(self, event_id, *args, **kwargs):
         event_method = "event_%s" % (event_id,)

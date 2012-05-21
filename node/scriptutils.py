@@ -4,6 +4,7 @@ import time
 
 import eventlet
 
+from chat import Chat
 
 class Script:
     def room(self):
@@ -34,25 +35,3 @@ class Script:
         self.npc.set_state(self.npc.previous_state)
 
 
-class Chat:
-    def __init__(self, query_text, response, choices=[]):
-        self.query_text = query_text
-        self.response = response
-        self.choices = choices
-        self.parent = None
-
-    def said(self, message):
-        for choice in self.choices:
-            if choice.query_text == message:
-                return choice
-        raise Exception("Not understood")
-
-    def choice_list(self):
-        return [str(choice.query_text) for choice in self.choices]
-
-
-def chat(query_text, response, choices=[]):
-    c = Chat(query_text, response, choices)
-    for choice in choices:
-        choice.parent = c
-    return c
