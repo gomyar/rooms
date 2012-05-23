@@ -6,14 +6,18 @@ from scriptutils import *
 
 class ButlerScript(Script):
     def kickoff(self):
-        self.npc.set_state("greeting_guests")
+        self.set_state("greeting_guests")
 
     def state_greeting_guests(self):
         while True:
             self.walk_to(930, 1740)
+            self.sleep(5)
             self.walk_to(1180, 1740)
+            self.sleep(5)
             self.walk_to(1180, 1590)
+            self.sleep(5)
             self.walk_to(930, 1590)
+            self.sleep(5)
 
     def chat(self, player):
         return chat(

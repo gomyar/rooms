@@ -34,8 +34,13 @@ class RespondChoice:
             choice.set_parent(parent)
 
     def respond(self):
-        self.parent.current_choice = self
-        return self.response
+        if type(self.response) is str:
+            self.parent.current_choice = self
+            return self.response
+        elif callable(self.response):
+            self.parent.current_choice = self
+            self.response()
+            return ""
 
     def matches(self, query_text):
         return query_text == self.query_text

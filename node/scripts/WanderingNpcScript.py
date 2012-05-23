@@ -4,7 +4,7 @@ import random
 
 class WanderingNpcScript(Script):
     def kickoff(self):
-        self.npc.set_state("wandering")
+        self.set_state("wandering")
 
     def state_wandering(self):
         while True:

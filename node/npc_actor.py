@@ -34,9 +34,10 @@ class NpcActor(CharacterActor):
             self.chat_scripts[player.actor_id] = self.npc_script.chat(player)
         self.set_state("chatting")
         script = self.chat_scripts[player.actor_id]
-        response = script.said(message)
         if message:
             player.add_chat_message("You say : %s", message)
+        response = script.said(message)
+        if response:
             player.add_chat_message("%s says: %s", self.actor_id, response)
         if not script.choice_list():
             script.reset()

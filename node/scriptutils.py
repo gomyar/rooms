@@ -28,7 +28,13 @@ class Script:
         end_time = self.npc.path_end_time()
         self.sleep(end_time - time.time())
 
+    def set_state(self, state):
+        self.npc.set_state(state)
+
     def state_chatting(self):
         self.npc.stop_walking()
         self.sleep(10)
         self.npc.set_state(self.npc.previous_state)
+
+    def say(self, message):
+        self.npc.say_to_room(message)

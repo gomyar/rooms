@@ -5,6 +5,8 @@ from container import _encode
 from actor import *
 from scripts.WanderingNpcScript import WanderingNpcScript
 from scripts.ButlerScript import ButlerScript
+from scripts.GladysScript import GladysScript
+from scripts.JezabelScript import JezabelScript
 
 init_mongo()
 
@@ -74,8 +76,8 @@ area.entry_point_room_id = "foyer"
 
 area.add_npc(NpcActor("butler", ButlerScript()), 'foyer')
 area.add_npc(NpcActor("dilettante", WanderingNpcScript()), 'study')
-area.add_npc(NpcActor("gladys", WanderingNpcScript()), 'diningroom')
-area.add_npc(NpcActor("jezabel", WanderingNpcScript()), 'diningroom')
+area.add_npc(NpcActor("gladys", GladysScript()), 'diningroom')
+area.add_npc(NpcActor("jezabel", JezabelScript()), 'diningroom')
 area.add_npc(NpcActor("major", WanderingNpcScript()), 'trophyroom')
 area.add_npc(NpcActor("professor", WanderingNpcScript()), 'library')
 area.add_npc(NpcActor("aunt", WanderingNpcScript()), 'lounge')

@@ -7,11 +7,16 @@ class CharacterActor(Actor):
         super(CharacterActor, self).__init__(actor_id, position)
 
     def send_to_characters_in_room(self, event, **kwargs):
-        players = [player for player in self.room.all_characters()]
+        players = self.room.all_characters()
         player_ids = [player.actor_id for player in players]
         self.instance.send_to_players(player_ids, event, **kwargs)
 
     def send_to_players_in_room(self, event, **kwargs):
-        players = [player for player in self.room.all_players()]
+        players = self.room.all_players()
         player_ids = [player.actor_id for player in players]
         self.instance.send_to_players(player_ids, event, **kwargs)
+
+    def say_to_room(self, message):
+        players = self.room.all_players()
+        for player in players:
+            player.add_chat_message(message)
