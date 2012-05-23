@@ -43,13 +43,30 @@ diningroom = Room('diningroom', (780, 60), 440, 740, description="The Dining Roo
 diningroom.add_object("diningroom_table",
     RoomObject("diningroom_table", 160, 350), (160, 160))
 diningroom.add_object("diningroom_chair_l1",
-    RoomObject("diningroom_chair_right", 60, 40, facing=FACING_EAST), (120, 190))
+    RoomObject("diningroom_chair_right", 40, 60, facing=FACING_EAST), (120, 190))
 diningroom.add_object("diningroom_chair_l2",
-    RoomObject("diningroom_chair_right", 60, 40, facing=FACING_EAST), (120, 270))
+    RoomObject("diningroom_chair_right", 40, 60, facing=FACING_EAST), (120, 270))
 diningroom.add_object("diningroom_chair_l3",
-    RoomObject("diningroom_chair_right", 60, 40, facing=FACING_EAST), (120, 350))
+    RoomObject("diningroom_chair_right", 40, 60, facing=FACING_EAST), (120, 350))
 diningroom.add_object("diningroom_chair_l4",
-    RoomObject("diningroom_chair_right", 60, 40, facing=FACING_EAST), (120, 420))
+    RoomObject("diningroom_chair_right", 40, 60, facing=FACING_EAST), (120, 420))
+
+diningroom.add_object("diningroom_table",
+    RoomObject("diningroom_table", 160, 350), (160, 160))
+diningroom.add_object("diningroom_chair_r1",
+    RoomObject("diningroom_chair_left", 40, 60, facing=FACING_WEST), (320, 190))
+diningroom.add_object("diningroom_chair_r2",
+    RoomObject("diningroom_chair_left", 40, 60, facing=FACING_WEST), (320, 270))
+diningroom.add_object("diningroom_chair_r3",
+    RoomObject("diningroom_chair_left", 40, 60, facing=FACING_WEST), (320, 350))
+diningroom.add_object("diningroom_chair_r4",
+    RoomObject("diningroom_chair_left", 40, 60, facing=FACING_WEST), (320, 420))
+
+diningroom.add_object("diningroom_chair_t1",
+    RoomObject("diningroom_chair_down", 60, 40, facing=FACING_SOUTH), (220, 120))
+diningroom.add_object("diningroom_chair_b1",
+    RoomObject("diningroom_chair_up", 60, 40, facing=FACING_NORTH), (220, 510))
+
 area.rooms['diningroom'] = diningroom
 
 pantry = Room('pantry', (340, 60), 420, 380, description="The Pantry")
