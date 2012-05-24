@@ -34,7 +34,10 @@ var map_images = {
     'diningroom_chair_right': 'room_objects/diningroom_chair_right.png',
     'diningroom_chair_left': 'room_objects/diningroom_chair_left.png',
     'diningroom_chair_up': 'room_objects/diningroom_chair_up.png',
-    'diningroom_chair_down': 'room_objects/diningroom_chair_down.png'
+    'diningroom_chair_down': 'room_objects/diningroom_chair_down.png',
+    'marble_side_table': 'room_objects/marble_side_table.png',
+    'couch_east': 'room_objects/couch_east.png',
+    'large_painting_west': 'room_objects/large_painting_west.png'
 };
 
 var background_img;

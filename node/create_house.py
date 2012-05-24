@@ -14,31 +14,47 @@ area = Area()
 area.area_name = "mansion"
 area.owner_id = 1
 
-foyer = Room('foyer', (820, 1480), 420, 520, description="The Foyer")
+# Foyer
+foyer = Room('foyer', (820, 1480), 420, 430, description="The Foyer")
+foyer.add_object("t1",
+    RoomObject("marble_side_table", 90, 90), (50, 10))
+foyer.add_object("t2",
+    RoomObject("marble_side_table", 90, 90), (300, 340))
+foyer.add_object("sofa",
+    RoomObject("couch_east", 50, 190), (0, 200))
+foyer.add_object("painting",
+    RoomObject("large_painting_west", 10, 190), (410, 190))
 area.rooms['foyer'] = foyer
-#lobby.add_object(RoomObject(200, 200), (300, 300))
 
+# Cloackroom
 cloakroom = Room('cloakroom', (280, 1440), 520, 320, description="The Cloakroom")
 area.rooms['cloakroom'] = cloakroom
 
+# Trophyroom
 trophyroom = Room('trophyroom', (1260, 1440), 460, 320, description="The Trophy Room")
 area.rooms['trophyroom'] = trophyroom
 
+# Hall
 hall = Room('hall', (940, 820), 200, 640, description="The Hall")
 area.rooms['hall'] = hall
 
+# Lounge
 lounge = Room('lounge', (420, 1000), 500, 420, description="The Lounge")
 area.rooms['lounge'] = lounge
 
+# Library
 library = Room('library', (1160, 920), 460, 500, description="The Library")
 area.rooms['library'] = library
 
+# Kitchen
 kitchen = Room('kitchen', (340, 460), 420, 520, description="The Kitchen")
 area.rooms['kitchen'] = kitchen
 
+# Study
 study = Room('study', (1240, 580), 520, 320, description="The Study")
 area.rooms['study'] = study
 
+# Diningroom
 diningroom = Room('diningroom', (780, 60), 440, 740, description="The Dining Room")
 diningroom.add_object("diningroom_table",
     RoomObject("diningroom_table", 160, 350), (160, 160))
@@ -69,9 +85,11 @@ diningroom.add_object("diningroom_chair_b1",
 
 area.rooms['diningroom'] = diningroom
 
+# Pantry
 pantry = Room('pantry', (340, 60), 420, 380, description="The Pantry")
 area.rooms['pantry'] = pantry
 
+# Billiardroom
 billiardroom = Room('billiardroom', (1240, 200), 500, 360, description="The Billiard Room")
 area.rooms['billiardroom'] = billiardroom
 
