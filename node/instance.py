@@ -23,6 +23,9 @@ class Instance:
     def load_map(self, map_id):
         self.area = container.load_area(map_id)
 
+    def sleep(self):
+        print "Sleeping instance"
+
     def call(self, command, player_id, actor_id, kwargs):
         player = self.players[player_id]['player']
         actor = player.room.actors[actor_id]

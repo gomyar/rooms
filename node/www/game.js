@@ -541,6 +541,12 @@ function onopen()
     socket.send(instance_uid);
 }
 
+function onclose()
+{
+    alert("Connection lost");
+    window.location = "http://localhost:8000";
+}
+
 function create_actor_sprite(actor)
 {
     sprite = new Sprite(actor.actor_id);
@@ -713,6 +719,8 @@ function init()
     socket = new WebSocket("ws://"+window.location.hostname+":8080/socket");
     socket.onmessage = onmessage;
     socket.onopen = onopen;
+    socket.onclose = onclose;
+    socket.onerror = onclose;
 
     loadImages(map_images, function() {
         initBackgroundImage();

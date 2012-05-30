@@ -55,6 +55,14 @@ class MasterServer:
         self.nodes[(host, port)] = NodeStub(host, port)
         return True
 
+    def deregister_node(self, host, port):
+        print "Deregistering Node at %s:%s" % (host, port)
+        stub = self.nodes.pop((host, port))
+        for uid, instance in self.instances.items():
+            if instance['node'] == (host, port):
+                self.instances.pop(uid)
+        return "Ok"
+
     def _least_busy_node(self):
         return min(self.nodes.values(), key=NodeStub.instance_count)
 

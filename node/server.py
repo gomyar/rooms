@@ -28,6 +28,9 @@ from eventlet.queue import Empty
 
 from container import init_mongo
 
+import signal
+import sys
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger()
@@ -203,38 +206,45 @@ def redirect(path, response):
     response('301 Moved Permanently', [ ('location', path) ])
     return ""
 
+def deregister():
+    master.deregister_node(host, port)
+
 if __name__ == "__main__":
-    parser = OptionParser()
+    try:
+        parser = OptionParser()
 
-    parser.add_option("-m", "--master", dest="master",
-        default="localhost:8081", help="Address of master",
-        metavar="KS_MASTER")
+        parser.add_option("-m", "--master", dest="master",
+            default="localhost:8081", help="Address of master",
+            metavar="KS_MASTER")
 
-    parser.add_option("-a", "--address", dest="address",
-        default="localhost:8080", help="Address to serve node on",
-        metavar="KS_NODE")
+        parser.add_option("-a", "--address", dest="address",
+            default="localhost:8080", help="Address to serve node on",
+            metavar="KS_NODE")
 
-    parser.add_option("-d", "--dbaddr", dest="dbaddr",
-        default="localhost:27017", help="Address of mongo server",
-        metavar="KS_DBADDR")
+        parser.add_option("-d", "--dbaddr", dest="dbaddr",
+            default="localhost:27017", help="Address of mongo server",
+            metavar="KS_DBADDR")
 
-    (options, args) = parser.parse_args()
-    host = options.address.split(":")[0]
-    port = int(options.address.split(":")[1])
+        (options, args) = parser.parse_args()
+        host = options.address.split(":")[0]
+        port = int(options.address.split(":")[1])
 
-    dbhost = options.dbaddr.split(":")[0]
-    dbport = int(options.dbaddr.split(":")[1])
+        dbhost = options.dbaddr.split(":")[0]
+        dbport = int(options.dbaddr.split(":")[1])
 
-    init_mongo(dbhost, dbport)
+        init_mongo(dbhost, dbport)
 
-    master_addr = options.master
+        master_addr = options.master
 
-    global master
-    master = xmlrpclib.ServerProxy('http://%s' % (master_addr,))
-    master.register_node(host, port)
+        global master
+        master = xmlrpclib.ServerProxy('http://%s' % (master_addr,))
+        master.register_node(host, port)
 
-    eventlet.spawn(backdoor.backdoor_server, eventlet.listen(
-        ('localhost', 3000)), locals=dict(instances=instances))
+        eventlet.spawn(backdoor.backdoor_server, eventlet.listen(
+            ('localhost', 3000)), locals=dict(instances=instances))
 
-    listener = eventlet.listen((host, port))
-    wsgi.server(listener, root)
+        listener = eventlet.listen((host, port))
+        wsgi.server(listener, root)
+    finally:
+        print "Server stopped"
+        deregister()
