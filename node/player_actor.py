@@ -33,3 +33,6 @@ class PlayerActor(CharacterActor):
     def exit(self, door_id):
         self.room.exit_through_door(self, door_id)
         self.instance.send_sync(self.actor_id)
+
+    def leave_instance(self):
+        self.instance.deregister(self.actor_id)

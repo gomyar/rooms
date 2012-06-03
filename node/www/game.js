@@ -699,8 +699,13 @@ function addLogEntry(message, time)
 function initBackgroundImage()
 {
     background_img = images['mansion_map'];
-//    service_call("/room/" );
     requestRedraw();
+}
+
+function menu_quit_clicked(e)
+{
+    service_call("/game/" + instance_uid + "/" + player_id + "/leave_instance",
+        { }, function () { console.log("Leave sent"); })
 }
 
 function init()
@@ -711,6 +716,8 @@ function init()
     canvas = $("#screen")[0];
     $(canvas).click(canvas_clicked);
     $(canvas).mousemove(canvas_mousemove);
+
+    $("#menu_quit").click(menu_quit_clicked);
 
     $(window).resize(function() { resetCanvas(); draw(); });
 

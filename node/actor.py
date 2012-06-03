@@ -48,7 +48,8 @@ class Actor(object):
         self.log = []
 
     def __eq__(self, rhs):
-        return rhs and type(rhs) == type(self) and rhs.actor_id == self.actor_id
+        return rhs and type(rhs) == type(self) and \
+            rhs.actor_id == self.actor_id
 
     def __repr__(self):
         return "<Actor %s>" % (self.actor_id,)

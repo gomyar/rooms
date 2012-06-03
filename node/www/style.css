@@ -124,3 +124,57 @@ div#chatChoices div.chatChoice
     font-weight : bold;
     cursor: pointer;
 }
+
+div#mainMenu
+{
+    position : absolute;
+    bottom : 200px;
+    width : 100%;
+    height : 15px;
+    border-top : 1px solid grey;
+    border-bottom : 1px solid grey;
+    background-color : black;
+}
+
+div.menu
+{
+    border-left : 1px solid grey;
+    border-right : 1px solid grey;
+}
+
+div.menutitle
+{
+    width : 100px;
+    color : white;
+    font-style : italic;
+    font-size : 12px;
+}
+
+div.menutitle:hover
+{
+    background-color : grey;
+    font-weight : bold;
+    cursor : pointer;
+}
+
+div.menudropdown
+{
+    float : left;
+
+}
+
+div.menuitem
+{
+    font-size : 12px;
+    width : 100px;
+    text-align : center;
+    border-left : 1px solid grey;
+    border-right : 1px solid grey;
+}
+
+div.menuitem:hover
+{
+    background-color : grey;
+    font-weight : bold;
+    cursor : pointer;
+}
