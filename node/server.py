@@ -23,7 +23,6 @@ import simplejson
 
 from instance import Instance
 
-from eventlet.queue import LightQueue
 from eventlet.queue import Empty
 
 from container import init_mongo
@@ -46,10 +45,10 @@ def _read_cookies(environ):
     cookies = map(lambda c: c.strip().split('='), cookies)
     return dict(cookies)
 
+
 @websocket.WebSocketWSGI
 def handle_socket(ws):
     player_id = None
-    queue = LightQueue()
     instance = None
     try:
         cookies = _read_cookies(ws.environ)
@@ -57,15 +56,19 @@ def handle_socket(ws):
         instance_uid = ws.wait()
         instance = instances[instance_uid]
         log.debug("registering %s at %s", player_id, instance_uid)
-        instance.register(player_id, queue)
+        queue = instance.connect(player_id)
         sessions[cookies['sessionid']] = player_id
         instance.send_sync(player_id)
-        while not ws.websocket_closed:
+        connected = True
+        while not ws.websocket_closed and connected:
             try:
-                command = queue.get(timeout=30)
+                command = queue.get(timeout=5)
                 commands = [ command ]
                 while queue.qsize() > 0:
-                    commands.append(queue.get())
+                    if command['command'] == "disconnect":
+                        connected = False
+                    command = queue.get()
+                    commands.append(command)
                 dumps = simplejson.dumps(commands)
                 ws.send(dumps)
             except Empty, err:
@@ -74,25 +77,7 @@ def handle_socket(ws):
         log.exception("Exception from websocket")
     finally:
         if instance:
-            if instance.deregister(player_id, queue):
-                log.debug("Calling player left")
-                master.player_left(player_id, instance_uid)
-
-
-@websocket.WebSocketWSGI
-def handle_gamesocket(ws):
-    player_id = None
-    queue = LightQueue()
-    instance = None
-    player_id = ws.wait()
-    instance_uid = ws.wait()
-    instance = instances[instance_uid]
-    while not ws.websocket_closed:
-        command_dict = simplejson.loads(ws.wait())
-        command = command_dict['command']
-        kwargs = command_dict['kwargs']
-        log.debug("Calling %s(%s)", command, kwargs)
-        instance.call(command, kwargs)
+            instance.disconnect(player_id)
 
 
 def game_handle(environ, response):
@@ -123,7 +108,7 @@ def control_handle(environ, response):
         instance_uid = params['instance_uid']
         player_id = params['player_id']
         instance = instances[instance_uid]
-        instance.player_joins(player_id)
+        instance.register(player_id)
         returned = '{"success":true}'
         log.info("Player %s joined instance %s", player_id, instance_uid)
 

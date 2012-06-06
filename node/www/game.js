@@ -654,6 +654,10 @@ function onmessage(msg)
         {
             console.log("heartbeat");
         }
+        else if (message.command == "disconnect")
+        {
+            alert("Disconnected");
+        }
         else if (message.command == "chat")
         {
             console.log("Start chat with: "+message.kwargs);

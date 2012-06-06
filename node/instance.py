@@ -3,6 +3,7 @@ import time
 import random
 
 import eventlet
+from eventlet.queue import LightQueue
 import simplejson
 
 from actor import Actor
@@ -15,7 +16,6 @@ log = logging.getLogger()
 
 class Instance:
     def __init__(self):
-        self.queues = set()
         self.player_queues = dict()
         self.players = dict()
         self.area = None
@@ -41,47 +41,23 @@ class Instance:
             self.send_to_all("actor_update", **actor.external())
         return value
 
-    def player_joins(self, player_id):
-        self.players[player_id] = dict(connected=False)
-        log.debug("Player joined: %s", player_id)
-
     def create_instance(self, map_id):
         log.debug("Instance created %s", map_id)
 
-    def register_actor(self, player_id, room_id='lobby'):
-        if player_id in self.area.actors:
-            self.deregister_actor(player_id)
-
-        actor = PlayerActor(player_id)
-        self.players[player_id]['player'] = actor
-        self.players[player_id]['connected'] = True
-        self.area.actors[player_id] = actor
-        actor.instance = self
-        self.area.actor_joined_instance(actor, self.area.entry_point_room_id)
-        self.send_to_all("actor_joined_instance", **actor.external())
-
-    def deregister_actor(self, player_id):
-        if player_id in self.area.actors:
-            actor = self.area.actors.pop(player_id)
-            self.area.actor_left_instance(actor)
-            self.send_to_all("actor_left_instance", player_id=player_id)
-
-    def send_event(self, player_id, event_id, **kwargs):
-        for queue in self.player_queues[player_id]:
-            queue.put(dict(command=event_id, kwargs=kwargs))
+    def send_event(self, player_id, command, **kwargs):
+        self.player_queues[player_id].put(dict(command=command,
+            kwargs=kwargs))
 
     def send_to_all(self, command, **kwargs):
-        for queue in self.queues:
+        for queue in self.player_queues.values():
             queue.put(dict(command=command, kwargs=kwargs))
 
     def send_to_players(self, player_ids, command, **kwargs):
         for player_id in player_ids:
-            for queue in self.player_queues[player_id]:
-                queue.put(dict(command=command, kwargs=kwargs))
+            self.send_event(player_id, command, **kwargs)
 
     def send_sync(self, player_id):
-        for queue in self.player_queues[player_id]:
-            queue.put(self.sync(player_id))
+        self.player_queues[player_id].put(self.sync(player_id))
 
     def actors_dict(self):
         return map(lambda a: a.external(), self.area.actors.values())
@@ -99,25 +75,38 @@ class Instance:
             }
         }
 
-    def register(self, player_id, queue):
-        self.queues.add(queue)
-        if player_id not in self.player_queues:
-            self.register_actor(player_id)
-            self.player_queues[player_id] = []
-        self.player_queues[player_id].append(queue)
+    def connect(self, player_id):
+        self.players[player_id]['connected'] = True
+        if player_id in self.player_queues:
+            self.disconnect(player_id)
+        queue = LightQueue()
+        self.player_queues[player_id] = queue
+        return queue
 
-    def deregister(self, player_id, queue):
-        self.queues.remove(queue)
-        self.player_queues[player_id].remove(queue)
-        log.debug("%s: Player deregisters", player_id)
-        if not self.player_queues[player_id]:
-            log.debug("%s: all queues gone", player_id)
-            self.deregister_actor(player_id)
-            self.players.pop(player_id)
-            self.player_queues.pop(player_id)
-            return True
-        else:
-            return False
+    def disconnect(self, player_id):
+        queue = self.player_queues.pop(player_id)
+        queue.put(dict(command="disconnect"))
+
+    def register(self, player_id):
+        self.players[player_id] = dict(connected=False)
+
+        actor = PlayerActor(player_id)
+        self.players[player_id]['player'] = actor
+        self.area.actors[player_id] = actor
+        actor.instance = self
+        self.area.actor_joined_instance(actor, self.area.entry_point_room_id)
+        self.send_to_all("actor_joined_instance", **actor.external())
+
+        log.info("Player joined instance: %s", player_id)
+
+    def deregister(self, player_id):
+        self.disconnect(player_id)
+        actor = self.area.actors.pop(player_id)
+        self.area.actor_left_instance(actor)
+        self.send_to_all("actor_left_instance", player_id=player_id)
+        self.players.pop(player_id)
+
+        log.info("Player left instance: %s", player_id)
 
     def kickoff(self):
         self.area.kickoff_npcs(self)
