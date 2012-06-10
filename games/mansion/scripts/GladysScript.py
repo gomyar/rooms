@@ -1,7 +1,7 @@
 
 import random
 
-from scriptutils import *
+from script import *
 
 
 class GladysScript(Script):

@@ -1,5 +1,5 @@
 
-from scriptutils import *
+from script import *
 import random
 
 import logging

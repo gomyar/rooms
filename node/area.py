@@ -15,6 +15,7 @@ class Area(object):
         self.actors = dict()
         self.rooms = dict()
         self.owner_id = ""
+        self.game_script = None
 
     def actor_joined_instance(self, actor, room_id):
         self.rooms[room_id].actor_joined_instance(actor)
@@ -27,6 +28,7 @@ class Area(object):
         self.actor_joined_instance(npc_actor, room_id)
 
     def kickoff_npcs(self, instance):
+        self.game_script.kickoff(self)
         npcs = [npc for npc in self.actors.values() if type(npc) is NpcActor]
         for npc in npcs:
             npc.instance = instance

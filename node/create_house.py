@@ -1,12 +1,12 @@
 #!/usr/bin/python
+import sys
 
 from container import *
 from container import _encode
 from actor import *
-from scripts.WanderingNpcScript import WanderingNpcScript
-from scripts.ButlerScript import ButlerScript
-from scripts.GladysScript import GladysScript
-from scripts.JezabelScript import JezabelScript
+
+
+from scripts.MansionGameScript import MansionGameScript
 
 init_mongo()
 
@@ -109,12 +109,6 @@ area.create_door(library, study, (1420, 920), (1420, 900))
 
 area.entry_point_room_id = "foyer"
 
-area.add_npc(NpcActor("butler", ButlerScript()), 'foyer')
-area.add_npc(NpcActor("dilettante", WanderingNpcScript()), 'study')
-area.add_npc(NpcActor("gladys", GladysScript()), 'diningroom')
-area.add_npc(NpcActor("jezabel", JezabelScript()), 'diningroom')
-area.add_npc(NpcActor("major", WanderingNpcScript()), 'trophyroom')
-area.add_npc(NpcActor("professor", WanderingNpcScript()), 'library')
-area.add_npc(NpcActor("aunt", WanderingNpcScript()), 'lounge')
+area.game_script = load_script("MansionGameScript")
 
 save_area(area)

@@ -3,8 +3,8 @@ import unittest
 
 from npc_actor import NpcActor
 from player_actor import PlayerActor
-from scriptutils import Script
-from scriptutils import chat
+from scripts import Script
+from scripts import chat
 
 
 class ScriptChatTest(unittest.TestCase):

@@ -11,6 +11,7 @@ from room import Room
 from room import RoomObject
 from area import Area
 from door import Door
+from scriptutils import load_script
 
 # Actor
 def serialize_actor(obj):
@@ -104,6 +105,7 @@ def serialize_area(obj):
         owner_id = obj.owner_id,
         entry_point_room_id = obj.entry_point_room_id,
         entry_point_door_id = obj.entry_point_door_id,
+        game_script_class = obj.game_script.__class__.__name__
     )
 
 def create_area(data):
@@ -125,6 +127,7 @@ def create_area(data):
         for room in area.rooms.values():
             for door in room.all_doors():
                 door.exit_room = area.rooms[door.exit_room_id]
+    area.game_script = load_script(data['game_script_class'])
     return area
 
 # Door
@@ -199,11 +202,11 @@ def init_mongo(host='localhost', port=27017):
 
 def load_area(area_id):
     rooms_db = _mongo_connection.rooms_db
-    room_dict = rooms_db.areas.find_one(bson.ObjectId(area_id))
-    room_dict.pop('_id')
-    room_str = simplejson.dumps(room_dict)
-    room = simplejson.loads(room_str, object_hook=_decode)
-    return room
+    area_dict = rooms_db.areas.find_one(bson.ObjectId(area_id))
+    area_dict.pop('_id')
+    area_str = simplejson.dumps(area_dict)
+    area = simplejson.loads(area_str, object_hook=_decode)
+    return area
 
 def save_area(area):
     encoded_str = simplejson.dumps(area, default=_encode, indent="    ")

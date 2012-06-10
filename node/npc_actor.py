@@ -3,13 +3,16 @@ import eventlet
 
 from character_actor import CharacterActor
 from actor import expose
+import scriptutils
 
 
 class NpcActor(CharacterActor):
     def __init__(self, actor_id, npc_script=None):
         super(NpcActor, self).__init__(actor_id)
         self.model_type = actor_id
-        self.npc_script = npc_script
+        if npc_script:
+            self.npc_script = npc_script
+            self.npc_script.npc = self
         self.speed = 90.0
         self.previous_state = None
         self.chat_scripts = dict()
@@ -68,9 +71,7 @@ class NpcActor(CharacterActor):
         return self.path[-1][2]
 
     def load_script(self, script_class):
-        module = __import__("scripts.%s" % (script_class,),
-            fromlist=['scripts'])
-        script = getattr(module, script_class)()
+        script = scriptutils.load_script(script_class)
         script.npc = self
         self.npc_script = script
 

@@ -30,6 +30,8 @@ from container import init_mongo
 import signal
 import sys
 
+from scriptutils import GAME_ROOT
+
 import logging
 import logging.config
 logging.config.fileConfig("logging.conf")
@@ -196,7 +198,7 @@ def root(environ, response):
         return www_file(environ['PATH_INFO'], response)
 
 def www_file(path, response):
-    filepath = os.path.join(os.path.dirname(__file__), "www" + path)
+    filepath = os.path.join(os.path.dirname(GAME_ROOT), "assets" + path)
     if os.path.exists(filepath):
         response('200 OK', [('content-type', guess_type(filepath))])
         return [open(filepath).read()]
