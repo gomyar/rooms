@@ -11,14 +11,15 @@ from player_actor import PlayerActor
 import container
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger()
+log = logging.getLogger("rooms.instance")
 
 class Instance:
-    def __init__(self):
+    def __init__(self, uid=None, master=None):
+        self.uid = uid
         self.player_queues = dict()
         self.players = dict()
         self.area = None
+        self.master = master
 
     def load_map(self, map_id):
         self.area = container.load_area(map_id)
@@ -76,16 +77,23 @@ class Instance:
         }
 
     def connect(self, player_id):
+        log.debug("Connecting %s", player_id)
         self.players[player_id]['connected'] = True
         if player_id in self.player_queues:
+            log.debug("Disconnecting existing player %s", player_id)
             self.disconnect(player_id)
         queue = LightQueue()
         self.player_queues[player_id] = queue
         return queue
 
     def disconnect(self, player_id):
+        log.debug("Disconnecting %s", player_id)
         queue = self.player_queues.pop(player_id)
-        queue.put(dict(command="disconnect"))
+
+    def disconnect_queue(self, queue):
+        for player_id, q in self.player_queues.items():
+            if q == queue:
+                self.player_queues.pop(player_id)
 
     def register(self, player_id):
         self.players[player_id] = dict(connected=False)
@@ -103,8 +111,9 @@ class Instance:
         self.disconnect(player_id)
         actor = self.area.actors.pop(player_id)
         self.area.actor_left_instance(actor)
-        self.send_to_all("actor_left_instance", player_id=player_id)
+        self.send_to_all("actor_left_instance", actor_id=player_id)
         self.players.pop(player_id)
+        self.master.player_left(player_id, self.uid)
 
         log.info("Player left instance: %s", player_id)
 

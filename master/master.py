@@ -91,6 +91,7 @@ class MasterServer:
         node = self.nodes[instance['node']]
         node.players -= 1
         log.debug("Player %s left instance %s", player_id, instance_uid)
+        return ""
 
     def list_instances(self):
         return self.instances

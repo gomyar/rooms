@@ -31,8 +31,9 @@ import signal
 import sys
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger()
+import logging.config
+logging.config.fileConfig("logging.conf")
+log = logging.getLogger("rooms.node")
 
 instances = dict()
 sessions = dict()
@@ -46,10 +47,13 @@ def _read_cookies(environ):
     return dict(cookies)
 
 
+qcount = 1
+
 @websocket.WebSocketWSGI
 def handle_socket(ws):
     player_id = None
     instance = None
+    queue = None
     try:
         cookies = _read_cookies(ws.environ)
         player_id = ws.wait()
@@ -66,36 +70,43 @@ def handle_socket(ws):
                 commands = [ command ]
                 while queue.qsize() > 0:
                     if command['command'] == "disconnect":
+                        log.debug("Player %s disconnecting", player_id)
                         connected = False
                     command = queue.get()
                     commands.append(command)
-                dumps = simplejson.dumps(commands)
+                dumps = simplejson.dumps(commands, indent="    ")
                 ws.send(dumps)
             except Empty, err:
                 ws.send(simplejson.dumps([{'command':"heartbeat"}]))
     except:
-        log.exception("Exception from websocket")
+        log.warning("Websocket disconnected %s", player_id)
     finally:
-        if instance:
-            instance.disconnect(player_id)
+        if instance and queue:
+            instance.disconnect_queue(queue)
 
 
 def game_handle(environ, response):
-    _, url, instance_uid, actor_id, command = environ['PATH_INFO'].split("/")
-    cookies = _read_cookies(environ)
-    params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
-    instance = instances[instance_uid]
-    returned = instance.call(command, sessions[cookies['sessionid']],
-        actor_id, dict(params))
-    if returned:
-        returned = simplejson.dumps(returned)
-    else:
-        returned = "[]"
-    response('200 OK', [
-        ('content-type', 'text/javascript'),
-        ('content-length', len(returned)),
-    ])
-    return returned
+    try:
+        _, url, instance_uid, actor_id, command = \
+            environ['PATH_INFO'].split("/")
+        log.debug("Game call %s, %s, %s, %s", url, instance_uid, actor_id,
+            command)
+        cookies = _read_cookies(environ)
+        params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
+        instance = instances[instance_uid]
+        returned = instance.call(command, sessions[cookies['sessionid']],
+            actor_id, dict(params))
+        if returned:
+            returned = simplejson.dumps(returned)
+        else:
+            returned = "[]"
+        response('200 OK', [
+            ('content-type', 'text/javascript'),
+            ('content-length', len(returned)),
+        ])
+        return returned
+    except:
+        log.exception("Error handling %s", command)
 
 
 def control_handle(environ, response):
@@ -115,7 +126,7 @@ def control_handle(environ, response):
     if path == "create_instance":
         map_id = params['map_id']
         uid = str(uuid.uuid1())
-        instance = Instance()
+        instance = Instance(uid, master)
         instance.load_map(map_id)
         instances[uid] = instance
         instance.kickoff()
@@ -130,20 +141,24 @@ def control_handle(environ, response):
 
 
 def room_handle(environ, response):
-    _, url, instance_uid = environ['PATH_INFO'].split("/")
-    cookies = _read_cookies(environ)
-    instance = instances[instance_uid]
-    returned = instance.area.actors[sessions[cookies['sessionid']]].room.external()
-    if returned:
-        returned = simplejson.dumps(returned)
-    else:
-        returned = "[]"
-    response('200 OK', [
-        ('content-type', 'text/javascript'),
-        ('content-length', len(returned)),
-    ])
-    return returned
-
+    try:
+        _, url, instance_uid = environ['PATH_INFO'].split("/")
+        log.debug("Room call: %s %s", url, instance_uid)
+        cookies = _read_cookies(environ)
+        instance = instances[instance_uid]
+        returned = instance.area.actors[sessions[cookies['sessionid']]].\
+            room.external()
+        if returned:
+            returned = simplejson.dumps(returned)
+        else:
+            returned = "[]"
+        response('200 OK', [
+            ('content-type', 'text/javascript'),
+            ('content-length', len(returned)),
+        ])
+        return returned
+    except:
+        log.exception("Romm call exception")
 
 
 def check_player_joined(player_id):
