@@ -47,3 +47,9 @@ class InstanceTest(unittest.TestCase):
         self.assertEquals('actor_update',
             self.instance.player_queues['player1'].get_nowait()['command'])
 
+    def testNoExceptionOnPlayerDisconnect(self):
+        self.instance.register("player1")
+        queue = self.instance.connect("player1")
+        self.instance.player_queues.pop("player1")
+
+        self.instance.send_event("player1", {'command': 'heartbeat'})

@@ -68,19 +68,21 @@ def handle_socket(ws):
             try:
                 command = queue.get(timeout=5)
                 commands = [ command ]
+                if command['command'] == "disconnect":
+                    connected = False
                 while queue.qsize() > 0:
                     if command['command'] == "disconnect":
-                        log.debug("Player %s disconnecting", player_id)
                         connected = False
                     command = queue.get()
                     commands.append(command)
-                dumps = simplejson.dumps(commands, indent="    ")
+                dumps = simplejson.dumps(commands)
                 ws.send(dumps)
             except Empty, err:
                 ws.send(simplejson.dumps([{'command':"heartbeat"}]))
     except:
         log.warning("Websocket disconnected %s", player_id)
     finally:
+        log.debug("Player %s disconnecting", player_id)
         if instance and queue:
             instance.disconnect_queue(queue)
 

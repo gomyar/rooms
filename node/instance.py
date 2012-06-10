@@ -46,8 +46,9 @@ class Instance:
         log.debug("Instance created %s", map_id)
 
     def send_event(self, player_id, command, **kwargs):
-        self.player_queues[player_id].put(dict(command=command,
-            kwargs=kwargs))
+        if player_id in self.player_queues:
+            self.player_queues[player_id].put(dict(command=command,
+                kwargs=kwargs))
 
     def send_to_all(self, command, **kwargs):
         for queue in self.player_queues.values():
@@ -89,6 +90,7 @@ class Instance:
     def disconnect(self, player_id):
         log.debug("Disconnecting %s", player_id)
         queue = self.player_queues.pop(player_id)
+        queue.put(dict(command='disconnect'))
 
     def disconnect_queue(self, queue):
         for player_id, q in self.player_queues.items():
