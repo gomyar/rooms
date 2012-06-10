@@ -8,6 +8,7 @@ class PlayerActor(CharacterActor):
     def __init__(self, player_id=None, position=(0, 0)):
         super(PlayerActor, self).__init__(player_id, position)
         self.model_type = "investigator"
+        self.notes = dict()
 
     def set_path(self, path):
         super(PlayerActor, self).set_path(path)

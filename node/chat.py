@@ -45,9 +45,20 @@ class RespondChoice:
     def matches(self, query_text):
         return query_text == self.query_text
 
+class Call:
+    def __init__(self, func, *args, **kwargs):
+        self._func = func
+        self._args = args
+        self._kwargs = kwargs
+
+    def __call__(self):
+        return self._func(*self._args, **self._kwargs)
 
 def choice(query_text, response, *choices):
     return RespondChoice(query_text, response, choices)
 
 def chat(*choices):
     return Conversation(choices)
+
+def call(func, *args, **kwargs):
+    return Call(func, *args, **kwargs)

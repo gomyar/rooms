@@ -39,10 +39,13 @@ def create_actor(data):
 
 # PlayerActor
 def serialize_player_actor(obj):
-    return serialize_actor(obj)
+    data = serialize_actor(obj)
+    data['notes'] = obj.notes
+    return data
 
 def create_player_actor(data):
     player_actor = PlayerActor(data['actor_id'])
+    player_actor.notes = data['notes']
     _deserialize_actor(player_actor, data)
     return player_actor
 

@@ -5,6 +5,7 @@ import time
 import eventlet
 
 from chat import chat
+from chat import call
 from chat import choice as c
 
 class Script:
