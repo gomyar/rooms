@@ -215,6 +215,7 @@ def deregister():
 
 if __name__ == "__main__":
     try:
+        log.info("Starting server")
         parser = OptionParser()
 
         parser.add_option("-m", "--master", dest="master",
@@ -249,6 +250,8 @@ if __name__ == "__main__":
 
         listener = eventlet.listen((host, port))
         wsgi.server(listener, root)
+    except:
+        log.exception("Exception starting server")
     finally:
-        print "Server stopped"
+        log.info("Server stopped")
         deregister()

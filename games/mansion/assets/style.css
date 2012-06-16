@@ -165,6 +165,7 @@ div.menudropdown
 
 div.menuitem
 {
+    float: left;
     font-size : 12px;
     width : 100px;
     text-align : center;
@@ -178,3 +179,64 @@ div.menuitem:hover
     font-weight : bold;
     cursor : pointer;
 }
+
+div.evidence
+{
+    position : absolute;
+    top : 0px;
+    bottom : 0px;
+    width : 350px;
+    background-color : black;
+    border-right : 1px solid grey;
+    font-size : 12px;
+}
+
+div.evidence_item
+{
+    width : 100%;
+    height : 54px;
+}
+
+div.evidence_item div.profile
+{
+    float : left;
+    width : 50px;
+    height : 50px;
+    margin : 2px;
+    background-image : url('/character_models/base_profile.png');
+    background-repeat : no-repeat;
+}
+
+div.evidence_item div.category
+{
+    float : left;
+    font-weight : bold;
+    font-style : italic;
+    width : 280px;
+    height : 15px;
+}
+
+div.evidence_item div.category.means
+{
+    color : blue;
+}
+
+div.evidence_item div.category.motive
+{
+    color : yellow;
+}
+
+div.evidence_item div.category.opportunity
+{
+    color : orange;
+}
+
+div.evidence_item div.description
+{
+    float : left;
+    font-weight : bold;
+    width : 280px;
+    min-height : 40px;
+}
+
+

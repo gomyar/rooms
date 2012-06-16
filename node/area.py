@@ -17,15 +17,15 @@ class Area(object):
         self.owner_id = ""
         self.game_script = None
 
-    def actor_joined_instance(self, actor, room_id):
-        self.rooms[room_id].actor_joined_instance(actor)
+    def player_joined_instance(self, actor, room_id):
+        self.rooms[room_id].player_joined_instance(actor)
 
     def actor_left_instance(self, actor):
         self.rooms[actor.room.room_id].actor_left_instance(actor)
 
     def add_npc(self, npc_actor, room_id):
         self.actors[npc_actor.actor_id] = npc_actor
-        self.actor_joined_instance(npc_actor, room_id)
+        self.player_joined_instance(npc_actor, room_id)
 
     def kickoff_npcs(self, instance):
         self.game_script.kickoff(self)

@@ -2,13 +2,15 @@
 from character_actor import CharacterActor
 from actor import expose
 from actor import command
+from inventory import Inventory
+from inventory import create_item
 
 
 class PlayerActor(CharacterActor):
     def __init__(self, player_id=None, position=(0, 0)):
         super(PlayerActor, self).__init__(player_id, position)
         self.model_type = "investigator"
-        self.notes = dict()
+        self.inventory = Inventory()
 
     def set_path(self, path):
         super(PlayerActor, self).set_path(path)
@@ -38,3 +40,14 @@ class PlayerActor(CharacterActor):
     @command()
     def leave_instance(self):
         self.instance.deregister(self.actor_id)
+
+    @command()
+    def list_inventory(self):
+        return self.inventory.all_items()
+
+    def add_evidence(self, npc, category, description):
+        evidence = create_item(npc_id=npc.actor_id, category=category,
+            description=description)
+        self.inventory.add_item(evidence)
+        self.add_chat_message("You learned something about %s: %s" % (
+            npc.actor_id, description))

@@ -103,7 +103,7 @@ class Room(object):
         actor.room = self
         actor.set_position(self.actors[door_id].position())
 
-    def actor_joined_instance(self, actor):
+    def player_joined_instance(self, actor):
         self.actors[actor.actor_id] = actor
         actor.room = self
         entry_x = self.position[0] + self.width / 2

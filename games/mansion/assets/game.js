@@ -617,7 +617,7 @@ function onmessage(msg)
             sprites[message.kwargs.actor_id].path = message.kwargs.path;
             sprites[message.kwargs.actor_id].optionalRedraw();
         }
-        else if (message.command == "actor_joined_instance")
+        else if (message.command == "player_joined_instance")
         {
             console.log("Actor joined: "+message.kwargs.actor_id);
             sprite = create_actor_sprite(message.kwargs);
@@ -712,6 +712,32 @@ function menu_quit_clicked(e)
         { }, function () { console.log("Leave sent"); })
 }
 
+function show_evidence(data)
+{
+    if ($(".evidence").length > 0)
+        $(".evidence").remove();
+    else
+    {
+        var evidence_div = $("<div>", { "class": "evidence"});
+        for (npc_id in data)
+        {
+            var npc_notes = data[npc_id];
+            evidence_div.append($("<div>", {'class': 'evidence_item'}).append(
+                $("<div>", {'class': 'profile '+npc_notes.npc_id}),
+                $("<div>", {'class': 'category '+npc_notes.category, 'text': npc_notes.category}),
+                $("<div>", {'class': 'description', 'text': npc_notes.description})
+            ));
+        }
+        $("#main").append(evidence_div);
+    }
+}
+
+function menu_evidence_clicked(e)
+{
+    service_call("/game/" + instance_uid + "/" + player_id + "/list_inventory",
+        { }, show_evidence)
+}
+
 function init()
 {
     console.log("init");
@@ -722,6 +748,7 @@ function init()
     $(canvas).mousemove(canvas_mousemove);
 
     $("#menu_quit").click(menu_quit_clicked);
+    $("#menu_evidence").click(menu_evidence_clicked);
 
     $(window).resize(function() { resetCanvas(); draw(); });
 

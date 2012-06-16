@@ -104,8 +104,8 @@ class Instance:
         self.players[player_id]['player'] = actor
         self.area.actors[player_id] = actor
         actor.instance = self
-        self.area.actor_joined_instance(actor, self.area.entry_point_room_id)
-        self.send_to_all("actor_joined_instance", **actor.external())
+        self.area.player_joined_instance(actor, self.area.entry_point_room_id)
+        self.send_to_all("player_joined_instance", **actor.external())
 
         log.info("Player joined instance: %s", player_id)
 

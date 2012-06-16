@@ -29,10 +29,16 @@ class ButlerScript(Script):
             self.sleep(5)
 
     def give_evidence_means(self, player):
-        player.notes['butler'] = dict(category="means",
-            actor="butler", description="The butler is a "
+        player.add_evidence(self.npc, "means", "The butler is a "
             "former army sergeant with hand to hand combat training")
-        player.add_chat_message("You learned something")
+
+    def give_evidence_motive(self, player):
+        player.add_evidence(self.npc, "motive", "The butler was about to "
+            "be fired from his job")
+
+    def give_evidence_opportunity(self, player):
+        player.add_evidence(self.npc, "opportunity", "The butler was "
+            "in the study at the time of the murder")
 
     def chat(self, player):
         return chat(
@@ -44,7 +50,11 @@ class ButlerScript(Script):
                 ),
                 c("Yes, thank you Jeeves, any chance of a drink?",
                     "The Lounge is straight ahead on the left, Sir"),
-                c("Where were you at the time of the murder?",
+                c("I see you've had some experience in combat...",
                     call(self.give_evidence_means, player)),
+                c("Why did you hate Doctor Killsworth?",
+                    call(self.give_evidence_motive, player)),
+                c("Where were you at the time of the murder?",
+                    call(self.give_evidence_opportunity, player)),
             )
         )

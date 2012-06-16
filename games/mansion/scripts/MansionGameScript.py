@@ -25,3 +25,6 @@ class MansionGameScript(Script):
             'library')
         area.add_npc(NpcActor("aunt", load_script("WanderingNpcScript")),
             'lounge')
+
+    def event_player_joins_instance(self, player):
+        pass
