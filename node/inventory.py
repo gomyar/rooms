@@ -6,6 +6,9 @@ class Item(dict):
     def __setattr__(self, name, value):
         self.__setitem__(name, value)
 
+    def has_properties(self, properties):
+        return all([item in self.items() for item in properties.items()])
+
 def create_item(**kwargs):
     item = Item()
     for key, value in kwargs.items():
@@ -22,3 +25,6 @@ class Inventory:
 
     def all_items(self):
         return self._items
+
+    def find_items(self, **kwargs):
+        return [item for item in self._items if item.has_properties(kwargs)]

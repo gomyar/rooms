@@ -41,7 +41,7 @@ class ButlerScript(Script):
             "in the study at the time of the murder")
 
     def chat(self, player):
-        return chat(
+        conv = chat(
             c("Hullo Jeeves", "Good evening, Sir",
                 c("Have all the guests arrived yet?", "Not quite, Sir",
                     c("When is dinner starting?", "Around 9, Sir"),
@@ -49,12 +49,16 @@ class ButlerScript(Script):
                         "Lady Pinkerton in in the dining room, Sir"),
                 ),
                 c("Yes, thank you Jeeves, any chance of a drink?",
-                    "The Lounge is straight ahead on the left, Sir"),
-                c("I see you've had some experience in combat...",
-                    call(self.give_evidence_means, player)),
-                c("Why did you hate Doctor Killsworth?",
-                    call(self.give_evidence_motive, player)),
-                c("Where were you at the time of the murder?",
-                    call(self.give_evidence_opportunity, player)),
+                    "The Lounge is straight ahead on the left, Sir")
             )
         )
+        if not player.has_evidence(self.npc, "means"):
+            conv.add(c("I see you've had some experience in combat...",
+                call(self.give_evidence_means, player)))
+        if not player.has_evidence(self.npc, "motive"):
+            conv.add(c("Why did you hate Doctor Killsworth?",
+                call(self.give_evidence_motive, player)))
+        if not player.has_evidence(self.npc, "opportunity"):
+            conv.add(c("Where were you at the time of the murder?",
+                call(self.give_evidence_opportunity, player)))
+        return conv

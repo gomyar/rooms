@@ -20,6 +20,10 @@ class Conversation:
         return [str(choice.query_text) for choice in \
             self.current_choice.choices]
 
+    def add(self, choice):
+        self.choices.append(choice)
+        choice.parent = self
+
 
 class RespondChoice:
     def __init__(self, query_text, response, choices=[]):
@@ -58,7 +62,7 @@ def choice(query_text, response, *choices):
     return RespondChoice(query_text, response, choices)
 
 def chat(*choices):
-    return Conversation(choices)
+    return Conversation(list(choices))
 
 def call(func, *args, **kwargs):
     return Call(func, *args, **kwargs)

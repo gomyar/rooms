@@ -51,3 +51,7 @@ class PlayerActor(CharacterActor):
         self.inventory.add_item(evidence)
         self.add_chat_message("You learned something about %s: %s" % (
             npc.actor_id, description))
+
+    def has_evidence(self, npc, category):
+        return self.inventory.find_items(npc_id=npc.actor_id,
+            category=category)

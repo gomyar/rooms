@@ -47,7 +47,7 @@ class ChatTest(unittest.TestCase):
         self.assertEquals("answer2", self.chat.said("question2"))
         self.assertEquals(['done'], self.chat.choice_list())
         self.assertEquals("ok then", self.chat.said("done"))
-        self.assertEquals(['question1'], self.chat.choice_list())
+        self.assertEquals([], self.chat.choice_list())
 
 '''
         @hasnt_talked_to_butler_before
