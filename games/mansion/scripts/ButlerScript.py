@@ -3,15 +3,6 @@ import random
 
 from script import *
 
-evidence = [
-    dict(category="means", actor="butler", description="The butler is a "
-        "former army sergeant with hand to hand combat training"),
-    dict(category="motive", actor="butler", description="The butler was "
-        "about to be fired"),
-    dict(category="opportunity", actor="butler", description="The butler was "
-        "seen entering the cloakroom at the time of the murder"),
-]
-
 
 class ButlerScript(Script):
     def kickoff(self):

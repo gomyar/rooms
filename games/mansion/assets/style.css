@@ -21,7 +21,7 @@ div#main
     top : 0px;
     left : 0px;
     right : 0px;
-    bottom : 200px;
+    bottom : 15px;
 }
 
 div.actor_commands
@@ -50,17 +50,17 @@ div.actor_commands div.command_button:hover
 div#logOuter
 {
     position : absolute;
-    width : 50%;
-    height : 200px;
-    bottom : 0px;
+    width : 350px;
+    top : 0px;
     right : 0px;
+    bottom : 15px;
     background-color : black;
     overflow : hidden;
 }
 
 div#logOuter div#log
 {
-    height : 200px;
+    height : 100%;
     overflow : scroll;
     text-indent: 10px;
 }
@@ -93,10 +93,11 @@ div#logOuter div#log div.logEntry div.logText
 
 div#chatOuter
 {
+    background-color : black;
     position : absolute;
-    width : 50%;
+    top: 50px;
+    width : 350px;
     height : 200px;
-    bottom : 0px;
     overflow : hidden;
     border-left : 1px solid grey;
     border-right : 1px solid grey;
@@ -128,7 +129,7 @@ div#chatChoices div.chatChoice
 div#mainMenu
 {
     position : absolute;
-    bottom : 200px;
+    bottom : 0px;
     width : 100%;
     height : 15px;
     border-top : 1px solid grey;

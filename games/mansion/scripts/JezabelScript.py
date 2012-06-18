@@ -28,11 +28,11 @@ class JezabelScript(Script):
     def chat(self, player):
         return chat(
             c("Excuse me madame", "What? Yes, what do you want?",
-                c("When will dinner be ready?", "How should I know?",
-                    c("You seem excited.",
-                        self.storm_off),
-                    c("Well, is there a snack ready?",
-                        "Look, man, don't mess with Cooks plans."),
-                ),
+                c("When will dinner be ready?",
+                    "How should I know?"),
+                c("Where were you at the time of the murder?",
+                    self.storm_off),
+                c("Well, is there a snack ready?",
+                    "How would I know? Ask the cook."),
             )
         )

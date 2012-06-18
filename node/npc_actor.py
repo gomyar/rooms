@@ -45,9 +45,9 @@ class NpcActor(CharacterActor):
         if not script.choice_list():
             self.chat_scripts.pop(player.actor_id)
             self.set_state(self.previous_state)
-            player.send_event("end_chat", actor_id=self.actor_id)
+            return dict(command="end_chat", actor_id=self.actor_id)
         else:
-            player.send_event("chat", actor_id=self.actor_id,
+            return dict(command="chat", actor_id=self.actor_id,
                 msg=response, choices=script.choice_list())
 
     def event(self, event_id, *args, **kwargs):

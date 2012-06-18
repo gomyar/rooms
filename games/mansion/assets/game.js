@@ -42,9 +42,37 @@ var map_images = {
 
 var background_img;
 
+function show_chat_window(message)
+{
+    $("#chatOuter").remove();
+    if (message.command == "end_chat")
+    {
+        return;
+    }
+    console.log("Start chat with: "+message);
+    var chatChoices = $("<div>", {'id': 'chatChoices'});
+    for (i in message.choices)
+    {
+        var choice = message.choices[i];
+        var choice_div = $("<div>", { "class": "chatChoice" });
+        choice_div.text(choice);
+        $(choice_div).attr('choice', choice);
+        choice_div.click(function(e){
+            service_call("/game/" + instance_uid + "/" + message.actor_id + "/chat", { "message": $(this).attr('choice') }, show_chat_window);
+        });
+        chatChoices.append(choice_div);
+    }
+    var chatDiv = $("<div>", {'id': 'chatOuter'}).append(
+        $("<div>", {'id': 'chatText', 'text': message.msg}),
+        chatChoices
+    );
+    chatDiv.css("left", $(window).width() / 2 - 175);
+    $("#main").append(chatDiv);
+}
+
 function command_chat()
 {
-    service_call("/game/" + instance_uid + "/" + selected_sprite.id + "/chat", {}, function () { console.log("Unneeded callback"); });
+    service_call("/game/" + instance_uid + "/" + selected_sprite.id + "/chat", {}, show_chat_window);
 }
 
 function command_sleep_in()
@@ -415,6 +443,7 @@ function canvas_clicked(e)
     console.log("clicked "+click_x+","+click_y);
 
     $(".actor_commands").remove();
+    $("#chatOuter").remove();
 
     sprite = findSprite(click_x, click_y);
     if (sprite)
@@ -434,7 +463,7 @@ function walk_to(x, y)
         clearTimeout(walk_timeout);
     service_call("/game/"+instance_uid+"/"+player_id+"/walk_to",
         { x : x, y : y },
-        function () { console.log("Ok"); });
+        function () {  });
 }
 
 function canvas_mousemove(e)
@@ -559,7 +588,7 @@ function create_actor_sprite(actor)
 
 function onmessage(msg)
 {
-    console.log("Got: "+msg.data);
+//    console.log("Got: "+msg.data);
     var messages = jQuery.parseJSON(msg.data);
     for (var i in messages)
     {
@@ -612,7 +641,7 @@ function onmessage(msg)
         }
         else if (message.command == "actor_update")
         {
-            console.log("Actor update: "+message.kwargs.actor_id);
+//            console.log("Actor update: "+message.kwargs.actor_id);
             previous_paths[previous_paths.length] = sprites[message.kwargs.actor_id].path;
             sprites[message.kwargs.actor_id].path = message.kwargs.path;
             sprites[message.kwargs.actor_id].optionalRedraw();
@@ -660,29 +689,11 @@ function onmessage(msg)
         }
         else if (message.command == "chat")
         {
-            console.log("Start chat with: "+message.kwargs);
-            $("#chatText").text(message.kwargs.msg);
-            $("#chatChoices").empty();
-            for (i in message.kwargs.choices)
-            {
-                var choice = message.kwargs.choices[i];
-                var choice_div = $("<div>", { "class": "chatChoice" });
-                choice_div.text(choice);
-                $(choice_div).attr('choice', choice);
-                choice_div.click(function(e){
-                    service_call("/game/" + instance_uid + "/" + message.kwargs.actor_id + "/chat", { "message": $(this).attr('choice') }, function() {
-                        console.log("said: "+choice);}
-                    );
-                });
-                $("#chatChoices").append(choice_div);
-
-            }
         }
         else if (message.command == "end_chat")
         {
             console.log("End chat with: "+message.kwargs);
-            $("#chatText").empty();
-            $("#chatChoices").empty();
+            $("#chatOuter").remove();
         }
     }
 }
@@ -692,12 +703,13 @@ function addLogEntry(message, time)
     var logtime = new Date(get_now()).toLocaleTimeString();
     if (time != null)
         logtime = new Date(time).toLocaleTimeString();
-    $("#log").prepend(
+    $("#log").append(
         $("<div>", { 'class': 'logEntry' }).append(
             $("<div>", { 'class': 'logTime', 'text': logtime }),
             $("<div>", { 'class': 'logText', 'text': message })
         )
     );
+    $("#log").scrollTop($("#log").attr("scrollHeight"));
 }
 
 function initBackgroundImage()
