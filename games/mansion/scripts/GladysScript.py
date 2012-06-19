@@ -23,8 +23,13 @@ class GladysScript(Script):
             self.walk_to(1160, 100)
             self.sleep(5)
 
+    def learn_about_jezabel(self, player):
+        player.add_chat_message("Oh, shes just upset about the murder. "
+            "Try asking her about her season in Paris")
+        player.data['jezabel_ask_about_paris'] = True
+
     def chat(self, player):
-        return chat(
+        conv = chat(
             c("Excuse me madame", "Yes, Good evening.",
                 c("When will dinner be ready?", "When cook says so.",
                     c("Whats holding up the cook?",
@@ -35,3 +40,8 @@ class GladysScript(Script):
                 ),
             )
         )
+        if player.data.get('jezabel_is_defensive'):
+            conv.add(c("What's wrong with Jezabel, she seems excitable",
+                call(self.learn_about_jezabel, player),
+                ))
+        return conv

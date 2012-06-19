@@ -23,6 +23,8 @@ class Conversation:
     def add(self, choice):
         self.choices.append(choice)
         choice.parent = self
+        for c in choice.choices:
+            c.set_parent(self)
 
 
 class RespondChoice:

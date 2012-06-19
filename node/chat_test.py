@@ -49,6 +49,36 @@ class ChatTest(unittest.TestCase):
         self.assertEquals("ok then", self.chat.said("done"))
         self.assertEquals([], self.chat.choice_list())
 
+    def testRealExample(self):
+        conv = chat(choice("", ""))
+        conv.add(choice("I hear you were in Paris this season...",
+                "Oh, yes, wonderful city. All those lights.",
+                    choice("Um hm.",
+                        "And the food, I though I should just burst",
+                        choice("I see",
+                            "And the music, it was glorious, so many "
+                            "operettos...",
+                            choice("Uh huh. So about this murder...",
+                                "And the walks we used to take, along the "
+                                "change elyse",
+                                choice("I may have to talk to another guest...",
+                                    "Yes we spent so much time in the vinyards"
+                                    " as well, they have the very best wine in"
+                                    " France you know",
+                                    choice("I really must...",
+                                        "Yes of course"
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        conv.said("I hear you were in Paris this season...")
+        conv.said("Um hm.")
+        r = conv.said("I see")
+        self.assertEquals("And the music, it was glorious, so many operettos...", r)
+
 '''
         @hasnt_talked_to_butler_before
         "hello jeeves", "hello, sir"

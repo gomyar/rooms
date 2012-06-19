@@ -1,4 +1,6 @@
 
+import collections
+
 from character_actor import CharacterActor
 from actor import expose
 from actor import command
@@ -6,11 +8,20 @@ from inventory import Inventory
 from inventory import create_item
 
 
+class PlayerKnowledge(dict):
+    def __getattr__(self, name):
+        return self.__getitem__(name) if name in self else ""
+
+    def __setattr__(self, name, value):
+        self.__setitem__(name, value)
+
+
 class PlayerActor(CharacterActor):
     def __init__(self, player_id=None, position=(0, 0)):
         super(PlayerActor, self).__init__(player_id, position)
         self.model_type = "investigator"
         self.inventory = Inventory()
+        self.data = PlayerKnowledge()
 
     def set_path(self, path):
         super(PlayerActor, self).set_path(path)

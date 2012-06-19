@@ -11,6 +11,8 @@ from room import Room
 from room import RoomObject
 from area import Area
 from door import Door
+from inventory import Inventory
+from inventory import Item
 from scriptutils import load_script
 
 # Actor
@@ -40,12 +42,14 @@ def create_actor(data):
 # PlayerActor
 def serialize_player_actor(obj):
     data = serialize_actor(obj)
-    data['notes'] = obj.notes
+    data['inventory'] = obj.inventory
+    data['data'] = obj.data
     return data
 
 def create_player_actor(data):
     player_actor = PlayerActor(data['actor_id'])
-    player_actor.notes = data['notes']
+    player_actor.inventory = data['inventory']
+    player_actor.data = data['data']
     _deserialize_actor(player_actor, data)
     return player_actor
 
@@ -153,25 +157,59 @@ def create_door(data):
     door.opens_direction = data['opens_direction']
     return door
 
+# Inventory
+def serialize_inventory(obj):
+    data = dict(
+        items=obj._items)
+    return data
+
+def create_inventory(data):
+    inv = Inventory()
+    inv._items = data['items']
+    return inv
+
+# Inventory item
+def serialize_inventory_item(obj):
+    return obj.copy()
+
+def create_inventory_item(data):
+    item = Item()
+    for key, value in data:
+        items[key] = value
+    return item
+
+# Player Knownledge
+def serialize_player_knowledge(obj):
+    return obj.copy()
+
+def create_player_knowledge(data):
+    item = Item()
+    for key, value in data:
+        items[key] = value
+    return item
 
 object_serializers = dict(
     Actor=serialize_actor,
     PlayerActor=serialize_player_actor,
+    PlayerKnowledge=serialize_player_knowledge,
     NpcActor=serialize_npc_actor,
     Room=serialize_room,
     RoomObject=serialize_roomobject,
     Area=serialize_area,
     Door=serialize_door,
+    Inventory=serialize_inventory,
 )
 
 object_factories = dict(
     Actor=create_actor,
     PlayerActor=create_player_actor,
+    PlayerKnowledge=create_player_knowledge,
     NpcActor=create_npc_actor,
     Room=create_room,
     RoomObject=create_roomobject,
     Area=create_area,
     Door=create_door,
+    Inventory=create_inventory,
 )
 
 def _encode(obj):

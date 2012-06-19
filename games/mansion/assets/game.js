@@ -588,7 +588,6 @@ function create_actor_sprite(actor)
 
 function onmessage(msg)
 {
-//    console.log("Got: "+msg.data);
     var messages = jQuery.parseJSON(msg.data);
     for (var i in messages)
     {
@@ -686,14 +685,6 @@ function onmessage(msg)
         else if (message.command == "disconnect")
         {
             alert("Disconnected");
-        }
-        else if (message.command == "chat")
-        {
-        }
-        else if (message.command == "end_chat")
-        {
-            console.log("End chat with: "+message.kwargs);
-            $("#chatOuter").remove();
         }
     }
 }
