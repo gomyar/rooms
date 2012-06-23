@@ -120,7 +120,7 @@ class BasicSquareTest(unittest.TestCase):
     def testPath(self):
         self.geog = BasicSquareGeography()
         self.room = Room("room1", (0, 0), 500, 500)
-        self.room.add_object(RoomObject(100, 100), (100, 100))
+        self.room.add_object(RoomObject("obj1", 100, 100), (100, 100))
 
         self.assertEquals(None, self.geog._get_rects_for(self.room)[113, 128])
         path = self.geog.get_path(self.room, (50, 200), (200, 50))

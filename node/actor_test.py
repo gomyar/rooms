@@ -30,9 +30,9 @@ class ActorTest(unittest.TestCase):
         time.time = mock.Mock(return_value=self.now)
 
     def testSetPath(self):
-        self.actor.set_path([(0.0, 0.0), (1.0, 0.0), (3.0, 0.0)])
-        self.assertEquals([(0.0, 0.0, 0.0), (1.0, 0.0, 0.005),
-            (3.0, 0.0, 0.015)], self.actor.path)
+        self.actor.set_path([(0.0, 0.0), (3.0, 0.0), (9.0, 0.0)])
+        self.assertEquals([(0.0, 0.0, 0.0), (3.0, 0.0, 0.02),
+            (9.0, 0.0, 0.06)], self.actor.path)
 
     def testXFromPath(self):
         self.actor.path = [ (0.0, 0.0, 0.0), (1.0, 0.0, 1.0), (2.0, 0.0, 2.0),

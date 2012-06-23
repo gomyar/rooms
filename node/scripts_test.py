@@ -3,8 +3,9 @@ import unittest
 
 from npc_actor import NpcActor
 from player_actor import PlayerActor
-from scripts import Script
-from scripts import chat
+from script import Script
+from script import chat
+from script import c
 
 
 class ScriptChatTest(unittest.TestCase):
@@ -22,16 +23,17 @@ class ScriptChatTest(unittest.TestCase):
         self.player.log.append(dict(msg=text % args))
 
     def testChat(self):
-        self.script.start_chat(self.player, chat("Excuse me",
-            "Yes?", [
-                chat("Em, hello", "What do you want?", [
-                    chat("Where is the jade monkey?", "No idea"),
-                    chat("Where are the toilets?",
+        c("Goodbye", "Yes, goodbye")
+        self.script.chat =  chat("Excuse me",
+            "Yes?",
+                c("Em, hello", "What do you want?",
+                    c("Where is the jade monkey?", "No idea"),
+                    c("Where are the toilets?",
                         "Second door on the left"),
-                ]),
-                chat("Goodbye", "Yes, goodbye"),
-            ]
-        ))
+                ),
+                c("Goodbye", "Yes, goodbye"),
+        )
+        self.script.chat(self.player)
 
         self.assertEquals("chatting", self.player.state)
         self.assertEquals(self.npc, self.player.interacting_with)

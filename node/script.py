@@ -39,3 +39,6 @@ class Script:
 
     def say(self, message):
         self.npc.say_to_room(message)
+
+    def chat(self, player):
+        pass
