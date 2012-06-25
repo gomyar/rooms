@@ -34,7 +34,12 @@ class Area(object):
             npc.instance = instance
             eventlet.spawn(npc.kickoff)
 
-    def create_door(self, room1, room2, room1_position, room2_position):
+    def create_door(self, room1, room2, room1_position=None,
+            room2_position=None):
+        if not room1_position:
+            room1_position = room1.calculate_door_position(room2)
+        if not room2_position:
+            room2_position = room2.calculate_door_position(room1)
         door1_id = "door_%s_%s_%s" % (room2.room_id, room1_position[0],
             room1_position[1])
         door2_id = "door_%s_%s_%s" % (room1.room_id, room2_position[0],

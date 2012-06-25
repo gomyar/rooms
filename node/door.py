@@ -7,6 +7,11 @@ from actor import FACING_WEST
 
 
 open_dirs = {
+    (0, 0): FACING_EAST,
+    (-1, -1): FACING_EAST,
+    (-1, 1): FACING_EAST,
+    (1, -1): FACING_EAST,
+    (1, 1): FACING_EAST,
     (1, 0): FACING_EAST,
     (0, 1): FACING_SOUTH,
     (-1, 0): FACING_WEST,

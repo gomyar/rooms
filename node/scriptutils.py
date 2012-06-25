@@ -1,7 +1,7 @@
 
 import sys
 
-GAME_ROOT = "/home/ray/projects/rooms/games/mansion/"
+GAME_ROOT = "/home/ray/projects/rooms/games/dungeon/"
 if GAME_ROOT not in sys.path:
     sys.path.append(GAME_ROOT)
 

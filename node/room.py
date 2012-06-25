@@ -141,6 +141,16 @@ class Room(object):
     def bottom(self):
         return self.position[1] + self.height
 
+    def center(self):
+        return (self.position[0] + self.width / 2,
+            self.position[1] + self.height / 2)
+
+    def calculate_door_position(self, target_room):
+        position = target_room.center()
+        x = min(max(self.left(), position[0]), self.right())
+        y = min(max(self.top(), position[1]), self.bottom())
+        return x, y
+
     def wall_positions(self):
         return (self.left(), self.top(), self.right(), self.bottom())
 
@@ -155,3 +165,9 @@ class Room(object):
     def all_npcs(self):
         return [actor for actor in self.actors.values() if \
             issubclass(actor.__class__, NpcActor)]
+
+    def has_door_to(self, room_id):
+        for key, value in self.actors.items():
+            if key.startswith("door_%s" % (room_id,)):
+                return True
+        return False
