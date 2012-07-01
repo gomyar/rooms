@@ -18,6 +18,20 @@ class CharacterActor(Actor):
         player_ids = [player.actor_id for player in players]
         self.instance.send_to_players(player_ids, event, **kwargs)
 
+    def walk_to(self, x, y):
+        x, y = float(x), float(y)
+        path = self.room.get_path((self.x(), self.y()), (x, y))
+        if not path or len(path) < 2:
+            raise Exception("Wrong path: %s" % (path,))
+        self.set_path(path)
+        self.send_actor_update()
+
+    def walk_towards(self, actor):
+        self.walk_to(actor.x(), actor.y())
+
+    def send_actor_update(self):
+        self.send_to_players_in_room("actor_update", **self.external())
+
     def say_to_room(self, message):
         players = self.room.all_players()
         for player in players:

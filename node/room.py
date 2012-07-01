@@ -63,6 +63,7 @@ class Room(object):
         self.height = height
         self.map_objects = dict()
         self.actors = dict()
+        self.area = None
 
     def __eq__(self, rhs):
         return rhs and self.room_id == rhs.room_id
@@ -102,6 +103,7 @@ class Room(object):
         self.actors[actor.actor_id] = actor
         actor.room = self
         actor.set_position(self.actors[door_id].position())
+        self.area.actor_enters_room(self, actor, door_id)
 
     def player_joined_instance(self, actor):
         self.actors[actor.actor_id] = actor
@@ -171,3 +173,16 @@ class Room(object):
             if key.startswith("door_%s" % (room_id,)):
                 return True
         return False
+
+    def closest_player(self, position):
+        players = self.all_players()
+        if players:
+            return min(players, key=lambda p: p.distance_to(position))
+        else:
+            return None
+
+    def add_npc(self, npc, position):
+        npc.set_position(position)
+        npc.room = self
+        npc.instance = self.area.instance
+        self.actors[npc.actor_id] = npc

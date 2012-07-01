@@ -5,6 +5,7 @@ import time
 
 from actor import Actor
 from actor import expose
+from room import Room
 
 
 class MockActor(Actor):
@@ -24,8 +25,10 @@ class MockActor(Actor):
 
 class ActorTest(unittest.TestCase):
     def setUp(self):
+        self.room = Room()
         self.actor = Actor("actor1", (10, 10))
         self.mock_actor = MockActor("mock")
+        self.actor.room = self.room
         self.now = 0.0
         time.time = mock.Mock(return_value=self.now)
 

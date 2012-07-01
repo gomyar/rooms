@@ -2,6 +2,7 @@
 import unittest
 
 from character_actor import CharacterActor
+from room import Room
 
 
 class MockRollSystem:
@@ -17,6 +18,16 @@ class CharacterActorTest(unittest.TestCase):
         self.actor.roll_system = MockRollSystem()
         self.actor.stats['str'] = 0.1
         self.actor.stats['brawl'] = 0.4
+        self.room = Room()
+        self.actor.room = self.room
 
     def testRoll(self):
         self.assertEquals(0.5, self.actor.roll(["str", "brawl"]))
+
+    def testWalkTowards(self):
+        self.actor2 = CharacterActor("actor2", (0, 0))
+        self.actor2.room = self.room
+
+        self.actor2.walk_towards(self.actor)
+
+        self.assertEquals([(0, 0), (10, 10)], self.actor2.path)

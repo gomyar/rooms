@@ -130,6 +130,7 @@ def create_area(data):
                 actor_id in room._actor_ids])
             for actor in room.actors.values():
                 actor.room = room
+        room.area = area
         # hook up doors
         for room in area.rooms.values():
             for door in room.all_doors():

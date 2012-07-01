@@ -60,13 +60,15 @@ class Actor(object):
     def interface_call(self, func_name, player, *args, **kwargs):
         func = getattr(self, func_name)
         if not self._can_call_method(player, func_name):
-            raise Exception("Illegal call to %s in %s" % (func_name, self))
+            raise Exception("Illegal interface call to %s in %s" % (func_name,
+                self))
         return func(player, *args, **kwargs)
 
     def command_call(self, func_name, *args, **kwargs):
         func = getattr(self, func_name)
         if not self._can_call_command(func_name):
-            raise Exception("Illegal call to %s in %s" % (func_name, self))
+            raise Exception("Illegal command call to %s in %s" % (func_name,
+                self))
         return func(*args, **kwargs)
 
     def external(self):
@@ -186,6 +188,3 @@ class Actor(object):
 
     def event(self, event_id, **kwargs):
         pass
-
-    def send_actor_update(self):
-        self.send_to_players_in_room("actor_update", **self.external())

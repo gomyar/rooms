@@ -23,6 +23,7 @@ class Instance:
 
     def load_map(self, map_id):
         self.area = container.load_area(map_id)
+        self.area.instance = self
 
     def sleep(self):
         print "Sleeping instance"

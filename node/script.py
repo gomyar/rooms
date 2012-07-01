@@ -42,3 +42,10 @@ class Script:
 
     def chat(self, player):
         pass
+
+    def walk_to_nearest_player(self):
+        player = self.npc.room.closest_player(self.npc.position())
+        if player:
+            self.walk_to(player.x(), player.y())
+        else:
+            self.sleep(5)

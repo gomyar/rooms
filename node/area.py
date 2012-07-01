@@ -6,6 +6,7 @@ from door import Door
 from door import infer_direction
 
 from npc_actor import NpcActor
+from player_actor import PlayerActor
 
 class Area(object):
     def __init__(self):
@@ -16,6 +17,7 @@ class Area(object):
         self.rooms = dict()
         self.owner_id = ""
         self.game_script = None
+        self.instance = None
 
     def player_joined_instance(self, actor, room_id):
         self.rooms[room_id].player_joined_instance(actor)
@@ -33,6 +35,14 @@ class Area(object):
         for npc in npcs:
             npc.instance = instance
             eventlet.spawn(npc.kickoff)
+
+    def add_room(self, room):
+        self.rooms[room.room_id] = room
+        room.area = self
+
+    def actor_enters_room(self, room, actor, door_id=None):
+        if type(actor) is PlayerActor:
+            self.game_script.player_enters_room(room, actor)
 
     def create_door(self, room1, room2, room1_position=None,
             room2_position=None):

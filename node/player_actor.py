@@ -37,11 +37,7 @@ class PlayerActor(CharacterActor):
 
     @command()
     def walk_to(self, x, y):
-        x, y = float(x), float(y)
-        path = self.room.get_path((self.x(), self.y()), (x, y))
-        if not path or len(path) < 2:
-            raise Exception("Wrong path: %s" % (path,))
-        self.set_path(path)
+        return super(PlayerActor, self).walk_to(x, y)
 
     @command()
     def exit(self, door_id):

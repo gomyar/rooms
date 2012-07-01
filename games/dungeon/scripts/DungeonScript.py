@@ -1,8 +1,13 @@
 
+import uuid
+
 from scriptutils import load_script
 from script import *
 
 from room import Room
+
+from npc_actor import NpcActor
+from OrcScript import OrcScript
 
 
 class DungeonScript(Script):
@@ -10,7 +15,7 @@ class DungeonScript(Script):
         room_id = "%s,%s" % (x, y)
         room = Room(room_id, (x * 400, y * 400), 390, 390,
             description=room_id)
-        area.rooms[room.room_id] = room
+        area.add_room(room)
         area.create_door(room, from_room)
         return room
 
@@ -30,3 +35,9 @@ class DungeonScript(Script):
         room10 = self._create_room(area, -1, 0, area.rooms['entrance'])
         room11 = self._create_room(area, -2, 0, room10)
         room12 = self._create_room(area, -3, 0, room11)
+
+    def player_enters_room(self, room, player):
+        orc = NpcActor(str(uuid.uuid1()), OrcScript())
+        orc.model_type = "orc"
+        room.add_npc(orc, room.center())
+        orc.kickoff()
