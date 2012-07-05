@@ -5,6 +5,9 @@ from character_actor import CharacterActor
 from actor import expose
 import scriptutils
 
+import logging
+log = logging.getLogger("rooms.npc")
+
 
 class NpcActor(CharacterActor):
     def __init__(self, actor_id, npc_script=None):
@@ -49,6 +52,10 @@ class NpcActor(CharacterActor):
         else:
             return dict(command="chat", actor_id=self.actor_id,
                 msg=response, choices=script.choice_list())
+
+    @expose()
+    def attack(self, player):
+        log.info("%s attacked!!!! by %s", self.actor_id, player.actor_id)
 
     def event(self, event_id, *args, **kwargs):
         event_method = "event_%s" % (event_id,)
