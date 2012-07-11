@@ -6,6 +6,10 @@ from actor import expose
 from actor import command
 from inventory import Inventory
 from inventory import create_item
+from roll_system import roll
+
+import logging
+log = logging.getLogger("rooms.player")
 
 
 class PlayerKnowledge(dict):
@@ -62,3 +66,11 @@ class PlayerActor(CharacterActor):
     def has_evidence(self, npc, category):
         return self.inventory.find_items(npc_id=npc.actor_id,
             category=category)
+
+    def attack(self, actor):
+        log.info("%s attacking %s", actor.actor_id, self.actor_id)
+        target_actor = self.room.actors[actor.actor_id]
+        if roll(self, ["str", "brawl"], 10):
+            self.perform_action("melee_attack", 1, hp=5)
+        else:
+            self.perform_action("melee_attack_missed", 1)

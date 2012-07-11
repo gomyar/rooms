@@ -31,6 +31,7 @@ class NpcActor(CharacterActor):
                 pass
         if hasattr(self.npc_script, callback_method):
             state_changed = getattr(self.npc_script, callback_method)
+            log.debug("NPC %s running %s", self.actor_id, state_changed)
             self.gthread = eventlet.spawn(state_changed)
 
     @expose()
@@ -55,7 +56,8 @@ class NpcActor(CharacterActor):
 
     @expose()
     def attack(self, player):
-        log.info("%s attacked!!!! by %s", self.actor_id, player.actor_id)
+        log.info("%s npc attacked!!!! by %s", self.actor_id, player.actor_id)
+        player.attack(self)
 
     def event(self, event_id, *args, **kwargs):
         event_method = "event_%s" % (event_id,)

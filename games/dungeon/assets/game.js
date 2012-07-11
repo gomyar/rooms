@@ -389,12 +389,14 @@ function onmessage(msg)
                     sprites[actor.actor_id] = sprite;
                     if (actor.actor_id == player_id)
                         own_actor = sprite;
+                    sprite.action = actor.action;
                 }
                 if (actor.actor_type == "NpcActor")
                 {
                     var sprite = create_actor_sprite(actor);
                     sprite.clicked = attack_orc;
                     sprites[actor.actor_id] = sprite;
+                    sprite.action = actor.action;
                 }
 
                 else if (actor.actor_type == "Door")
@@ -426,6 +428,8 @@ function onmessage(msg)
             previous_paths[previous_paths.length] = sprites[message.kwargs.actor_id].path;
             sprites[message.kwargs.actor_id].path = message.kwargs.path;
             sprites[message.kwargs.actor_id].optionalRedraw();
+            sprites[message.kwargs.actor_id].action = message.kwargs.action;
+            console.log("action="+message.kwargs.action.action_id);
         }
         else if (message.command == "player_joined_instance")
         {

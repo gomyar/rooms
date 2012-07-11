@@ -122,9 +122,8 @@ class Actor(object):
         x, y = position
         self.path = [ (x, y, get_now() ), (x, y, get_now() ) ]
 
-    def stop_walking(self):
-        self.set_position(self.position())
-        self.send_actor_update()
+    def send_actor_update(self):
+        self.send_to_players_in_room("actor_update", **self.external())
 
     def set_path(self, path):
         self.path = []

@@ -20,6 +20,11 @@ Sprite.prototype.is_walking = function()
     return get_now() < this.path[this.path.length-1][2] * 1000;
 }
 
+Sprite.prototype.is_animating = function()
+{
+    return get_now() < this.action.end_time * 1000;
+}
+
 Sprite.prototype.draw = function(ctx)
 {
     if (this.hovered == true)
@@ -35,11 +40,20 @@ Sprite.prototype.draw = function(ctx)
         vector[1][0] - vector[0][0]);
 
     if (this.is_walking())
+    {
         offset = Math.round((new Date().getTime() % 1400) / 200);
+    }
+    else if (this.is_animating())
+    {
+        console.log("Animating!!!!!");
+        offset = Math.round((new Date().getTime() % 700) / 100);
+    }
     else
+    {
         offset = 0;
+    }
 
-     ctx.save();
+    ctx.save();
     ctx.translate(this.x(), this.y());
 
     ctx.rotate(angle);
