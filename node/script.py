@@ -29,23 +29,8 @@ class Script:
         end_time = self.npc.path_end_time()
         self.sleep(end_time - time.time())
 
-    def set_state(self, state):
-        self.npc.set_state(state)
-
-    def state_chatting(self):
-        self.npc.stop_walking()
-        self.sleep(10)
-        self.npc.set_state(self.npc.previous_state)
-
     def say(self, message):
         self.npc.say_to_room(message)
 
     def chat(self, player):
         pass
-
-    def walk_to_nearest_player(self):
-        player = self.npc.room.closest_player(self.npc.position())
-        if player:
-            self.walk_to(player.x(), player.y())
-        else:
-            self.sleep(5)

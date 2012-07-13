@@ -46,6 +46,7 @@ class Actor(object):
         self.instance = None
         self.state = "idle"
         self.log = []
+        self.script = None
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -57,19 +58,19 @@ class Actor(object):
     def set_state(self, state):
         self.state = state
 
-    def interface_call(self, func_name, player, *args, **kwargs):
-        func = getattr(self, func_name)
-        if not self._can_call_method(player, func_name):
-            raise Exception("Illegal interface call to %s in %s" % (func_name,
+    def interface_call(self, method_name, player, *args, **kwargs):
+        if not self._can_call_method(player, method_name):
+            raise Exception("Illegal interface call to %s in %s" % (method_name,
                 self))
-        return func(player, *args, **kwargs)
+        method = self._get_method_or_script(method_name)
+        return method(self, player, *args, **kwargs)
 
-    def command_call(self, func_name, *args, **kwargs):
-        func = getattr(self, func_name)
-        if not self._can_call_command(func_name):
-            raise Exception("Illegal command call to %s in %s" % (func_name,
+    def command_call(self, method_name, *args, **kwargs):
+        if not self._can_call_command(method_name):
+            raise Exception("Illegal command call to %s in %s" % (method_name,
                 self))
-        return func(*args, **kwargs)
+        method = self._get_method_or_script(method_name)
+        return method(self, *args, **kwargs)
 
     def external(self):
         return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
@@ -122,9 +123,6 @@ class Actor(object):
         x, y = position
         self.path = [ (x, y, get_now() ), (x, y, get_now() ) ]
 
-    def send_actor_update(self):
-        self.send_to_players_in_room("actor_update", **self.external())
-
     def set_path(self, path):
         self.path = []
         last_x, last_y = path.pop(0)
@@ -148,13 +146,19 @@ class Actor(object):
                 return False
         return True
 
+    def _get_method_or_script(self, method_name):
+        if self.script and hasattr(self.script, method_name):
+            return getattr(self.script, method_name)
+        else:
+            return getattr(self, method_name)
+
     def _can_call_method(self, actor, method_name):
-        func = getattr(self, method_name)
+        func = self._get_method_or_script(method_name)
         return hasattr(func, "is_exposed") and \
             self._filters_equal(self, func.filters)
 
     def _can_call_command(self, method_name):
-        func = getattr(self, method_name)
+        func = self._get_method_or_script(method_name)
         return hasattr(func, "is_command") and \
             self._filters_equal(self, func.filters)
 

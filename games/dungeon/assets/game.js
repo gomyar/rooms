@@ -155,9 +155,9 @@ function attack_orc()
     }, timeTill);
 }
 
-function perform_attack(orc_id)
+function perform_attack()
 {
-    service_call("/game/" + instance_uid + "/" + orc_id + "/attack",
+    service_call("/game/" + instance_uid + "/" + this.id + "/attack",
         { }, attacked)
 }
 
@@ -394,7 +394,7 @@ function onmessage(msg)
                 if (actor.actor_type == "NpcActor")
                 {
                     var sprite = create_actor_sprite(actor);
-                    sprite.clicked = attack_orc;
+                    sprite.clicked = perform_attack;
                     sprites[actor.actor_id] = sprite;
                     sprite.action = actor.action;
                 }

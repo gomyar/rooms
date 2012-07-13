@@ -20,6 +20,8 @@ class Area(object):
         self.instance = None
 
     def player_joined_instance(self, actor, room_id):
+        if hasattr(self.game_script, "player_joined_instance"):
+            self.game_script.player_joined_instance(actor)
         self.rooms[room_id].player_joined_instance(actor)
 
     def actor_left_instance(self, actor):

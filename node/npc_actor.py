@@ -10,12 +10,11 @@ log = logging.getLogger("rooms.npc")
 
 
 class NpcActor(CharacterActor):
-    def __init__(self, actor_id, npc_script=None):
+    def __init__(self, actor_id, script=None):
         super(NpcActor, self).__init__(actor_id)
         self.model_type = actor_id
-        if npc_script:
-            self.npc_script = npc_script
-            self.npc_script.npc = self
+        if script:
+            self.script = script
         self.speed = 90.0
         self.previous_state = None
         self.chat_scripts = dict()
@@ -29,16 +28,16 @@ class NpcActor(CharacterActor):
                 self.gthread.kill()
             except:
                 pass
-        if hasattr(self.npc_script, callback_method):
-            state_changed = getattr(self.npc_script, callback_method)
+        if hasattr(self.script, callback_method):
+            state_changed = getattr(self.script, callback_method)
             log.debug("NPC %s running %s", self.actor_id, state_changed)
-            self.gthread = eventlet.spawn(state_changed)
+            self.gthread = eventlet.spawn(state_changed, self)
 
     @expose()
     def chat(self, player, message=""):
         if self.state != "chatting":
             self.previous_state = self.state
-            self.chat_scripts[player.actor_id] = self.npc_script.chat(player)
+            self.chat_scripts[player.actor_id] = self.script.chat(player)
         self.set_state("chatting")
         script = self.chat_scripts[player.actor_id]
         if message:
@@ -54,28 +53,15 @@ class NpcActor(CharacterActor):
             return dict(command="chat", actor_id=self.actor_id,
                 msg=response, choices=script.choice_list())
 
-    @expose()
-    def attack(self, player):
-        log.info("%s npc attacked!!!! by %s", self.actor_id, player.actor_id)
-        player.attack(self)
-
     def event(self, event_id, *args, **kwargs):
         event_method = "event_%s" % (event_id,)
-        if hasattr(self.npc_script, event_method):
-            getattr(self.npc_script, event_method)(*args, **kwargs)
-
-    def external(self):
-        ex = super(NpcActor, self).external()
-        ex['model_type'] = self.model_type
-        return ex
-
-    def path_end_time(self):
-        return self.path[-1][2]
+        if hasattr(self.script, event_method):
+            getattr(self.script, event_method)(*args, **kwargs)
 
     def load_script(self, script_class):
         script = scriptutils.load_script(script_class)
         script.npc = self
-        self.npc_script = script
+        self.script = script
 
     def kickoff(self):
-        self.npc_script.kickoff()
+        self.script.kickoff(self)

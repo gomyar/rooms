@@ -7,7 +7,8 @@ from script import *
 from room import Room
 
 from npc_actor import NpcActor
-from OrcScript import OrcScript
+import OrcScript
+import player_script
 
 
 class DungeonScript(Script):
@@ -36,8 +37,12 @@ class DungeonScript(Script):
         room11 = self._create_room(area, -2, 0, room10)
         room12 = self._create_room(area, -3, 0, room11)
 
+    def player_joined_instance(self, player):
+        player.script = player_script
+        player.stats['hp'] = 10
+
     def player_enters_room(self, room, player):
-        orc = NpcActor(str(uuid.uuid1()), OrcScript())
+        orc = NpcActor(str(uuid.uuid1()), OrcScript)
         orc.model_type = "orc"
         room.add_npc(orc, room.center())
         orc.kickoff()
