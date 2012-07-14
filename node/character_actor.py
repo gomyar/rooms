@@ -33,9 +33,6 @@ class CharacterActor(Actor):
         ext['model_type'] = self.model_type
         return ext
 
-    def path_end_time(self):
-        return self.path[-1][2]
-
     def get_stat(self, stat):
         return self.stats.get(stat, 0)
 
@@ -64,7 +61,7 @@ class CharacterActor(Actor):
             raise Exception("Wrong path: %s" % (path,))
         self.set_path(path)
         self.send_actor_update()
-        end_time = self.path_end_time()
+        end_time = self.path.path_end_time()
         sleep(end_time - get_now())
 
     def send_actor_update(self):

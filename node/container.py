@@ -5,6 +5,7 @@ from pymongo import Connection
 from pymongo.helpers import bson
 
 from actor import Actor
+from path import Path
 from player_actor import PlayerActor
 from npc_actor import NpcActor
 from room import Room
@@ -38,6 +39,20 @@ def create_actor(data):
     actor = Actor(data['actor_id'])
     _deserialize_actor(actor, data)
     return actor
+
+
+# Path
+def serialize_path(obj):
+    return dict(
+        path=obj.path,
+        speed=obj.speed,
+    )
+
+def create_path(data):
+    path = Path()
+    path.path = data['path']
+    path.speed = data['speed']
+    return path
 
 # PlayerActor
 def serialize_player_actor(obj):
@@ -199,6 +214,7 @@ object_serializers = dict(
     Area=serialize_area,
     Door=serialize_door,
     Inventory=serialize_inventory,
+    Path=serialize_path,
 )
 
 object_factories = dict(
@@ -211,6 +227,7 @@ object_factories = dict(
     Area=create_area,
     Door=create_door,
     Inventory=create_inventory,
+    Path=create_path,
 )
 
 def _encode(obj):
