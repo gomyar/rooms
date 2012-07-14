@@ -7,6 +7,7 @@ from script import *
 from room import Room
 
 from npc_actor import NpcActor
+from item_actor import ItemActor
 import OrcScript
 import player_script
 
@@ -46,3 +47,7 @@ class DungeonScript(Script):
         orc.model_type = "orc"
         room.add_npc(orc, room.center())
         orc.kickoff()
+
+        item = ItemActor(str(uuid.uuid1()))
+        item.model_type = "gold"
+        room.add_npc(item, room.center())

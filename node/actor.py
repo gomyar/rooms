@@ -2,6 +2,8 @@ import math
 import time
 import inspect
 
+from eventlet import sleep
+
 from path import Path
 from path import distance
 from path import get_now
@@ -32,6 +34,20 @@ class command:
         return func
 
 
+class Action(object):
+    def __init__(self, action_id, seconds=0.0, data={}):
+        self.action_id = action_id
+        self.seconds = seconds
+        self.data = data
+        self.start_time = get_now()
+        self.end_time = self.start_time + seconds
+
+    def external(self):
+        return dict(action_id=self.action_id, seconds=self.seconds,
+            data=self.data, start_time=self.start_time,
+            end_time=self.end_time)
+
+
 class Actor(object):
     def __init__(self, actor_id, position=(0, 0)):
         self.actor_id = actor_id
@@ -41,6 +57,9 @@ class Actor(object):
         self.state = "idle"
         self.log = []
         self.script = None
+        self.action = Action("standing")
+        self.stats = dict()
+        self.model_type = ""
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -68,7 +87,12 @@ class Actor(object):
 
     def external(self):
         return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
-            path=self.path.path_array(), speed=self.path.speed)
+            path=self.path.path_array(), speed=self.path.speed,
+            action=self.action.external(), stats=self.stats,
+            model_type=self.model_type)
+
+    def send_actor_update(self):
+        self.send_to_players_in_room("actor_update", **self.external())
 
     def x(self):
         return self.path.x()
@@ -139,3 +163,24 @@ class Actor(object):
 
     def event(self, event_id, **kwargs):
         pass
+
+    def remove(self):
+        self.room.remove_actor(self)
+
+    def move_to(self, x, y):
+        x, y = float(x), float(y)
+        path = self.room.get_path((self.x(), self.y()), (x, y))
+        if not path or len(path) < 2:
+            raise Exception("Wrong path: %s" % (path,))
+        self.set_path(path)
+        self.send_actor_update()
+        end_time = self.path.path_end_time()
+        sleep(end_time - get_now())
+
+    def move_towards(self, actor):
+        self.move_to(actor.x(), actor.y())
+
+    def perform_action(self, action_id, seconds=0.0, **data):
+        self.action = Action(action_id, seconds, data)
+        self.send_actor_update()
+        sleep(seconds)

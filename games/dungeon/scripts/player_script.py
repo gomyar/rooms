@@ -13,7 +13,7 @@ def walk_to(player, x, y):
 
 @expose()
 def melee_attack(player, attacker):
-    attacker.walk_towards(player)
+    attacker.move_towards(player)
 
     attacker.perform_action("melee_attack", 1)
     if roll(attacker, ["str", "brawl"], 10):

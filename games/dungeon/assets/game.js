@@ -19,7 +19,8 @@ var facing_directions = {
 var map_images = {
     'floor_tile_marble': 'images/floor_tile_marble.png',
     'investigator': 'images/walkingman.png',
-    'orc': 'images/orc.png'
+    'orc': 'images/orc.png',
+    'gold': 'images/gold_item.png'
 };
 
 var background_img;
@@ -159,6 +160,12 @@ function perform_attack()
 {
     service_call("/game/" + instance_uid + "/" + this.id + "/attack",
         { }, attacked)
+}
+
+function pickup_item()
+{
+/*    service_call("/game/" + instance_uid + "/" + this.id + "/pickup_item",
+        { }, function(){ console.log("Picked up");})*/
 }
 
 function attacked(data)
@@ -398,6 +405,14 @@ function onmessage(msg)
                     sprites[actor.actor_id] = sprite;
                     sprite.action = actor.action;
                 }
+                if (actor.actor_type == "ItemActor")
+                {
+                    var sprite = create_actor_sprite(actor);
+                    sprite.clicked = pickup_item;
+                    sprites[actor.actor_id] = sprite;
+                    sprite.action = actor.action;
+                }
+
 
                 else if (actor.actor_type == "Door")
                 {

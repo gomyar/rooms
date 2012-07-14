@@ -114,8 +114,14 @@ class Room(object):
         actor.set_position(position)
 
     def actor_left_instance(self, actor):
+        self.remove_actor(actor)
+
+    def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)
         actor.room = None
+        self.area.actors.pop(actor.actor_id)
+        actor.send_to_players_in_room("actor_removed",
+            actor_id=actor.actor_id)
 
     def exit_through_door(self, actor, door_id):
         door = self.actors[door_id]
