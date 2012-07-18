@@ -164,8 +164,8 @@ function perform_attack()
 
 function pickup_item()
 {
-/*    service_call("/game/" + instance_uid + "/" + this.id + "/pickup_item",
-        { }, function(){ console.log("Picked up");})*/
+    service_call("/game/" + instance_uid + "/" + this.id + "/pick_up",
+        { }, function(){ console.log("Picked up");});
 }
 
 function attacked(data)
@@ -355,13 +355,15 @@ function onopen()
 {
     console.log("Connected");
     socket.send(player_id);
+    console.log("Sending instance uid:"+instance_uid);
     socket.send(instance_uid);
 }
 
 function onclose()
 {
-    alert("Connection lost");
-    window.location = "http://localhost:8000";
+//    alert("Connection lost");
+    console.log("connection lost");
+//    window.location = "http://localhost:8000";
 }
 
 function create_actor_sprite(actor)
@@ -412,8 +414,6 @@ function onmessage(msg)
                     sprites[actor.actor_id] = sprite;
                     sprite.action = actor.action;
                 }
-
-
                 else if (actor.actor_type == "Door")
                 {
                     sprite = new Sprite(actor.actor_id);

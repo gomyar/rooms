@@ -51,6 +51,18 @@ def _read_cookies(environ):
 
 qcount = 1
 
+
+def checked(func):
+    def tryexcept(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except:
+            log.exception("Exception calling %s", func)
+            raise
+    return tryexcept
+
+
+@checked
 @websocket.WebSocketWSGI
 def handle_socket(ws):
     player_id = None
@@ -82,13 +94,14 @@ def handle_socket(ws):
             except Empty, err:
                 ws.send(simplejson.dumps([{'command':"heartbeat"}]))
     except:
-        log.warning("Websocket disconnected %s", player_id)
+        log.exception("Websocket disconnected %s", player_id)
     finally:
         log.debug("Player %s disconnecting", player_id)
         if instance and queue:
             instance.disconnect_queue(queue)
 
 
+@checked
 def game_handle(environ, response):
     try:
         _, url, instance_uid, actor_id, command = \
@@ -113,6 +126,7 @@ def game_handle(environ, response):
         log.exception("Error handling %s", command)
 
 
+@checked
 def control_handle(environ, response):
     path = environ['PATH_INFO'].replace("/control/", "")
     params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
@@ -144,6 +158,7 @@ def control_handle(environ, response):
     return returned
 
 
+@checked
 def room_handle(environ, response):
     try:
         _, url, instance_uid = environ['PATH_INFO'].split("/")
@@ -165,6 +180,7 @@ def room_handle(environ, response):
         log.exception("Romm call exception")
 
 
+@checked
 def check_player_joined(player_id):
     for instance in instances.values():
         if player_id in instance.players:
@@ -172,6 +188,7 @@ def check_player_joined(player_id):
     return False
 
 
+@checked
 def _get_param(environ, param):
     if 'QUERY_STRING' in environ:
         params = dict(urlparse.parse_qsl(environ['QUERY_STRING']))
@@ -180,6 +197,7 @@ def _get_param(environ, param):
     return None
 
 
+@checked
 def root(environ, response):
     if environ['PATH_INFO'] == '/socket':
         return handle_socket(environ, response)
@@ -197,6 +215,7 @@ def root(environ, response):
     else:
         return www_file(environ['PATH_INFO'], response)
 
+@checked
 def www_file(path, response):
     filepath = os.path.join(os.path.dirname(GAME_ROOT), "assets" + path)
     if os.path.exists(filepath):
@@ -206,10 +225,12 @@ def www_file(path, response):
         response('404 Not Found', [])
         return "Not Found"
 
+@checked
 def redirect(path, response):
     response('301 Moved Permanently', [ ('location', path) ])
     return ""
 
+@checked
 def deregister():
     master.deregister_node(host, port)
 

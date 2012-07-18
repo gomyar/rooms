@@ -35,12 +35,10 @@ class Instance:
             if command == "exposed_commands":
                 return actor.exposed_commands()
             value = actor.command_call(command, **kwargs)
-            self.send_to_all("actor_update", **actor.external())
         else:
             if command == "exposed_methods":
                 return actor.exposed_methods(player)
             value = actor.interface_call(command, player, **kwargs)
-            self.send_to_all("actor_update", **actor.external())
         return value
 
     def create_instance(self, map_id):
@@ -70,7 +68,7 @@ class Instance:
         return {
             "command": "sync",
             "kwargs" : {
-                "actors" : map(lambda a: a.external(),
+                "actors" : map(lambda a: a.external(player),
                     player.room.actors.values()),
                 "now" : time.time(),
                 "map" : "map1.json",
@@ -106,7 +104,7 @@ class Instance:
         self.area.actors[player_id] = actor
         actor.instance = self
         self.area.player_joined_instance(actor, self.area.entry_point_room_id)
-        self.send_to_all("player_joined_instance", **actor.external())
+        self.send_to_all("player_joined_instance", actor_id=player_id)
 
         log.info("Player joined instance: %s", player_id)
 

@@ -4,9 +4,9 @@ import inspect
 
 from eventlet import sleep
 
-from path import Path
-from path import distance
-from path import get_now
+from path_vector import Path
+from path_vector import distance
+from path_vector import get_now
 
 FACING_NORTH = "north"
 FACING_SOUTH = "south"
@@ -85,14 +85,17 @@ class Actor(object):
         method = self._get_method_or_script(method_name)
         return method(self, *args, **kwargs)
 
-    def external(self):
+    def external(self, player):
         return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
             path=self.path.path_array(), speed=self.path.speed,
             action=self.action.external(), stats=self.stats,
-            model_type=self.model_type)
+            model_type=self.model_type,
+            methods=self._all_exposed_methods(player))
 
     def send_actor_update(self):
-        self.send_to_players_in_room("actor_update", **self.external())
+        for player in self.room.all_players():
+            self.send_event("actor_update",
+                **self.external(player))
 
     def x(self):
         return self.path.x()
@@ -135,6 +138,8 @@ class Actor(object):
             self._filters_equal(self, func.filters)
 
     def _all_exposed_methods(self, actor):
+        if self == actor:
+            return self._all_exposed_commands()
         return [m for m in dir(self) if self._can_call_method(actor, m)]
 
     def _all_exposed_commands(self):

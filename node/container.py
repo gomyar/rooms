@@ -5,7 +5,7 @@ from pymongo import Connection
 from pymongo.helpers import bson
 
 from actor import Actor
-from path import Path
+from path_vector import Path
 from player_actor import PlayerActor
 from npc_actor import NpcActor
 from room import Room

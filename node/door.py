@@ -44,7 +44,9 @@ class Door(Actor):
         return "<Door at %s, %s to %s through %s>" % (self.x(), self.y(),
             self.exit_room, self.exit_door_id)
 
-    def external(self):
-        d = super(Door, self).external()
-        d['opens_direction'] = self.opens_direction
-        return d
+    def external(self, player):
+        return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
+            path=self.path.path_array(), speed=self.path.speed,
+            action=self.action.external(), stats=self.stats,
+            model_type=self.model_type,
+            opens_direction=self.opens_direction)
