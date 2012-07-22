@@ -24,14 +24,15 @@ class ScriptChatTest(unittest.TestCase):
 
     def testChat(self):
         c("Goodbye", "Yes, goodbye")
-        self.script.chat =  chat("Excuse me",
-            "Yes?",
+        self.script.chat = chat(
+            c("Excuse me", "Yes?",
                 c("Em, hello", "What do you want?",
                     c("Where is the jade monkey?", "No idea"),
                     c("Where are the toilets?",
                         "Second door on the left"),
                 ),
                 c("Goodbye", "Yes, goodbye"),
+            )
         )
         self.script.chat(self.player)
 

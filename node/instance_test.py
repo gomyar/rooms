@@ -38,10 +38,8 @@ class InstanceTest(unittest.TestCase):
     def testBasicCommand(self):
         self.instance.register("player1")
         queue = self.instance.connect("player1")
-#        self.assertEquals('actor_joined',
-#            self.instance.player_queues['player1'].get_nowait()['command'])
 
-        self.instance.call("walk_to", "player1", "player1",
+        self.instance.call("move_to", "player1", "player1",
             kwargs={ 'x': 20, 'y': 10})
 
         self.assertEquals('actor_update',

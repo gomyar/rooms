@@ -4,6 +4,7 @@ import eventlet
 from room import Room
 from door import Door
 from door import infer_direction
+from room_container import RoomContainer
 
 from npc_actor import NpcActor
 from player_actor import PlayerActor
@@ -13,8 +14,7 @@ class Area(object):
         self.area_name = None
         self.entry_point_room_id = None
         self.entry_point_door_id = None
-        self.actors = dict()
-        self.rooms = dict()
+        self.rooms = RoomContainer()
         self.owner_id = ""
         self.game_script = None
         self.instance = None
@@ -28,15 +28,7 @@ class Area(object):
         self.rooms[actor.room.room_id].actor_left_instance(actor)
 
     def add_npc(self, npc_actor, room_id):
-        self.actors[npc_actor.actor_id] = npc_actor
         self.player_joined_instance(npc_actor, room_id)
-
-    def kickoff_npcs(self, instance):
-        self.game_script.kickoff(self)
-        npcs = [npc for npc in self.actors.values() if type(npc) is NpcActor]
-        for npc in npcs:
-            npc.instance = instance
-            eventlet.spawn(npc.kickoff)
 
     def add_room(self, room):
         self.rooms[room.room_id] = room

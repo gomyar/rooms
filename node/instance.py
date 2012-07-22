@@ -60,11 +60,8 @@ class Instance:
     def send_sync(self, player_id):
         self.player_queues[player_id].put(self.sync(player_id))
 
-    def actors_dict(self):
-        return map(lambda a: a.external(), self.area.actors.values())
-
     def sync(self, player_id):
-        player = self.area.actors[player_id]
+        player = self.players[player_id]['player']
         return {
             "command": "sync",
             "kwargs" : {
@@ -101,7 +98,6 @@ class Instance:
 
         actor = PlayerActor(player_id)
         self.players[player_id]['player'] = actor
-        self.area.actors[player_id] = actor
         actor.instance = self
         self.area.player_joined_instance(actor, self.area.entry_point_room_id)
         self.send_to_all("player_joined_instance", actor_id=player_id)
@@ -110,7 +106,7 @@ class Instance:
 
     def deregister(self, player_id):
         self.disconnect(player_id)
-        actor = self.area.actors.pop(player_id)
+        actor = self.players[player_id]['players']
         self.area.actor_left_instance(actor)
         self.send_to_all("actor_left_instance", actor_id=player_id)
         self.players.pop(player_id)
@@ -119,4 +115,4 @@ class Instance:
         log.info("Player left instance: %s", player_id)
 
     def kickoff(self):
-        self.area.kickoff_npcs(self)
+        print "Pointless kickoff call"

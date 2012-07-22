@@ -165,7 +165,7 @@ def room_handle(environ, response):
         log.debug("Room call: %s %s", url, instance_uid)
         cookies = _read_cookies(environ)
         instance = instances[instance_uid]
-        returned = instance.area.actors[sessions[cookies['sessionid']]].\
+        returned = instance.players[sessions[cookies['sessionid']]]['player'].\
             room.external()
         if returned:
             returned = simplejson.dumps(returned)

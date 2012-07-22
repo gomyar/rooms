@@ -172,7 +172,8 @@ class Actor(object):
     def remove(self):
         self.room.remove_actor(self)
 
-    def move_to(self, x, y):
+    @command()
+    def move_to(self, this, x, y):
         x, y = float(x), float(y)
         path = self.room.get_path((self.x(), self.y()), (x, y))
         if not path or len(path) < 2:

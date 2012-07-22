@@ -8,7 +8,7 @@ def kickoff(player):
 
 @command()
 def walk_to(player, x, y):
-    player.move_to(x, y)
+    player.move_to(player, x, y)
 
 
 @expose()

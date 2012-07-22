@@ -11,6 +11,7 @@ from scripts.DungeonScript import DungeonScript
 init_mongo()
 
 area = Area()
+area.rooms = MongoRoomContainer()
 area.area_name = "dungeon"
 area.owner_id = 1
 

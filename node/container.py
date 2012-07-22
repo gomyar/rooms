@@ -9,12 +9,62 @@ from path_vector import Path
 from player_actor import PlayerActor
 from npc_actor import NpcActor
 from room import Room
+from room_container import RoomContainer
 from room import RoomObject
 from area import Area
 from door import Door
 from inventory import Inventory
 from inventory import Item
 from scriptutils import load_script
+
+
+class MongoRoomContainer(RoomContainer):
+    def load_room(self, room_id):
+        return load_room_from_mongo(room_id)
+
+    def save_room(self, room_id, room):
+        return save_room_to_mongo(room)
+
+
+def save_room_to_mongo(room):
+    encoded_str = simplejson.dumps(room, default=_encode, indent="    ")
+    encoded_dict = simplejson.loads(encoded_str)
+    rooms_db = _mongo_connection.rooms_db
+    room_id = rooms_db.rooms.save(encoded_dict)
+    return str(room_id)
+
+def load_room_from_mongo(room_id):
+    rooms_db = _mongo_connection.rooms_db
+    room_dict = rooms_db.rooms.find_one(bson.ObjectId(room_id))
+    room_dict.pop('_id')
+    room_str = simplejson.dumps(room_dict)
+    room = simplejson.loads(room_str, object_hook=_decode)
+    return room
+
+
+# Room
+def serialize_room(obj):
+    return dict(
+        room_id = obj.room_id,
+        position = obj.position,
+        width = obj.width,
+        height = obj.height,
+        map_objects = obj.map_objects,
+        actors = obj.actors,
+        description = obj.description,
+    )
+
+def create_room(data):
+    room = Room()
+    room.room_id = data['room_id']
+    room.position = data['position']
+    room.width = data['width']
+    room.height = data['height']
+    room.map_objects = data['map_objects']
+    room.actors = data['actors']
+    room.description = data['description']
+    return room
+
 
 # Actor
 def serialize_actor(obj):
@@ -80,29 +130,6 @@ def create_npc_actor(data):
     npc_actor.load_script(data['npc_script_class'])
     return npc_actor
 
-# Room
-def serialize_room(obj):
-    return dict(
-        room_id = obj.room_id,
-        position = obj.position,
-        width = obj.width,
-        height = obj.height,
-        map_objects = obj.map_objects,
-        actor_ids = [actor_id for actor_id, _ in obj.actors.items()],
-        description = obj.description,
-    )
-
-def create_room(data):
-    room = Room()
-    room.room_id = data['room_id']
-    room.position = data['position']
-    room.width = data['width']
-    room.height = data['height']
-    room.map_objects = data['map_objects']
-    room._actor_ids = data['actor_ids']
-    room.description = data['description']
-    return room
-
 # RoomObject
 def serialize_roomobject(obj):
     return dict(
@@ -122,9 +149,8 @@ def create_roomobject(data):
 def serialize_area(obj):
     return dict(
         area_name = obj.area_name,
-        actors = obj.actors,
-        rooms = obj.rooms,
         owner_id = obj.owner_id,
+        room_map = obj.rooms._room_map,
         entry_point_room_id = obj.entry_point_room_id,
         entry_point_door_id = obj.entry_point_door_id,
         game_script_class = obj.game_script.__class__.__name__
@@ -133,23 +159,12 @@ def serialize_area(obj):
 def create_area(data):
     area = Area()
     area.area_name = data['area_name']
-    area.actors = dict(data['actors'])
-    area.rooms = dict(data['rooms'])
+    area.rooms = MongoRoomContainer()
+    area.rooms._room_map = data['room_map']
     area.owner_id = data['owner_id']
     area.entry_point_room_id = data['entry_point_room_id']
     area.entry_point_door_id = data['entry_point_door_id']
     # Second pass for top-level objects
-    if area.rooms:
-        for room in area.rooms.values():
-            room.actors = dict([(actor_id, area.actors[actor_id]) for \
-                actor_id in room._actor_ids])
-            for actor in room.actors.values():
-                actor.room = room
-        room.area = area
-        # hook up doors
-        for room in area.rooms.values():
-            for door in room.all_doors():
-                door.exit_room = area.rooms[door.exit_room_id]
     area.game_script = load_script(data['game_script_class'])
     return area
 
