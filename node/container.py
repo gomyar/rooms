@@ -29,16 +29,20 @@ class MongoRoomContainer(RoomContainer):
 def save_room_to_mongo(room):
     encoded_str = simplejson.dumps(room, default=_encode, indent="    ")
     encoded_dict = simplejson.loads(encoded_str)
+    if hasattr(room, "_id"):
+        encoded_dict['_id'] = room._id
     rooms_db = _mongo_connection.rooms_db
     room_id = rooms_db.rooms.save(encoded_dict)
+    room._id = room_id
     return str(room_id)
 
 def load_room_from_mongo(room_id):
     rooms_db = _mongo_connection.rooms_db
     room_dict = rooms_db.rooms.find_one(bson.ObjectId(room_id))
-    room_dict.pop('_id')
+    db_id = room_dict.pop('_id')
     room_str = simplejson.dumps(room_dict)
     room = simplejson.loads(room_str, object_hook=_decode)
+    room._id = db_id
     return room
 
 
@@ -63,6 +67,8 @@ def create_room(data):
     room.map_objects = data['map_objects']
     room.actors = data['actors']
     room.description = data['description']
+    for actor in room.actors.values():
+        actor.room = room
     return room
 
 
@@ -71,7 +77,6 @@ def serialize_actor(obj):
     return dict(
         actor_id = obj.actor_id,
         path = obj.path,
-        speed = obj.speed,
         room_id = obj.room.room_id,
         state = obj.state,
         log = obj.log,
@@ -80,7 +85,6 @@ def serialize_actor(obj):
 def _deserialize_actor(actor, data):
     actor.actor_id = data['actor_id']
     actor.path = data['path']
-    actor.speed = data['speed']
     actor.room_id = data['room_id']
     actor.state = data['state']
     actor.log = data['log']
@@ -159,7 +163,7 @@ def serialize_area(obj):
 def create_area(data):
     area = Area()
     area.area_name = data['area_name']
-    area.rooms = MongoRoomContainer()
+    area.rooms = MongoRoomContainer(area)
     area.rooms._room_map = data['room_map']
     area.owner_id = data['owner_id']
     area.entry_point_room_id = data['entry_point_room_id']
@@ -287,15 +291,9 @@ def save_area(area):
     encoded_dict = simplejson.loads(encoded_str)
     rooms_db = _mongo_connection.rooms_db
     rooms_db.areas.save(encoded_dict)
-
-def load_base_area(area_id):
-    rooms_db = _mongo_connection.rooms_db
-    return _decode(rooms_db.base_areas.find_one(bson.ObjectId(area_id)))
-
-def save_base_area(area):
-    encoded = _encode(area)
-    rooms_db = _mongo_connection.rooms_db
-    rooms_db.base_areas.save(encoded)
+    for room_id, room in area.rooms._rooms.items():
+        print "Saved room %s:%s" % (room_id, room._id)
+        save_room_to_mongo(room)
 
 def list_all_areas_for(owner_id):
     rooms_db = _mongo_connection.rooms_db

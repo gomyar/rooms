@@ -3,7 +3,8 @@ from room import Room
 
 
 class RoomContainer(object):
-    def __init__(self):
+    def __init__(self, area):
+        self._area = area
         self._rooms = dict()
         self._room_map = dict()
 
@@ -16,6 +17,7 @@ class RoomContainer(object):
     def __getitem__(self, room_id):
         if room_id not in self._rooms:
             self._rooms[room_id] = self.load_room(self._room_map[room_id])
+            self._rooms[room_id].area = self._area
         return self._rooms[room_id]
 
     def __setitem__(self, room_id, room):

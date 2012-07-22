@@ -14,7 +14,7 @@ class Area(object):
         self.area_name = None
         self.entry_point_room_id = None
         self.entry_point_door_id = None
-        self.rooms = RoomContainer()
+        self.rooms = RoomContainer(self)
         self.owner_id = ""
         self.game_script = None
         self.instance = None
@@ -54,8 +54,6 @@ class Area(object):
         room2.actors[door2_id] = door2
         door1.room = room1
         door2.room = room2
-        self.actors[door1_id] = door1
-        self.actors[door2_id] = door2
         door1.opens_direction = infer_direction(room1_position,
             room2_position)
         door2.opens_direction = infer_direction(room2_position,

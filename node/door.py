@@ -31,10 +31,15 @@ class Door(Actor):
     def __init__(self, door_id=None, position=(0, 0), exit_room=None,
             exit_door_id=None):
         super(Door, self).__init__(door_id)
-        self.exit_room = exit_room
+        if exit_room:
+            self.exit_room_id = exit_room.room_id
         self.exit_door_id = exit_door_id
         self.set_position(position)
         self.opens_direction = FACING_NORTH
+
+    @property
+    def exit_room(self):
+        return self.room.area.rooms[self.exit_room_id]
 
     def __eq__(self, rhs):
         return rhs and self.exit_room == rhs.exit_room and \
@@ -42,7 +47,7 @@ class Door(Actor):
 
     def __repr__(self):
         return "<Door at %s, %s to %s through %s>" % (self.x(), self.y(),
-            self.exit_room, self.exit_door_id)
+            self.exit_room_id, self.exit_door_id)
 
     def external(self, player):
         return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
