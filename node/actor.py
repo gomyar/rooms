@@ -51,7 +51,7 @@ class Action(object):
 class Actor(object):
     def __init__(self, actor_id, position=(0, 0)):
         self.actor_id = actor_id
-        self.path = Path()
+        self.path = Path(position)
         self.room = None
         self.instance = None
         self.state = "idle"
@@ -171,6 +171,11 @@ class Actor(object):
 
     def remove(self):
         self.room.remove_actor(self)
+
+    def send_to_all_in_room(self, event, **kwargs):
+        actor_ids = [actor.actor_id for actor in self.actors.values()]
+        self.instance.send_to_players(actor_ids, event, **kwargs)
+
 
     @command()
     def move_to(self, this, x, y):

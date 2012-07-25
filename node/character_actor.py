@@ -25,5 +25,5 @@ class CharacterActor(Actor):
         for player in players:
             player.add_chat_message(message)
 
-    def roll(self, stats, seconds):
+    def roll(self, stats, target):
         return True

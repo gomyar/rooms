@@ -12,9 +12,9 @@ def distance(x1, y1, x2, y2):
 
 
 class Path(object):
-    def __init__(self):
-        self.path = []
+    def __init__(self, position=(0, 0)):
         self.speed = 150.0
+        self.set_position(position)
 
     def set_position(self, position):
         x, y = position
@@ -39,6 +39,9 @@ class Path(object):
             current_time += self.time_to_move(last_x, last_y, x, y)
             self.path.append( (x, y, current_time ) )
             last_x, last_y = x, y
+
+    def basic_path_list(self):
+        return [(p[0], p[1]) for p in self.path]
 
     def x(self):
         now = get_now()

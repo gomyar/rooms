@@ -122,7 +122,7 @@ class Room(object):
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)
         actor.room = None
-        actor.send_to_players_in_room("actor_removed",
+        actor.send_to_all("actor_removed",
             actor_id=actor.actor_id)
 
     def exit_through_door(self, actor, door_id):
