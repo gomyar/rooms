@@ -34,7 +34,7 @@ class BasicSquareTest(unittest.TestCase):
         self.assertEquals(Rect(60, 15, 70, 25), rects[61, 16])
 
     def testSubdivideWithMapObjects(self):
-        self.room.add_object(RoomObject(10, 10), (20, 20))
+        self.room.add_object("obj1", RoomObject("obj1", 10, 10), (20, 20))
 
         rects = self.geog._subdivide(self.room)
 
@@ -51,7 +51,7 @@ class BasicSquareTest(unittest.TestCase):
         self.assertEquals(Rect(40, 40, 50, 50), rects.rect_at(4, 4))
 
     def testSubdivideWithMapObjects2(self):
-        self.room2.add_object(RoomObject(60, 15), (20, 20))
+        self.room2.add_object("obj1", RoomObject("obj1", 60, 15), (20, 20))
 
         rects = self.geog._subdivide(self.room2)
 
@@ -120,7 +120,7 @@ class BasicSquareTest(unittest.TestCase):
     def testPath(self):
         self.geog = BasicSquareGeography()
         self.room = Room("room1", (0, 0), 500, 500)
-        self.room.add_object(RoomObject("obj1", 100, 100), (100, 100))
+        self.room.add_object("obj1", RoomObject("obj1", 100, 100), (100, 100))
 
         self.assertEquals(None, self.geog._get_rects_for(self.room)[113, 128])
         path = self.geog.get_path(self.room, (50, 200), (200, 50))

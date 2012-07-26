@@ -31,8 +31,7 @@ class Door(Actor):
     def __init__(self, door_id=None, position=(0, 0), exit_room=None,
             exit_door_id=None):
         super(Door, self).__init__(door_id)
-        if exit_room:
-            self.exit_room_id = exit_room.room_id
+        self.exit_room_id = exit_room.room_id if exit_room else None
         self.exit_door_id = exit_door_id
         self.set_position(position)
         self.opens_direction = FACING_NORTH
@@ -42,7 +41,7 @@ class Door(Actor):
         return self.room.area.rooms[self.exit_room_id]
 
     def __eq__(self, rhs):
-        return rhs and self.exit_room == rhs.exit_room and \
+        return rhs and self.exit_room_id == rhs.exit_room_id and \
             self.exit_door_id == rhs.exit_door_id
 
     def __repr__(self):

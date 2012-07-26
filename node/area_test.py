@@ -4,10 +4,21 @@ import unittest
 from area import Area
 from door import Door
 from room import Room
+from room_container import RoomContainer
+
+
+class MockRoomContainer(RoomContainer):
+    def load_room(self, room_id):
+        return self._rooms[room_id]
+
+    def save_room(self, room_id, room):
+        self._rooms[room_id] = room
+
 
 class AreaTest(unittest.TestCase):
     def setUp(self):
         self.area = Area()
+        self.area.rooms = MockRoomContainer(self.area)
         self.room1 = Room("room1", (0, 0), 10, 10)
         self.room2 = Room("room2", (20, 0), 10, 10)
 
