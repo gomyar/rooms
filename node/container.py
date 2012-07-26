@@ -4,17 +4,17 @@ import simplejson
 from pymongo import Connection
 from pymongo.helpers import bson
 
-from actor import Actor
-from path_vector import Path
-from player_actor import PlayerActor
-from npc_actor import NpcActor
-from room import Room
-from room_container import RoomContainer
-from room import RoomObject
-from area import Area
-from door import Door
-from inventory import Inventory
-from inventory import Item
+from rooms.actor import Actor
+from rooms.path_vector import Path
+from rooms.player_actor import PlayerActor
+from rooms.npc_actor import NpcActor
+from rooms.room import Room
+from rooms.room_container import RoomContainer
+from rooms.room import RoomObject
+from rooms.area import Area
+from rooms.door import Door
+from rooms.inventory import Inventory
+from rooms.inventory import Item
 from scriptutils import load_script
 
 

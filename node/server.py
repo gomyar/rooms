@@ -21,7 +21,7 @@ from mimetypes import guess_type
 
 import simplejson
 
-from instance import Instance
+from rooms.instance import Instance
 
 from eventlet.queue import Empty
 

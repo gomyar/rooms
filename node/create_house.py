@@ -3,7 +3,7 @@ import sys
 
 from container import *
 from container import _encode
-from actor import *
+from rooms.actor import *
 
 
 from scripts.MansionGameScript import MansionGameScript

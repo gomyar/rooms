@@ -1,8 +1,8 @@
 
 import unittest
 
-from npc_actor import NpcActor
-from player_actor import PlayerActor
+from rooms.npc_actor import NpcActor
+from rooms.player_actor import PlayerActor
 from script import Script
 from script import chat
 from script import c

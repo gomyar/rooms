@@ -4,10 +4,10 @@ import unittest
 import scriptutils
 scriptutils.load_script = lambda s: ""
 
-from room import Room
-from room_container import RoomContainer
-from area import Area
-from actor import Actor
+from rooms.room import Room
+from rooms.room_container import RoomContainer
+from rooms.area import Area
+from rooms.actor import Actor
 
 from container import serialize_area
 from container import deserialize_area

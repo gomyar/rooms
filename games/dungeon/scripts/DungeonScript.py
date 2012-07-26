@@ -4,10 +4,10 @@ import uuid
 from scriptutils import load_script
 from script import *
 
-from room import Room
+from rooms.room import Room
 
-from npc_actor import NpcActor
-from item_actor import ItemActor
+from rooms.npc_actor import NpcActor
+from rooms.item_actor import ItemActor
 import OrcScript
 import player_script
 

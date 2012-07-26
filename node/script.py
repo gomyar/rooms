@@ -4,9 +4,9 @@ import time
 
 import eventlet
 
-from chat import chat
-from chat import call
-from chat import choice as c
+from rooms.chat import chat
+from rooms.chat import call
+from rooms.chat import choice as c
 
 class Script:
     def room(self):
