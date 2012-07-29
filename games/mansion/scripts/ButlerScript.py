@@ -3,18 +3,17 @@ from script import *
 
 
 def kickoff(npc):
-    walk_around()
+    walk_around(npc)
 
 def walk_around(npc):
-    while True:
-        npc.move_to(930, 1740)
-        npc.sleep(5)
-        npc.move_to(1180, 1740)
-        npc.sleep(5)
-        npc.move_to(1180, 1590)
-        npc.sleep(5)
-        npc.move_to(930, 1590)
-        npc.sleep(5)
+    npc.move_to(930, 1740)
+    npc.sleep(5)
+    npc.move_to(1180, 1740)
+    npc.sleep(5)
+    npc.move_to(1180, 1590)
+    npc.sleep(5)
+    npc.move_to(930, 1590)
+    npc.sleep(5)
 
 def give_evidence_means(npc, player):
     player.add_evidence(npc, "means", "The butler is a "

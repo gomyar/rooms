@@ -9,12 +9,11 @@ def kickoff(npc):
     wander(npc)
 
 def wander(npc):
-    while True:
-        room_x, room_y = npc.room.position
-        x = random.randint(room_x, room_x + npc.room.width)
-        y = random.randint(room_y, room_y + npc.room.height)
-        npc.walk_to(x, y)
-        npc.sleep(random.randint(2, 4))
+    room_x, room_y = npc.room.position
+    x = random.randint(room_x, room_x + npc.room.width)
+    y = random.randint(room_y, room_y + npc.room.height)
+    npc.move_to(x, y)
+    npc.sleep(random.randint(2, 4))
 
 @expose
 def chat(npc, player):

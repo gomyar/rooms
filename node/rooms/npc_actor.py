@@ -18,6 +18,15 @@ class NpcActor(CharacterActor):
         self.chat_scripts = dict()
         self.gthread = None
 
+    def process_command_queue(self):
+        self.running = True
+        try:
+            while self.running:
+                self.sleep(1)
+                self.script.kickoff(self)
+        except:
+            log.exception("Exception running kickoff for %s", self.model_type)
+
     def set_state(self, state):
         super(NpcActor, self).set_state(state)
         callback_method = "state_%s" % (state,)

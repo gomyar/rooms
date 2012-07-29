@@ -5,22 +5,20 @@ from script import *
 def kickoff(npc):
     pottering_around_dining_room(npc)
 
-def state_pottering_around_dining_room(npc):
-    while True:
-        npc.walk_to(830, 620)
-        npc.sleep(2)
-        npc.walk_to(860, 460)
-        npc.sleep(3)
-        npc.walk_to(850, 690)
-        npc.sleep(2)
-        npc.walk_to(1170, 690)
-        npc.sleep(3)
-        npc.walk_to(1030, 720)
-        npc.sleep(5)
+def pottering_around_dining_room(npc):
+    npc.move_to(830, 620)
+    npc.sleep(2)
+    npc.move_to(860, 460)
+    npc.sleep(3)
+    npc.move_to(850, 690)
+    npc.sleep(2)
+    npc.move_to(1170, 690)
+    npc.sleep(3)
+    npc.move_to(1030, 720)
+    npc.sleep(5)
 
 def storm_off(npc, player):
     npc.say("That's rude. Leave me alone")
-    npc.set_state("pottering_around_dining_room")
     player.data.jezabel_is_defensive = True
 
 def chat(npc, player):

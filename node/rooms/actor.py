@@ -184,6 +184,7 @@ class Actor(object):
         self.send_event("log", **log_entry)
 
     def send_event(self, event_id, **kwargs):
+        log.info("Event: %s: %s", event_id, kwargs)
         self.instance.send_event(self.actor_id, event_id, **kwargs)
 
     def add_chat_message(self, msg, *args):
@@ -212,7 +213,7 @@ class Actor(object):
         self.set_path(path)
         self.send_actor_update()
         end_time = self.path.path_end_time()
-        eventlet.sleep(end_time - get_now())
+        self.sleep(end_time - get_now())
 
     def move_towards(self, actor):
         self.move_to(actor.x(), actor.y())
@@ -220,4 +221,7 @@ class Actor(object):
     def perform_action(self, action_id, seconds=0.0, **data):
         self.action = Action(action_id, seconds, data)
         self.send_actor_update()
+        self.sleep(seconds)
+
+    def sleep(self, seconds):
         eventlet.sleep(seconds)

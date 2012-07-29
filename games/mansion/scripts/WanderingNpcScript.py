@@ -13,6 +13,6 @@ class WanderingNpcScript(Script):
         while True:
             pos = self.random_position()
             log.debug("%s Walking to %s", self.npc.actor_id, pos)
-            self.npc.walk_to(*pos)
+            self.npc.move_to(*pos)
 
             self.sleep(random.randint(3, 6))

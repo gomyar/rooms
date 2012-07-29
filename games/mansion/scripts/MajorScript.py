@@ -7,13 +7,12 @@ from script import *
 def kickoff(npc):
     random_wander(npc)
 
-def state_random_wander(npc):
-    while True:
-        room_x, room_y = npc.room.position
-        x = random.randint(room_x, room_x + npc.room.width)
-        y = random.randint(room_y, room_y + npc.room.height)
-        npc.walk_to(x, y)
-        npc.sleep(random.randint(2, 4))
+def random_wander(npc):
+    room_x, room_y = npc.room.position
+    x = random.randint(room_x, room_x + npc.room.width)
+    y = random.randint(room_y, room_y + npc.room.height)
+    npc.move_to(x, y)
+    npc.sleep(random.randint(2, 4))
 
 def chat(npc, player):
     conv = chat(

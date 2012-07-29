@@ -5,20 +5,19 @@ from script import *
 def kickoff(npc):
     arranging_dining_room(npc)
 
-def state_arranging_dining_room(npc):
-    while True:
-        npc.walk_to(800, 220)
-        npc.sleep(10)
-        npc.walk_to(880, 520)
-        npc.sleep(5)
-        npc.walk_to(880, 440)
-        npc.sleep(5)
-        npc.walk_to(880, 360)
-        npc.sleep(5)
-        npc.walk_to(870, 150)
-        npc.sleep(5)
-        npc.walk_to(1160, 100)
-        npc.sleep(5)
+def arranging_dining_room(npc):
+    npc.move_to(800, 220)
+    npc.sleep(10)
+    npc.move_to(880, 520)
+    npc.sleep(5)
+    npc.move_to(880, 440)
+    npc.sleep(5)
+    npc.move_to(880, 360)
+    npc.sleep(5)
+    npc.move_to(870, 150)
+    npc.sleep(5)
+    npc.move_to(1160, 100)
+    npc.sleep(5)
 
 def learn_about_jezabel(npc, player):
     player.add_chat_message("Oh, shes just upset about the murder. "

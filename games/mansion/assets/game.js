@@ -641,6 +641,7 @@ function onmessage(msg)
         else if (message.command == "actor_update")
         {
 //            console.log("Actor update: "+message.kwargs.actor_id);
+            console.log("Actor update for "+message.kwargs.actor_id);
             previous_paths[previous_paths.length] = sprites[message.kwargs.actor_id].path;
             sprites[message.kwargs.actor_id].path = message.kwargs.path;
             sprites[message.kwargs.actor_id].optionalRedraw();
@@ -680,7 +681,7 @@ function onmessage(msg)
         }
         else if (message.command == "heartbeat")
         {
-            console.log("heartbeat");
+//            console.log("heartbeat");
         }
         else if (message.command == "disconnect")
         {

@@ -116,4 +116,9 @@ class Instance:
         log.info("Player left instance: %s", player_id)
 
     def kickoff(self):
+        for room_id in self.area.rooms._room_map.keys():
+            room = self.area.rooms[room_id]
+            for npc in room.all_npcs():
+                npc.instance = self
+                npc.start_command_processor()
         print "Pointless kickoff call"
