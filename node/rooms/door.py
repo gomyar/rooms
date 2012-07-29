@@ -51,6 +51,6 @@ class Door(Actor):
     def external(self, player):
         return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
             path=self.path.path_array(), speed=self.path.speed,
-            action=self.action.external(), stats=self.stats,
+            stats=self.stats,
             model_type=self.model_type,
             opens_direction=self.opens_direction)

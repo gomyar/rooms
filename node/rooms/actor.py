@@ -1,5 +1,4 @@
 import math
-import time
 import inspect
 
 import eventlet
@@ -41,30 +40,14 @@ def command(func=None, **filters):
     return wrapped
 
 
-class Action(object):
-    def __init__(self, action_id, seconds=0.0, data={}):
-        self.action_id = action_id
-        self.seconds = seconds
-        self.data = data
-        self.start_time = get_now()
-        self.end_time = self.start_time + seconds
-
-    def external(self):
-        return dict(action_id=self.action_id, seconds=self.seconds,
-            data=self.data, start_time=self.start_time,
-            end_time=self.end_time)
-
-
 class Actor(object):
     def __init__(self, actor_id, position=(0, 0)):
         self.actor_id = actor_id
         self.path = Path(position)
         self.room = None
         self.instance = None
-        self.state = "idle"
         self.log = []
         self.script = None
-        self.action = Action("standing")
         self.stats = dict()
         self.model_type = ""
         self.call_gthread = None
@@ -76,9 +59,6 @@ class Actor(object):
 
     def __repr__(self):
         return "<Actor %s>" % (self.actor_id,)
-
-    def set_state(self, state):
-        self.state = state
 
     def interface_call(self, method_name, player, *args, **kwargs):
         if not self._can_call_method(player, method_name):
@@ -107,21 +87,16 @@ class Actor(object):
                 log.exception("Exception processing %s(%s, %s)", method, args,
                     kwargs)
 
-    def process_kickoff(self):
-        if self.script and hasattr(self.script, "kickof"):
-            self.script.kickoff(self)
-
     def external(self, player):
         return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
             path=self.path.path_array(), speed=self.path.speed,
-            action=self.action.external(), stats=self.stats,
+            stats=self.stats,
             model_type=self.model_type,
             methods=self._all_exposed_methods(player))
 
     def send_actor_update(self):
-        for player in self.room.all_players():
-            self.send_event("actor_update",
-                **self.external(player))
+        for actor in self.room.actors.values():
+            actor.event("actor_update", **self.external(actor))
 
     def x(self):
         return self.path.x()
@@ -179,30 +154,13 @@ class Actor(object):
         return [dict(name=command) for command in self._all_exposed_commands()]
 
     def add_log(self, msg, *args):
-        log_entry = { 'msg': msg % args, 'time': time.time() }
-        self.log.append(log_entry)
-        self.send_event("log", **log_entry)
-
-    def send_event(self, event_id, **kwargs):
-        log.info("Event: %s: %s", event_id, kwargs)
-        self.instance.send_event(self.actor_id, event_id, **kwargs)
-
-    def add_chat_message(self, msg, *args):
-        self.add_log(msg, *args)
-
-    def send_to_all(self, event, **kwargs):
-        self.instance.send_to_all(event, **kwargs)
+        pass
 
     def event(self, event_id, **kwargs):
         pass
 
     def remove(self):
         self.room.remove_actor(self)
-
-    def send_to_all_in_room(self, event, **kwargs):
-        actor_ids = [actor.actor_id for actor in self.actors.values()]
-        self.instance.send_to_players(actor_ids, event, **kwargs)
-
 
     @command()
     def move_to(self, x, y):

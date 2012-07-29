@@ -35,7 +35,8 @@ class Area(object):
         room.area = self
 
     def actor_enters_room(self, room, actor, door_id=None):
-        if type(actor) is PlayerActor:
+        if type(actor) is PlayerActor and self.game_script and \
+                hasattr(self.game_script, 'player_enters_room'):
             self.game_script.player_enters_room(room, actor)
 
     def create_door(self, room1, room2, room1_position=None,
