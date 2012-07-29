@@ -125,13 +125,13 @@ def create_player_actor(data):
 # NPCActor
 def serialize_npc_actor(obj):
     data = serialize_actor(obj)
-    data['npc_script_class'] = obj.npc_script.__class__.__name__
+    data['script_class'] = obj.script.__name__.split(".")[-1]
     return data
 
 def create_npc_actor(data):
     npc_actor = NpcActor(data['actor_id'])
     _deserialize_actor(npc_actor, data)
-    npc_actor.load_script(data['npc_script_class'])
+    npc_actor.load_script(data['script_class'])
     return npc_actor
 
 # RoomObject
@@ -157,7 +157,7 @@ def serialize_area(obj):
         room_map = obj.rooms._room_map,
         entry_point_room_id = obj.entry_point_room_id,
         entry_point_door_id = obj.entry_point_door_id,
-        game_script_class = obj.game_script.__class__.__name__
+        game_script_class = obj.game_script.__name__.split(".")[-1]
     )
 
 def create_area(data):
@@ -176,7 +176,7 @@ def create_area(data):
 def serialize_door(obj):
     data = serialize_actor(obj)
     data.update(dict(
-        exit_room_id=obj.exit_room.room_id,
+        exit_room_id=obj.exit_room_id,
         exit_door_id=obj.exit_door_id,
         position=(obj.x(), obj.y()),
         opens_direction=obj.opens_direction,
@@ -268,12 +268,6 @@ def _decode(data):
     return data
 
 
-def deserialize_area(data):
-    return simplejson.loads(data, object_hook=_decode)
-
-def serialize_area(area):
-    return simplejson.dumps(area, default=_encode, indent="    ")
-
 def init_mongo(host='localhost', port=27017):
     global _mongo_connection
     _mongo_connection = Connection(host, port)
@@ -291,8 +285,7 @@ def save_area(area):
     encoded_dict = simplejson.loads(encoded_str)
     rooms_db = _mongo_connection.rooms_db
     rooms_db.areas.save(encoded_dict)
-    for room_id, room in area.rooms._rooms.items():
-        print "Saved room %s:%s" % (room_id, room._id)
+    for room in area.rooms._rooms.values():
         save_room_to_mongo(room)
 
 def list_all_areas_for(owner_id):

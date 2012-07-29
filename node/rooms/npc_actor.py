@@ -10,11 +10,9 @@ log = logging.getLogger("rooms.npc")
 
 
 class NpcActor(CharacterActor):
-    def __init__(self, actor_id, script=None):
+    def __init__(self, actor_id):
         super(NpcActor, self).__init__(actor_id)
         self.model_type = actor_id
-        if script:
-            self.script = script
         self.speed = 90.0
         self.previous_state = None
         self.chat_scripts = dict()
@@ -59,9 +57,7 @@ class NpcActor(CharacterActor):
             getattr(self.script, event_method)(*args, **kwargs)
 
     def load_script(self, script_class):
-        script = scriptutils.load_script(script_class)
-        script.npc = self
-        self.script = script
+        self.script = scriptutils.load_script(script_class)
 
     def kickoff(self):
         self.script.kickoff(self)

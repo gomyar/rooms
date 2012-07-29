@@ -1,4 +1,6 @@
 
+from script import *
+
 @command()
 def list_inventory(player):
     return player.inventory.all_items()

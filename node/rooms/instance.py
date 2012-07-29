@@ -101,6 +101,7 @@ class Instance:
         actor.instance = self
         self.area.player_joined_instance(actor, self.area.entry_point_room_id)
         self.send_to_all("player_joined_instance", actor_id=player_id)
+        actor.start_command_processor()
 
         log.info("Player joined instance: %s", player_id)
 

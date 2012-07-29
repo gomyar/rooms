@@ -5,12 +5,13 @@ from container import *
 from container import _encode
 from rooms.actor import *
 
+from script import create_npc
 
-from scripts.MansionGameScript import MansionGameScript
 
 init_mongo()
 
 area = Area()
+area.rooms = MongoRoomContainer(area)
 area.area_name = "mansion"
 area.owner_id = 1
 
@@ -110,5 +111,13 @@ area.create_door(library, study, (1420, 920), (1420, 900))
 area.entry_point_room_id = "foyer"
 
 area.game_script = load_script("MansionGameScript")
+
+create_npc(area, "butler", "ButlerScript", 'foyer')
+create_npc(area, "dilettante", "DilettanteScript", 'study')
+create_npc(area, "gladys", "GladysScript", 'diningroom')
+create_npc(area, "jezabel", "JezabelScript", 'diningroom')
+create_npc(area, "major", "MajorScript", 'trophyroom')
+create_npc(area, "professor", "ProfessorScript", 'library')
+create_npc(area, "aunt", "AuntScript", 'lounge')
 
 save_area(area)

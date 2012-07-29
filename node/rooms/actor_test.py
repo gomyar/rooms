@@ -16,11 +16,11 @@ class MockActor(Actor):
         self.state = "stop"
 
     @expose(state="go")
-    def mock_me(self, player, actor):
+    def mock_me(self, actor):
         self._mock_me_called = True
 
     @expose()
-    def mock_you(self, player, actor):
+    def mock_you(self, actor):
         return "Called with actor %s" % (actor.actor_id,)
 
 

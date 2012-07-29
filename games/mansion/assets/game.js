@@ -124,7 +124,7 @@ function service_call(url, data, callback)
             callback(jQuery.parseJSON(data));
         },
         'error': function(jqXHR, errorText) {
-            alert("Error calling "+url+" : "+errorText);
+            console.log("Error calling "+url+" : "+errorText);
         },
         'type': 'POST'
     });
@@ -461,7 +461,7 @@ function walk_to(x, y)
 {
     if (walk_timeout)
         clearTimeout(walk_timeout);
-    service_call("/game/"+instance_uid+"/"+player_id+"/walk_to",
+    service_call("/game/"+instance_uid+"/"+player_id+"/move_to",
         { x : x, y : y },
         function () {  });
 }
@@ -572,8 +572,8 @@ function onopen()
 
 function onclose()
 {
-    alert("Connection lost");
-    window.location = "http://localhost:8000";
+    console.log("Connection lost");
+//    window.location = "http://localhost:8000";
 }
 
 function create_actor_sprite(actor)
@@ -684,7 +684,7 @@ function onmessage(msg)
         }
         else if (message.command == "disconnect")
         {
-            alert("Disconnected");
+            console.log("Disconnected");
         }
     }
 }

@@ -2,11 +2,14 @@ import math
 import time
 import inspect
 
-from eventlet import sleep
+import eventlet
 
 from path_vector import Path
 from path_vector import distance
 from path_vector import get_now
+
+import logging
+log = logging.getLogger("rooms.node")
 
 FACING_NORTH = "north"
 FACING_SOUTH = "south"
@@ -14,24 +17,28 @@ FACING_EAST = "east"
 FACING_WEST = "west"
 
 
-class expose:
-    def __init__(self, **filters):
-        self.filters = filters
+def expose(func=None, **filters):
+    if func==None:
+        def inner(func):
+            return expose(func, **filters)
+        return inner
+    def wrapped(*args, **kwargs):
+        return func(*args, **kwargs)
+    wrapped.is_exposed = True
+    wrapped.filters = filters
+    return wrapped
 
-    def __call__(self, func):
-        func.is_exposed = True
-        func.filters = self.filters
-        return func
 
-
-class command:
-    def __init__(self, **filters):
-        self.filters = filters
-
-    def __call__(self, func):
-        func.is_command = True
-        func.filters = self.filters
-        return func
+def command(func=None, **filters):
+    if func==None:
+        def inner(func):
+            return command(func, **filters)
+        return inner
+    def wrapped(*args, **kwargs):
+        return func(*args, **kwargs)
+    wrapped.is_command = True
+    wrapped.filters = filters
+    return wrapped
 
 
 class Action(object):
@@ -60,6 +67,8 @@ class Actor(object):
         self.action = Action("standing")
         self.stats = dict()
         self.model_type = ""
+        self.call_gthread = None
+        self.call_queue = eventlet.queue.LightQueue()
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -76,14 +85,31 @@ class Actor(object):
             raise Exception("Illegal interface call to %s in %s" % (method_name,
                 self))
         method = self._get_method_or_script(method_name)
-        return method(self, player, *args, **kwargs)
+        self.call_queue.put((method, [player] + args, kwargs))
 
     def command_call(self, method_name, *args, **kwargs):
         if not self._can_call_command(method_name):
             raise Exception("Illegal command call to %s in %s" % (method_name,
                 self))
         method = self._get_method_or_script(method_name)
-        return method(self, *args, **kwargs)
+        self.call_queue.put((method, args, kwargs))
+
+    def start_command_processor(self):
+        self.call_gthread = eventlet.spawn(self.process_command_queue)
+
+    def process_command_queue(self):
+        self.running = True
+        while self.running:
+            method, args, kwargs = self.call_queue.get()
+            try:
+                method(*args, **kwargs)
+            except:
+                log.exception("Exception processing %s(%s, %s)", method, args,
+                    kwargs)
+
+    def process_kickoff(self):
+        if self.script and hasattr(self.script, "kickof"):
+            self.script.kickoff(self)
 
     def external(self, player):
         return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
@@ -178,7 +204,7 @@ class Actor(object):
 
 
     @command()
-    def move_to(self, this, x, y):
+    def move_to(self, x, y):
         x, y = float(x), float(y)
         path = self.room.get_path((self.x(), self.y()), (x, y))
         if not path or len(path) < 2:
@@ -186,7 +212,7 @@ class Actor(object):
         self.set_path(path)
         self.send_actor_update()
         end_time = self.path.path_end_time()
-        sleep(end_time - get_now())
+        eventlet.sleep(end_time - get_now())
 
     def move_towards(self, actor):
         self.move_to(actor.x(), actor.y())
@@ -194,4 +220,4 @@ class Actor(object):
     def perform_action(self, action_id, seconds=0.0, **data):
         self.action = Action(action_id, seconds, data)
         self.send_actor_update()
-        sleep(seconds)
+        eventlet.sleep(seconds)

@@ -1,5 +1,5 @@
 
-from pcscript import *
+from script import *
 
 
 def kickoff(player):
