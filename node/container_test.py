@@ -10,7 +10,7 @@ from rooms.area import Area
 from rooms.actor import Actor
 
 from container import serialize_area
-from container import deserialize_area
+from container import create_area
 
 class MockRoomContainer(RoomContainer):
     def load_room(self, room_id):
@@ -24,13 +24,14 @@ class ContainerTest(unittest.TestCase):
         self.area = Area()
         self.area.rooms['lobby'] = Room('lobby')
         self.area.rooms['lobby'].actors['actor1'] = Actor('actor1')
+        self.area.game_script = scriptutils
 
     def tearDown(self):
         reload(scriptutils)
 
     def testJsonPickle(self):
         pickled = serialize_area(self.area)
-        unpickled = deserialize_area(pickled)
+        unpickled = create_area(pickled)
         unpickled.rooms = MockRoomContainer(self.area)
         unpickled.rooms._rooms['lobby'] = Room('lobby')
         unpickled.rooms._rooms['lobby'].actors['actor1'] = Actor('actor1')
