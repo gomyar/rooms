@@ -78,16 +78,18 @@ def serialize_actor(obj):
         actor_id = obj.actor_id,
         path = obj.path,
         room_id = obj.room.room_id,
-        state = obj.state,
+        stats = obj.stats,
         log = obj.log,
+        model_type = obj.model_type,
     )
 
 def _deserialize_actor(actor, data):
     actor.actor_id = data['actor_id']
     actor.path = data['path']
     actor.room_id = data['room_id']
-    actor.state = data['state']
+    actor.stats = data['stats']
     actor.log = data['log']
+    actor.model_type = data['model_type']
 
 def create_actor(data):
     actor = Actor(data['actor_id'])

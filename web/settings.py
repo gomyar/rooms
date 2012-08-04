@@ -94,5 +94,5 @@ INSTALLED_APPS = (
     'django.contrib.admin',
 )
 
-# Gunjolt demo settings
-MASTER_ADDR = "http://localhost:8081"
+# rooms settings
+MASTER_ADDR = "http://192.168.1.1:8081"

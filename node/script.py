@@ -6,7 +6,8 @@ from rooms.actor import expose
 from rooms.actor import command
 
 
-def create_npc(area, model, script, room):
-    npc = NpcActor(model)
+def create_npc(area, actor_id, model, script, room):
+    npc = NpcActor(actor_id)
+    npc.model_type = model
     npc.script = load_script(script)
     area.add_npc(npc, room)

@@ -1,0 +1,58 @@
+{ "rooms": {
+        "pitch": {
+            "type": "room",
+            "name": "Old Football Pitch",
+            "width": 1000,
+            "height": 500,
+            "objects": [
+                { "type": "rect", "x": 50, "y": 50, "width": 50, "height": 50 },
+                { "type": "rect", "x": 400, "y": 50, "width": 50, "height": 50 },
+                { "type": "rect", "x": 50, "y": 400, "width": 50, "height": 50 },
+                { "type": "rect", "x": 400, "y": 400, "width": 50, "height": 50 },
+                { "type": "poly", "vertices": [
+                    [ 300, 250 ], [ 250, 300 ], [ 350, 400 ], [ 400, 350 ]
+                    ]
+                },
+                { "type": "poly", "vertices": [
+                    [ 500, 100 ], [ 450, 150 ], [ 550, 250 ], [ 600, 200 ]
+                    ]
+                },
+                { "type": "rect", "x": -1000, "y": 0, "width": 3000, "height": 10 },
+                { "type": "rect", "x": -1000, "y": 500, "width": 3000, "height": 10 },
+                { "type": "rect", "x": 0, "y": -1000, "width": 10, "height": 2600 },
+                { "type": "rect", "x": 1000, "y": -1000, "width": 10, "height": 2600 },
+                { "type": "rect", "x": 900, "y": 50, "width": 50, "height": 50 },
+                { "type": "rect", "x": 900, "y": 400, "width": 50, "height": 50 },
+                { "type": "rect", "x": 700, "y": 100, "width": 50, "height": 300 }
+            ],
+            "doors": {
+                "armoury1":
+                    { "exit": "armoury1.exit", "x": 0, "y": 250, "width": 50, "height": 100 },
+                "armoury2":
+                    { "exit": "armoury2.exit", "x": 450, "y": 250, "width": 50, "height": 100 }
+            }
+        },
+        "armoury1": {
+            "type": "room",
+            "name": "Blue Team Armoury",
+            "width": 300,
+            "height": 300,
+            "objects": [
+            ],
+            "doors": {
+                "exit": { "exit": "pitch.armoury1", "x": 250, "y": 75, "width": 50, "height": 100 }
+            }
+        },
+        "armoury2": {
+            "type": "room",
+            "name": "Red Team Armoury",
+            "width": 300,
+            "height": 300,
+            "objects": [
+            ],
+            "doors": {
+                "exit": { "exit": "pitch.armoury2", "x": 0, "y": 75, "width": 50, "height": 100 }
+            }
+        }
+    }
+}

@@ -41,5 +41,4 @@ class PlayerActor(CharacterActor):
         self.instance.send_event(self.actor_id, event_id, **kwargs)
 
     def event(self, event_id, **kwargs):
-        log.info("Event: %s: %s", event_id, kwargs)
         self.send_event(event_id, **kwargs)
