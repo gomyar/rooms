@@ -95,4 +95,4 @@ INSTALLED_APPS = (
 )
 
 # rooms settings
-MASTER_ADDR = "http://192.168.1.1:8081"
+MASTER_ADDR = "http://localhost:8081"
