@@ -3,8 +3,6 @@ import collections
 import time
 
 from actor import Actor
-from script import expose
-from script import command
 from inventory import Inventory
 from inventory import create_item
 from roll_system import roll
@@ -20,12 +18,10 @@ class PlayerActor(Actor):
         self.inventory = Inventory()
         self.instance = instance
 
-    @command()
     def exit(self, door_id):
         self.room.exit_through_door(self, door_id)
         self.instance.send_sync(self.actor_id)
 
-    @command()
     def leave_instance(self):
         self.instance.deregister(self.actor_id)
 

@@ -124,7 +124,7 @@ class Actor(object):
             return getattr(self, method_name)
 
     def _can_call(self, actor, method_name):
-        return self.script and self.script.can_call(actor, method_name)
+        return bool(self.script and self.script.can_call(actor, method_name))
 
     def _all_exposed_methods(self, actor):
         if self == actor:
