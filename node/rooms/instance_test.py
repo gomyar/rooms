@@ -61,4 +61,4 @@ class InstanceTest(unittest.TestCase):
         queue = self.instance.connect("player1")
         self.instance.player_queues.pop("player1")
 
-        self.instance.send_event("player1", {'command': 'heartbeat'})
+        self.instance.send_update("player1", {'command': 'heartbeat'})

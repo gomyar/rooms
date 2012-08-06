@@ -218,7 +218,7 @@ def root(environ, response):
 
 @checked
 def www_file(path, response):
-    filepath = os.path.join(os.path.dirname(game_root), "assets" + path)
+    filepath = os.path.join(game_root, "assets" + path)
     if os.path.exists(filepath):
         response('200 OK', [('content-type', guess_type(filepath))])
         return [open(filepath).read()]
@@ -253,7 +253,8 @@ if __name__ == "__main__":
             metavar="KS_DBADDR")
 
         parser.add_option("-g", "--game", dest="game",
-            default="../games/demo1", help="Path to game dir",
+            default="/home/ray/projects/rooms/games/demo1",
+                help="Path to game dir",
             metavar="KS_GAME")
 
         (options, args) = parser.parse_args()
@@ -272,10 +273,10 @@ if __name__ == "__main__":
         master = xmlrpclib.ServerProxy('http://%s' % (master_addr,))
         master.register_node(host, port)
 
-        global game_dir
-        game_dir = options.game
+        global game_root
+        game_root = options.game
 
-        sys.path.append(os.path.join(game_dir, "scripts"))
+        sys.path.append(os.path.join(game_root, "scripts"))
 
         eventlet.spawn(backdoor.backdoor_server, eventlet.listen(
             ('localhost', 3000)), locals=dict(instances=instances))

@@ -16,7 +16,6 @@ class PlayerActor(Actor):
         super(PlayerActor, self).__init__(player_id, position)
         self.model_type = "investigator"
         self.inventory = Inventory()
-        self.instance = instance
 
     def exit(self, door_id):
         self.room.exit_through_door(self, door_id)
@@ -28,13 +27,19 @@ class PlayerActor(Actor):
     def add_log(self, msg, *args):
         log_entry = { 'msg': msg % args, 'time': time.time() }
         self.log.append(log_entry)
-        self.send_event("log", **log_entry)
+        self.send_update("log", **log_entry)
 
     def add_chat_message(self, msg, *args):
         self.add_log(msg, *args)
 
-    def send_event(self, event_id, **kwargs):
-        self.instance.send_event(self.actor_id, event_id, **kwargs)
+    def send_update(self, event_id, **kwargs):
+        self.instance.send_update(self.actor_id, event_id, **kwargs)
 
-    def event(self, event_id, **kwargs):
-        self.send_event(event_id, **kwargs)
+    def process_actor_update(self, actor_state):
+        self.send_update("actor_update", **actor_state)
+
+    def actor_exited_room(self, actor, door_id):
+        self.send_update("actor_exited_room", actor_id=actor.actor_id)
+
+    def actor_entered_room(self, actor, door_id):
+        self.send_update("actor_entered_room", **actor.external(self))

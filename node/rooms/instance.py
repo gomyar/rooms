@@ -44,7 +44,7 @@ class Instance:
     def create_instance(self, map_id):
         log.debug("Instance created %s", map_id)
 
-    def send_event(self, player_id, command, **kwargs):
+    def send_update(self, player_id, command, **kwargs):
         if player_id in self.player_queues:
             self.player_queues[player_id].put(dict(command=command,
                 kwargs=kwargs))
@@ -55,7 +55,7 @@ class Instance:
 
     def send_to_players(self, player_ids, command, **kwargs):
         for player_id in player_ids:
-            self.send_event(player_id, command, **kwargs)
+            self.send_update(player_id, command, **kwargs)
 
     def send_sync(self, player_id):
         self.player_queues[player_id].put(self.sync(player_id))
@@ -98,7 +98,6 @@ class Instance:
 
         actor = PlayerActor(player_id)
         self.players[player_id]['player'] = actor
-        actor.instance = self
         self.area.player_joined_instance(actor, self.area.entry_point_room_id)
         self.send_to_all("player_joined_instance", actor_id=player_id)
         actor.start_command_processor()
@@ -119,6 +118,5 @@ class Instance:
         for room_id in self.area.rooms._room_map.keys():
             room = self.area.rooms[room_id]
             for npc in room.all_npcs():
-                npc.instance = self
                 npc.start_command_processor()
         print "Pointless kickoff call"

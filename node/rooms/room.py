@@ -72,6 +72,10 @@ class Room(object):
         return "<Room %s at %s w:%s h:%s>" % (self.room_id,self.position,
             self.width, self.height)
 
+    @property
+    def instance(self):
+        return self.area.instance
+
     def object_at(self, x, y):
         for map_object in self.map_objects.values():
             if map_object.at(x, y):
@@ -105,7 +109,7 @@ class Room(object):
         actor.set_position(self.actors[door_id].position())
         self.area.actor_enters_room(self, actor, door_id)
 
-    def player_joined_instance(self, actor):
+    def actor_joined_instance(self, actor):
         self.actors[actor.actor_id] = actor
         actor.room = self
         entry_x = self.position[0] + self.width / 2
@@ -125,13 +129,12 @@ class Room(object):
     def exit_through_door(self, actor, door_id):
         door = self.actors[door_id]
         self.actors.pop(actor.actor_id)
-        actor.send_to_players_in_room("actor_exited_room",
-            actor_id=actor.actor_id)
+        for a in self.actors.values():
+            a.actor_exited_room(actor, door_id)
         actor.room = None
         door.exit_room.actor_enters(actor, door.exit_door_id)
-        for player in actor.room.all_players():
-            actor.instance.send_event(player.actor_id, "actor_entered_room",
-                **actor.external(player))
+        for a in actor.room.actors.values():
+            a.actor_entered_room(actor, door.exit_door_id)
         actor.add_log("You entered %s", door.exit_room.description)
 
     def all_doors(self):
@@ -190,5 +193,4 @@ class Room(object):
     def add_npc(self, npc, position):
         npc.set_position(position)
         npc.room = self
-        npc.instance = self.area.instance
         self.actors[npc.actor_id] = npc

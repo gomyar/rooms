@@ -15,6 +15,9 @@ area = Area()
 area.rooms = MongoRoomContainer(area)
 area.area_name = "mansion"
 area.owner_id = 1
+area.load_script("demo1_script")
+area.player_script = "player_script"
+
 
 # Foyer
 foyer = Room('foyer', (820, 1480), 420, 430, description="The Foyer")
@@ -114,8 +117,6 @@ area.create_door(hall, lounge, (940, 1240), (920, 1240))
 #area.create_door(library, study, (1420, 920), (1420, 900))
 
 area.entry_point_room_id = "foyer"
-
-area.load_script("demo1_script")
 
 create_npc(area, "butler", "butler", "butler_script", 'foyer')
 create_npc(area, "thomas", "dilettante", "brother_script", 'lounge')

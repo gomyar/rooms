@@ -31,7 +31,6 @@ class Actor(object):
         self.actor_id = actor_id
         self.path = Path(position)
         self.room = None
-        self.instance = None
         self.log = []
         self.script = None
         self.state = State()
@@ -45,6 +44,10 @@ class Actor(object):
 
     def __repr__(self):
         return "<Actor %s>" % (self.actor_id,)
+
+    @property
+    def instance(self):
+        return self.room.instance
 
     def load_script(self, classname):
         self.script = Script(classname)
@@ -89,7 +92,16 @@ class Actor(object):
 
     def send_actor_update(self):
         for actor in self.room.actors.values():
-            actor.event("actor_update", **self.external(actor))
+            actor.process_actor_update(self.external(actor))
+
+    def process_actor_update(self, actor_data):
+        pass
+
+    def actor_entered_room(self, actor, door_id):
+        pass
+
+    def actor_exited_room(self, actor, door_id):
+        pass
 
     def x(self):
         return self.path.x()

@@ -30,13 +30,16 @@ class Area(object):
         if self.game_script:
             self.game_script.call_event_method("player_joined_instance", player,
                 room_id)
-        self.rooms[room_id].player_joined_instance(player)
+        self.actor_joined_instance(player, room_id)
+
+    def actor_joined_instance(self, actor, room_id):
+        self.rooms[room_id].actor_joined_instance(actor)
 
     def actor_left_instance(self, actor):
         self.rooms[actor.room.room_id].actor_left_instance(actor)
 
     def add_npc(self, npc_actor, room_id):
-        self.player_joined_instance(npc_actor, room_id)
+        self.actor_joined_instance(npc_actor, room_id)
 
     def add_room(self, room):
         self.rooms[room.room_id] = room
