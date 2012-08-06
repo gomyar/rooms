@@ -9,6 +9,7 @@ class PlayerActorTest(unittest.TestCase):
         self.player_actor2 = PlayerActor("player2", (10, 10))
 
     def testMethodAccess(self):
+        self.assertFalse(self.player_actor1._can_call(self.player_actor2, "state"))
         self.assertEquals([], self.player_actor1.exposed_methods(
             self.player_actor2))
 

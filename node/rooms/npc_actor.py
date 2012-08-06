@@ -2,7 +2,7 @@
 import eventlet
 
 from actor import Actor
-from actor import expose
+from script import expose
 
 import logging
 log = logging.getLogger("rooms.npc")

@@ -18,15 +18,19 @@ class Area(object):
         self.rooms = RoomContainer(self)
         self.owner_id = ""
         self.game_script = None
+        self.player_script = None
         self.instance = None
 
     def load_script(self, classname):
         self.game_script = Script(classname)
 
-    def player_joined_instance(self, actor, room_id):
-        self.game_script.call_event_method("player_joined_instance", actor,
-            room_id)
-        self.rooms[room_id].player_joined_instance(actor)
+    def player_joined_instance(self, player, room_id):
+        if self.player_script:
+            player.load_script(self.player_script)
+        if self.game_script:
+            self.game_script.call_event_method("player_joined_instance", player,
+                room_id)
+        self.rooms[room_id].player_joined_instance(player)
 
     def actor_left_instance(self, actor):
         self.rooms[actor.room.room_id].actor_left_instance(actor)

@@ -112,9 +112,6 @@ class Room(object):
         entry_y = self.position[1] + self.height / 2
         position = geog.get_available_position_closest_to(self, (entry_x, entry_y))
         actor.set_position(position)
-        for player in actor.room.all_players():
-            actor.instance.send_event(player.actor_id, "actor_added",
-                **actor.external(player))
 
     def actor_left_instance(self, actor):
         self.remove_actor(actor)

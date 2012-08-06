@@ -18,30 +18,6 @@ FACING_EAST = "east"
 FACING_WEST = "west"
 
 
-def expose(func=None, **filters):
-    if func==None:
-        def inner(func):
-            return expose(func, **filters)
-        return inner
-    def wrapped(*args, **kwargs):
-        return func(*args, **kwargs)
-    wrapped.is_exposed = True
-    wrapped.filters = filters
-    return wrapped
-
-
-def command(func=None, **filters):
-    if func==None:
-        def inner(func):
-            return command(func, **filters)
-        return inner
-    def wrapped(*args, **kwargs):
-        return func(*args, **kwargs)
-    wrapped.is_command = True
-    wrapped.filters = filters
-    return wrapped
-
-
 class State(dict):
     def __getattr__(self, name):
         return self.get(name, None)
@@ -58,7 +34,7 @@ class Actor(object):
         self.instance = None
         self.log = []
         self.script = None
-        self.state = dict()
+        self.state = State()
         self.model_type = ""
         self.call_gthread = None
         self.call_queue = eventlet.queue.LightQueue()
@@ -74,18 +50,18 @@ class Actor(object):
         self.script = Script(classname)
 
     def interface_call(self, method_name, player, *args, **kwargs):
-        if not self._can_call_method(player, method_name):
+        if not self._can_call(player, method_name):
             raise Exception("Illegal interface call to %s in %s" % (method_name,
                 self))
         method = self._get_method_or_script(method_name)
-        self.call_queue.put((method, [player] + list(args), kwargs))
+        self.call_queue.put((method, [self, player] + list(args), kwargs))
 
     def command_call(self, method_name, *args, **kwargs):
-        if not self._can_call_command(method_name):
+        if not self._can_call(self, method_name):
             raise Exception("Illegal command call to %s in %s" % (method_name,
                 self))
         method = self._get_method_or_script(method_name)
-        self.call_queue.put((method, args, kwargs))
+        self.call_queue.put((method, [self] + list(args), kwargs))
 
     def start_command_processor(self):
         self.call_gthread = eventlet.spawn(self.process_command_queue)
@@ -93,12 +69,16 @@ class Actor(object):
     def process_command_queue(self):
         self.running = True
         while self.running:
+            self._process_queue_item()
+
+    def _process_queue_item(self):
+        try:
             method, args, kwargs = self.call_queue.get()
-            try:
-                method(*args, **kwargs)
-            except:
-                log.exception("Exception processing %s(%s, %s)", method, args,
-                    kwargs)
+            method(*args, **kwargs)
+        except:
+            log.exception("Exception processing %s(%s, %s)", method, args,
+                kwargs)
+
 
     def external(self, player):
         return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
@@ -143,23 +123,16 @@ class Actor(object):
         else:
             return getattr(self, method_name)
 
-    def _can_call_method(self, actor, method_name):
-        func = self._get_method_or_script(method_name)
-        return hasattr(func, "is_exposed") and \
-            self._filters_equal(self, func.filters)
-
-    def _can_call_command(self, method_name):
-        func = self._get_method_or_script(method_name)
-        return hasattr(func, "is_command") and \
-            self._filters_equal(self, func.filters)
+    def _can_call(self, actor, method_name):
+        return self.script and self.script.can_call(actor, method_name)
 
     def _all_exposed_methods(self, actor):
         if self == actor:
             return self._all_exposed_commands()
-        return [m for m in dir(self) if self._can_call_method(actor, m)]
+        return self.script.methods if self.script else []
 
     def _all_exposed_commands(self):
-        return [m for m in dir(self) if self._can_call_command(m)]
+        return self.script.commands if self.script else []
 
     def exposed_methods(self, actor):
         return [dict(name=method) for method in \
@@ -177,7 +150,6 @@ class Actor(object):
     def remove(self):
         self.room.remove_actor(self)
 
-    @command()
     def move_to(self, x, y):
         x, y = float(x), float(y)
         path = self.room.get_path((self.x(), self.y()), (x, y))

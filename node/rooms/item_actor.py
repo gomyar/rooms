@@ -1,6 +1,6 @@
 
 from actor import Actor
-from actor import expose
+from script import expose
 
 
 class ItemActor(Actor):

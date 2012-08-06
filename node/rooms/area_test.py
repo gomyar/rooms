@@ -5,6 +5,7 @@ from area import Area
 from door import Door
 from room import Room
 from room_container import RoomContainer
+from player_actor import PlayerActor
 
 
 class MockRoomContainer(RoomContainer):
@@ -21,6 +22,8 @@ class AreaTest(unittest.TestCase):
         self.area.rooms = MockRoomContainer(self.area)
         self.room1 = Room("room1", (0, 0), 10, 10)
         self.room2 = Room("room2", (20, 0), 10, 10)
+        self.area.rooms._rooms['room1'] = self.room1
+        self.area.rooms._rooms['room2'] = self.room2
 
     def testAddDoor(self):
         self.area.create_door(self.room1, self.room2, (10, 5), (0, 5))
@@ -47,3 +50,13 @@ class AreaTest(unittest.TestCase):
 
         self.assertEquals((25, 10), door1.position())
         self.assertEquals((25, 20), door2.position())
+
+    def testPlayerJoinsArea(self):
+        self.area.player_script = "rooms.area_test"
+
+        self.player = PlayerActor("player1")
+
+        self.area.player_joined_instance(self.player, "room1")
+
+        self.assertEquals("rooms.area_test",
+            self.player.script.script_module.__name__)

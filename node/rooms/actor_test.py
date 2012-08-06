@@ -4,12 +4,12 @@ import mock
 import time
 
 from actor import Actor
-from actor import expose
-from actor import command
+from script import expose
+from script import command
 from room import Room
 
 
-@expose(state="go")
+@expose(go=True)
 def mock_me(actor):
     self._mock_me_called = True
 
@@ -75,15 +75,14 @@ class ActorTest(unittest.TestCase):
 
     def testAllowedMethod(self):
         self.mock_actor.load_script("rooms.actor_test")
-        self.assertFalse(self.mock_actor._can_call_method(self.actor,
+        self.assertFalse(self.mock_actor._can_call(self.actor,
             "mock_me"))
-        import ipdb; ipdb.set_trace()
-        self.assertEquals([{'name':'mock_you'}],
+        self.assertEquals([{'name':'mock_me'}, {'name':'mock_you'}],
             self.mock_actor.exposed_methods(self.actor))
 
-        self.mock_actor.state = "go"
+        self.actor.state.go = True
 
-        self.assertTrue(self.mock_actor._can_call_method(self.actor,
+        self.assertTrue(self.mock_actor._can_call(self.actor,
             "mock_me"))
         self.assertEquals([{'name':'mock_me'}, {'name':'mock_you'}],
             self.mock_actor.exposed_methods(self.actor))
@@ -93,10 +92,10 @@ class ActorTest(unittest.TestCase):
         self.mock_actor.load_script("rooms.actor_test")
 
         self.mock_actor.interface_call("mock_you", self.actor)
-        self.assertEquals((mock_you, [self.actor], {}),
+        self.assertEquals((mock_you, [self.mock_actor, self.actor], {}),
             self.mock_actor.call_queue.queue[0])
 
         self.actor.command_call("script_call", "1", "2")
 
-        self.assertEquals((script_call, ('1', '2'), {}),
+        self.assertEquals((script_call, [self.actor, '1', '2'], {}),
             self.actor.call_queue.queue[0])

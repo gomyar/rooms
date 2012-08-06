@@ -8,6 +8,12 @@ from instance import Instance
 from area import Area
 from room import Room
 from player_actor import PlayerActor
+from script import command
+
+
+@command
+def walk_to(actor, x, y):
+    actor.move_to(x, y)
 
 
 class InstanceTest(unittest.TestCase):
@@ -17,6 +23,7 @@ class InstanceTest(unittest.TestCase):
         self.area.load_script("rooms.instance_test")
         self.area.rooms['1'] = Room()
         self.area.entry_point_room_id = '1'
+        self.area.player_script = "rooms.instance_test"
         self.instance.area = self.area
         self.now = 0.0
         time.time = mock.Mock(return_value=self.now)
@@ -40,14 +47,14 @@ class InstanceTest(unittest.TestCase):
         self.instance.register("player1")
         queue = self.instance.connect("player1")
 
-        self.instance.call("move_to", "player1", "player1",
+        self.instance.call("walk_to", "player1", "player1",
             kwargs={ 'x': 20, 'y': 10})
 
         player = self.instance.players['player1']['player']
 
         self.assertEquals(1, player.call_queue.qsize())
         self.assertEquals(player.call_queue.queue[0],
-            (player.move_to, (), {'y': 10, 'x': 20}))
+            (walk_to, [player], {'y': 10, 'x': 20}))
 
     def testNoExceptionOnPlayerDisconnect(self):
         self.instance.register("player1")

@@ -3,8 +3,8 @@ import collections
 import time
 
 from actor import Actor
-from actor import expose
-from actor import command
+from script import expose
+from script import command
 from inventory import Inventory
 from inventory import create_item
 from roll_system import roll

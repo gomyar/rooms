@@ -159,7 +159,8 @@ def serialize_area(obj):
         room_map = obj.rooms._room_map,
         entry_point_room_id = obj.entry_point_room_id,
         entry_point_door_id = obj.entry_point_door_id,
-        game_script_class = obj.game_script.script_name if obj.game_script else None
+        game_script_class = obj.game_script.script_name if obj.game_script else None,
+        player_script_class = obj.player_script.script_name if obj.player_script else None,
     )
 
 def create_area(data):
@@ -173,6 +174,8 @@ def create_area(data):
     # Second pass for top-level objects
     if data['game_script_class']:
         area.load_script(data['game_script_class'])
+    if data['player_script_class']:
+        area.load_script(data['player_script_class'])
     return area
 
 # Door
