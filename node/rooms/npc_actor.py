@@ -59,10 +59,5 @@ class NpcActor(Actor):
             return dict(command="chat", actor_id=self.actor_id,
                 msg=response, choices=script.choice_list())
 
-    def event(self, event_id, *args, **kwargs):
-        event_method = "event_%s" % (event_id,)
-        if hasattr(self.script, event_method):
-            getattr(self.script, event_method)(*args, **kwargs)
-
     def kickoff(self):
         self.script.kickoff(self)

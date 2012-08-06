@@ -2,8 +2,8 @@
 from scriptutils import load_script
 from rooms.npc_actor import NpcActor
 
-from rooms.actor import expose
-from rooms.actor import command
+from rooms.script import expose
+from rooms.script import command
 
 
 def create_npc(area, actor_id, model, script, room):

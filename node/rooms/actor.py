@@ -144,8 +144,9 @@ class Actor(object):
     def add_log(self, msg, *args):
         pass
 
-    def event(self, event_id, **kwargs):
-        pass
+    def event(self, event_id, from_actor, *args, **kwargs):
+        if self.script:
+            self.script.call_event_method(event_id, from_actor, *args, **kwargs)
 
     def remove(self):
         self.room.remove_actor(self)

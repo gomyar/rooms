@@ -4,6 +4,7 @@ import unittest
 from rooms.script import Script
 from rooms.script import command
 from rooms.script import expose
+from rooms.script import event
 
 from rooms.actor import Actor
 
@@ -19,6 +20,10 @@ def first_method(actor, player, param1):
 @command(call_second=True)
 def second_command(actor, param1):
     actor.state.param1 = param1
+
+@event
+def player_event(player):
+    player.state.event_happened = True
 
 
 class ScriptTest(unittest.TestCase):
@@ -61,3 +66,8 @@ class ScriptTest(unittest.TestCase):
 
         self.assertTrue(self.script.can_call(self.actor,
             "second_command"))
+
+    def testEventMethod(self):
+        self.actor.event("player_event", self.actor)
+
+        self.assertTrue(self.actor.state.event_happened)
