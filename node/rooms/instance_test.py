@@ -14,6 +14,7 @@ class InstanceTest(unittest.TestCase):
     def setUp(self):
         self.instance = Instance()
         self.area = Area()
+        self.area.load_script("rooms.instance_test")
         self.area.rooms['1'] = Room()
         self.area.entry_point_room_id = '1'
         self.instance.area = self.area
@@ -42,8 +43,11 @@ class InstanceTest(unittest.TestCase):
         self.instance.call("move_to", "player1", "player1",
             kwargs={ 'x': 20, 'y': 10})
 
-        self.assertEquals('actor_update',
-            self.instance.player_queues['player1'].get_nowait()['command'])
+        player = self.instance.players['player1']['player']
+
+        self.assertEquals(1, player.call_queue.qsize())
+        self.assertEquals(player.call_queue.queue[0],
+            (player.move_to, (), {'y': 10, 'x': 20}))
 
     def testNoExceptionOnPlayerDisconnect(self):
         self.instance.register("player1")

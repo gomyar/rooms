@@ -15,7 +15,6 @@ from rooms.area import Area
 from rooms.door import Door
 from rooms.inventory import Inventory
 from rooms.inventory import Item
-from scriptutils import load_script
 
 
 class MongoRoomContainer(RoomContainer):
@@ -78,18 +77,21 @@ def serialize_actor(obj):
         actor_id = obj.actor_id,
         path = obj.path,
         room_id = obj.room.room_id,
-        stats = obj.stats,
+        state = obj.state,
         log = obj.log,
         model_type = obj.model_type,
+        script_class = obj.script.script_name if obj.script else None
     )
 
 def _deserialize_actor(actor, data):
     actor.actor_id = data['actor_id']
     actor.path = data['path']
     actor.room_id = data['room_id']
-    actor.stats = data['stats']
+    actor.state = data['state']
     actor.log = data['log']
     actor.model_type = data['model_type']
+    if data['script_class']:
+        actor.load_script(data['script_class'])
 
 def create_actor(data):
     actor = Actor(data['actor_id'])
@@ -127,13 +129,11 @@ def create_player_actor(data):
 # NPCActor
 def serialize_npc_actor(obj):
     data = serialize_actor(obj)
-    data['script_class'] = obj.script.__name__.split(".")[-1]
     return data
 
 def create_npc_actor(data):
     npc_actor = NpcActor(data['actor_id'])
     _deserialize_actor(npc_actor, data)
-    npc_actor.load_script(data['script_class'])
     return npc_actor
 
 # RoomObject
@@ -159,7 +159,7 @@ def serialize_area(obj):
         room_map = obj.rooms._room_map,
         entry_point_room_id = obj.entry_point_room_id,
         entry_point_door_id = obj.entry_point_door_id,
-        game_script_class = obj.game_script.__name__.split(".")[-1]
+        game_script_class = obj.game_script.script_name if obj.game_script else None
     )
 
 def create_area(data):
@@ -171,7 +171,8 @@ def create_area(data):
     area.entry_point_room_id = data['entry_point_room_id']
     area.entry_point_door_id = data['entry_point_door_id']
     # Second pass for top-level objects
-    area.game_script = load_script(data['game_script_class'])
+    if data['game_script_class']:
+        area.load_script(data['game_script_class'])
     return area
 
 # Door

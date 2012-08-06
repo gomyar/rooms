@@ -7,6 +7,7 @@ from rooms.actor import *
 
 from script import create_npc
 
+sys.path.append("../games/demo1")
 
 init_mongo()
 
@@ -114,7 +115,7 @@ area.create_door(hall, lounge, (940, 1240), (920, 1240))
 
 area.entry_point_room_id = "foyer"
 
-area.game_script = load_script("demo1_script")
+area.load_script("demo1_script")
 
 create_npc(area, "butler", "butler", "butler_script", 'foyer')
 create_npc(area, "thomas", "dilettante", "brother_script", 'lounge')

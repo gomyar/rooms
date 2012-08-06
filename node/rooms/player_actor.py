@@ -2,7 +2,7 @@
 import collections
 import time
 
-from character_actor import CharacterActor
+from actor import Actor
 from actor import expose
 from actor import command
 from inventory import Inventory
@@ -13,7 +13,7 @@ import logging
 log = logging.getLogger("rooms.player")
 
 
-class PlayerActor(CharacterActor):
+class PlayerActor(Actor):
     def __init__(self, player_id=None, position=(0, 0), instance=None):
         super(PlayerActor, self).__init__(player_id, position)
         self.model_type = "investigator"

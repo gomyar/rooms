@@ -1,15 +1,14 @@
 
 import eventlet
 
-from character_actor import CharacterActor
+from actor import Actor
 from actor import expose
-import scriptutils
 
 import logging
 log = logging.getLogger("rooms.npc")
 
 
-class NpcActor(CharacterActor):
+class NpcActor(Actor):
     def __init__(self, actor_id):
         super(NpcActor, self).__init__(actor_id)
         self.model_type = actor_id
@@ -64,9 +63,6 @@ class NpcActor(CharacterActor):
         event_method = "event_%s" % (event_id,)
         if hasattr(self.script, event_method):
             getattr(self.script, event_method)(*args, **kwargs)
-
-    def load_script(self, script_class):
-        self.script = scriptutils.load_script(script_class)
 
     def kickoff(self):
         self.script.kickoff(self)

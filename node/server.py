@@ -30,7 +30,6 @@ from container import init_mongo
 import signal
 import sys
 
-from scriptutils import GAME_ROOT
 
 import logging
 import logging.config
@@ -41,6 +40,8 @@ instances = dict()
 sessions = dict()
 
 master = None
+master_addr = None
+game_root = None
 
 def _read_cookies(environ):
     cookie_str = environ['HTTP_COOKIE']
@@ -211,13 +212,13 @@ def root(environ, response):
         if check_player_joined(_get_param(environ, 'player_id')):
             return www_file('/index.html', response)
         else:
-            return redirect("http://:9001", response)
+            return redirect(master_addr, response)
     else:
         return www_file(environ['PATH_INFO'], response)
 
 @checked
 def www_file(path, response):
-    filepath = os.path.join(os.path.dirname(GAME_ROOT), "assets" + path)
+    filepath = os.path.join(os.path.dirname(game_root), "assets" + path)
     if os.path.exists(filepath):
         response('200 OK', [('content-type', guess_type(filepath))])
         return [open(filepath).read()]
@@ -251,6 +252,10 @@ if __name__ == "__main__":
             default="localhost:27017", help="Address of mongo server",
             metavar="KS_DBADDR")
 
+        parser.add_option("-g", "--game", dest="game",
+            default="../games/demo1", help="Path to game dir",
+            metavar="KS_GAME")
+
         (options, args) = parser.parse_args()
         host = options.address.split(":")[0]
         port = int(options.address.split(":")[1])
@@ -260,11 +265,17 @@ if __name__ == "__main__":
 
         init_mongo(dbhost, dbport)
 
+        global master_addr
         master_addr = options.master
 
         global master
         master = xmlrpclib.ServerProxy('http://%s' % (master_addr,))
         master.register_node(host, port)
+
+        global game_dir
+        game_dir = options.game
+
+        sys.path.append(os.path.join(game_dir, "scripts"))
 
         eventlet.spawn(backdoor.backdoor_server, eventlet.listen(
             ('localhost', 3000)), locals=dict(instances=instances))

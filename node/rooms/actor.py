@@ -7,6 +7,8 @@ from path_vector import Path
 from path_vector import distance
 from path_vector import get_now
 
+from rooms.script import Script
+
 import logging
 log = logging.getLogger("rooms.node")
 
@@ -40,6 +42,14 @@ def command(func=None, **filters):
     return wrapped
 
 
+class State(dict):
+    def __getattr__(self, name):
+        return self.get(name, None)
+
+    def __setattr__(self, name, value):
+        self[name] = value
+
+
 class Actor(object):
     def __init__(self, actor_id, position=(0, 0)):
         self.actor_id = actor_id
@@ -48,7 +58,7 @@ class Actor(object):
         self.instance = None
         self.log = []
         self.script = None
-        self.stats = dict()
+        self.state = dict()
         self.model_type = ""
         self.call_gthread = None
         self.call_queue = eventlet.queue.LightQueue()
@@ -60,12 +70,15 @@ class Actor(object):
     def __repr__(self):
         return "<Actor %s>" % (self.actor_id,)
 
+    def load_script(self, classname):
+        self.script = Script(classname)
+
     def interface_call(self, method_name, player, *args, **kwargs):
         if not self._can_call_method(player, method_name):
             raise Exception("Illegal interface call to %s in %s" % (method_name,
                 self))
         method = self._get_method_or_script(method_name)
-        self.call_queue.put((method, [player] + args, kwargs))
+        self.call_queue.put((method, [player] + list(args), kwargs))
 
     def command_call(self, method_name, *args, **kwargs):
         if not self._can_call_command(method_name):
@@ -90,7 +103,7 @@ class Actor(object):
     def external(self, player):
         return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
             path=self.path.path_array(), speed=self.path.speed,
-            stats=self.stats,
+            state=self.state,
             model_type=self.model_type,
             methods=self._all_exposed_methods(player))
 
@@ -117,13 +130,15 @@ class Actor(object):
         return distance(self.x(), self.y(), point[0], point[1])
 
     def _filters_equal(self, actor, filters):
+        if not filters:
+            return True
         for key, val in filters.items():
             if getattr(actor, key) != val:
                 return False
         return True
 
     def _get_method_or_script(self, method_name):
-        if self.script and hasattr(self.script, method_name):
+        if self.script and self.script.has_method(method_name):
             return getattr(self.script, method_name)
         else:
             return getattr(self, method_name)

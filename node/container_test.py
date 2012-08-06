@@ -1,9 +1,6 @@
 
 import unittest
 
-import scriptutils
-scriptutils.load_script = lambda s: ""
-
 from rooms.room import Room
 from rooms.room_container import RoomContainer
 from rooms.area import Area
@@ -22,12 +19,9 @@ class MockRoomContainer(RoomContainer):
 class ContainerTest(unittest.TestCase):
     def setUp(self):
         self.area = Area()
+        self.area.load_script("container_test")
         self.area.rooms['lobby'] = Room('lobby')
         self.area.rooms['lobby'].actors['actor1'] = Actor('actor1')
-        self.area.game_script = scriptutils
-
-    def tearDown(self):
-        reload(scriptutils)
 
     def testJsonPickle(self):
         pickled = serialize_area(self.area)

@@ -1,13 +1,14 @@
 
 import eventlet
 
-from room import Room
-from door import Door
-from door import infer_direction
-from room_container import RoomContainer
+from rooms.room import Room
+from rooms.door import Door
+from rooms.door import infer_direction
+from rooms.room_container import RoomContainer
 
-from npc_actor import NpcActor
-from player_actor import PlayerActor
+from rooms.npc_actor import NpcActor
+from rooms.player_actor import PlayerActor
+from rooms.script import Script
 
 class Area(object):
     def __init__(self):
@@ -19,9 +20,12 @@ class Area(object):
         self.game_script = None
         self.instance = None
 
+    def load_script(self, classname):
+        self.game_script = Script(classname)
+
     def player_joined_instance(self, actor, room_id):
-        if hasattr(self.game_script, "player_joined_instance"):
-            self.game_script.player_joined_instance(actor, room_id)
+        self.game_script.call_event_method("player_joined_instance", actor,
+            room_id)
         self.rooms[room_id].player_joined_instance(actor)
 
     def actor_left_instance(self, actor):
@@ -35,9 +39,9 @@ class Area(object):
         room.area = self
 
     def actor_enters_room(self, room, actor, door_id=None):
-        if type(actor) is PlayerActor and self.game_script and \
-                hasattr(self.game_script, 'player_enters_room'):
-            self.game_script.player_enters_room(room, actor)
+        if type(actor) is PlayerActor and self.game_script:
+            self.game_script.call_event_method('player_enters_room',
+                room, actor)
 
     def create_door(self, room1, room2, room1_position=None,
             room2_position=None):

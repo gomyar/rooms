@@ -9,19 +9,13 @@ from actor import command
 from room import Room
 
 
-class MockActor(Actor):
-    def __init__(self, actor_id):
-        super(MockActor, self).__init__(actor_id)
-        self._mock_me_called = False
-        self.state = "stop"
+@expose(state="go")
+def mock_me(actor):
+    self._mock_me_called = True
 
-    @expose(state="go")
-    def mock_me(self, actor):
-        self._mock_me_called = True
-
-    @expose()
-    def mock_you(self, actor):
-        return "Called with actor %s" % (actor.actor_id,)
+@expose()
+def mock_you(actor):
+    return "Called with actor %s" % (actor.actor_id,)
 
 
 @command()
@@ -33,7 +27,7 @@ class ActorTest(unittest.TestCase):
     def setUp(self):
         self.room = Room()
         self.actor = Actor("actor1", (10, 10))
-        self.mock_actor = MockActor("mock")
+        self.mock_actor = Actor("mock")
         self.actor.room = self.room
         self.now = 0.0
         time.time = mock.Mock(return_value=self.now)
@@ -80,9 +74,12 @@ class ActorTest(unittest.TestCase):
         self.assertEquals(4.0, self.actor.y())
 
     def testAllowedMethod(self):
+        self.mock_actor.load_script("rooms.actor_test")
         self.assertFalse(self.mock_actor._can_call_method(self.actor,
             "mock_me"))
-        self.assertEquals([{'name':'mock_you'}], self.mock_actor.exposed_methods(self.actor))
+        import ipdb; ipdb.set_trace()
+        self.assertEquals([{'name':'mock_you'}],
+            self.mock_actor.exposed_methods(self.actor))
 
         self.mock_actor.state = "go"
 
@@ -92,11 +89,14 @@ class ActorTest(unittest.TestCase):
             self.mock_actor.exposed_methods(self.actor))
 
     def testMethodCallthroughScript(self):
-        self.actor.script = self
-        self.script_call = script_call
+        self.actor.load_script("rooms.actor_test")
+        self.mock_actor.load_script("rooms.actor_test")
 
-        self.assertEquals("Called with actor actor1",
-            self.mock_actor.interface_call("mock_you", self.actor))
+        self.mock_actor.interface_call("mock_you", self.actor)
+        self.assertEquals((mock_you, [self.actor], {}),
+            self.mock_actor.call_queue.queue[0])
 
-        self.assertEquals("Hello 1 2", self.actor.command_call("script_call",
-            "1", "2"))
+        self.actor.command_call("script_call", "1", "2")
+
+        self.assertEquals((script_call, ('1', '2'), {}),
+            self.actor.call_queue.queue[0])
