@@ -39,12 +39,10 @@ class NpcActor(Actor):
             log.debug("NPC %s running %s", self.actor_id, state_changed)
             self.gthread = eventlet.spawn(state_changed, self)
 
-    @expose()
+    def create_chat(self, player, conversation):
+        self.chat_scripts[player.actor_id] = conversation
+
     def chat(self, player, message=""):
-        if self.state != "chatting":
-            self.previous_state = self.state
-            self.chat_scripts[player.actor_id] = self.script.chat(player)
-        self.set_state("chatting")
         script = self.chat_scripts[player.actor_id]
         if message:
             player.add_chat_message("You say : %s", message)
@@ -53,7 +51,6 @@ class NpcActor(Actor):
             player.add_chat_message("%s says: %s", self.actor_id, response)
         if not script.choice_list():
             self.chat_scripts.pop(player.actor_id)
-            self.set_state(self.previous_state)
             return dict(command="end_chat", actor_id=self.actor_id)
         else:
             return dict(command="chat", actor_id=self.actor_id,

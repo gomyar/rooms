@@ -57,7 +57,7 @@ class Actor(object):
             raise Exception("Illegal interface call to %s in %s" % (method_name,
                 self))
         method = self._get_method_or_script(method_name)
-        self.call_queue.put((method, [self, player] + list(args), kwargs))
+        return method(self, player, *args, **kwargs)
 
     def command_call(self, method_name, *args, **kwargs):
         if not self._can_call(self, method_name):
