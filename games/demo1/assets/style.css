@@ -240,4 +240,84 @@ div.evidence_item div.description
     min-height : 40px;
 }
 
+div.scripts
+{
+    position : absolute;
+    top : 0px;
+    bottom : 0px;
+    width : 350px;
+    background-color : black;
+    border-right : 1px solid grey;
+    font-size : 12px;
+}
+
+div.scripts_file
+{
+    width : 100%;
+    color : lightgrey;
+}
+
+div.scripts_file:hover
+{
+    color : white;
+    font-weight : bold;
+    cursor : pointer;
+}
+
+div.scriptedit
+{
+    position : absolute;
+    top : 0px;
+    bottom : 0px;
+    width : 700px;
+    background-color : white;
+    font-size : 12px;
+    color : black;
+}
+
+textarea.editor
+{
+    position : absolute;
+    top : 0px;
+    height : 600px;
+    width : 700px;
+}
+
+div.savebutton
+{
+    position : absolute;
+    bottom : 0px;
+    display : block;
+    width : 100px;
+    height : 40px;
+    background-color : grey;
+    color : black;
+    text-align : center;
+}
+
+div.savebutton:hover
+{
+    font-weight : bold;
+    cursor : pointer;
+}
+
+div.closebutton
+{
+    position : absolute;
+    bottom : 0px;
+    left : 100px;
+    display : block;
+    width : 100px;
+    height : 40px;
+    background-color : grey;
+    color : black;
+    text-align : center;
+}
+
+div.closebutton:hover
+{
+    font-weight : bold;
+    cursor : pointer;
+}
+
 

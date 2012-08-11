@@ -42,6 +42,8 @@ var map_images = {
 
 var background_img;
 
+var loaded_script_file;
+
 function show_chat_window(message)
 {
     $("#chatOuter").remove();
@@ -717,6 +719,8 @@ function menu_quit_clicked(e)
 
 function show_evidence(data)
 {
+    if ($(".scripts").length > 0)
+        $(".scripts").remove();
     if ($(".evidence").length > 0)
         $(".evidence").remove();
     else
@@ -741,6 +745,70 @@ function menu_evidence_clicked(e)
         { }, show_evidence)
 }
 
+function load_script(script_file)
+{
+    loaded_script_file = script_file;
+    service_call("/admin/load_script", { "script_file": script_file }, show_script_file);
+}
+
+function save_script(script_file, script_contents)
+{
+    service_call("/admin/save_script", { "script_file": script_file, "script_contents": script_contents }, script_saved);
+}
+
+function script_saved()
+{
+    $(".scriptedit").remove();
+    alert("Script saved");
+}
+
+function show_script_file(data)
+{
+    var textarea = $("<textarea>", {'class': 'editor', 'text': data, 'id': 'editarea' });
+    $(".scriptedit").remove();
+    var scriptedit_div = $("<div>", { "class": "scriptedit" }).append(
+        textarea 
+    );
+    $("#main").append(scriptedit_div);
+
+    var myCodeMirror = CodeMirror.fromTextArea(textarea[0], {'name': 'text/x-python'});
+    scriptedit_div.append(
+        $("<div>", {'class': 'savebutton', 'text': 'Save' }).click(function(){
+            save_script(loaded_script_file, myCodeMirror.getValue())}
+        ),
+        $("<div>", {'class': 'closebutton', 'text': 'Close' }).click(function() { $(".scriptedit").remove() })
+    );
+}
+
+function show_scripts(data)
+{
+    if ($(".evidence").length > 0)
+        $(".evidence").remove();
+    if ($(".scripts").length > 0)
+        $(".scripts").remove();
+    else
+    {
+        var scripts_div = $("<div>", { "class": "scripts"});
+        for (i in data)
+        {
+            var script_file = data[i];
+            var script_element = $("<div>", {'class': 'scripts_file', 'text': script_file});
+            script_element.click(function (){
+                load_script(script_file);
+            });
+            scripts_div.append(script_element);
+        }
+        $("#main").append(scripts_div);
+    }
+}
+
+function menu_scripts_clicked(e)
+{
+    service_call("/admin/list_scripts",
+        { }, show_scripts)
+}
+
+
 function init()
 {
     console.log("init");
@@ -752,6 +820,7 @@ function init()
 
     $("#menu_quit").click(menu_quit_clicked);
     $("#menu_evidence").click(menu_evidence_clicked);
+    $("#menu_scripts").click(menu_scripts_clicked);
 
     $(window).resize(function() { resetCanvas(); draw(); });
 

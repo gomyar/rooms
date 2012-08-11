@@ -93,8 +93,6 @@ class ActorTest(unittest.TestCase):
 
         self.assertEquals("Called with actor mock",
             self.mock_actor.interface_call("mock_you", self.actor))
-#        self.assertEquals((mock_you, [self.mock_actor, self.actor], {}),
-#            self.mock_actor.call_queue.queue[0])
 
         self.actor.command_call("script_call", "1", "2")
 

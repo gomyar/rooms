@@ -22,6 +22,7 @@ from mimetypes import guess_type
 import simplejson
 
 from rooms.instance import Instance
+from rooms.admin import Admin
 
 from eventlet.queue import Empty
 
@@ -104,27 +105,24 @@ def handle_socket(ws):
 
 @checked
 def game_handle(environ, response):
-    try:
-        _, url, instance_uid, actor_id, command = \
-            environ['PATH_INFO'].split("/")
-        log.debug("Game call %s, %s, %s, %s", url, instance_uid, actor_id,
-            command)
-        cookies = _read_cookies(environ)
-        params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
-        instance = instances[instance_uid]
-        returned = instance.call(command, sessions[cookies['sessionid']],
-            actor_id, dict(params))
-        if returned:
-            returned = simplejson.dumps(returned)
-        else:
-            returned = "[]"
-        response('200 OK', [
-            ('content-type', 'text/javascript'),
-            ('content-length', len(returned)),
-        ])
-        return returned
-    except:
-        log.exception("Error handling %s", command)
+    _, url, instance_uid, actor_id, command = \
+        environ['PATH_INFO'].split("/")
+    log.debug("Game call %s, %s, %s, %s", url, instance_uid, actor_id,
+        command)
+    cookies = _read_cookies(environ)
+    params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
+    instance = instances[instance_uid]
+    returned = instance.call(command, sessions[cookies['sessionid']],
+        actor_id, dict(params))
+    if returned:
+        returned = simplejson.dumps(returned)
+    else:
+        returned = "[]"
+    response('200 OK', [
+        ('content-type', 'text/javascript'),
+        ('content-length', len(returned)),
+    ])
+    return returned
 
 
 @checked
@@ -161,24 +159,40 @@ def control_handle(environ, response):
 
 @checked
 def room_handle(environ, response):
-    try:
-        _, url, instance_uid = environ['PATH_INFO'].split("/")
-        log.debug("Room call: %s %s", url, instance_uid)
-        cookies = _read_cookies(environ)
-        instance = instances[instance_uid]
-        returned = instance.players[sessions[cookies['sessionid']]]['player'].\
-            room.external()
-        if returned:
-            returned = simplejson.dumps(returned)
-        else:
-            returned = "[]"
-        response('200 OK', [
-            ('content-type', 'text/javascript'),
-            ('content-length', len(returned)),
-        ])
-        return returned
-    except:
-        log.exception("Romm call exception")
+    _, url, instance_uid = environ['PATH_INFO'].split("/")
+    log.debug("Room call: %s %s", url, instance_uid)
+    cookies = _read_cookies(environ)
+    instance = instances[instance_uid]
+    returned = instance.players[sessions[cookies['sessionid']]]['player'].\
+        room.external()
+    if returned:
+        returned = simplejson.dumps(returned)
+    else:
+        returned = "[]"
+    response('200 OK', [
+        ('content-type', 'text/javascript'),
+        ('content-length', len(returned)),
+    ])
+    return returned
+
+
+@checked
+def admin_handle(environ, response):
+    _, url, command = environ['PATH_INFO'].split("/")
+    log.debug("Admin call: %s %s", url, command)
+    cookies = _read_cookies(environ)
+    params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
+    admin = Admin(game_root)
+    returned = getattr(admin, command)(**params)
+    if returned:
+        returned = simplejson.dumps(returned)
+    else:
+        returned = "[]"
+    response('200 OK', [
+        ('content-type', 'text/javascript'),
+        ('content-length', len(returned)),
+    ])
+    return returned
 
 
 @checked
@@ -208,6 +222,8 @@ def root(environ, response):
         return control_handle(environ, response)
     elif environ['PATH_INFO'].startswith('/room/'):
         return room_handle(environ, response)
+    elif environ['PATH_INFO'].startswith('/admin/'):
+        return admin_handle(environ, response)
     elif environ['PATH_INFO'] == '/':
         if check_player_joined(_get_param(environ, 'player_id')):
             return www_file('/index.html', response)
