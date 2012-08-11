@@ -14,7 +14,7 @@ def mock_me(actor):
     self._mock_me_called = True
 
 @expose()
-def mock_you(actor):
+def mock_you(actor, from_actor):
     return "Called with actor %s" % (actor.actor_id,)
 
 
@@ -91,9 +91,10 @@ class ActorTest(unittest.TestCase):
         self.actor.load_script("rooms.actor_test")
         self.mock_actor.load_script("rooms.actor_test")
 
-        self.mock_actor.interface_call("mock_you", self.actor)
-        self.assertEquals((mock_you, [self.mock_actor, self.actor], {}),
-            self.mock_actor.call_queue.queue[0])
+        self.assertEquals("Called with actor mock",
+            self.mock_actor.interface_call("mock_you", self.actor))
+#        self.assertEquals((mock_you, [self.mock_actor, self.actor], {}),
+#            self.mock_actor.call_queue.queue[0])
 
         self.actor.command_call("script_call", "1", "2")
 

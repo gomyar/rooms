@@ -13,7 +13,6 @@ class NpcActor(Actor):
         super(NpcActor, self).__init__(actor_id)
         self.model_type = actor_id
         self.speed = 90.0
-        self.previous_state = None
         self.chat_scripts = dict()
         self.gthread = None
 
@@ -25,19 +24,6 @@ class NpcActor(Actor):
                 self.script.kickoff(self)
         except:
             log.exception("Exception running kickoff for %s", self.model_type)
-
-    def set_state(self, state):
-        super(NpcActor, self).set_state(state)
-        callback_method = "state_%s" % (state,)
-        if self.gthread:
-            try:
-                self.gthread.kill()
-            except:
-                pass
-        if hasattr(self.script, callback_method):
-            state_changed = getattr(self.script, callback_method)
-            log.debug("NPC %s running %s", self.actor_id, state_changed)
-            self.gthread = eventlet.spawn(state_changed, self)
 
     def create_chat(self, player, conversation):
         self.chat_scripts[player.actor_id] = conversation

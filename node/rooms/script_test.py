@@ -51,10 +51,10 @@ class ScriptTest(unittest.TestCase):
 
         self.actor.interface_call('first_method', self.actor2, "value1")
 
-        self.assertEquals((first_method, [self.actor, self.actor2, "value1"],
-            {}), self.actor.call_queue.queue[0])
+#        self.actor._process_queue_item()
 
-        self.actor._process_queue_item()
+#        self.assertEquals((first_method, [self.actor, self.actor2, "value1"],
+#            {}), self.actor.call_queue.queue[0])
 
         self.assertEquals("value1", self.actor.state.param1)
 
