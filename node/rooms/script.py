@@ -2,6 +2,8 @@
 from functools import wraps
 
 
+_scripts = dict()
+
 def expose(func=None, **filters):
     if func==None:
         def inner(func):
@@ -43,17 +45,30 @@ def event(func=None):
 class Script(object):
     def __init__(self, script_name):
         self.script_name = script_name
-        self.script_module = __import__(script_name,
+        _scripts[script_name] = __import__(script_name,
             fromlist=[script_name.rsplit(".", 1)])
-        self.commands = [m for m in dir(self.script_module) if \
-            getattr(getattr(self.script_module, m), "is_command", None)]
-        self.methods = [m for m in dir(self.script_module) if \
-            getattr(getattr(self.script_module, m), "is_exposed", None)]
-        self.events = [m for m in dir(self.script_module) if \
-            getattr(getattr(self.script_module, m), "is_event", None)]
 
     def __getattr__(self, name):
         return getattr(self.script_module, name, None)
+
+    @property
+    def methods(self):
+        return [m for m in dir(self.script_module) if \
+            getattr(getattr(self.script_module, m), "is_exposed", None)]
+
+    @property
+    def events(self):
+        return [m for m in dir(self.script_module) if \
+            getattr(getattr(self.script_module, m), "is_event", None)]
+
+    @property
+    def script_module(self):
+        return _scripts[self.script_name]
+
+    @property
+    def commands(self):
+        return [m for m in dir(self.script_module) if \
+            getattr(getattr(self.script_module, m), "is_command", None)]
 
     def has_method(self, method):
         return hasattr(self.script_module, method)

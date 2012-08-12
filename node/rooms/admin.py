@@ -1,6 +1,8 @@
 
 import os
 
+from rooms.script import _scripts
+
 
 class Admin(object):
     def __init__(self, game_root):
@@ -15,7 +17,13 @@ class Admin(object):
 
     def save_script(self, script_file, script_contents):
         try:
-            script = open(os.path.join(self.game_root, "scripts", script_file), "w")
+            if "/" in script_file:
+                raise Exception("Slashes? we dont need no stinkin slashes")
+            script_path = os.path.join(self.game_root, "scripts", script_file)
+            script = open(script_path, "w")
             script.write(script_contents)
+            script.close()
+
+            reload(_scripts[script_file.rstrip(".py")])
         finally:
             script.close()

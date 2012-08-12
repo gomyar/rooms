@@ -793,9 +793,12 @@ function show_scripts(data)
         {
             var script_file = data[i];
             var script_element = $("<div>", {'class': 'scripts_file', 'text': script_file});
+            script_element.attr('script_file', script_file);
             script_element.click(function (){
-                load_script(script_file);
+                console.log("Loading "+script_file);
+                load_script($(this).attr('script_file'));
             });
+
             scripts_div.append(script_element);
         }
         $("#main").append(scripts_div);

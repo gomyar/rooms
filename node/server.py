@@ -182,6 +182,7 @@ def admin_handle(environ, response):
     log.debug("Admin call: %s %s", url, command)
     cookies = _read_cookies(environ)
     params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
+    assert(cookies['sessionid'] in sessions)
     admin = Admin(game_root)
     returned = getattr(admin, command)(**params)
     if returned:
