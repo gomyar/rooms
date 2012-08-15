@@ -57,7 +57,14 @@ class Actor(object):
             raise Exception("Illegal interface call to %s in %s" % (method_name,
                 self))
         method = self._get_method_or_script(method_name)
-        return method(self, player, *args, **kwargs)
+        try:
+            return method(self, player, *args, **kwargs)
+        except Exception, e:
+            log.exception("Exception in api %s(%s, %s)", method, args,
+                kwargs)
+            self.add_error("Error calling %s(%s, %s): %s" % (method, args,
+                kwargs, e.args))
+            raise
 
     def command_call(self, method_name, *args, **kwargs):
         if not self._can_call(self, method_name):
@@ -78,10 +85,16 @@ class Actor(object):
         try:
             method, args, kwargs = self.call_queue.get()
             method(*args, **kwargs)
-        except:
+        except Exception, e:
             log.exception("Exception processing %s(%s, %s)", method, args,
                 kwargs)
+            self.add_error("Error in %s(%s, %s): %s" % (method, args, kwargs,
+                e.args))
 
+    def add_error(self, msg):
+        log_entry = { 'msg': msg, 'time': time.time() }
+        self.log.append(log_entry)
+        self.instance.send_to_all("log", **log_entry)
 
     def external(self, player):
         return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
