@@ -14,9 +14,13 @@ def random_wander(npc):
     npc.move_to(x, y)
     npc.sleep(random.randint(2, 4))
 
+def hold_it(npc):
+    npc.talk()
+    
 @conversation
 def chat(npc, player):
     conv = create_chat(
         c("Excuse me I...", "Quickly!! He's gone mad! Someone needs to calm him down before he does some harm."),
+        c("Hold it", hold_it),
     )
     return conv
