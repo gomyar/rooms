@@ -14,11 +14,9 @@ def random_wander(npc):
     npc.move_to(x, y)
     npc.sleep(random.randint(2, 4))
 
+@conversation
 def chat(npc, player):
-    conv = chat(
-        c("Excuse me Sir", "Yes, thank you, mines a brandy"),
-        c("Where were you at the time of the murder?",
-            "Yes, it's a little chilly, throw another log in the "
-            "fireplace there's a good boy"),
+    conv = create_chat(
+        c("Excuse me I...", "Quickly!! He's gone mad! Someone needs to calm him down before he does some harm."),
     )
     return conv
