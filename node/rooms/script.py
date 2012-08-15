@@ -1,6 +1,9 @@
 
 from functools import wraps
 
+import logging
+log = logging.getLogger("rooms.node")
+
 
 _scripts = dict()
 
@@ -45,8 +48,11 @@ def event(func=None):
 class Script(object):
     def __init__(self, script_name):
         self.script_name = script_name
-        _scripts[script_name] = __import__(script_name,
-            fromlist=[script_name.rsplit(".", 1)])
+        try:
+            _scripts[script_name] = __import__(script_name,
+                fromlist=[script_name.rsplit(".", 1)])
+        except:
+            log.exception("Script %s is corrupt - cannot load", script_name)
 
     def __getattr__(self, name):
         return getattr(self.script_module, name, None)

@@ -185,10 +185,7 @@ def admin_handle(environ, response):
     assert(cookies['sessionid'] in sessions)
     admin = Admin(game_root)
     returned = getattr(admin, command)(**params)
-    if returned:
-        returned = simplejson.dumps(returned)
-    else:
-        returned = "[]"
+    returned = simplejson.dumps(returned)
     response('200 OK', [
         ('content-type', 'text/javascript'),
         ('content-length', len(returned)),

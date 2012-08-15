@@ -762,10 +762,13 @@ function save_script(script_file, script_contents)
     service_call("/admin/save_script", { "script_file": script_file, "script_contents": script_contents }, script_saved);
 }
 
-function script_saved()
+function script_saved(data)
 {
     $(".scriptedit").remove();
-    alert("Script saved");
+    if (data.success)
+        alert("Script saved");
+    else
+        alert(data.stacktrace);
 }
 
 function show_script_file(data)

@@ -1,5 +1,7 @@
 
 import os
+import sys
+import traceback
 
 from rooms.script import _scripts
 
@@ -18,9 +20,18 @@ class Admin(object):
     def save_script(self, script_file, script_contents):
         if "/" in script_file:
             raise Exception("Slashes? we dont need no stinkin slashes")
-        script_path = os.path.join(self.game_root, "scripts", script_file)
-        script = open(script_path, "w")
-        script.write(script_contents)
-        script.close()
+        try:
+            script_path = os.path.join(self.game_root, "scripts", script_file)
+            script = open(script_path, "w")
+            script.write(script_contents)
+            script.close()
 
-        reload(_scripts[script_file.rstrip(".py")])
+            reload(_scripts[script_file.rstrip(".py")])
+            return {'success': True}
+        except Exception, e:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            stacktrace = traceback.format_exception(exc_type, exc_value,
+                exc_traceback)
+            stacktrace = [str(s) for s in stacktrace]
+            stacktrace = "\n".join(stacktrace)
+            return {'success': False, 'stacktrace':stacktrace}
