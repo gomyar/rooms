@@ -424,7 +424,13 @@ function show_commands(commands)
     {
         var command = commands[i];
         var command_item = $("<div>", { 'class': 'command_button', 'text': command.name } );
-        command_item.click(function() { $(".actor_commands").remove(); command_lookup[command.name](); });
+        command_item.attr("command", command.name);
+        command_item.click(function() {
+            $(".actor_commands").remove();
+            command_lookup[$(this).attr('command')](); 
+        });
+
+
         command_div.append(command_item);
     }
     $("#main").append(command_div);
