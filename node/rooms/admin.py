@@ -16,14 +16,11 @@ class Admin(object):
         return open(os.path.join(self.game_root, "scripts", script_file)).read()
 
     def save_script(self, script_file, script_contents):
-        try:
-            if "/" in script_file:
-                raise Exception("Slashes? we dont need no stinkin slashes")
-            script_path = os.path.join(self.game_root, "scripts", script_file)
-            script = open(script_path, "w")
-            script.write(script_contents)
-            script.close()
+        if "/" in script_file:
+            raise Exception("Slashes? we dont need no stinkin slashes")
+        script_path = os.path.join(self.game_root, "scripts", script_file)
+        script = open(script_path, "w")
+        script.write(script_contents)
+        script.close()
 
-            reload(_scripts[script_file.rstrip(".py")])
-        finally:
-            script.close()
+        reload(_scripts[script_file.rstrip(".py")])

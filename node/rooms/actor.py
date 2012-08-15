@@ -86,7 +86,6 @@ class Actor(object):
     def external(self, player):
         return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
             path=self.path.path_array(), speed=self.path.speed,
-            state=self.state,
             model_type=self.model_type,
             methods=self._all_exposed_methods(player))
 

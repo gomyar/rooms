@@ -5,6 +5,7 @@ from pymongo import Connection
 from pymongo.helpers import bson
 
 from rooms.actor import Actor
+from rooms.actor import State
 from rooms.path_vector import Path
 from rooms.player_actor import PlayerActor
 from rooms.npc_actor import NpcActor
@@ -77,7 +78,7 @@ def serialize_actor(obj):
         actor_id = obj.actor_id,
         path = obj.path,
         room_id = obj.room.room_id,
-        state = obj.state,
+        state = serialize_state(obj.state),
         log = obj.log,
         model_type = obj.model_type,
         script_class = obj.script.script_name if obj.script else None
@@ -87,7 +88,7 @@ def _deserialize_actor(actor, data):
     actor.actor_id = data['actor_id']
     actor.path = data['path']
     actor.room_id = data['room_id']
-    actor.state = data['state']
+    actor.state = create_state(data['state'])
     actor.log = data['log']
     actor.model_type = data['model_type']
     if data['script_class']:
@@ -98,6 +99,16 @@ def create_actor(data):
     _deserialize_actor(actor, data)
     return actor
 
+
+# State
+def serialize_state(obj):
+    return obj.copy()
+
+def create_state(data):
+    state = State()
+    for key, value in data.items():
+        state[key] = value
+    return state
 
 # Path
 def serialize_path(obj):
@@ -239,6 +250,7 @@ object_serializers = dict(
     Door=serialize_door,
     Inventory=serialize_inventory,
     Path=serialize_path,
+    State=serialize_state,
 )
 
 object_factories = dict(
@@ -252,6 +264,7 @@ object_factories = dict(
     Door=create_door,
     Inventory=create_inventory,
     Path=create_path,
+    State=create_state,
 )
 
 def _encode(obj):

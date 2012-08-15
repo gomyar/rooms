@@ -22,10 +22,11 @@ def arranging_dining_room(npc):
 def learn_about_jezabel(npc, player):
     player.add_chat_message("Oh, shes just upset about the murder. "
         "Try asking her about her season in Paris")
-    player.data['jezabel_ask_about_paris'] = True
+    player.state.jezabel_ask_about_paris = True
 
+@conversation
 def chat(npc, player):
-    conv = chat(
+    conv = create_chat(
         c("Excuse me madame", "Yes, Good evening.",
             c("When will dinner be ready?", "When cook says so.",
                 c("Whats holding up the cook?",
@@ -36,7 +37,7 @@ def chat(npc, player):
             ),
         )
     )
-    if player.data.get('jezabel_is_defensive'):
+    if player.state.jezabel_is_defensive:
         conv.add(c("What's wrong with Jezabel, she seems excitable",
             call(npc.learn_about_jezabel, player),
             ))
