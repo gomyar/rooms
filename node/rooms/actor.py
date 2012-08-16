@@ -196,3 +196,6 @@ class Actor(object):
 
     def sleep(self, seconds):
         eventlet.sleep(seconds)
+
+    def exit(self, door_id):
+        self.room.exit_through_door(self, door_id)

@@ -18,7 +18,7 @@ class PlayerActor(Actor):
         self.inventory = Inventory()
 
     def exit(self, door_id):
-        self.room.exit_through_door(self, door_id)
+        super(PlayerActor, self).exit(door_id)
         self.instance.send_sync(self.actor_id)
 
     def leave_instance(self):

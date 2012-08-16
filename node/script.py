@@ -7,6 +7,7 @@ from rooms.script import command
 
 from rooms.chat import chat as create_chat
 from rooms.chat import choice as c
+from rooms.chat import call
 
 
 def conversation(func=None):

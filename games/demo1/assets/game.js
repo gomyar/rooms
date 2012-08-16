@@ -43,6 +43,7 @@ var map_images = {
 var background_img;
 
 var loaded_script_file;
+var loaded_chat_script_file;
 
 function show_chat_window(message)
 {
@@ -789,6 +790,17 @@ function show_script_file(data)
     );
 }
 
+function load_chat_script(script_file)
+{
+    loaded_chat_cript_file = script_file;
+    service_call("/admin/load_chat_script", { "script_file": script_file }, show_chat_script_file);
+}
+
+function show_chat_script_file(data)
+{
+    alert("Chat:"+data);
+}
+
 function show_scripts(data)
 {
     if ($(".evidence").length > 0)
@@ -798,9 +810,10 @@ function show_scripts(data)
     else
     {
         var scripts_div = $("<div>", { "class": "scripts"});
-        for (i in data)
+        var actor_scripts_div = $("<div>", { "class": "actor_scripts"});
+        for (i in data.scripts)
         {
-            var script_file = data[i];
+            var script_file = data.scripts[i];
             var script_element = $("<div>", {'class': 'scripts_file', 'text': script_file});
             script_element.attr('script_file', script_file);
             script_element.click(function (){
@@ -808,8 +821,32 @@ function show_scripts(data)
                 load_script($(this).attr('script_file'));
             });
 
-            scripts_div.append(script_element);
+            actor_scripts_div.append(script_element);
         }
+        actor_scripts_div.append($("<div>", {'class': 'buttonmenu'}).append(
+            $("<div>", {'class': 'sbutton', 'text': 'Edit'}),
+            $("<div>", {'class': 'sbutton', 'text': 'New'})
+        ));
+        var chats_div = $("<div>", { "class": "chat_scripts"});
+        for (i in data.chat_scripts)
+        {
+            var script_file = data.chat_scripts[i];
+            var script_element = $("<div>", {'class': 'scripts_file', 'text': script_file});
+            script_element.attr('script_file', script_file);
+            script_element.click(function (){
+                console.log("Loading "+script_file);
+                load_chat_script($(this).attr('script_file'));
+            });
+
+            chats_div.append(script_element);
+        }
+        chats_div.append($("<div>", {'class': 'buttonmenu'}).append(
+            $("<div>", {'class': 'sbutton', 'text': 'Edit'}),
+            $("<div>", {'class': 'sbutton', 'text': 'New'})
+        ));
+
+        scripts_div.append(actor_scripts_div);
+        scripts_div.append(chats_div);
         $("#main").append(scripts_div);
     }
 }

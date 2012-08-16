@@ -12,9 +12,17 @@ class Admin(object):
 
     def list_scripts(self):
         dirlist = os.listdir(os.path.join(self.game_root, "scripts"))
-        return [f for f in dirlist if f.endswith(".py")]
+        return dict(scripts=[f for f in dirlist if f.endswith(".py")],
+            chat_scripts=[f for f in dirlist if f.endswith(".json")])
 
     def load_script(self, script_file):
+        if "/" in script_file:
+            raise Exception("Slashes? we dont need no stinkin slashes")
+        return open(os.path.join(self.game_root, "scripts", script_file)).read()
+
+    def load_chat_script(self, script_file):
+        if "/" in script_file:
+            raise Exception("Slashes? we dont need no stinkin slashes")
         return open(os.path.join(self.game_root, "scripts", script_file)).read()
 
     def save_script(self, script_file, script_contents):

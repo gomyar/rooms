@@ -243,12 +243,22 @@ div.evidence_item div.description
 div.scripts
 {
     position : absolute;
-    top : 0px;
-    bottom : 0px;
+    height : 100%;
     width : 350px;
     background-color : black;
     border-right : 1px solid grey;
     font-size : 12px;
+}
+
+div.actor_scripts
+{
+    position : absolute;
+    width : 350px;
+    height : 50%;
+    background-color : black;
+    border-right : 1px solid grey;
+    font-size : 12px;
+    overflow: scroll;
 }
 
 div.scripts_file
@@ -320,3 +330,30 @@ div.closebutton:hover
     cursor : pointer;
 }
 
+div.chat_scripts
+{
+    position : absolute;
+    top : 50%;
+    height : 50%;
+    width : 350px;
+    background-color : grey;
+    border-right : 1px solid grey;
+    font-size : 12px;
+    overflow: scroll;
+}
+
+div.buttonmenu
+{
+    bottom : 0px;
+    width : 100%;
+    height : 20px;
+}
+
+div.sbutton
+{
+    float : left;
+    height : 20px;
+    width : 50px;
+    border : 1px solid white;
+    background-color : black;
+}
