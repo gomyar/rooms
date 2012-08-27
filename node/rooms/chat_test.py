@@ -5,6 +5,7 @@ from chat import Conversation
 from chat import RespondChoice
 from chat import chat
 from chat import choice
+from chat import load_chat
 
 
 class ChatTest(unittest.TestCase):
@@ -18,6 +19,10 @@ class ChatTest(unittest.TestCase):
             self.choice1,
             self.choice2,
         ])
+
+    def testLoadChat(self):
+        chat = load_chat("test_chat")
+        self.assertEquals("Request 1", chat.choice_list()[0])
 
     def testInteraction(self):
         self.assertEquals(["hello", "there"], self.chat.choice_list())

@@ -810,6 +810,7 @@ function show_scripts(data)
     else
     {
         var scripts_div = $("<div>", { "class": "scripts"});
+
         var actor_scripts_div = $("<div>", { "class": "actor_scripts"});
         for (i in data.scripts)
         {
