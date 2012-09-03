@@ -60,7 +60,7 @@ class RespondChoice:
     def matches(self, query_text):
         return query_text == self.query_text
 
-class Call:
+class Call(object):
     def __init__(self, func, *args, **kwargs):
         self._func = func
         self._args = args
@@ -68,6 +68,9 @@ class Call:
 
     def __call__(self):
         return self._func(*self._args, **self._kwargs)
+
+    def set_parent(self, parent):
+        pass
 
 def choice(query_text, response, *choices):
     return RespondChoice(query_text, response, choices)
@@ -78,11 +81,14 @@ def chat(*choices):
 def call(func, *args, **kwargs):
     return Call(func, *args, **kwargs)
 
-def _read_choice(choice_json):
-    choice = RespondChoice(choice_json['request'], choice_json['response'])
-    for inner in choice_json.get('choices', []):
-        choice.choices.append(_read_choice(inner))
-    return choice
+def _read_choice(choice_json, script):
+    if 'run_function' in choice_json:
+        return Call(getattr(script, choice_json['run_function']))
+    else:
+        choice = RespondChoice(choice_json['request'], choice_json['response'])
+        for inner in choice_json.get('choices', []):
+            choice.choices.append(_read_choice(inner, script))
+        return choice
 
 def _check_show_function(choice, script):
     return 'show_function' not in choice or \
@@ -94,5 +100,5 @@ def load_chat(chat_id, script):
     conversation = Conversation()
     for choice in chat_json.get('choices', []):
         if _check_show_function(choice, script):
-            conversation.add(_read_choice(choice))
+            conversation.add(_read_choice(choice, script))
     return conversation

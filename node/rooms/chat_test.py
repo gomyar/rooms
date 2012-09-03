@@ -7,6 +7,7 @@ from chat import RespondChoice
 from chat import chat
 from chat import choice
 from chat import load_chat
+from chat import Call
 from rooms.settings import settings
 
 
@@ -27,6 +28,9 @@ class ChatTest(unittest.TestCase):
     def mock_chat_value(self):
         return self._should_show_choice
 
+    def mock_do_something(self):
+        self._did_something = True
+
     def testLoadChat(self):
         chat = load_chat("test_chat", self)
         self.assertEquals(2, len(chat.choices))
@@ -34,6 +38,7 @@ class ChatTest(unittest.TestCase):
         self.assertEquals("Response 1", chat.choices[0].response)
         self.assertEquals("Request 5", chat.choices[1].query_text)
         self.assertEquals("Response 5", chat.choices[1].response)
+        self.assertTrue(isinstance(chat.choices[0].choices[0].choices[1], Call))
 
     def testLoadOptionalChoice(self):
         self._should_show_choice = False
