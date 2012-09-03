@@ -1,11 +1,13 @@
 
 import unittest
+import os
 
 from chat import Conversation
 from chat import RespondChoice
 from chat import chat
 from chat import choice
 from chat import load_chat
+from rooms.settings import settings
 
 
 class ChatTest(unittest.TestCase):
@@ -19,10 +21,26 @@ class ChatTest(unittest.TestCase):
             self.choice1,
             self.choice2,
         ])
+        settings['script_dir'] = os.path.dirname(__file__)
+        self._should_show_choice = True
+
+    def mock_chat_value(self):
+        return self._should_show_choice
 
     def testLoadChat(self):
-        chat = load_chat("test_chat")
-        self.assertEquals("Request 1", chat.choice_list()[0])
+        chat = load_chat("test_chat", self)
+        self.assertEquals(2, len(chat.choices))
+        self.assertEquals("Request 1", chat.choices[0].query_text)
+        self.assertEquals("Response 1", chat.choices[0].response)
+        self.assertEquals("Request 5", chat.choices[1].query_text)
+        self.assertEquals("Response 5", chat.choices[1].response)
+
+    def testLoadOptionalChoice(self):
+        self._should_show_choice = False
+        chat = load_chat("test_chat", self)
+        self.assertEquals(1, len(chat.choices))
+        self.assertEquals("Request 1", chat.choices[0].query_text)
+        self.assertEquals("Response 1", chat.choices[0].response)
 
     def testInteraction(self):
         self.assertEquals(["hello", "there"], self.chat.choice_list())

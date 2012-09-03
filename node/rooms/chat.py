@@ -1,5 +1,8 @@
 
+import os
+
 import simplejson
+from rooms.settings import settings
 
 
 class Conversation:
@@ -81,9 +84,15 @@ def _read_choice(choice_json):
         choice.choices.append(_read_choice(inner))
     return choice
 
-def load_chat(chat_id):
-    chat_json = simplejson.loads(open(chat_id + ".json").read())
+def _check_show_function(choice, script):
+    return 'show_function' not in choice or \
+        getattr(script, choice['show_function'])()
+
+def load_chat(chat_id, script):
+    chat_json = simplejson.loads(open(os.path.join(
+        settings.get("script_dir", ""), chat_id + ".json")).read())
     conversation = Conversation()
     for choice in chat_json.get('choices', []):
-        conversation.add(_read_choice(choice))
+        if _check_show_function(choice, script):
+            conversation.add(_read_choice(choice))
     return conversation
