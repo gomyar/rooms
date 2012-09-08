@@ -39,6 +39,8 @@ class ChatTest(unittest.TestCase):
         self.assertEquals("Request 5", chat.choices[1].query_text)
         self.assertEquals("Response 5", chat.choices[1].response)
         self.assertTrue(isinstance(chat.choices[0].choices[0].choices[1], Call))
+        self.assertEquals(chat.choices[0].choices[0].choices[1]._func,
+            self.mock_do_something)
 
     def testLoadOptionalChoice(self):
         self._should_show_choice = False
