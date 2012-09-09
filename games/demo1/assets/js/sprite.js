@@ -27,38 +27,13 @@ gui_sprite.Sprite.prototype.is_walking = function()
     return api_rooms.get_now() < this.path[this.path.length-1][2] * 1000;
 }
 
-gui_sprite.Sprite.prototype.drawPath = function(ctx)
-{
-    draw_previous_paths(ctx);
-    ctx.strokeStyle = "rgb(0,0,200)";
-    for (var i=0;i<this.path.length-1;i++)
-    {
-        ctx.beginPath();
-        ctx.arc(this.path[i+1][0], this.path[i+1][1],10,0,Math.PI*2);
-        ctx.closePath();
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(this.path[i][0], this.path[i][1]);
-        ctx.lineTo(this.path[i+1][0], this.path[i+1][1]);
-        ctx.stroke();
-    }
-
-    ctx.strokeStyle = "rgb(200,200,200)";
-    ctx.beginPath();
-    ctx.moveTo(vector[0][0], vector[0][1]);
-    ctx.lineTo(vector[1][0], vector[1][1]);
-    ctx.stroke();
-
-}
-
 gui_sprite.Sprite.prototype.draw = function(ctx)
 {
     if (this.hovered == true)
-        draw_rect(this.x()-2-this.width/2, this.y()-2-this.height/2,
+        gui.draw_rect(this.x()-2-this.width/2, this.y()-2-this.height/2,
             this.width + 4, this.height + 4, "rgb(200,200,0)");
     if (this.selected == true)
-        draw_rect(this.x()-2-this.width/2, this.y()-2-this.height/2,
+        gui.draw_rect(this.x()-2-this.width/2, this.y()-2-this.height/2,
             this.width + 4, this.height + 4, "rgb(0,200,0)");
 
     vector = this.current_vector();
@@ -71,15 +46,8 @@ gui_sprite.Sprite.prototype.draw = function(ctx)
     else
         offset = 0;
 
-//    this.drawPath(ctx);
-
-     ctx.save();
+    ctx.save();
     ctx.translate(this.x(), this.y());
-
-/*    ctx.strokeStyle = "rgb(0,0,0)";
-    ctx.fillStyle = "rgb(0,0,0)";
-    ctx.fillText("("+Math.round(this.x())+","+Math.round(this.y())+")",
-        30, 0);*/
 
     ctx.rotate(angle);
     ctx.translate(- this.width / 2, - this.height / 2);
@@ -166,7 +134,7 @@ gui_sprite.Sprite.prototype.optionalRedraw = function()
     if (gui.redraw_until <= this.end_time())
     {
         gui.redraw_until = this.end_time();
-        requestRedraw();
+        gui.requestRedraw();
     }
 }
 
@@ -192,10 +160,10 @@ gui_sprite.Sprite.prototype.atPosition = function(x, y)
 gui_sprite.Sprite.prototype.select = function()
 {
     this.selected = true;
-    if (this.id == player_id)
-        api_rooms.service_call("/game/" + instance_uid + "/" + this.id + "/exposed_commands", {}, show_commands);
+    if (this.id == api_rooms.player_id)
+        api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + this.id + "/exposed_commands", {}, show_commands);
     else
-        api_rooms.service_call("/game/" + instance_uid + "/" + this.id + "/exposed_methods", {}, show_commands);
+        api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + this.id + "/exposed_methods", {}, show_commands);
 
 }
 

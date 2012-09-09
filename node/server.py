@@ -77,8 +77,11 @@ def handle_socket(ws):
         instance = instances[instance_uid]
         log.debug("registering %s at %s", player_id, instance_uid)
         queue = instance.connect(player_id)
+        log.debug("Connected to queue")
         sessions[cookies['sessionid']] = player_id
+        log.debug("Sending sync")
         instance.send_sync(player_id)
+        log.debug("Sync sent")
         connected = True
         while not ws.websocket_closed and connected:
             try:
