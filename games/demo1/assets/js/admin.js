@@ -8,12 +8,12 @@ admin.loaded_chat_script_file = null;
 admin.load_script = function(script_file)
 {
     admin.loaded_script_file = script_file;
-    api_rooms.service_call("/admin/load_script", { "script_file": script_file }, show_script_file);
+    api_rooms.service_call("/admin/load_script", { "script_file": script_file }, admin.show_script_file);
 }
 
 admin.save_script = function(script_file, script_contents)
 {
-    api_rooms.service_call("/admin/save_script", { "script_file": script_file, "script_contents": script_contents }, script_saved);
+    api_rooms.service_call("/admin/save_script", { "script_file": script_file, "script_contents": script_contents }, admin.script_saved);
 }
 
 admin.script_saved = function(data)
@@ -37,7 +37,7 @@ admin.show_script_file = function(data)
     var myCodeMirror = CodeMirror.fromTextArea(textarea[0], {'name': 'text/x-python'});
     scriptedit_div.append(
         $("<div>", {'class': 'savebutton', 'text': 'Save' }).click(function(){
-            save_script(admin.loaded_script_file, myCodeMirror.getValue())}
+            admin.save_script(admin.loaded_script_file, myCodeMirror.getValue())}
         ),
         $("<div>", {'class': 'closebutton', 'text': 'Close' }).click(function() { $(".scriptedit").remove() })
     );
@@ -46,7 +46,7 @@ admin.show_script_file = function(data)
 admin.load_chat_script = function(script_file)
 {
     loaded_chat_cript_file = script_file;
-    api_rooms.service_call("/admin/load_chat_script", { "script_file": script_file }, show_chat_script_file);
+    api_rooms.service_call("/admin/load_chat_script", { "script_file": script_file }, admin.show_chat_script_file);
 }
 
 admin.show_chat_script_file = function(data)
@@ -72,7 +72,7 @@ admin.show_scripts = function(data)
             script_element.attr('script_file', script_file);
             script_element.click(function (){
                 console.log("Loading "+script_file);
-                load_script($(this).attr('script_file'));
+                admin.load_script($(this).attr('script_file'));
             });
 
             actor_scripts_div.append(script_element);
@@ -89,7 +89,7 @@ admin.show_scripts = function(data)
             script_element.attr('script_file', script_file);
             script_element.click(function (){
                 console.log("Loading "+script_file);
-                load_chat_script($(this).attr('script_file'));
+                admin.load_chat_script($(this).attr('script_file'));
             });
 
             chats_div.append(script_element);
@@ -108,7 +108,7 @@ admin.show_scripts = function(data)
 admin.menu_scripts_clicked = function(e)
 {
     api_rooms.service_call("/admin/list_scripts",
-        { }, show_scripts)
+        { }, admin.show_scripts)
 }
 
 
