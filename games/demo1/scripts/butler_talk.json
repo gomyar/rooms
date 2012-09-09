@@ -14,7 +14,7 @@
                 {
                     "request": "Where is the owner?",
                     "response": "Lady Pinkerton in in the dining room, Sir"
-                },
+                }
             ]
         },
         {
@@ -23,7 +23,7 @@
         },
         {
             "request": "Could you get my coat please",
-            "chat": "walk_to_cloakroom"
+            "script_function": "walk_to_cloakroom"
         }
     ]
 }
