@@ -161,10 +161,9 @@ gui_sprite.Sprite.prototype.select = function()
 {
     this.selected = true;
     if (this.id == api_rooms.player_id)
-        api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + this.id + "/exposed_commands", {}, show_commands);
+        api_rooms.exposed_commands(this.id, gui_game.show_commands);
     else
-        api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + this.id + "/exposed_methods", {}, show_commands);
-
+        api_rooms.exposed_methods(this.id, gui_game.show_commands);
 }
 
 gui_sprite.Sprite.prototype.deselect = function()

@@ -51,7 +51,8 @@ api_rooms.service_call = function(url, data, callback)
         'url': url,
         'data': data,
         'success': function(data) {
-            callback(jQuery.parseJSON(data));
+            if (callback != null)
+                callback(jQuery.parseJSON(data));
         },
         'error': function(jqXHR, errorText) {
             console.log("Error calling "+url+" : "+errorText);
@@ -82,7 +83,54 @@ api_rooms.onopen = function()
 api_rooms.onclose = function()
 {
     console.log("Connection lost");
-//    window.location = "http://localhost:8000";
 }
 
+api_rooms.connect = function(message_callback)
+{
+    api_rooms.socket = new WebSocket("ws://"+window.location.hostname+":8080/socket");
+    api_rooms.socket.onmessage = message_callback;
+    api_rooms.socket.onopen = api_rooms.onopen;
+    api_rooms.socket.onclose = api_rooms.onclose;
+    api_rooms.socket.onerror = api_rooms.onclose;
+}
 
+// *** API Calls
+
+api_rooms.leave_instance = function()
+{
+    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + api_rooms.player_id + "/leave_instance",
+        { })
+}
+
+api_rooms.list_inventory = function(data_callback)
+{
+    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + api_rooms.player_id + "/list_inventory",
+        { }, data_callback)
+}
+
+api_rooms.exit_through_door = function(door_id)
+{
+    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + api_rooms.player_id + "/exit",
+        { "door_id": door_id })
+}
+
+api_rooms.walk_to = function(x, y)
+{
+    api_rooms.service_call("/game/"+api_rooms.instance_uid+"/"+api_rooms.player_id+"/move_to",
+        { x : x, y : y });
+}
+
+api_rooms.exposed_commands = function(actor_id, data_callback)
+{
+    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + actor_id + "/exposed_commands", {}, data_callback);
+}
+
+api_rooms.exposed_methods = function(actor_id, data_callback)
+{
+    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + actor_id + "/exposed_methods", {}, data_callback);
+}
+
+api_rooms.chat = function(actor_id, choice_text, data_callback)
+{
+    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + actor_id + "/chat", { "message": choice_text }, data_callback);
+}

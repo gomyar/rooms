@@ -17,7 +17,7 @@ gui_screens.show_chat_window = function(message)
         choice_div.text(choice);
         $(choice_div).attr('choice', choice);
         choice_div.click(function(e){
-            api_rooms.service_call("/game/" + instance_uid + "/" + message.actor_id + "/chat", { "message": $(this).attr('choice') }, gui_screens.show_chat_window);
+            api_rooms.chat(message.actor_id, $(this).attr('choice'), gui_screens.show_chat_window);
         });
         chatChoices.append(choice_div);
     }

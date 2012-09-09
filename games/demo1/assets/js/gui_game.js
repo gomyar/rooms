@@ -16,11 +16,6 @@ gui_game.draw_door = function(ctx)
     ctx.stroke();
 }
 
-gui_game.exited = function(data)
-{
-    console.log("Exited successfully");
-}
-
 gui_game.timeTo = function(start, end, speed)
 {
     var x = end[0] - start[0];
@@ -35,14 +30,8 @@ gui_game.exit_through_door = function()
     var timeTill = gui_game.timeTo([api_rooms.own_actor.x(), api_rooms.own_actor.y()],
         [this.x(), this.y()], api_rooms.own_actor.speed) * 1000.0;
     gui.walk_timeout = setTimeout(function() {
-        gui_game.exit_door(door_id);
+        api_rooms.exit_through_door(door_id);
     }, timeTill);
-}
-
-gui_game.exit_door = function(door_id)
-{
-    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + api_rooms.player_id + "/exit",
-        { "door_id": door_id }, gui_game.exited)
 }
 
 gui_game.canvas_clicked = function(e)
@@ -78,9 +67,7 @@ gui_game.walk_to = function(x, y)
 {
     if (gui.walk_timeout)
         clearTimeout(gui.walk_timeout);
-    api_rooms.service_call("/game/"+api_rooms.instance_uid+"/"+api_rooms.player_id+"/move_to",
-        { x : x, y : y },
-        function () {  });
+    api_rooms.walk_to(x, y);
 }
 
 gui_game.canvas_mousemove = function(e)
@@ -210,14 +197,11 @@ gui_game.onmessage = function(msg)
         }
         else if (message.command == "actor_update")
         {
-//            console.log("Actor update: "+message.kwargs.actor_id);
-            console.log("Actor update for "+message.kwargs.actor_id);
             gui_game.sprites[message.kwargs.actor_id].path = message.kwargs.path;
             gui_game.sprites[message.kwargs.actor_id].optionalRedraw();
         }
         else if (message.command == "player_joined_instance")
         {
-            console.log("Actor joined: "+message.kwargs.actor_id);
             sprite = gui_game.create_actor_sprite(message.kwargs);
             sprite.optionalRedraw();
 
@@ -281,8 +265,7 @@ gui_game.initBackgroundImage = function()
 
 gui_game.menu_quit_clicked = function(e)
 {
-    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + api_rooms.player_id + "/leave_instance",
-        { }, function () { console.log("Leave sent"); })
+    api_rooms.leave_instance();
 }
 
 gui_game.show_evidence = function(data)
@@ -309,8 +292,7 @@ gui_game.show_evidence = function(data)
 
 gui_game.menu_evidence_clicked = function(e)
 {
-    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + api_rooms.player_id + "/list_inventory",
-        { }, gui_game.show_evidence)
+    api_rooms.list_inventory(gui_game.show_evidence);
 }
 
 
