@@ -381,6 +381,7 @@ div.chatcontainer
 div.admin_chat_choice
 {
     background-color : lightblue;
+    border-left : 1px solid black;
 }
 
 div.admin_chat_choice div.chat_entry
@@ -388,7 +389,7 @@ div.admin_chat_choice div.chat_entry
     margin : 2px dolis white;
 }
 
-div.admin_chat_choice div.chat_entry div.button
+div.admin_chat_choice div.button
 {
     font-style : italic;
     text-decoration : underline;
@@ -397,14 +398,9 @@ div.admin_chat_choice div.chat_entry div.button
     margin: 2px;
 }
 
-div.admin_chat_choice div.chat_entry div.button:hover
+div.admin_chat_choice div.button:hover
 {
     font-weight : bold;
-}
-
-div.admin_chat_choice div.chat_entry:hover
-{
-    background-color : white;
 }
 
 div.admin_chat_choice .request
@@ -429,14 +425,19 @@ div.admin_chat_choice div.choices
     margin-left : 20px;
 }
 
-div.admin_chat_choice div.choices div.choicecontrol
+div.admin_chat_choice div.add_button
 {
     text-decoration: underline;
     color : blue;
     cursor : pointer;
 }
 
-div.admin_chat_choice div.choices div.choicecontrol:hover
+div.admin_chat_choice div.add_button:hover
 {
     font-weight : bold;
+}
+
+div.admin_chat_choice div.choice_control
+{
+    text-align : right;
 }
