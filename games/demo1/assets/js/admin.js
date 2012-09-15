@@ -4,6 +4,7 @@ var admin = {};
 
 admin.loaded_script_file = null;
 admin.loaded_chat_script_file = null;
+admin.working_chat_script = null;
 
 admin.load_script = function(script_file)
 {
@@ -45,16 +46,27 @@ admin.show_script_file = function(data)
 
 admin.load_chat_script = function(script_file)
 {
-    loaded_chat_cript_file = script_file;
+    admin.loaded_chat_script_file = script_file;
     api_rooms.service_call("/admin/load_chat_script", { "script_file": script_file }, admin.show_chat_script_file);
 }
 
 admin.show_chat_script_file = function(data)
 {
     var chat = jQuery.parseJSON(data);
+    admin.working_chat_script = chat;
     $(".chatedit").remove();
     var chatedit_div = $("<div>", { "class": "chatedit" });
-    chatedit_div.append(admin.create_chat_choice(chat));
+    chatedit_div.append($("<div>", { "class": "chatcontainer" }).append(
+        admin.create_chat_choice(chat))
+    );
+
+    chatedit_div.append(
+        $("<div>", {'class': 'savebutton', 'text': 'Save' }).click(function(){
+            console.log("Save");
+        }),
+        $("<div>", {'class': 'closebutton', 'text': 'Close' }).click(function() { $(".chatedit").remove() })
+    );
+
     $("#main").append(chatedit_div);
 }
 
@@ -62,10 +74,27 @@ admin.create_chat_choice = function(chat)
 {
     var chat_div = $("<div>", { 'class': 'admin_chat_choice' });
     var chat_entry_div = $("<div>", {'class': 'chat_entry'});
-    chat_entry_div.append($("<div>", { 'class': 'request', 'text': chat.request }));
-    chat_entry_div.append($("<div>", { 'class': 'response', 'text': chat.response }));
+    chat_entry_div.append($("<textarea>", { 'class': 'request', 'text': chat.request })).attr("chat", chat).change(function(e, data){ 
+        $(this).attr("chat").request = this.textContent;
+        console.log("changed to:"+admin.working_chat_script);
+    });
+    chat_entry_div.append($("<textarea>", { 'class': 'response', 'text': chat.response })).attr("chat", chat).change(function(e, data){ 
+        $(this).attr("chat").response = this.textContent;
+        console.log("changed to:"+admin.working_chat_script);
+    });
     chat_entry_div.append($("<div>", { 'class': 'script_function', 'text': chat.script_function }));
-    chat_entry_div.append($("<div>", { 'class': 'delete_button', 'text': 'Delete'}));
+    chat_entry_div.append($("<div>", {'class': 'choice_control'})).append(
+        $("<div>", { 'class': 'button', 'text': 'Delete'}).click(function(e){ alert("Delete"); }),
+        $("<div>", { 'class': 'button', 'text': 'Move up'}),
+        $("<div>", { 'class': 'button', 'text': 'Move down'})
+    );
+
+    chat_entry_div.attr('chat', chat);
+/*    chat_entry_div.click(function(e){
+        var chat = e.attr('chat');
+        admin.show_chat_editor(chat);
+    });*/
+
     chat_div.append(chat_entry_div);
     var choices_div = $("<div>", {'class': 'choices' });
     for (c in chat.choices)
@@ -76,6 +105,11 @@ admin.create_chat_choice = function(chat)
     choices_div.append($("<div>", {'class': 'ccwrap'}).append($("<div>", {'class': 'choicecontrol', 'text': 'Add'})));
     chat_div.append(choices_div);
     return chat_div;
+}
+
+admin.show_chat_editor = function(chat)
+{
+    
 }
 
 admin.show_scripts = function(data)

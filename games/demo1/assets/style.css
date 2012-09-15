@@ -299,7 +299,7 @@ div.savebutton
     bottom : 0px;
     display : block;
     width : 100px;
-    height : 40px;
+    height : 20px;
     background-color : grey;
     color : black;
     text-align : center;
@@ -318,7 +318,7 @@ div.closebutton
     left : 100px;
     display : block;
     width : 100px;
-    height : 40px;
+    height : 20px;
     background-color : grey;
     color : black;
     text-align : center;
@@ -367,6 +367,14 @@ div.chatedit
     background-color : white;
     font-size : 12px;
     color : black;
+}
+
+div.chatcontainer
+{
+    position : absolute;
+    top : 0px;
+    bottom : 0px;
+    width : 700px;
     overflow : scroll;
 }
 
@@ -380,11 +388,18 @@ div.admin_chat_choice div.chat_entry
     margin : 2px dolis white;
 }
 
-div.admin_chat_choice div.chat_entry div.delete_button
+div.admin_chat_choice div.chat_entry div.button
 {
     font-style : italic;
     text-decoration : underline;
     cursor : pointer;
+    display: inline;
+    margin: 2px;
+}
+
+div.admin_chat_choice div.chat_entry div.button:hover
+{
+    font-weight : bold;
 }
 
 div.admin_chat_choice div.chat_entry:hover
@@ -392,16 +407,16 @@ div.admin_chat_choice div.chat_entry:hover
     background-color : white;
 }
 
-div.admin_chat_choice div.request
+div.admin_chat_choice .request
 {
     font-weight : bold;
-    cursor : pointer;
+    width : 100%;
 }
 
-div.admin_chat_choice div.response
+div.admin_chat_choice .response
 {
     font-style : italic;
-    cursor : pointer;
+    width : 100%;
 }
 
 div.admin_chat_choice div.script_function
@@ -423,5 +438,5 @@ div.admin_chat_choice div.choices div.choicecontrol
 
 div.admin_chat_choice div.choices div.choicecontrol:hover
 {
-    font-style : bold;
+    font-weight : bold;
 }

@@ -20,7 +20,7 @@ def pottering_around_dining_room(npc):
 def storm_off(npc, player):
     npc.say("That's rude. Leave me alone")
     player.data.jezabel_is_defensive = True
-
+  
 def chat(npc, player):
     conv = chat(
         c("Excuse me madame", "What? Yes, what do you want?",

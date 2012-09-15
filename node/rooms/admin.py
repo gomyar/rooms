@@ -43,3 +43,17 @@ class Admin(object):
             stacktrace = [str(s) for s in stacktrace]
             stacktrace = "\n".join(stacktrace)
             return {'success': False, 'stacktrace':stacktrace}
+
+    def add_choice(self, chat_script, request, response, function, *index):
+        script = self.load_chat_script(chat_script)
+
+
+    def delete_choice(self, chat_script, *index):
+        pass
+
+    def choice_move_up(self, chat_script, *index):
+        pass
+
+    def choice_move_down(self, chat_script, *index):
+        pass
+
