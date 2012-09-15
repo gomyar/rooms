@@ -6,11 +6,15 @@ admin_chat.ChatEdit = function(chat)
     this.chat = chat;
     this.div = this.create_gui(chat);
     this.choices = [];
+    this.parent_edit = null;
+    this.offset = 0;
 
-    for (c in chat.choices)
+    for (offset in chat.choices)
     {
-        var choice = chat.choices[c];
+        var choice = chat.choices[offset];
         var choice_obj = new admin_chat.ChatEdit(choice);
+        choice_obj.parent_edit = this;
+        choice_obj.offset = offset;
         this.choices[this.choices.length] = choice_obj;
         this.choices_div.append(choice_obj.div);
     }
@@ -23,7 +27,7 @@ admin_chat.ChatEdit.prototype.create_gui = function(chat)
 
     var div = $("<div>", {'class': "admin_chat_choice"}).append(
         $("<div>", {'class': 'choice_control'}).append(
-            $("<div>", { 'class': 'button', 'text': 'Delete'}),
+            $("<div>", { 'class': 'button', 'text': 'Delete'}).click(function(e){ self.delete_clicked(); }),
             $("<div>", { 'class': 'button', 'text': 'Move up'}),
             $("<div>", { 'class': 'button', 'text': 'Move down'})
         ),
@@ -38,7 +42,7 @@ admin_chat.ChatEdit.prototype.create_gui = function(chat)
             }),
             this.choices_div,
             $("<div>", {'class': 'ccwrap'}).append(
-                $("<div>", {'class': 'add_button', 'text': 'Add'}).click(function(e){self.add_clicked(self.chat);})
+                $("<div>", {'class': 'add_button', 'text': 'Add'}).click(function(e){self.add_clicked();})
             )
         )
     );
@@ -46,14 +50,24 @@ admin_chat.ChatEdit.prototype.create_gui = function(chat)
     return div;
 }
 
-admin_chat.ChatEdit.prototype.add_clicked = function(chat)
+admin_chat.ChatEdit.prototype.add_clicked = function()
 {
-    console.log("Adding to chat "+chat.request);
+    console.log("Adding to chat "+this.chat.request);
     var new_chat = {'request': '', 'response': '', 'script_function': '', 'choices': []};
     var new_obj = new admin_chat.ChatEdit(new_chat);
-    if (chat.choices == null)
-        chat.choices = [];
-    chat.choices[chat.choices.length] = new_chat;
+    new_obj.parent_edit = this;
+    if (this.chat.choices == null)
+        this.chat.choices = [];
+    this.chat.choices[this.chat.choices.length] = new_chat;
     this.choices[this.choices.length] = new_obj;
     this.choices_div.append(new_obj.div);
+}
+
+admin_chat.ChatEdit.prototype.delete_clicked = function()
+{
+    if (this.parent_edit.choices.length > this.offset)
+        this.parent_edit.choices.pop(this.offset);
+    for (offset in this.choices)
+        this.choices[offset].offset = offset;
+    this.div.remove();
 }
