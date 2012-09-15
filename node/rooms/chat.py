@@ -85,7 +85,8 @@ def _read_choice(choice_json, script):
     if 'run_function' in choice_json:
         return Call(getattr(script, choice_json['run_function']))
     else:
-        choice = RespondChoice(choice_json['request'], choice_json['response'])
+        choice = RespondChoice(choice_json.get('request', ''),
+            choice_json.get('response', ''))
         for inner in choice_json.get('choices', []):
             choice.choices.append(_read_choice(inner, script))
         return choice

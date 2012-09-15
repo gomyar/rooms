@@ -1,4 +1,6 @@
 
+import eventlet
+
 from scriptutils import load_script
 from rooms.npc_actor import NpcActor
 
@@ -20,7 +22,6 @@ def conversation(func=None):
     wrapped.is_exposed = True
     wrapped.filters = None
     return wrapped
-
 
 
 def create_npc(area, actor_id, model, script, room):

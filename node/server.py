@@ -23,6 +23,7 @@ import simplejson
 
 from rooms.instance import Instance
 from rooms.admin import Admin
+from rooms.settings import settings
 
 from eventlet.queue import Empty
 
@@ -293,7 +294,9 @@ if __name__ == "__main__":
         global game_root
         game_root = options.game
 
-        sys.path.append(os.path.join(game_root, "scripts"))
+        script_dir = os.path.join(game_root, "scripts")
+        sys.path.append(script_dir)
+        settings['script_dir'] = script_dir
 
         eventlet.spawn(backdoor.backdoor_server, eventlet.listen(
             ('localhost', 3000)), locals=dict(instances=instances))

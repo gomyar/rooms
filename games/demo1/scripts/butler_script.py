@@ -55,15 +55,5 @@ def walk_anticlockwise(npc, player):
     
 @conversation
 def chat(npc, player):
-    conv = create_chat(
-        c("Hullo Jeeves", "Good evening, Sir",
-            c("Have all the guests arrived yet?", "Not quite, Sir",
-                c("When is dinner starting?", "Around 9, Sir"),
-                c("Where is the owner?",
-                    "Lady Pinkerton in in the dining room, Sir"),
-            ),
-            c("Yes, thank you Jeeves, any chance of a drink?",
-                "The Lounge is straight ahead on the left, Sir")
-        )
-    )
+    conv = npc.load_chat("butler_talk")
     return conv

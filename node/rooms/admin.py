@@ -44,6 +44,25 @@ class Admin(object):
             stacktrace = "\n".join(stacktrace)
             return {'success': False, 'stacktrace':stacktrace}
 
+    def save_chat_script(self, script_file, script_contents):
+        if "/" in script_file:
+            raise Exception("Slashes? we dont need no stinkin slashes")
+        try:
+            script_path = os.path.join(self.game_root, "scripts", script_file)
+            script = open(script_path, "w")
+            script.write(script_contents)
+            script.close()
+
+            return {'success': True}
+        except Exception, e:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            stacktrace = traceback.format_exception(exc_type, exc_value,
+                exc_traceback)
+            stacktrace = [str(s) for s in stacktrace]
+            stacktrace = "\n".join(stacktrace)
+            return {'success': False, 'stacktrace':stacktrace}
+
+
     def add_choice(self, chat_script, request, response, function, *index):
         script = self.load_chat_script(chat_script)
 

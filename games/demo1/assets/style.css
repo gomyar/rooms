@@ -408,12 +408,14 @@ div.admin_chat_choice .request
 {
     font-weight : bold;
     width : 100%;
+    resize : none;
 }
 
 div.admin_chat_choice .response
 {
     font-style : italic;
     width : 100%;
+    resize : none;
 }
 
 div.admin_chat_choice div.script_function
