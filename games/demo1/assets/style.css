@@ -376,6 +376,7 @@ div.chatcontainer
     bottom : 0px;
     width : 700px;
     overflow : scroll;
+    margin-bottom : 20px;
 }
 
 div.admin_chat_choice
@@ -430,6 +431,8 @@ div.admin_chat_choice div.add_button
     text-decoration: underline;
     color : blue;
     cursor : pointer;
+    margin-left : 20px;
+    border-left : 1px solid black;
 }
 
 div.admin_chat_choice div.add_button:hover

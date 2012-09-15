@@ -64,7 +64,7 @@ admin.show_chat_script_file = function(data)
     chatedit_div.append(
         $("<div>", {'class': 'savebutton', 'text': 'Save' }).click(function(){
             console.log("Save");
-            alert(admin.working_chat_script.request);
+            alert(JSON.stringify(admin.working_chat_script, undefined, 4));
         }),
         $("<div>", {'class': 'closebutton', 'text': 'Close' }).click(function() { $(".chatedit").remove() })
     );

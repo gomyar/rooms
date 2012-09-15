@@ -28,8 +28,8 @@ admin_chat.ChatEdit.prototype.create_gui = function(chat)
     var div = $("<div>", {'class': "admin_chat_choice"}).append(
         $("<div>", {'class': 'choice_control'}).append(
             $("<div>", { 'class': 'button', 'text': 'Delete'}).click(function(e){ self.delete_clicked(); }),
-            $("<div>", { 'class': 'button', 'text': 'Move up'}),
-            $("<div>", { 'class': 'button', 'text': 'Move down'})
+            $("<div>", { 'class': 'button', 'text': 'Move up'}).click(function(e){ self.moveup_clicked(); }),
+            $("<div>", { 'class': 'button', 'text': 'Move down'}).click(function(e){ self.movedown_clicked(); })
         ),
         $("<div>", {'class': 'chat_entry'}).append(
             $("<textarea>", {'class': "request", "text": chat.request}).change(function(e){
@@ -65,9 +65,47 @@ admin_chat.ChatEdit.prototype.add_clicked = function()
 
 admin_chat.ChatEdit.prototype.delete_clicked = function()
 {
-    if (this.parent_edit.choices.length > this.offset)
-        this.parent_edit.choices.pop(this.offset);
-    for (offset in this.choices)
-        this.choices[offset].offset = offset;
-    this.div.remove();
+    if (confirm("Delete " + this.chat.request + "?"))
+    {
+        if (this.parent_edit.choices.length > this.offset)
+        {
+            this.parent_edit.choices.pop(this.offset);
+            this.parent_edit.chat.choices.pop(this.offset);
+        }
+        for (offset in this.parent_edit.choices)
+            this.parent_edit.choices[offset].offset = offset;
+        this.div.remove();
+    }
+}
+
+admin_chat.ChatEdit.prototype.moveup_clicked = function()
+{
+    if (this.offset > 0)
+    {
+        this.parent_edit.choices[this.offset] = this.parent_edit.choices[this.offset - 1];
+        this.parent_edit.choices[this.offset - 1] = this;
+        this.parent_edit.chat.choices[this.offset] = this.parent_edit.chat.choices[this.offset - 1];
+        this.parent_edit.chat.choices[this.offset - 1] = this.chat;
+
+        this.div.insertBefore(this.parent_edit.choices_div.children()[this.offset-1]);
+
+        for (offset in this.parent_edit.choices)
+            this.parent_edit.choices[offset].offset = offset;
+    }
+}
+
+admin_chat.ChatEdit.prototype.movedown_clicked = function()
+{
+    if (this.offset < this.parent_edit.choices.length - 1)
+    {
+        this.parent_edit.choices[this.offset] = this.parent_edit.choices[parseInt(this.offset) + 1];
+        this.parent_edit.choices[parseInt(this.offset) + 1] = this;
+        this.parent_edit.chat.choices[this.offset] = this.parent_edit.chat.choices[parseInt(this.offset) + 1];
+        this.parent_edit.chat.choices[parseInt(this.offset) + 1] = this.chat;
+
+        this.div.insertAfter(this.parent_edit.choices_div.children()[parseInt(this.offset) + 1]);
+
+        for (offset in this.parent_edit.choices)
+            this.parent_edit.choices[offset].offset = offset;
+    }
 }
