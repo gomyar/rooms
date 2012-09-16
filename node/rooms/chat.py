@@ -4,6 +4,9 @@ import os
 import simplejson
 from rooms.settings import settings
 
+import logging
+log = logging.getLogger("rooms.chat")
+
 
 class Conversation:
     def __init__(self, choices=None):
@@ -96,6 +99,7 @@ def _check_show_function(choice, script):
         getattr(script, choice['show_function'])()
 
 def load_chat(chat_id, script):
+    log.debug("Loading chat %s", chat_id)
     chat_json = simplejson.loads(open(os.path.join(
         settings.get("script_dir", ""), chat_id + ".json")).read())
     conversation = Conversation()

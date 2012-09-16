@@ -1,0 +1,1 @@
+{"request":"Hello there","response":"I am a Doctor!!","choices":[{"request":"Yes. Ok. Thank you","response":"Want a prescription?","script_function":"","choices":[{"request":"Em. Well. Sure ok. 24ccs of diazepene please...","response":"Here you go. It's on a repeat prescription.","script_function":"","choices":[]}]}]}

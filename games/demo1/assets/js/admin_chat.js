@@ -1,10 +1,13 @@
 
 admin_chat = {};
 
-admin_chat.ChatEdit = function(chat)
+admin_chat.ChatEdit = function(chat, show_controls)
 {
     this.chat = chat;
-    this.div = this.create_gui(chat);
+    if (show_controls)
+        this.div = this.create_gui(chat);
+    else
+        this.div = this.create_root_gui(chat);
     this.choices = [];
     this.parent_edit = null;
     this.offset = 0;
@@ -12,7 +15,7 @@ admin_chat.ChatEdit = function(chat)
     for (offset in chat.choices)
     {
         var choice = chat.choices[offset];
-        var choice_obj = new admin_chat.ChatEdit(choice);
+        var choice_obj = new admin_chat.ChatEdit(choice, true);
         choice_obj.parent_edit = this;
         choice_obj.offset = offset;
         this.choices[this.choices.length] = choice_obj;
@@ -50,11 +53,29 @@ admin_chat.ChatEdit.prototype.create_gui = function(chat)
     return div;
 }
 
+
+admin_chat.ChatEdit.prototype.create_root_gui = function(chat)
+{
+    var self = this;
+    this.choices_div = $("<div>", {'class': 'choices' });
+
+    var div = $("<div>", {'class': "admin_chat_choice"}).append(
+        $("<div>", {'class': 'chat_entry'}).append(
+            this.choices_div,
+            $("<div>", {'class': 'ccwrap'}).append(
+                $("<div>", {'class': 'add_button', 'text': 'Add'}).click(function(e){self.add_clicked();})
+            )
+        )
+    );
+
+    return div;
+}
+
 admin_chat.ChatEdit.prototype.add_clicked = function()
 {
     console.log("Adding to chat "+this.chat.request);
     var new_chat = {'request': '', 'response': '', 'script_function': '', 'choices': []};
-    var new_obj = new admin_chat.ChatEdit(new_chat);
+    var new_obj = new admin_chat.ChatEdit(new_chat, true);
     new_obj.parent_edit = this;
     if (this.chat.choices == null)
         this.chat.choices = [];

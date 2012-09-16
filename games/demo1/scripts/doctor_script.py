@@ -19,8 +19,4 @@ def hold_it(npc):
     
 @conversation
 def chat(npc, player):
-    conv = create_chat(
-        c("Excuse me I...", "Quickly!! He's gone mad! Someone needs to calm him down before he does some harm."),
-        c("Hold it", hold_it),
-    )
-    return conv
+    return npc.load_chat("doctor_talk")

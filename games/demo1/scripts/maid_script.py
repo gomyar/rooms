@@ -19,6 +19,7 @@ def pottering_around_lounge(npc):
     npc.move_to(1030, 720)
     npc.sleep(5)
 
+@conversation
 def chat(npc, player):
     conv = chat(
         c("Excuse me madame", "What? Yes, what? Speak up Deary...",
