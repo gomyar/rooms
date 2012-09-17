@@ -4,10 +4,10 @@ import random
 from script import *
 
 
-def kickoff():
-    pottering_around_library()
+def kickoff(npc):
+    pottering_around_library(npc)
 
-def pottering_around_library():
+def pottering_around_library(npc):
     npc.move_to(830, 620)
     npc.sleep(2)
     npc.move_to(860, 460)
@@ -20,5 +20,5 @@ def pottering_around_library():
     npc.sleep(5)
 
 @conversation
-def chat(player):
+def chat(npc, player):
     return npc.load_chat("professor_talk")

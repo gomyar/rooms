@@ -4,10 +4,10 @@ import random
 from script import *
 
 
-def kickoff():
-    pottering_around_lounge()
+def kickoff(npc):
+    pottering_around_lounge(npc)
 
-def pottering_around_lounge():
+def pottering_around_lounge(npc):
     npc.move_to(830, 620)
     npc.sleep(2)
     npc.move_to(860, 460)
@@ -20,7 +20,7 @@ def pottering_around_lounge():
     npc.sleep(5)
 
 @conversation
-def chat(player):
+def chat(npc, player):
     conv = chat(
         c("Excuse me madame", "What? Yes, what? Speak up Deary...",
             c("How can I find the Dining Room?",

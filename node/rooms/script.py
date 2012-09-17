@@ -56,11 +56,8 @@ class Script(object):
         except:
             log.exception("Script %s is corrupt - cannot load", script_name)
 
-    def has_kickoff(self):
-        return self.has_method("kickoff")
-
-    def kickoff(self):
-        self.call_method("kickoff")
+    def __getattr__(self, name):
+        return getattr(self.script_module, name, None)
 
     @property
     def methods(self):
@@ -85,23 +82,8 @@ class Script(object):
         return hasattr(self.script_module, method)
 
     def call_event_method(self, event_id, actor, *args, **kwargs):
-        try:
-            if event_id in self.events:
-                getattr(self.script_module, event_id)(actor, *args, **kwargs)
-        except:
-            log.exception("Exception calling event %s in script %s", event_id,
-                self.script_name)
-            raise
-
-    def call_method(self, method, *args, **kwargs):
-        try:
-            log.debug("Calling method %s(%s, %s) in script %s", method, args,
-                kwargs, self.script_name)
-            getattr(self.script_module, method)(*args, **kwargs)
-        except:
-            log.exception("Exception calling method %s in script %s", method,
-                self.script_name)
-            raise
+        if event_id in self.events:
+            getattr(self.script_module, event_id)(actor, *args, **kwargs)
 
     def can_call(self, actor, command):
         filters = getattr(self.script_module, command).filters or dict()

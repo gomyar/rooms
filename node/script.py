@@ -16,14 +16,14 @@ from rooms.chat import load_chat as load_chat_script
 
 class _NpcStub(object):
     def _npc(self):
-        return _actor_info.get(eventlet.getcurrent())
+        try:
+            return _actor_info[eventlet.getcurrent()]
+        except:
+            import ipdb; ipdb.set_trace()
+            raise
 
     def __getattr__(self, name):
-        npc = self._npc()
-        if npc:
-            return getattr(self._npc(), name, None)
-        else:
-            return None
+        return getattr(self._npc(), name, None)
 
 
 npc = _NpcStub()
