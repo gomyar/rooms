@@ -6,10 +6,27 @@ from rooms.npc_actor import NpcActor
 
 from rooms.script import expose
 from rooms.script import command
+from rooms.script import _actor_info
 
 from rooms.chat import chat as create_chat
 from rooms.chat import choice as c
 from rooms.chat import call
+from rooms.chat import load_chat as load_chat_script
+
+
+class _NpcStub(object):
+    def _npc(self):
+        try:
+            return _actor_info[eventlet.getcurrent()]
+        except:
+            import ipdb; ipdb.set_trace()
+            raise
+
+    def __getattr__(self, name):
+        return getattr(self._npc(), name, None)
+
+
+npc = _NpcStub()
 
 
 def conversation(func=None):
@@ -29,3 +46,7 @@ def create_npc(area, actor_id, model, script, room):
     npc.model_type = model
     npc.load_script(script)
     area.add_npc(npc, room)
+
+
+def load_chat(chat_id):
+    return load_chat_script(chat_id, npc.script)

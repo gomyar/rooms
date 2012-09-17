@@ -4,8 +4,6 @@ import eventlet
 from actor import Actor
 from script import expose
 
-from rooms.chat import load_chat as load_chat_script
-
 import logging
 log = logging.getLogger("rooms.npc")
 
@@ -46,6 +44,3 @@ class NpcActor(Actor):
 
     def kickoff(self):
         self.script.kickoff(self)
-
-    def load_chat(self, chat_id):
-        return load_chat_script(chat_id, self.script)

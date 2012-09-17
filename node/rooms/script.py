@@ -6,6 +6,8 @@ log = logging.getLogger("rooms.node")
 
 
 _scripts = dict()
+_actor_info = dict()
+
 
 def expose(func=None, **filters):
     if func==None:

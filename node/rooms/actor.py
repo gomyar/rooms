@@ -9,6 +9,7 @@ from path_vector import distance
 from path_vector import get_now
 
 from rooms.script import Script
+from rooms.script import _actor_info
 
 import logging
 log = logging.getLogger("rooms.node")
@@ -75,7 +76,8 @@ class Actor(object):
         self.call_queue.put((method, [self] + list(args), kwargs))
 
     def start_command_processor(self):
-        self.call_gthread = eventlet.spawn(self.process_command_queue)
+        self.call_gthread = eventlet.spawn_n(self.process_command_queue)
+        _actor_info[self.call_gthread] = self
 
     def process_command_queue(self):
         self.running = True
