@@ -5,10 +5,10 @@ from script import *
 import random
 
 
-def kickoff(npc):
-    wander(npc)
+def kickoff():
+    wander()
 
-def wander(npc):
+def wander():
     room_x, room_y = npc.room.position
     x = random.randint(room_x, room_x + npc.room.width)
     y = random.randint(room_y, room_y + npc.room.height)
@@ -16,7 +16,7 @@ def wander(npc):
     npc.sleep(random.randint(2, 4))
 
 @expose
-def chat(npc, player):
+def chat(player):
     conv = chat(
         c("Excuse me madame", "What? Yes, what? Speak up Deary...",
             c("How can I find the Dining Room?",

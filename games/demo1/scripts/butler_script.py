@@ -4,9 +4,9 @@ from script import *
 
 def kickoff():
     if npc.state.clockwise:
-        walk_around_clockwise(npc)
+        walk_around_clockwise()
     else:
-        walk_around_anticlockwise(npc)
+        walk_around_anticlockwise()
 
 def walk_around_clockwise():
     npc.move_to(930, 1740)

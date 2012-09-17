@@ -2,10 +2,10 @@
 from script import *
 
 
-def kickoff(npc):
-    pottering_around_dining_room(npc)
+def kickoff():
+    pottering_around_dining_room()
 
-def pottering_around_dining_room(npc):
+def pottering_around_dining_room():
     npc.move_to(830, 620)
     npc.sleep(2)
     npc.move_to(860, 460)
@@ -17,11 +17,11 @@ def pottering_around_dining_room(npc):
     npc.move_to(1030, 720)
     npc.sleep(5)
 
-def storm_off(npc, player):
+def storm_off(player):
     npc.say("That's rude. Leave me alone")
     player.data.jezabel_is_defensive = True
   
-def chat(npc, player):
+def chat(player):
     conv = chat(
         c("Excuse me madame", "What? Yes, what do you want?",
             c("When will dinner be ready?",
