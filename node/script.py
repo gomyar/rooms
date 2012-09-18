@@ -14,21 +14,6 @@ from rooms.chat import call
 from rooms.chat import load_chat as load_chat_script
 
 
-class _NpcStub(object):
-    def _npc(self):
-        try:
-            return _actor_info[eventlet.getcurrent()]
-        except:
-            import ipdb; ipdb.set_trace()
-            raise
-
-    def __getattr__(self, name):
-        return getattr(self._npc(), name, None)
-
-
-npc = _NpcStub()
-
-
 def conversation(func=None):
     def wrapped(npc, player, message=None):
         if message:

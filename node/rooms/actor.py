@@ -58,22 +58,20 @@ class Actor(object):
         if not self._can_call(player, method_name):
             raise Exception("Illegal interface call to %s in %s" % (method_name,
                 self))
-        method = self._get_method_or_script(method_name)
-        try:
-            return method(self, player, *args, **kwargs)
-        except Exception, e:
-            log.exception("Exception in api %s(%s, %s)", method, args,
-                kwargs)
-            self.add_error("Error calling %s(%s, %s): %s" % (method, args,
-                kwargs, e.args))
-            raise
+        self.call_script_method(method_name, self, [player] + args, kwargs)
 
     def command_call(self, method_name, *args, **kwargs):
         if not self._can_call(self, method_name):
             raise Exception("Illegal command call to %s in %s" % (method_name,
                 self))
-        method = self._get_method_or_script(method_name)
-        self.call_queue.put((method, [self] + list(args), kwargs))
+        self.call_script_method(method_name, self, args, kwargs)
+
+    def call_script_method(self, method_name, player, args, kwargs):
+        if self.call_gthread:
+            self.kill_gthread()
+            self.remove_gthread()
+        self.call_queue.put((method_name, [player] + list(args), kwargs))
+        self.start_command_processor()
 
     def start_command_processor(self):
         self.call_gthread = eventlet.spawn_n(self.process_command_queue)
@@ -82,12 +80,30 @@ class Actor(object):
     def process_command_queue(self):
         self.running = True
         while self.running:
-            self._process_queue_item()
+            while not self.call_queue.empty():
+                self._process_queue_item()
+            eventlet.sleep(1)
+            if self.script.has_method("kickoff"):
+                self.script.call_method("kickoff", self)
+            else:
+                self.running = False
+        self.remove_gthread()
+
+    def kill_gthread(self):
+        try:
+            call_gthread.throw()
+        except:
+            pass
+
+    def remove_gthread(self):
+        if self.call_gthread in _actor_info:
+            _actor_info.pop(self.call_gthread)
+        self.call_gthread = None
 
     def _process_queue_item(self):
         try:
             method, args, kwargs = self.call_queue.get()
-            method(*args, **kwargs)
+            self.script.call_method(method, *args, **kwargs)
         except Exception, e:
             log.exception("Exception processing %s(%s, %s)", method, args,
                 kwargs)
@@ -143,12 +159,6 @@ class Actor(object):
             if getattr(actor, key) != val:
                 return False
         return True
-
-    def _get_method_or_script(self, method_name):
-        if self.script and self.script.has_method(method_name):
-            return getattr(self.script, method_name)
-        else:
-            return getattr(self, method_name)
 
     def _can_call(self, actor, method_name):
         return bool(self.script and self.script.can_call(actor, method_name))

@@ -16,15 +16,6 @@ class NpcActor(Actor):
         self.chat_scripts = dict()
         self.gthread = None
 
-    def process_command_queue(self):
-        self.running = True
-        try:
-            while self.running:
-                self.sleep(1)
-                self.script.kickoff(self)
-        except:
-            log.exception("Exception running kickoff for %s", self.model_type)
-
     def create_chat(self, player, conversation):
         self.chat_scripts[player.actor_id] = conversation
 
@@ -41,6 +32,3 @@ class NpcActor(Actor):
         else:
             return dict(command="chat", actor_id=self.actor_id,
                 msg=response, choices=script.choice_list())
-
-    def kickoff(self):
-        self.script.kickoff(self)
