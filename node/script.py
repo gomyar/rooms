@@ -11,7 +11,6 @@ from rooms.script import _actor_info
 from rooms.chat import chat as create_chat
 from rooms.chat import choice as c
 from rooms.chat import call
-from rooms.chat import load_chat as load_chat_script
 
 
 def conversation(func=None):
@@ -32,6 +31,3 @@ def create_npc(area, actor_id, model, script, room):
     npc.load_script(script)
     area.add_npc(npc, room)
 
-
-def load_chat(chat_id):
-    return load_chat_script(chat_id, npc.script)
