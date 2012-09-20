@@ -1,6 +1,4 @@
 
-from functools import wraps
-
 import logging
 log = logging.getLogger("rooms.node")
 
@@ -41,7 +39,7 @@ class Script(object):
         return hasattr(self.script_module, method)
 
     def is_request(self, method):
-        return getattr(getattr(self, script_module, method), "is_request", False)
+        return getattr(getattr(self.script_module, method), "is_request", False)
 
     def call_event_method(self, event_id, actor, *args, **kwargs):
         try:
@@ -56,7 +54,7 @@ class Script(object):
         try:
             log.debug("Calling method %s(%s, %s) in script %s", method, args,
                 kwargs, self.script_name)
-            getattr(self.script_module, method)(actor, *args, **kwargs)
+            return getattr(self.script_module, method)(actor, *args, **kwargs)
         except:
             log.exception("Exception calling method %s in script %s", method,
                 self.script_name)

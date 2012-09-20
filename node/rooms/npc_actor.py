@@ -2,7 +2,6 @@
 import eventlet
 
 from actor import Actor
-from script import expose
 from rooms.chat import load_chat as load_chat_script
 
 import logging

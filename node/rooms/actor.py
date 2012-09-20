@@ -57,7 +57,12 @@ class Actor(object):
         if not self._can_call(player, method_name):
             raise Exception("Illegal interface call to %s in %s" % (method_name,
                 self))
-        self.call_script_method(method_name, self, [player] + list(args), kwargs)
+        if self._is_request(method_name):
+            return self.direct_call_script_method(method_name, self,
+                [player] + list(args), kwargs)
+        else:
+            self.call_script_method(method_name, self, [player] + list(args),
+                kwargs)
 
     def command_call(self, method_name, *args, **kwargs):
         if not self._can_call(self, method_name):
@@ -71,11 +76,11 @@ class Actor(object):
 
     def direct_call_script_method(self, method_name, player, args, kwargs):
         try:
-            return self.script.call_method(method, *args, **kwargs)
+            return self.script.call_method(method_name, player, *args, **kwargs)
         except Exception, e:
-            log.exception("Exception calling %s(%s, %s)", method, args,
+            log.exception("Exception calling %s(%s, %s)", method_name, args,
                 kwargs)
-            self.add_error("Error calling %s(%s, %s): %s" % (method, args,
+            self.add_error("Error calling %s(%s, %s): %s" % (method_name, args,
                 kwargs, e.args))
             raise
 
