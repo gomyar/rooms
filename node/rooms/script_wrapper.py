@@ -9,44 +9,6 @@ _scripts = dict()
 _actor_info = dict()
 
 
-def expose(func=None, **filters):
-    if func==None:
-        def inner(func):
-            return expose(func, **filters)
-        return inner
-    @wraps(func)
-    def wrapped(*args, **kwargs):
-        return func(*args, **kwargs)
-    wrapped.is_exposed = True
-    wrapped.filters = filters
-    return wrapped
-
-
-def command(func=None, **filters):
-    if func==None:
-        def inner(func):
-            return command(func, **filters)
-        return inner
-    @wraps(func)
-    def wrapped(*args, **kwargs):
-        return func(*args, **kwargs)
-    wrapped.is_command = True
-    wrapped.filters = filters
-    return wrapped
-
-
-def event(func=None):
-    if func==None:
-        def inner(func):
-            return event(func)
-        return inner
-    @wraps(func)
-    def wrapped(*args, **kwargs):
-        return func(*args, **kwargs)
-    wrapped.is_event = True
-    return wrapped
-
-
 class Script(object):
     def __init__(self, script_name):
         self.script_name = script_name
@@ -77,6 +39,9 @@ class Script(object):
 
     def has_method(self, method):
         return hasattr(self.script_module, method)
+
+    def is_request(self, method):
+        return getattr(getattr(self, script_module, method), "is_request", False)
 
     def call_event_method(self, event_id, actor, *args, **kwargs):
         try:

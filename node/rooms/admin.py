@@ -3,7 +3,7 @@ import os
 import sys
 import traceback
 
-from rooms.script import _scripts
+from rooms.script_wrapper import _scripts
 
 
 class Admin(object):

@@ -8,8 +8,7 @@ from path_vector import Path
 from path_vector import distance
 from path_vector import get_now
 
-from rooms.script import Script
-from rooms.script import _actor_info
+from rooms.script_wrapper import Script
 
 import logging
 log = logging.getLogger("rooms.node")
@@ -64,7 +63,21 @@ class Actor(object):
         if not self._can_call(self, method_name):
             raise Exception("Illegal command call to %s in %s" % (method_name,
                 self))
-        self.call_script_method(method_name, self, args, kwargs)
+        if self._is_request(method_name):
+            return self.direct_call_script_method(method_name, self, args,
+                kwargs)
+        else:
+            self.call_script_method(method_name, self, args, kwargs)
+
+    def direct_call_script_method(self, method_name, player, args, kwargs):
+        try:
+            return self.script.call_method(method, *args, **kwargs)
+        except Exception, e:
+            log.exception("Exception calling %s(%s, %s)", method, args,
+                kwargs)
+            self.add_error("Error calling %s(%s, %s): %s" % (method, args,
+                kwargs, e.args))
+            raise
 
     def call_script_method(self, method_name, player, args, kwargs):
         if self.call_gthread:
@@ -75,7 +88,6 @@ class Actor(object):
 
     def start_command_processor(self):
         self.call_gthread = eventlet.spawn_n(self.process_command_queue)
-        _actor_info[self.call_gthread] = self
 
     def process_command_queue(self):
         self.running = True
@@ -96,8 +108,6 @@ class Actor(object):
             pass
 
     def remove_gthread(self):
-        if self.call_gthread in _actor_info:
-            _actor_info.pop(self.call_gthread)
         self.call_gthread = None
 
     def _process_queue_item(self):
@@ -162,6 +172,9 @@ class Actor(object):
 
     def _can_call(self, actor, method_name):
         return bool(self.script and self.script.can_call(actor, method_name))
+
+    def _is_request(self, method_name):
+        return bool(self.script and self.script.is_request(method_name))
 
     def _all_exposed_methods(self, actor):
         if self == actor:
