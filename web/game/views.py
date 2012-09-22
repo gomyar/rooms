@@ -37,7 +37,7 @@ def list_all_areas_for(owner_id):
 
 @login_required
 def running_instances(request):
-    user_id = request.user.pk
+    user_id = request.user.username
     instances = master.list_instances()
     own_instance = master.own_instance(str(user_id))
     if own_instance:
@@ -45,7 +45,7 @@ def running_instances(request):
         return HttpResponseRedirect(
             "http://%s:%s/?instance_uid=%s&player_id=%s" % \
             (instance['node'][0], instance['node'][1],
-            own_instance, user_id))
+            own_instance, request.user.username))
     else:
         return render_to_response("list_instances.html",
             dict(instances=instances.values(),
@@ -54,14 +54,14 @@ def running_instances(request):
 
 @login_required
 def create_instance(request):
-    user_id = request.user.pk
+    user_id = request.user.username
     map_id = request.POST['map_id']
     master.create_instance(str(user_id), map_id)
     return HttpResponseRedirect("/")
 
 @login_required
 def join_instance(request):
-    user_id = request.user.pk
+    user_id = request.user.username
     instance_uid = request.POST['instance_uid']
     log.debug("User %s joining %s", user_id, instance_uid)
     response = master.join_instance(str(user_id), instance_uid)

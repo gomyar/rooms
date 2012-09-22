@@ -14,7 +14,7 @@ init_mongo()
 area = Area()
 area.rooms = MongoRoomContainer(area)
 area.area_name = "mansion"
-area.owner_id = 1
+area.owner_id = "ray"
 area.load_script("demo1_script")
 area.player_script = "player_script"
 
