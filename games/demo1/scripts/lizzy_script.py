@@ -1,2 +1,2 @@
 def kickoff(npc):
-    npc.walk_to(100, 100)
+    npc.move_to(100, 1000)

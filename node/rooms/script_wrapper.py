@@ -4,7 +4,21 @@ log = logging.getLogger("rooms.node")
 
 
 _scripts = dict()
-_actor_info = dict()
+_actor_scripts = dict()
+
+
+def register_actor_script(script_name, actor):
+    if script_name not in _actor_scripts:
+        _actor_scripts[script_name] = []
+    if actor is not _actor_scripts[script_name]:
+        _actor_scripts[script_name].append(actor)
+
+def deregister_actor_script(script_name, actor):
+    if script_name in _actor_scripts:
+        if actor in _actor_scripts[script_name]:
+            _actor_scripts[script_name].remove(actor)
+        if _actor_scripts[script_name] == []:
+            _actor_scripts.pop(script_name)
 
 
 class Script(object):

@@ -4,6 +4,7 @@ import sys
 import traceback
 
 from rooms.script_wrapper import _scripts
+from rooms.script_wrapper import _actor_scripts
 
 
 class Admin(object):
@@ -34,7 +35,10 @@ class Admin(object):
             script.write(script_contents)
             script.close()
 
-            reload(_scripts[script_file.rstrip(".py")])
+            script_name = script_file.rstrip(".py")
+            reload(_scripts[script_name])
+            for actor in _actor_scripts[script_name]:
+                actor.kick()
             return {'success': True}
         except Exception, e:
             exc_type, exc_value, exc_traceback = sys.exc_info()

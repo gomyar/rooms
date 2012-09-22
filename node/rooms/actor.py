@@ -9,6 +9,8 @@ from path_vector import distance
 from path_vector import get_now
 
 from rooms.script_wrapper import Script
+from rooms.script_wrapper import register_actor_script
+from rooms.script_wrapper import deregister_actor_script
 
 import logging
 log = logging.getLogger("rooms.node")
@@ -52,6 +54,13 @@ class Actor(object):
 
     def load_script(self, classname):
         self.script = Script(classname)
+        register_actor_script(classname, self)
+
+    def __del__(self):
+        deregister_actor_script(self.script.script_name, self)
+
+    def kick(self):
+        self._queue_script_method("kick", self, [], {})
 
     def interface_call(self, method_name, player, *args, **kwargs):
         if not self._can_call(player, method_name):

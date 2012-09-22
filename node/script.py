@@ -68,3 +68,6 @@ def conversation(func=None):
 
 def chat_delay(actor):
     eventlet.sleep(10)
+
+def kick(actor):
+    pass
