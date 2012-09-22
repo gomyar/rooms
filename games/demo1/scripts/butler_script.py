@@ -7,16 +7,12 @@ def kickoff(npc):
 
 def walk_around_clockwise(npc):
     npc.move_to(930, 1740)
-    npc.add_error("npc.move_to(930, 1740)")
     npc.sleep(5)
     npc.move_to(1180, 1740)
-    npc.add_error("npc.move_to(1180, 1740)")
     npc.sleep(5)
     npc.move_to(1180, 1590)
-    npc.add_error("npc.move_to(1180, 1590)")
     npc.sleep(5)
     npc.move_to(930, 1590)
-    npc.add_error("npc.move_to(930, 1590)")
     npc.sleep(5)
 
 def walk_around_anticlockwise(npc):
