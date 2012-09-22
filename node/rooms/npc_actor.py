@@ -26,12 +26,16 @@ class NpcActor(Actor):
         response = script.said(message)
         if response:
             player.add_chat_message("%s says: %s", self.actor_id, response)
+        self._delayed_chat_response()
         if not script.choice_list():
             self.chat_scripts.pop(player.actor_id)
             return dict(command="end_chat", actor_id=self.actor_id)
         else:
             return dict(command="chat", actor_id=self.actor_id,
                 msg=response, choices=script.choice_list())
+
+    def _delayed_chat_response(self):
+        self._queue_script_method("chat_delay", self, [], {})
 
     def load_chat(self, chat_id):
         return load_chat_script(chat_id, self.script)

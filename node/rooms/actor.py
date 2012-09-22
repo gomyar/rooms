@@ -57,24 +57,22 @@ class Actor(object):
         if not self._can_call(player, method_name):
             raise Exception("Illegal interface call to %s in %s" % (method_name,
                 self))
-        if self._is_request(method_name):
-            return self.direct_call_script_method(method_name, self,
-                [player] + list(args), kwargs)
-        else:
-            self.call_script_method(method_name, self, [player] + list(args),
-                kwargs)
+        return self.script_call(method_name, [player] + list(args), kwargs)
 
     def command_call(self, method_name, *args, **kwargs):
         if not self._can_call(self, method_name):
             raise Exception("Illegal command call to %s in %s" % (method_name,
                 self))
+        return self.script_call(method_name, args, kwargs)
+
+    def script_call(self, method_name, args, kwargs):
         if self._is_request(method_name):
-            return self.direct_call_script_method(method_name, self, args,
+            return self._call_script_method(method_name, self, args,
                 kwargs)
         else:
-            self.call_script_method(method_name, self, args, kwargs)
+            self._queue_script_method(method_name, self, args, kwargs)
 
-    def direct_call_script_method(self, method_name, player, args, kwargs):
+    def _call_script_method(self, method_name, player, args, kwargs):
         try:
             return self.script.call_method(method_name, player, *args, **kwargs)
         except Exception, e:
@@ -84,7 +82,7 @@ class Actor(object):
                 kwargs, e.args))
             raise
 
-    def call_script_method(self, method_name, player, args, kwargs):
+    def _queue_script_method(self, method_name, player, args, kwargs):
         if self.call_gthread:
             self.kill_gthread()
             self.remove_gthread()
@@ -92,7 +90,7 @@ class Actor(object):
         self.start_command_processor()
 
     def start_command_processor(self):
-        self.call_gthread = eventlet.spawn_n(self.process_command_queue)
+        self.call_gthread = eventlet.spawn(self.process_command_queue)
 
     def process_command_queue(self):
         self.running = True
@@ -108,7 +106,7 @@ class Actor(object):
 
     def kill_gthread(self):
         try:
-            call_gthread.throw()
+            self.call_gthread.kill()
         except:
             pass
 
@@ -119,6 +117,8 @@ class Actor(object):
         try:
             method, args, kwargs = self.call_queue.get()
             self.script.call_method(method, *args, **kwargs)
+        except eventlet.greenlet.GreenletExit, ex:
+            raise
         except Exception, e:
             log.exception("Exception processing %s(%s, %s)", method, args,
                 kwargs)
@@ -198,10 +198,6 @@ class Actor(object):
 
     def add_log(self, msg, *args):
         pass
-
-    def event(self, event_id, from_actor, *args, **kwargs):
-        if self.script:
-            self.script.call_event_method(event_id, from_actor, *args, **kwargs)
 
     def remove(self):
         self.room.remove_actor(self)

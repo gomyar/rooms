@@ -22,11 +22,6 @@ class Script(object):
             getattr(getattr(self.script_module, m), "is_exposed", None)]
 
     @property
-    def events(self):
-        return [m for m in dir(self.script_module) if \
-            getattr(getattr(self.script_module, m), "is_event", None)]
-
-    @property
     def script_module(self):
         return _scripts[self.script_name]
 
@@ -41,24 +36,10 @@ class Script(object):
     def is_request(self, method):
         return getattr(getattr(self.script_module, method), "is_request", False)
 
-    def call_event_method(self, event_id, actor, *args, **kwargs):
-        try:
-            if event_id in self.events:
-                getattr(self.script_module, event_id)(actor, *args, **kwargs)
-        except:
-            log.exception("Exception calling event %s in script %s", event_id,
-                self.script_name)
-            raise
-
     def call_method(self, method, actor, *args, **kwargs):
-        try:
-            log.debug("Calling method %s(%s, %s) in script %s", method, args,
-                kwargs, self.script_name)
-            return getattr(self.script_module, method)(actor, *args, **kwargs)
-        except:
-            log.exception("Exception calling method %s in script %s", method,
-                self.script_name)
-            raise
+        log.debug("Calling method %s(%s, %s) in script %s", method, args,
+            kwargs, self.script_name)
+        return getattr(self.script_module, method)(actor, *args, **kwargs)
 
     def can_call(self, actor, command):
         filters = getattr(self.script_module, command).filters or dict()

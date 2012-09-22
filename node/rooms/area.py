@@ -27,8 +27,9 @@ class Area(object):
     def player_joined_instance(self, player, room_id):
         if self.player_script:
             player.load_script(self.player_script)
-        if self.game_script:
-            self.game_script.call_event_method("player_joined_instance", player,
+        if self.game_script and \
+                self.game_script.has_method("player_joined_instance"):
+            self.game_script.call_method("player_joined_instance", player,
                 room_id)
         self.actor_joined_instance(player, room_id)
 

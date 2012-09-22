@@ -9,6 +9,9 @@ from rooms.chat import chat as create_chat
 from rooms.chat import choice as c
 from rooms.chat import call
 
+import logging
+log = logging.getLogger('rooms.script')
+
 
 def expose(func=None, **filters):
     if func==None:
@@ -70,3 +73,6 @@ def create_npc(area, actor_id, model, script, room):
     npc.load_script(script)
     area.add_npc(npc, room)
 
+
+def chat_delay(actor):
+    eventlet.sleep(10)
