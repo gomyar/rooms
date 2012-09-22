@@ -119,12 +119,12 @@ area.create_door(hall, lounge, (940, 1240), (920, 1240))
 area.entry_point_room_id = "foyer"
 
 create_npc(area, "butler", "butler", "butler_script", 'foyer')
-create_npc(area, "thomas", "dilettante", "brother_script", 'lounge')
-create_npc(area, "anthony", "dilettante", "brother_script", 'lounge')
+create_npc(area, "thomas", "dilettante", "thomas_script", 'lounge')
+create_npc(area, "anthony", "dilettante", "anthony_script", 'lounge')
 create_npc(area, "doctor", "major", "doctor_script", 'hall')
-create_npc(area, "barnes", "professor", "professor_script", 'library')
-create_npc(area, "lizzy", "aunt", "maid_script", 'lounge')
-create_npc(area, "celia", "aunt", "maid_script", 'diningroom')
+create_npc(area, "barnes", "professor", "barnes_script", 'library')
+create_npc(area, "lizzy", "aunt", "lizzy_script", 'lounge')
+create_npc(area, "celia", "aunt", "celia_script", 'diningroom')
 
 create_npc(area, "bobby", "investigator", "bobby_script", 'hall')
 create_npc(area, "sergeant", "investigator", "sergeant_script", 'lounge')

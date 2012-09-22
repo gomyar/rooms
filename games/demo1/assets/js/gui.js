@@ -42,6 +42,8 @@ gui.draw = function()
 
     if (api_rooms.get_now() < gui.redraw_until)
         gui.requestRedraw();
+
+    gui.draw_text_centered(200, 20, "("+parseInt(gui.viewport_x)+", "+parseInt(gui.viewport_y)+")", "black");
 }
 
 gui.requestRedraw = function()

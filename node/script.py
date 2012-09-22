@@ -2,12 +2,11 @@
 from functools import wraps
 import eventlet
 
-from scriptutils import load_script
-from rooms.npc_actor import NpcActor
-
 from rooms.chat import chat as create_chat
 from rooms.chat import choice as c
 from rooms.chat import call
+
+from scriptutils import create_npc
 
 import logging
 log = logging.getLogger('rooms.script')
@@ -65,13 +64,6 @@ def conversation(func=None):
     wrapped.filters = None
     wrapped.is_request = True
     return wrapped
-
-
-def create_npc(area, actor_id, model, script, room):
-    npc = NpcActor(actor_id)
-    npc.model_type = model
-    npc.load_script(script)
-    area.add_npc(npc, room)
 
 
 def chat_delay(actor):

@@ -1,9 +1,9 @@
 
-import sys
+from rooms.npc_actor import NpcActor
 
-GAME_ROOT = "/home/ray/projects/rooms/games/demo1/"
-if GAME_ROOT not in sys.path:
-    sys.path.append(GAME_ROOT + "scripts")
 
-def load_script(script_class):
-    return __import__(script_class)
+def create_npc(area, actor_id, model, script, room):
+    npc = NpcActor(actor_id)
+    npc.model_type = model
+    npc.load_script(script)
+    area.add_npc(npc, room)
