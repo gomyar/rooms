@@ -26,6 +26,7 @@ class NpcActor(Actor):
         response = script.said(message)
         if response:
             self.say(response)
+        self.stop()
         self._delayed_chat_response()
         if not script.choice_list():
             self.chat_scripts.pop(player.actor_id)

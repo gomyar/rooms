@@ -230,6 +230,9 @@ class Actor(object):
     def move_towards(self, actor):
         self.move_to(actor.x(), actor.y())
 
+    def stop(self):
+        self.move_to(self.x(), self.y())
+
     def perform_action(self, action_id, seconds=0.0, **data):
         self.action = Action(action_id, seconds, data)
         self.send_actor_update()
