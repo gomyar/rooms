@@ -6,6 +6,7 @@ gui.ctx = null;
 
 gui.redraw_until = 0;
 gui.walk_timeout = 0;
+gui.redraw_timeout = null;
 
 gui.viewport_x = 0;
 gui.viewport_y = 0;
@@ -15,10 +16,13 @@ gui.resetCanvas = function()
     gui.canvas.width = $("#main").width();
     gui.canvas.height = $("#main").height();
     gui.ctx=gui.canvas.getContext("2d");
+    gui.requestRedraw();
 }
 
 gui.draw = function()
 {
+    gui.redraw_timeout = null;
+
     gui.ctx.clearRect(0, 0, gui.canvas.width, gui.canvas.height);
     if (gui_assets.background_img != null)
         gui.ctx.drawImage(gui_assets.background_img, gui.viewport_x, gui.viewport_y);
@@ -48,7 +52,8 @@ gui.draw = function()
 
 gui.requestRedraw = function()
 {
-    setTimeout(gui.draw, 20);
+    if (gui.redraw_timeout == null)
+        gui.redraw_timeout = setTimeout(gui.draw, 20);
 }
 
 gui.draw_rect = function(x, y, width, height, color)
