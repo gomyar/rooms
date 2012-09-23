@@ -106,7 +106,7 @@ class Instance:
 
     def deregister(self, player_id):
         self.disconnect(player_id)
-        actor = self.players[player_id]['players']
+        actor = self.players[player_id]['player']
         self.area.actor_left_instance(actor)
         self.send_to_all("actor_left_instance", actor_id=player_id)
         self.players.pop(player_id)

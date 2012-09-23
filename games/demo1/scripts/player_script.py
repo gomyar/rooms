@@ -20,6 +20,6 @@ def has_evidence(player, npc, category):
 def move_to(player, x, y):
     player.move_to(x, y)
 
-@command
-def exit(player, door_id):
-    player.exit(door_id)
+@request
+def leave_instance(player):
+    player.leave_instance()

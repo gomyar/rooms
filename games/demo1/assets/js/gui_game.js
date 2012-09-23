@@ -271,7 +271,9 @@ gui_game.initBackgroundImage = function()
 
 gui_game.menu_quit_clicked = function(e)
 {
-    api_rooms.leave_instance();
+    api_rooms.leave_instance(function(){
+         window.location = "http://localhost:8000";
+    });
 }
 
 gui_game.show_evidence = function(data)

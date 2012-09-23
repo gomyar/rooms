@@ -97,10 +97,10 @@ api_rooms.connect = function(message_callback)
 
 // *** API Calls
 
-api_rooms.leave_instance = function()
+api_rooms.leave_instance = function(callback)
 {
     api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + api_rooms.player_id + "/leave_instance",
-        { })
+        { }, callback)
 }
 
 api_rooms.list_inventory = function(data_callback)
