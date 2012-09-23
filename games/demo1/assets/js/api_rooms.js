@@ -70,6 +70,7 @@ api_rooms.load_map = function(map_url)
             var map_object = api_rooms.room.map_objects[i];
             map_object.img = images[map_object.object_type];
         }
+        gui.requestRedraw();
     });
 }
 
