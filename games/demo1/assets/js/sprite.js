@@ -50,6 +50,21 @@ gui_sprite.Sprite.prototype.draw = function(ctx)
     ctx.save();
     ctx.translate(this.x(), this.y());
 
+    if (this.speech != null)
+    {
+        console.log("Drawing speech:"+this.speech);
+        gui.ctx.fillStyle='#ffffff';
+        gui.ctx.beginPath();
+        gui.ctx.moveTo(0, -50);
+        gui.ctx.lineTo(10, -50);
+        gui.ctx.lineTo(0, -40);
+        gui.ctx.lineTo(0, -50);
+        gui.ctx.closePath();
+        gui.ctx.fill();
+
+        gui.fill_text_centered(0, -50, this.speech);
+    }
+
     ctx.rotate(angle);
     ctx.translate(- this.width / 2, - this.height / 2);
     ctx.drawImage(this.img, 0, offset * 50, 50, 50, 0, 0, 50, 50);
@@ -172,4 +187,14 @@ gui_sprite.Sprite.prototype.deselect = function()
     this.selected = false;
 }
 
-
+gui_sprite.Sprite.prototype.speech_bubble = function(msg)
+{
+    var self = this;
+    if (this.speech_timeout != null)
+        clearTimeout(this.speech_timeout);
+    this.speech = msg;
+    this.speech_timeout = setTimeout(function() {
+        self.speech = null;
+        gui.requestRedraw();
+    }, 3000);
+}

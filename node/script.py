@@ -71,3 +71,6 @@ def chat_delay(actor):
 
 def kick(actor):
     pass
+
+def move_to_object(actor, object_id):
+    actor.move_to(*actor.room.map_objects[object_id].position)

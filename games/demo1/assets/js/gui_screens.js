@@ -3,6 +3,7 @@ var gui_screens = {};
 
 gui_screens.show_chat_window = function(message)
 {
+    gui.requestRedraw();
     $("#chatOuter").remove();
     if (message.command == "end_chat")
     {

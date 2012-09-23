@@ -100,7 +100,8 @@ class Room(object):
     def external(self):
         return dict(room_id=self.room_id, position=self.position,
             width=self.width, height=self.height,
-            map_objects=[m.external() for m in self.map_objects.values()],
+            map_objects=dict([(obj_id, m.external()) for (obj_id, m) in \
+                self.map_objects.items()]),
         )
 
     def actor_enters(self, actor, door_id):
@@ -194,3 +195,7 @@ class Room(object):
         npc.set_position(position)
         npc.room = self
         self.actors[npc.actor_id] = npc
+
+    def actor_said(self, actor, msg):
+        for heard in self.actors.values():
+            heard.actor_heard(actor, msg)

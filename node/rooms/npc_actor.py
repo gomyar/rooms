@@ -22,10 +22,10 @@ class NpcActor(Actor):
     def chat(self, player, message=""):
         script = self.chat_scripts[player.actor_id]
         if message:
-            player.add_chat_message("You say : %s", message)
+            player.say(message)
         response = script.said(message)
         if response:
-            player.add_chat_message("%s says: %s", self.actor_id, response)
+            self.say(response)
         self._delayed_chat_response()
         if not script.choice_list():
             self.chat_scripts.pop(player.actor_id)

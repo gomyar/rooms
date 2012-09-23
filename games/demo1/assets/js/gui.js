@@ -68,11 +68,24 @@ gui.fill_rect = function(x, y, width, height, color)
 
 gui.draw_text_centered = function(x, y, text, color)
 {
-    gui.ctx.fillStyle = color;
     gui.ctx.font="10px Arial";
     var metrics = gui.ctx.measureText(text);
     var width = metrics.width;
     gui.ctx.fillText(text, x - width / 2, y - 5);
 }
+
+gui.fill_text_centered = function(x, y, text, color, fillColor)
+{
+    gui.ctx.font="10px Arial";
+    if (color == null) color = "#000000";
+    if (fillColor == null) fillColor = "#ffffff";
+    var metrics = gui.ctx.measureText(text);
+    var width = metrics.width;
+    gui.ctx.fillStyle=fillColor;
+    gui.ctx.fillRect(x - width / 2 - 5, y - 15, width + 10, 15);
+    gui.ctx.fillStyle=color;
+    gui.ctx.fillText(text, x - width / 2, y - 5);
+}
+
 
 

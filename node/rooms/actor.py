@@ -139,6 +139,12 @@ class Actor(object):
         self.log.append(log_entry)
         self.instance.send_to_all("log", **log_entry)
 
+    def say(self, msg):
+        self.room.actor_said(self, msg)
+
+    def actor_heard(self, actor, msg):
+        pass
+
     def external(self, player):
         return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
             path=self.path.path_array(), speed=self.path.speed,

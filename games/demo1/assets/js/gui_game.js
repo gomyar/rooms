@@ -127,10 +127,12 @@ gui_game.show_commands = function(commands)
 
 gui_game.draw_room = function()
 {
-    for (var i=0; i<api_rooms.room.map_objects.length; i++)
+    for (object_id in api_rooms.room.map_objects)
     {
-        var map_object = api_rooms.room.map_objects[i];
+        var map_object = api_rooms.room.map_objects[object_id];
         gui.ctx.drawImage(map_object.img, map_object.position[0], map_object.position[1], map_object.width, map_object.height);
+        gui.draw_text_centered(map_object.position[0], map_object.position[1],
+            object_id)
     }
 }
 
@@ -227,7 +229,11 @@ gui_game.onmessage = function(msg)
             delete gui_game.sprites[message.kwargs.actor_id];
             gui.requestRedraw();
         }
-
+        else if (message.command == "actor_heard")
+        {
+            console.log("Heard "+message.kwargs.msg);
+            gui_game.sprites[message.kwargs.actor_id].speech_bubble(message.kwargs.msg);
+        }
         else if (message.command == "log")
         {
             gui_game.addLogEntry(message.kwargs.msg);
