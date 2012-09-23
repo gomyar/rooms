@@ -51,8 +51,6 @@ class Script(object):
         return getattr(getattr(self.script_module, method), "is_request", False)
 
     def call_method(self, method, actor, *args, **kwargs):
-        log.debug("Calling method %s(%s, %s) in script %s", method, args,
-            kwargs, self.script_name)
         return getattr(self.script_module, method)(actor, *args, **kwargs)
 
     def can_call(self, actor, command):
