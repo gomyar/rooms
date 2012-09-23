@@ -32,9 +32,6 @@ gui_sprite.Sprite.prototype.draw = function(ctx)
     if (this.hovered == true)
         gui.draw_rect(this.x()-2-this.width/2, this.y()-2-this.height/2,
             this.width + 4, this.height + 4, "rgb(200,200,0)");
-    if (this.selected == true)
-        gui.draw_rect(this.x()-2-this.width/2, this.y()-2-this.height/2,
-            this.width + 4, this.height + 4, "rgb(0,200,0)");
     gui.draw_text_centered(this.x(), this.y() - this.height / 2, this.id);
 
     vector = this.current_vector();
