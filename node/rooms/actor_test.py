@@ -15,11 +15,11 @@ def mock_me(actor):
 
 @expose()
 def mock_you(actor, from_actor):
-    return "Called with actor %s" % (actor.actor_id,)
+    actor._test_value = "Called with actor %s" % (actor.actor_id,)
 
 
 @command()
-def script_call(player, param1, param2="value2"):
+def scripty_cally(player, param1, param2="value2"):
     return "Hello %s %s" % (param1, param2)
 
 
@@ -91,10 +91,15 @@ class ActorTest(unittest.TestCase):
         self.actor.load_script("rooms.actor_test")
         self.mock_actor.load_script("rooms.actor_test")
 
-        self.assertEquals("Called with actor mock",
-            self.mock_actor.interface_call("mock_you", self.actor))
+        self.mock_actor.interface_call("mock_you", self.actor)
+        self.mock_actor._process_queue_item()
+        self.assertEquals("Called with actor mock", self.mock_actor._test_value)
 
-        self.actor.command_call("script_call", "1", "2")
+        self.actor.command_call("scripty_cally", "1", "2")
 
-        self.assertEquals((script_call, [self.actor, '1', '2'], {}),
+        self.assertEquals(("scripty_cally", [self.actor, '1', '2'], {}),
             self.actor.call_queue.queue[0])
+
+    def testDel(self):
+        self.actor.load_script("rooms.actor_test")
+        del(self.actor)

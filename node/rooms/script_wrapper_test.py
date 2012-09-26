@@ -23,7 +23,7 @@ def second_command(actor, param1):
 
 class ScriptTest(unittest.TestCase):
     def setUp(self):
-        self.script = Script("rooms.script_test")
+        self.script = Script("rooms.script_wrapper_test")
         self.actor = Actor("actor1")
         self.actor.script = self.script
         self.actor2 = Actor("actor2")
@@ -34,7 +34,7 @@ class ScriptTest(unittest.TestCase):
 
         self.actor.command_call('first_command', "value1")
 
-        self.assertEquals((first_command, [self.actor, "value1"], {}),
+        self.assertEquals(("first_command", [self.actor, "value1"], {}),
             self.actor.call_queue.queue[0])
 
         self.actor._process_queue_item()
@@ -45,6 +45,7 @@ class ScriptTest(unittest.TestCase):
         self.assertEquals(['first_method'], self.script.methods)
 
         self.actor.interface_call('first_method', self.actor2, "value1")
+        self.actor._process_queue_item()
 
         self.assertEquals("value1", self.actor.state.param1)
 

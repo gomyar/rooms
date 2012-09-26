@@ -54,7 +54,7 @@ class InstanceTest(unittest.TestCase):
 
         self.assertEquals(1, player.call_queue.qsize())
         self.assertEquals(player.call_queue.queue[0],
-            (walk_to, [player], {'y': 10, 'x': 20}))
+            ("walk_to", [player], {'y': 10, 'x': 20}))
 
     def testNoExceptionOnPlayerDisconnect(self):
         self.instance.register("player1")

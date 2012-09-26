@@ -57,7 +57,8 @@ class Actor(object):
         register_actor_script(classname, self)
 
     def __del__(self):
-        deregister_actor_script(self.script.script_name, self)
+        if self.script:
+            deregister_actor_script(self.script.script_name, self)
 
     def kick(self):
         self._queue_script_method("kick", self, [], {})
