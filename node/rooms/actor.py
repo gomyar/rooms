@@ -231,6 +231,13 @@ class Actor(object):
     def move_towards(self, actor):
         self.move_to(actor.x(), actor.y())
 
+    def move_to_room(self, room_id):
+        doors = self.room.all_doors()
+        door = [door for door in doors if door.exit_room.room_id == room_id]
+        door = door[0]
+        self.move_to(*door.position())
+        self.exit(door.actor_id)
+
     def stop(self):
         self.move_to(self.x(), self.y())
 

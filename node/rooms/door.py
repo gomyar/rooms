@@ -41,8 +41,9 @@ class Door(Actor):
         return self.room.area.rooms[self.exit_room_id]
 
     def __eq__(self, rhs):
-        return rhs and self.exit_room_id == rhs.exit_room_id and \
-            self.exit_door_id == rhs.exit_door_id
+        return rhs and type(rhs) is Door \
+            and self.exit_room_id == rhs.exit_room_id \
+            and self.exit_door_id == rhs.exit_door_id
 
     def __repr__(self):
         return "<Door at %s, %s to %s through %s>" % (self.x(), self.y(),

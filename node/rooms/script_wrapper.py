@@ -14,7 +14,7 @@ def register_actor_script(script_name, actor):
         _actor_scripts[script_name].append(actor)
 
 def deregister_actor_script(script_name, actor):
-    if script_name in _actor_scripts:
+    if _actor_scripts and script_name in _actor_scripts:
         if actor in _actor_scripts[script_name]:
             _actor_scripts[script_name].remove(actor)
         if _actor_scripts[script_name] == []:
