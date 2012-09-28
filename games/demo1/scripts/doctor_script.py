@@ -1,21 +1,19 @@
 
-import random
 
 from script import *
 
 
 def kickoff(npc):
-    random_wander(npc)
+    npc.move_to(1100, 1100)
+    npc.say("Worst case I've ever seen...")
+    npc.sleep(5)
+    npc.move_to(1000, 1000)
+    npc.sleep(6)
+    npc.say("Perhaps a sleeping pill")
+    npc.sleep(3)
+    npc.say("No... he'll never take one")
+    npc.sleep(3)
 
-def random_wander(npc):
-    room_x, room_y = npc.room.position
-    x = random.randint(room_x, room_x + npc.room.width)
-    y = random.randint(room_y, room_y + npc.room.height)
-    npc.move_to(x, y)
-    npc.sleep(random.randint(2, 4))
-
-def hold_it(npc):
-    npc.talk()
     
 @conversation
 def chat(npc, player):

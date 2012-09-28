@@ -109,7 +109,7 @@ class Actor(object):
                 self._process_queue_item()
             eventlet.sleep(1)
             if self.script.has_method("kickoff"):
-                self.script.call_method("kickoff", self)
+                self._wrapped_call("kickoff", self)
             else:
                 self.running = False
         self.remove_gthread()
@@ -124,8 +124,11 @@ class Actor(object):
         self.call_gthread = None
 
     def _process_queue_item(self):
+        method, args, kwargs = self.call_queue.get()
+        self._wrapped_call(method, *args, **kwargs)
+
+    def _wrapped_call(self, method, *args, **kwargs):
         try:
-            method, args, kwargs = self.call_queue.get()
             self.script.call_method(method, *args, **kwargs)
         except eventlet.greenlet.GreenletExit, ex:
             raise

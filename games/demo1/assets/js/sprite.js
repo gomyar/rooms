@@ -49,7 +49,6 @@ gui_sprite.Sprite.prototype.draw = function(ctx)
 
     if (this.speech != null)
     {
-        console.log("Drawing speech:"+this.speech);
         gui.ctx.fillStyle='#ffffff';
         gui.ctx.beginPath();
         gui.ctx.moveTo(0, -50);

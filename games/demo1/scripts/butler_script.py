@@ -3,13 +3,8 @@ from script import *
 
 
 def kickoff(npc):
-#    walk_around_clockwise(npc)
-    move_to_object(npc, "t1")
-    npc.say("I am at t1")
-    npc.sleep(3)
-    move_to_object(npc, "t2")
-    npc.say("I am at t2")
-    npc.sleep(3)
+    npc.sleep(15)
+    npc.say("Can I get you anything sir?")
 
     
 def walk_around_clockwise(npc):

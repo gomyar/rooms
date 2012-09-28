@@ -23,3 +23,7 @@ def move_to(player, x, y):
 @request
 def leave_instance(player):
     player.leave_instance()
+
+@command
+def exit(player, door_id):
+    player.exit(door_id)

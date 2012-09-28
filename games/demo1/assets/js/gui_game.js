@@ -233,6 +233,7 @@ gui_game.onmessage = function(msg)
         {
             console.log("Heard "+message.kwargs.msg);
             gui_game.sprites[message.kwargs.actor_id].speech_bubble(message.kwargs.msg);
+            gui.requestRedraw();
         }
         else if (message.command == "log")
         {
