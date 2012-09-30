@@ -10,5 +10,6 @@ def kickoff(npc):
     
 @conversation
 def chat(npc, player):
-    conv = npc.load_chat("butler_talk")
+#    conv = npc.load_chat("butler_talk")
+    conv = npc.load_chat("bobby_angry")
     return conv

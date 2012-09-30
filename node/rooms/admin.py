@@ -26,6 +26,16 @@ class Admin(object):
             raise Exception("Slashes? we dont need no stinkin slashes")
         return open(os.path.join(self.game_root, "scripts", script_file)).read()
 
+    def create_chat_script(self, script_file):
+        if "/" in script_file:
+            raise Exception("Slashes? we dont need no stinkin slashes")
+        filepath = os.path.join(self.game_root, "scripts", script_file)
+        if os.path.exists(filepath):
+            raise Exception("File already exists")
+        newfile = open("%s.json" % (filepath,), "w")
+        newfile.write('{ "choices": []}')
+        newfile.close()
+
     def save_script(self, script_file, script_contents):
         if "/" in script_file:
             raise Exception("Slashes? we dont need no stinkin slashes")

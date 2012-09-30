@@ -1,6 +1,8 @@
 <html>
 
+<link href="/static/css/web.css" rel="stylesheet" type="text/css"/>
 <script src="/static/js/jquery-1.4.4.min.js"></script>
+<script src="/static/js/web.js"></script>
 <script>
 function join(instance_id)
 {
@@ -11,20 +13,27 @@ function join(instance_id)
 
 <body>
 
-<h2>Instances:</h2>
+<h2>Rooms Demo Server</h2>
 
-<ul>
-{% for instance in instances %}
-<li><span>{{ instance.map_id }}</span>
-    <span>Players: {{ instance.players }}</span>
-    <form method="post" action="/join_instance">
-    {% csrf_token %}
-    <input type="hidden" name="instance_uid" value="{{ instance.uid }}"></input> 
-    <input type="submit" value="Join"></input>
-    </form>
-</li>
-{% endfor %}
-</ul>
+<div id="game_list">
+    
+</div>
+
+<div id="instance_list">
+    <ul>
+    {% for instance in instances %}
+    <li><span>{{ instance.map_id }}</span>
+        <span>Players: {{ instance.players }}</span>
+        <div class="join_link" onclick="join_instance({{ instance.uid }});">Instance.name</div> 
+        <form method="post" action="/join_instance">
+        {% csrf_token %}
+        <input type="hidden" name="instance_uid" value="{{ instance.uid }}"></input> 
+        <input type="submit" value="Join"></input>
+        </form>
+    </li>
+    {% endfor %}
+    </ul>
+</div>
 
 <form method="post" action="/create_instance">
     {% csrf_token %}

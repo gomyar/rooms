@@ -96,8 +96,8 @@ admin.show_scripts = function(data)
             actor_scripts_div.append(script_element);
         }
         actor_scripts_div.append($("<div>", {'class': 'buttonmenu'}).append(
-            $("<div>", {'class': 'sbutton', 'text': 'Edit'}),
-            $("<div>", {'class': 'sbutton', 'text': 'New'})
+/*            $("<div>", {'class': 'sbutton', 'text': 'Edit'}),
+            $("<div>", {'class': 'sbutton', 'text': 'New'})*/
         ));
         var chats_div = $("<div>", { "class": "chat_scripts"});
         for (i in data.chat_scripts)
@@ -113,14 +113,20 @@ admin.show_scripts = function(data)
             chats_div.append(script_element);
         }
         chats_div.append($("<div>", {'class': 'buttonmenu'}).append(
-            $("<div>", {'class': 'sbutton', 'text': 'Edit'}),
-            $("<div>", {'class': 'sbutton', 'text': 'New'})
+//            $("<div>", {'class': 'sbutton', 'text': 'Edit'}),
+            $("<div>", {'class': 'sbutton', 'text': 'New'}).click(admin.new_conversation_script)
         ));
 
         scripts_div.append(actor_scripts_div);
         scripts_div.append(chats_div);
         $("#main").append(scripts_div);
     }
+}
+
+admin.new_conversation_script = function(e)
+{
+    var script_name = prompt("Script name:");
+    api_rooms.service_call("/admin/create_chat_script", { "script_file": script_name }, function(){ console.log("Saved"); });
 }
 
 admin.menu_scripts_clicked = function(e)
