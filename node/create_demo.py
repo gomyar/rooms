@@ -45,6 +45,8 @@ area.rooms['hall'] = hall
 
 # Lounge
 lounge = Room('lounge', (420, 1000), 500, 420, description="The Lounge")
+lounge.add_object("sofa",
+    RoomObject("couch_east", 50, 190), (420, 1100))
 area.rooms['lounge'] = lounge
 
 # Library
