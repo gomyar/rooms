@@ -19,6 +19,7 @@ class Point(object):
         self._f = 0
         self._g = 0
         self._h = 0
+        self._connected = []
 
     def __eq__(self, rhs):
         return rhs and type(rhs) is Point and \
@@ -29,17 +30,45 @@ class Point(object):
         return "<Point %s, %s>" % (self.x, self.y)
 
     def connected(self):
+        return self._connected
+
+    def hook_up_connected(self, point_spacing=1):
+        self._connected = list(self._find_connected(point_spacing))
+
+    def _find_connected(self, point_spacing=1):
+        connected = []
         for offset in _connected_offsets:
-            point = (offset[0] + self.x, offset[1] + self.y)
+            point = ((offset[0]) * point_spacing + self.x,
+                (offset[1]) * point_spacing + self.y)
             if self.point_map[point] and self.point_map[point].passable:
-                yield self.point_map[point]
+                connected.append(self.point_map[point])
+        return connected
 
     def connected_points(self):
         return [(point.x, point.y) for point in self.connected()]
 
+    def unhook_connected(self, point_spacing=1):
+        connected = []
+        for offset in _connected_offsets:
+            point = ((offset[0]) * point_spacing + self.x,
+                (offset[1]) * point_spacing + self.y)
+            if self.point_map[point] and \
+                    self in self.point_map[point]._connected:
+                connected.append(self.point_map[point])
+        for point in connected:
+            point._connected.remove(self)
+            if point.parent == self:
+                point.parent = None
+                point._f = 0
+                point._g = 0
+                point._h = 0
+        self._connected = []
+
     def calc_g(self):
         if self.parent:
-            if self.parent.x != self.x and self.parent.y != self.y:
+            diff_x = self.parent.x - self.x
+            diff_y = self.parent.y - self.y
+            if diff_x and diff_y:
                 self._g = 14 + self.parent._g
             else:
                 self._g = 10 + self.parent._g
@@ -63,27 +92,33 @@ class Point(object):
 
 
 class PointMap(object):
-    def __init__(self, width, height):
+    def __init__(self, width, height, point_spacing=1):
         self._points = dict()
         self.width = 0
         self.height = 0
-        for x in range(width):
-            for y in range(height):
+        self.point_spacing = point_spacing
+        for x in range(0, width, point_spacing):
+            for y in range(0, height, point_spacing):
                 point = Point(x, y)
                 self._points[x, y] = point
                 point.point_map = self
-                self.width = max(self.width, x + 1)
-                self.height = max(self.height, y + 1)
+                self.width = max(self.width, x + point_spacing)
+                self.height = max(self.height, y + point_spacing)
+        for x in range(0, width, point_spacing):
+            for y in range(0, height, point_spacing):
+                point = self[x, y]
+                point.hook_up_connected(point_spacing)
 
     def __getitem__(self, key):
         return self._points.get(key)
 
     def make_impassable(self, from_key, to_key=None):
         to_key = to_key or from_key
-        for x in range(from_key[0], to_key[0] + 1):
-            for y in range(from_key[1], to_key[1] + 1):
+        for x in range(from_key[0], to_key[0] + 1, self.point_spacing):
+            for y in range(from_key[1], to_key[1] + 1, self.point_spacing):
                 if (x, y) in self._points:
                     self._points[x, y].passable = False
+                    self._points[x, y].unhook_connected(self.point_spacing)
 
 class AStar(object):
     def __init__(self, point_map):
@@ -95,6 +130,8 @@ class AStar(object):
         return min(self.open_list, key=Point.f)
 
     def find_path(self, from_point, to_point):
+        self.open_list = []
+        self.closed_list = []
         # add starting node to open list
         self.open_list.append(from_point)
         # repeat 
