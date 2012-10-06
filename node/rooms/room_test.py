@@ -9,11 +9,11 @@ from actor import Actor
 class RoomTest(unittest.TestCase):
     def setUp(self):
         self.area = Area()
-        self.area.rooms['room1'] = Room("room1")
+        self.area.rooms['room1'] = Room("room1", (0, 0), 100, 100)
         self.area.rooms['room1'].area = self.area
-        self.area.rooms['room2'] = Room("room2")
+        self.area.rooms['room2'] = Room("room2", (100, 0), 100, 100)
         self.area.rooms['room2'].area = self.area
-        self.area.rooms['room3'] = Room("room3")
+        self.area.rooms['room3'] = Room("room3", (0, 100), 100, 100)
         self.area.rooms['room3'].area = self.area
 
         self.area.create_door(self.area.rooms['room1'],
@@ -36,5 +36,5 @@ class RoomTest(unittest.TestCase):
 
         self.actor.move_to_room("room2")
 
-        self.assertEquals([(10, 0), (10, 0)], self.actor.path.basic_path_list())
-        self.assertEquals(0.24, round(self._mock_slept_for, 2))
+        self.assertEquals([(100, 0), (100, 0)], self.actor.path.basic_path_list())
+        self.assertEquals(0.47, round(self._mock_slept_for, 2))

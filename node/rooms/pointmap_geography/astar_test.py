@@ -8,7 +8,7 @@ from astar import Point
 
 class AStarTest(unittest.TestCase):
     def testCreatePointMap(self):
-        point_map = PointMap(7, 5)
+        point_map = PointMap(0, 0, 7, 5)
         self.assertEquals(Point(2, 2), point_map[2, 2])
         self.assertEquals(7, point_map.width)
         self.assertEquals(5, point_map.height)
@@ -27,7 +27,7 @@ class AStarTest(unittest.TestCase):
         self.assertTrue((3, 3) not in set(point_map[2, 2].connected_points()))
 
     def testCreatespacedPointMap(self):
-        point_map = PointMap(70, 50, 10)
+        point_map = PointMap(0, 0, 70, 50, 10)
         self.assertEquals(Point(20, 20), point_map[20, 20])
         self.assertEquals(70, point_map.width)
         self.assertEquals(50, point_map.height)
@@ -47,7 +47,7 @@ class AStarTest(unittest.TestCase):
 
 
     def testExample(self):
-        point_map = PointMap(7, 5)
+        point_map = PointMap(0, 0, 7, 5)
         point_map.make_impassable((3, 1), (3, 3))
 
         path = AStar(point_map).find_path(point_map[(1, 2)], point_map[(5, 2)])
@@ -55,7 +55,7 @@ class AStarTest(unittest.TestCase):
         self.assertEquals([(1, 2), (2, 1), (3, 0), (4, 1), (5, 2)], path)
 
     def testExample2(self):
-        point_map = PointMap(7, 5)
+        point_map = PointMap(0, 0, 7, 5)
         point_map.make_impassable((3, 0), (3, 3))
 
         path = AStar(point_map).find_path(point_map[(1, 2)], point_map[(5, 2)])
@@ -63,7 +63,7 @@ class AStarTest(unittest.TestCase):
         self.assertEquals([(1, 2), (2, 3), (3, 4), (4, 3), (5, 2)], path)
 
     def testExample2(self):
-        point_map = PointMap(7, 5)
+        point_map = PointMap(0, 0, 7, 5)
         point_map.make_impassable((3, 0), (3, 4))
 
         path = AStar(point_map).find_path(point_map[(1, 2)], point_map[(5, 2)])
@@ -71,7 +71,7 @@ class AStarTest(unittest.TestCase):
         self.assertEquals([], path)
 
     def testCanUseAStarTwice(self):
-        point_map = PointMap(7, 5)
+        point_map = PointMap(0, 0, 7, 5)
         point_map.make_impassable((3, 1), (3, 3))
 
         astar = AStar(point_map)
@@ -80,3 +80,7 @@ class AStarTest(unittest.TestCase):
 
         path = astar.find_path(point_map[(1, 2)], point_map[(5, 2)])
         self.assertEquals([(1, 2), (2, 1), (3, 0), (4, 1), (5, 2)], path)
+
+    def testPointSpacing(self):
+        point_map = PointMap(0, 0, 7, 5, 10)
+        self.assertEquals(Point(0, 0), point_map[1, 1])

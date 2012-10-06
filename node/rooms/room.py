@@ -3,7 +3,7 @@ from player_actor import PlayerActor
 from npc_actor import NpcActor
 from door import Door
 
-from basicsquare_geography import BasicSquareGeography
+from pointmap_geography.pointmap_geography import PointmapGeography
 
 import logging
 log = logging.getLogger("rooms")
@@ -13,7 +13,7 @@ from actor import FACING_SOUTH
 from actor import FACING_EAST
 from actor import FACING_WEST
 
-geog = BasicSquareGeography()
+geog = PointmapGeography()
 
 
 class RoomObject(object):
@@ -107,7 +107,8 @@ class Room(object):
     def actor_enters(self, actor, door_id):
         self.actors[actor.actor_id] = actor
         actor.room = self
-        actor.set_position(self.actors[door_id].position())
+        actor.set_position(geog.get_available_position_closest_to(self,
+            self.actors[door_id].position()))
         self.area.actor_enters_room(self, actor, door_id)
 
     def actor_joined_instance(self, actor):
@@ -115,7 +116,8 @@ class Room(object):
         actor.room = self
         entry_x = self.position[0] + self.width / 2
         entry_y = self.position[1] + self.height / 2
-        position = geog.get_available_position_closest_to(self, (entry_x, entry_y))
+        position = geog.get_available_position_closest_to(self,
+            (entry_x, entry_y))
         actor.set_position(position)
 
     def actor_left_instance(self, actor):

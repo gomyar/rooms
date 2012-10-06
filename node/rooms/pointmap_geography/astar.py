@@ -92,32 +92,42 @@ class Point(object):
 
 
 class PointMap(object):
-    def __init__(self, width, height, point_spacing=1):
+    def __init__(self, left, top, width, height, point_spacing=1):
         self._points = dict()
+        self.left = left
+        self.top = top
         self.width = 0
         self.height = 0
         self.point_spacing = point_spacing
-        for x in range(0, width, point_spacing):
-            for y in range(0, height, point_spacing):
+        for x in range(left, left + width, point_spacing):
+            for y in range(top, top + height, point_spacing):
                 point = Point(x, y)
                 self._points[x, y] = point
                 point.point_map = self
                 self.width = max(self.width, x + point_spacing)
                 self.height = max(self.height, y + point_spacing)
-        for x in range(0, width, point_spacing):
-            for y in range(0, height, point_spacing):
+        for x in range(left, left + width, point_spacing):
+            for y in range(top, top + height, point_spacing):
                 point = self[x, y]
                 point.hook_up_connected(point_spacing)
 
     def __getitem__(self, key):
+        key = ((key[0] / self.point_spacing) * self.point_spacing,
+            (key[1] / self.point_spacing) * self.point_spacing)
         return self._points.get(key)
 
+    def available_points(self):
+        return dict([(key, point) for (key, point) in self._points.items() if \
+            point.passable])
+
     def make_impassable(self, from_key, to_key=None):
+        print "Make_impass %s %s" % (from_key, to_key)
         to_key = to_key or from_key
-        for x in range(from_key[0], to_key[0] + 1, self.point_spacing):
-            for y in range(from_key[1], to_key[1] + 1, self.point_spacing):
+        for x in range(from_key[0], to_key[0] + self.point_spacing, self.point_spacing):
+            for y in range(from_key[1], to_key[1] + self.point_spacing, self.point_spacing):
                 if (x, y) in self._points:
                     self._points[x, y].passable = False
+                    print "Unhook %s" % (self._points[x, y],)
                     self._points[x, y].unhook_connected(self.point_spacing)
 
 class AStar(object):
