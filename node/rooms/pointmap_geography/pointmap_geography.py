@@ -17,9 +17,8 @@ class PointmapGeography(object):
                 int(room.height / self.point_spacing) * self.point_spacing,
                 self.point_spacing)
             for room_object in room.map_objects.values():
-                print "Impass : "+room_object.object_type
-#                pointmap.make_impassable(room_object.position,
-#                    (room_object.right(), room_object.bottom()))
+                pointmap.make_impassable(room_object.position,
+                    (room_object.right(), room_object.bottom()))
             self._pointmaps[room] = pointmap
         return self._pointmaps[room]
 
@@ -36,6 +35,6 @@ class PointmapGeography(object):
             (end[1] / self.point_spacing) * self.point_spacing)
         if not pointmap[start]:
             return []
-        if not pointmap[end]:
+        if not pointmap[end] or not pointmap[end].passable:
             end = self.get_available_position_closest_to(room, end)
         return AStar(pointmap).find_path(pointmap[start], pointmap[end])

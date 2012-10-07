@@ -45,5 +45,5 @@ class PointmapGeogTest(unittest.TestCase):
     def testClosestPointToPosition(self):
         self.room.add_object("table", RoomObject("table", 20, 20), (10, 10))
 
-        self.assertEquals((0, 0), self.geog.get_available_position_closest_to(
+        self.assertEquals((0, 20), self.geog.get_available_position_closest_to(
             self.room, (20, 20)))

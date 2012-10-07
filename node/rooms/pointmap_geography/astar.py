@@ -121,13 +121,11 @@ class PointMap(object):
             point.passable])
 
     def make_impassable(self, from_key, to_key=None):
-        print "Make_impass %s %s" % (from_key, to_key)
         to_key = to_key or from_key
         for x in range(from_key[0], to_key[0] + self.point_spacing, self.point_spacing):
             for y in range(from_key[1], to_key[1] + self.point_spacing, self.point_spacing):
                 if (x, y) in self._points:
                     self._points[x, y].passable = False
-                    print "Unhook %s" % (self._points[x, y],)
                     self._points[x, y].unhook_connected(self.point_spacing)
 
 class AStar(object):
@@ -142,6 +140,11 @@ class AStar(object):
     def find_path(self, from_point, to_point):
         self.open_list = []
         self.closed_list = []
+        for point in self.point_map._points.values():
+            point._f = 0
+            point._g = 0
+            point._h = 0
+            point.parent = None
         # add starting node to open list
         self.open_list.append(from_point)
         # repeat 
