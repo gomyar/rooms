@@ -52,6 +52,10 @@ class Actor(object):
     def instance(self):
         return self.room.instance
 
+    @property
+    def area(self):
+        return self.room.area
+
     def load_script(self, classname):
         self.script = Script(classname)
         register_actor_script(classname, self)

@@ -20,6 +20,15 @@ class Area(object):
         self.game_script = None
         self.player_script = None
         self.instance = None
+        self.area_map = dict()
+        self.room_points = dict()
+
+    def rebuild_area_map(self):
+        for room_id in self.rooms._rooms:
+            room = self.rooms[room_id]
+            self.room_points[room.center()] = room_id
+            self.area_map[room.center()] = [door.exit_room.center() for \
+                door in room.all_doors()]
 
     def load_script(self, classname):
         self.game_script = Script(classname)
