@@ -10,7 +10,8 @@ class PointmapGeography(object):
 
     def _get_pointmap(self, room):
         if room not in self._pointmaps:
-            pointmap = PointMap(
+            pointmap = PointMap()
+            pointmap.init_square_points(
                 room.position[0],
                 room.position[1],
                 int(room.width / self.point_spacing) * self.point_spacing,

@@ -239,6 +239,17 @@ class Actor(object):
         self.move_to(actor.x(), actor.y())
 
     def move_to_room(self, room_id):
+        path = self.area.find_path_to_room(self.room.room_id, room_id)
+        path = path[1:]
+        if not path:
+            raise Exception("No path from room %s to %s" % (self.room.room_id,
+                room_id))
+        log.debug("Actor %s moving to room %s along path %s", self, room_id,
+            path)
+        for room_id in path:
+            self._move_to_adjacent_room(room_id)
+
+    def _move_to_adjacent_room(self, room_id):
         doors = self.room.all_doors()
         door = [door for door in doors if door.exit_room.room_id == room_id]
         door = door[0]

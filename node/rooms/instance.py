@@ -119,4 +119,5 @@ class Instance:
             room = self.area.rooms[room_id]
             for npc in room.all_npcs():
                 npc.start_command_processor()
+        self.area.rebuild_area_map()
         print "Pointless kickoff call"

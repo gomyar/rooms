@@ -28,11 +28,21 @@ class AreaTest(unittest.TestCase):
         self.area.rooms._rooms['room2'] = self.room2
 
     def testBuildAreaMap(self):
+        self.room3 = Room("room3", (30, 0), 10, 10)
+        self.room3.area = self.area
+        self.area.rooms._rooms['room3'] = self.room3
         self.area.create_door(self.room1, self.room2, (10, 5), (0, 5))
+        self.area.create_door(self.room2, self.room3, (10, 5), (0, 5))
         self.area.rebuild_area_map()
 
-        self.assertEquals({(25, 5): [(5, 5)], (5, 5): [(25, 5)]},
-            self.area.area_map)
+        self.assertEquals(3, len(self.area.point_map._points))
+        self.assertEquals([(25, 5)], self.area.point_map[(5, 5)].\
+            connected_points())
+
+        self.assertEquals(["room1", "room2"], self.area.find_path_to_room(
+            "room1", "room2"))
+        self.assertEquals(["room1", "room2", "room3"],
+            self.area.find_path_to_room("room1", "room3"))
 
     def testAddDoor(self):
         self.area.create_door(self.room1, self.room2, (10, 5), (0, 5))

@@ -10,6 +10,10 @@ from rooms.npc_actor import NpcActor
 from rooms.player_actor import PlayerActor
 from rooms.script_wrapper import Script
 
+from rooms.pointmap_geography.astar import PointMap
+from rooms.pointmap_geography.astar import Point
+from rooms.pointmap_geography.astar import AStar
+
 class Area(object):
     def __init__(self):
         self.area_name = None
@@ -20,15 +24,28 @@ class Area(object):
         self.game_script = None
         self.player_script = None
         self.instance = None
-        self.area_map = dict()
+        self.point_map = dict()
         self.room_points = dict()
 
     def rebuild_area_map(self):
+        self.point_map = PointMap()
         for room_id in self.rooms._rooms:
             room = self.rooms[room_id]
-            self.room_points[room.center()] = room_id
-            self.area_map[room.center()] = [door.exit_room.center() for \
+            center = room.center()
+            self.room_points[center] = room_id
+            point = Point(*center)
+            self.point_map[center] = point
+            point._connected = [door.exit_room.center() for \
                 door in room.all_doors()]
+        for point in self.point_map._points.values():
+            point._connected = [self.point_map[p] for p in point._connected]
+
+    def find_path_to_room(self, from_room_id, to_room_id):
+        from_room_center = self.rooms[from_room_id].center()
+        to_room_center = self.rooms[to_room_id].center()
+        path = AStar(self.point_map).find_path(self.point_map[from_room_center],
+            self.point_map[to_room_center])
+        return [self.room_points[p] for p in path]
 
     def load_script(self, classname):
         self.game_script = Script(classname)

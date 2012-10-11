@@ -92,8 +92,11 @@ class Point(object):
 
 
 class PointMap(object):
-    def __init__(self, left, top, width, height, point_spacing=1):
+    def __init__(self):
         self._points = dict()
+        self.point_spacing = 1
+
+    def init_square_points(self, left, top, width, height, point_spacing=1):
         self.left = left
         self.top = top
         self.width = 0
@@ -115,6 +118,9 @@ class PointMap(object):
         key = ((key[0] / self.point_spacing) * self.point_spacing,
             (key[1] / self.point_spacing) * self.point_spacing)
         return self._points.get(key)
+
+    def __setitem__(self, key, point):
+        self._points[key] = point
 
     def available_points(self):
         return dict([(key, point) for (key, point) in self._points.items() if \
@@ -174,8 +180,9 @@ class AStar(object):
             # break if target point added to closed list
             if to_point in self.closed_list:
                 break
-        # open list is empty (no path)
-        if not self.open_list:
+        # open list is empty (no path) (extra check for linear paths)
+        if not self.open_list and \
+                len(self.closed_list) != len(self.point_map._points):
             return []
 
         # working backwards from target, using parents, to build path
