@@ -145,6 +145,8 @@ class Actor(object):
     def add_error(self, msg):
         log_entry = { 'msg': msg, 'time': time.time() }
         self.log.append(log_entry)
+        if len(self.log) > 50:
+            self.log.pop(0)
         self.instance.send_to_all("log", **log_entry)
 
     def say(self, msg):

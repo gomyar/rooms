@@ -418,6 +418,14 @@ div.admin_chat_choice .response
     resize : none;
 }
 
+div.admin_chat_choice .script_function
+{
+    font-style : italic;
+    width : 100%;
+    resize : none;
+    height : 24px;
+}
+
 div.admin_chat_choice div.script_function
 {
     cursor : pointer;

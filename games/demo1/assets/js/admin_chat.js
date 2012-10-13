@@ -37,11 +37,12 @@ admin_chat.ChatEdit.prototype.create_gui = function(chat)
         $("<div>", {'class': 'chat_entry'}).append(
             $("<textarea>", {'class': "request", "text": chat.request}).change(function(e){
                 self.chat.request = this.value;
-                console.log("Changed to"+self.chat.request);
             }),
             $("<textarea>", {'class': "response", "text": chat.response}).change(function(e){
                 self.chat.response = this.value;
-                console.log("Changed to"+self.chat.response);
+            }),
+            $("<textarea>", {'class': "script_function", "text": chat.script_function}).change(function(e){
+                self.chat.script_function = this.value;
             }),
             this.choices_div,
             $("<div>", {'class': 'ccwrap'}).append(

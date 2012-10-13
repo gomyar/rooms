@@ -27,6 +27,8 @@ class PlayerActor(Actor):
     def add_log(self, msg, *args):
         log_entry = { 'msg': msg % args, 'time': time.time() }
         self.log.append(log_entry)
+        if len(self.log) > 50:
+            self.log.pop(0)
         self.send_update("log", **log_entry)
 
     def add_chat_message(self, msg, *args):

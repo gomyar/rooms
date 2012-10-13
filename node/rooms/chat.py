@@ -64,16 +64,23 @@ class RespondChoice:
         return query_text == self.query_text
 
 class Call(object):
-    def __init__(self, func, *args, **kwargs):
+    def __init__(self, query_text, func, actor):
         self._func = func
-        self._args = args
-        self._kwargs = kwargs
-
-    def __call__(self):
-        return self._func(*self._args, **self._kwargs)
+        self.query_text = query_text
+        self.choices = []
+        self.parent = None
+        self.actor = actor
 
     def set_parent(self, parent):
-        pass
+        self.parent = parent
+
+    def matches(self, query_text):
+        return query_text == self.query_text
+
+    def respond(self):
+        self._func(self.actor)
+        self.parent.current_choice = self
+        return ""
 
 def choice(query_text, response, *choices):
     return RespondChoice(query_text, response, choices)
@@ -81,29 +88,31 @@ def choice(query_text, response, *choices):
 def chat(*choices):
     return Conversation(list(choices))
 
-def call(func, *args, **kwargs):
-    return Call(func, *args, **kwargs)
+def call(request, func, *args, **kwargs):
+    return Call(request, func, *args, **kwargs)
 
-def _read_choice(choice_json, script):
-    if 'run_function' in choice_json:
-        return Call(getattr(script, choice_json['run_function']))
+def _read_choice(choice_json, script, actor):
+    if choice_json.get('script_function', '').strip():
+        return Call(choice_json.get('request', ''),
+            script.get_method(choice_json['script_function']),
+            actor)
     else:
         choice = RespondChoice(choice_json.get('request', ''),
             choice_json.get('response', ''))
         for inner in choice_json.get('choices', []):
-            choice.choices.append(_read_choice(inner, script))
+            choice.choices.append(_read_choice(inner, script, actor))
         return choice
 
 def _check_show_function(choice, script):
     return 'show_function' not in choice or \
         getattr(script, choice['show_function'])()
 
-def load_chat(chat_id, script):
+def load_chat(chat_id, script, actor):
     log.debug("Loading chat %s", chat_id)
     chat_json = simplejson.loads(open(os.path.join(
         settings.get("script_dir", ""), chat_id + ".json")).read())
     conversation = Conversation()
     for choice in chat_json.get('choices', []):
         if _check_show_function(choice, script):
-            conversation.add(_read_choice(choice, script))
+            conversation.add(_read_choice(choice, script, actor))
     return conversation

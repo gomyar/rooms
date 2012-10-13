@@ -42,16 +42,19 @@ class Script(object):
     @property
     def commands(self):
         return [m for m in dir(self.script_module) if \
-            getattr(getattr(self.script_module, m), "is_command", None)]
+            getattr(self.get_method(m), "is_command", None)]
 
     def has_method(self, method):
         return hasattr(self.script_module, method)
 
     def is_request(self, method):
-        return getattr(getattr(self.script_module, method), "is_request", False)
+        return getattr(self.get_method(method), "is_request", False)
 
     def call_method(self, method, actor, *args, **kwargs):
-        return getattr(self.script_module, method)(actor, *args, **kwargs)
+        return self.get_method(method)(actor, *args, **kwargs)
+
+    def get_method(self, method):
+        return getattr(self.script_module, method)
 
     def can_call(self, actor, command):
         filters = getattr(self.script_module, command).filters or dict()

@@ -39,4 +39,4 @@ class NpcActor(Actor):
         self._queue_script_method("chat_delay", self, [], {})
 
     def load_chat(self, chat_id):
-        return load_chat_script(chat_id, self.script)
+        return load_chat_script(chat_id, self.script, self)
