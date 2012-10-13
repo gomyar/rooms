@@ -14,4 +14,8 @@ def chat(npc, player):
     return conv
 
 def walk_to_cloakroom(npc):
-    npc.say("I am walking to the cloakroom now")
+    npc.say("Of course sir")
+    npc.move_to(1300, 1600)
+    npc.say("Trenchcoat was it sir?")
+    npc.sleep(2)
+    

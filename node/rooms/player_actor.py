@@ -48,5 +48,4 @@ class PlayerActor(Actor):
 
     def actor_heard(self, actor, message):
         msg = "You say :" if self == actor else "%s says :" % (actor.actor_id,)
-        self.add_log(msg + message)
         self.send_update("actor_heard", actor_id=actor.actor_id, msg=message)
