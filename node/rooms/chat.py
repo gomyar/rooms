@@ -64,8 +64,8 @@ class RespondChoice:
         return query_text == self.query_text
 
 class Call(object):
-    def __init__(self, query_text, func, actor):
-        self._func = func
+    def __init__(self, query_text, script_function, actor):
+        self.script_function = script_function
         self.query_text = query_text
         self.choices = []
         self.parent = None
@@ -78,7 +78,7 @@ class Call(object):
         return query_text == self.query_text
 
     def respond(self):
-        self._func(self.actor)
+        self.actor.script_call(self.script_function, [], {})
         self.parent.current_choice = self
         return ""
 
@@ -94,8 +94,7 @@ def call(request, func, *args, **kwargs):
 def _read_choice(choice_json, script, actor):
     if choice_json.get('script_function', '').strip():
         return Call(choice_json.get('request', ''),
-            script.get_method(choice_json['script_function']),
-            actor)
+            choice_json['script_function'], actor)
     else:
         choice = RespondChoice(choice_json.get('request', ''),
             choice_json.get('response', ''))
