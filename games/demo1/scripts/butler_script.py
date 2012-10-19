@@ -11,6 +11,7 @@ def kickoff(npc):
 @conversation
 def chat(npc, player):
     conv = npc.load_chat("butler_talk")
+    conv.add_chat(npc.load_chat("butler_talk_2"))
     return conv
 
 def walk_to_cloakroom(npc):

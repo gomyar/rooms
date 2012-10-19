@@ -34,6 +34,10 @@ class Conversation:
         for c in choice.choices:
             c.set_parent(self)
 
+    def add_chat(self, conversation):
+        for choice in conversation.choices:
+            self.add(choice)
+
 
 class RespondChoice:
     def __init__(self, query_text, response, choices=None):

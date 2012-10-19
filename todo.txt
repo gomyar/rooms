@@ -1,6 +1,3 @@
 
- - asociate scripts with chat in gui
- - reorg create script
  - add_chat_script to loaded chat script
- - add function caller to chat editor
  - add inventory
