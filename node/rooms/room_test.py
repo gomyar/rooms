@@ -21,6 +21,8 @@ class RoomTest(unittest.TestCase):
         self.area.create_door(self.area.rooms['room1'],
             self.area.rooms['room3'], (10, 0), (0, 0))
 
+        self.area.rebuild_area_map()
+
     def _mock_sleep(self, seconds):
         self._mock_slept_for = seconds
 

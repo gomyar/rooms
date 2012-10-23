@@ -1,3 +1,2 @@
 
- - add_chat_script to loaded chat script
  - add inventory

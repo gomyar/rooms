@@ -6,6 +6,7 @@ from container import _encode
 from rooms.actor import *
 
 from script import create_npc
+from script import create_item
 
 sys.path.append("../games/demo1")
 
@@ -130,5 +131,7 @@ create_npc(area, "celia", "aunt", "celia_script", 'diningroom')
 
 create_npc(area, "bobby", "investigator", "bobby_script", 'hall')
 create_npc(area, "sergeant", "investigator", "sergeant_script", 'lounge')
+
+create_item(area, "clue", "foyer")
 
 save_area(area)

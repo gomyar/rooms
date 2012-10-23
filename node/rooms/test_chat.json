@@ -16,7 +16,7 @@
                         {
                             "request": "Request 4",
                             "response": "Response 4",
-                            "run_function": "mock_do_something"
+                            "script_function": "mock_do_something"
                         }
                     ]
                 }

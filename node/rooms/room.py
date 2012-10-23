@@ -104,6 +104,10 @@ class Room(object):
                 self.map_objects.items()]),
         )
 
+    def add_item(self, item_actor, position=None):
+        position = position or self.center()
+        self.actors[item_actor.actor_id] = item_actor
+
     def actor_enters(self, actor, door_id):
         self.actors[actor.actor_id] = actor
         actor.room = self

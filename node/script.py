@@ -7,6 +7,7 @@ from rooms.chat import choice as c
 from rooms.chat import call
 
 from scriptutils import create_npc
+from scriptutils import create_item
 
 import logging
 log = logging.getLogger('rooms.script')
