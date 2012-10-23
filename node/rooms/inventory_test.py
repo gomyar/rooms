@@ -31,3 +31,8 @@ class InventoryTest(unittest.TestCase):
             self.inventory.find_items(name="bob"))
         self.assertEquals([],
             self.inventory.find_items(name="fred", desc="that"))
+
+    def testSomething(self):
+        self.inventory.add_item(Item("jade_monkey"))
+
+        self.assertEquals({'jade_monkey': 1}, self.inventory.all_items())
