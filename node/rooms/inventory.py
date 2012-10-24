@@ -48,6 +48,10 @@ class Inventory:
     def __init__(self):
         self._items = dict()
 
+    def __iter__(self):
+        for item_type in self._items.keys():
+            yield item_type
+
     def add_item(self, item_type, count=1):
         if item_type not in self._items:
             self._items[item_type] = 0
