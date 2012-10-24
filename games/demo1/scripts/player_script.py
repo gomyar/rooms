@@ -1,7 +1,7 @@
 
 from script import *
 
-@command
+@request
 def list_inventory(player):
     return player.inventory.all_items()
 

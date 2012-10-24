@@ -309,14 +309,14 @@ gui_game.show_evidence = function(data)
     }
 }
 
-gui_game.menu_evidence_clicked = function(e)
+gui_game.menu_inventory_clicked = function(e)
 {
     api_rooms.list_inventory(gui_game.show_inventory);
 }
 
 gui_game.show_inventory = function(data)
 {
-    var inventory = jQuery.parseJSON(data);
+    var inventory = data;
     $(".inventory").remove();
     var inventory_div = $("<div>", { "class": "inventory" });
     var inv_gui = new gui_inventory.InventoryScreen(inventory);

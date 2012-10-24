@@ -454,3 +454,22 @@ div.admin_chat_choice div.choice_control
 {
     text-align : right;
 }
+
+div.inventory
+{
+    position : absolute;
+    top : 0px;
+    bottom : 0px;
+    width : 350px;
+    background-color : black;
+    border-right : 1px solid grey;
+    font-size : 12px;
+}
+
+div.inventory_item
+{
+    width : 100%;
+    height : 54px;
+}
+
+

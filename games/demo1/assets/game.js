@@ -10,7 +10,7 @@ function init()
     $(gui.canvas).mousemove(gui_game.canvas_mousemove);
 
     $("#menu_quit").click(gui_game.menu_quit_clicked);
-    $("#menu_evidence").click(gui_game.menu_evidence_clicked);
+    $("#menu_inventory").click(gui_game.menu_inventory_clicked);
     $("#menu_scripts").click(admin.menu_scripts_clicked);
 
     $(window).resize(function() { gui.resetCanvas(); gui.draw(); });

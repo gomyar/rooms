@@ -12,7 +12,7 @@ gui_inventory.InventoryScreen.prototype.create_gui = function()
     var div = $("<div>", {'class': 'inventory_list'});
     for (item_type in this.inventory)
     {
-        div.append($("<div>", {'class': 'item_type', 'text': item_type}));
+        div.append($("<div>", {'class': 'inventory_item', 'text': item_type}));
     }
     return div;
 }
