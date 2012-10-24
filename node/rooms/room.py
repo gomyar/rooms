@@ -107,6 +107,8 @@ class Room(object):
     def add_item(self, item_actor, position=None):
         position = position or self.center()
         self.actors[item_actor.actor_id] = item_actor
+        item_actor.room = self
+        item_actor.set_position(position)
 
     def actor_enters(self, actor, door_id):
         self.actors[actor.actor_id] = actor

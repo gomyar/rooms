@@ -9,10 +9,10 @@ def create_npc(area, actor_id, model, script, room_id):
     npc = NpcActor(actor_id)
     npc.model_type = model
     npc.load_script(script)
-    area.add_npc(npc, room)
+    area.add_npc(npc, room_id)
 
 def create_item(area, item_type, room_id, position=None):
-    item = ItemActor(str(uuid.uuid1()))
+    item = ItemActor(str(uuid.uuid1()), item_type)
     item.load_script("item_script")
     item.model_type = item_type
-    area[room].add_item(item, position)
+    area.rooms[room_id].add_item(item, position)

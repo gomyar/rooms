@@ -9,6 +9,7 @@ from rooms.actor import State
 from rooms.path_vector import Path
 from rooms.player_actor import PlayerActor
 from rooms.npc_actor import NpcActor
+from rooms.item_actor import ItemActor
 from rooms.room import Room
 from rooms.room_container import RoomContainer
 from rooms.room import RoomObject
@@ -147,6 +148,17 @@ def create_npc_actor(data):
     _deserialize_actor(npc_actor, data)
     return npc_actor
 
+# itemActor
+def serialize_item_actor(obj):
+    data = serialize_actor(obj)
+    data['item_type'] = obj.item_type
+    return data
+
+def create_item_actor(data):
+    item_actor = ItemActor(data['actor_id'], data['item_type'])
+    _deserialize_actor(item_actor, data)
+    return item_actor
+
 # RoomObject
 def serialize_roomobject(obj):
     return dict(
@@ -244,6 +256,7 @@ object_serializers = dict(
     PlayerActor=serialize_player_actor,
     PlayerKnowledge=serialize_player_knowledge,
     NpcActor=serialize_npc_actor,
+    ItemActor=serialize_item_actor,
     Room=serialize_room,
     RoomObject=serialize_roomobject,
     Area=serialize_area,
@@ -258,6 +271,7 @@ object_factories = dict(
     PlayerActor=create_player_actor,
     PlayerKnowledge=create_player_knowledge,
     NpcActor=create_npc_actor,
+    ItemActor=create_item_actor,
     Room=create_room,
     RoomObject=create_roomobject,
     Area=create_area,

@@ -34,6 +34,11 @@ gui_game.exit_through_door = function()
     }, timeTill);
 }
 
+function pickup_item()
+{
+    api_rooms.command_pickup(this.id);
+}
+
 gui_game.canvas_clicked = function(e)
 {
     var click_x = e.clientX - $("#screen").position().left - gui.viewport_x;
@@ -173,7 +178,12 @@ gui_game.onmessage = function(msg)
                     var sprite = gui_game.create_actor_sprite(actor);
                     gui_game.sprites[actor.actor_id] = sprite;
                 }
-
+                if (actor.actor_type == "ItemActor")
+                {
+                    var sprite = gui_game.create_actor_sprite(actor);
+                    sprite.clicked = pickup_item;
+                    gui_game.sprites[actor.actor_id] = sprite;
+                }
                 else if (actor.actor_type == "Door")
                 {
                     sprite = new gui_sprite.Sprite(actor.actor_id);
@@ -301,7 +311,20 @@ gui_game.show_evidence = function(data)
 
 gui_game.menu_evidence_clicked = function(e)
 {
-    api_rooms.list_inventory(gui_game.show_evidence);
+    api_rooms.list_inventory(gui_game.show_inventory);
+}
+
+gui_game.show_inventory = function(data)
+{
+    var inventory = jQuery.parseJSON(data);
+    $(".inventory").remove();
+    var inventory_div = $("<div>", { "class": "inventory" });
+    var inv_gui = new gui_inventory.InventoryScreen(inventory);
+    inventory_div.append($("<div>", { "class": "inventorycontainer" }).append(
+        inv_gui.div
+    ));
+
+    $("#main").append(inventory_div);
 }
 
 

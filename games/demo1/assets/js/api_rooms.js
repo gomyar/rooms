@@ -25,8 +25,15 @@ api_rooms.command_chat = function ()
     api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + gui_game.selected_sprite.id + "/chat", {}, gui_screens.show_chat_window);
 }
 
+api_rooms.command_pickup = function()
+{
+    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + gui_game.selected_sprite.id + "/pick_up", {}, function(){ console.log("Picked up");});
+}
+
+
 api_rooms.command_lookup = {
     "chat": api_rooms.command_chat,
+    "pick_up": api_rooms.command_pickup,
 };
 
 api_rooms.get_now = function()
