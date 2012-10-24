@@ -132,6 +132,8 @@ class Room(object):
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)
         actor.room = None
+        for a in self.actors.values():
+            a.actor_exited_room(actor, None)
 
     def exit_through_door(self, actor, door_id):
         door = self.actors[door_id]
