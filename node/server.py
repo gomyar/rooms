@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
-import eventlet
-eventlet.monkey_patch()
+from gevent import monkey
+monkey.patch_socket()
 
-from eventlet import wsgi
-from eventlet import websocket
-from eventlet import backdoor
+from gevent import pywsgi
+from geventwebsocket.handler import WebSocketHandler
 
 import time
 import os
@@ -25,7 +24,7 @@ from rooms.instance import Instance
 from rooms.admin import Admin
 from rooms.settings import settings
 
-from eventlet.queue import Empty
+from gevent.queue import Empty
 
 from container import init_mongo
 
@@ -66,15 +65,13 @@ def checked(func):
 
 
 @checked
-@websocket.WebSocketWSGI
-def handle_socket(ws):
+def handle_socket(ws, cookies):
     player_id = None
     instance = None
     queue = None
     try:
-        cookies = _read_cookies(ws.environ)
-        player_id = ws.wait()
-        instance_uid = ws.wait()
+        player_id = ws.receive()
+        instance_uid = ws.receive()
         instance = instances[instance_uid]
         log.debug("registering %s at %s", player_id, instance_uid)
         queue = instance.connect(player_id)
@@ -84,7 +81,7 @@ def handle_socket(ws):
         instance.send_sync(player_id)
         log.debug("Sync sent")
         connected = True
-        while not ws.websocket_closed and connected:
+        while connected:
             try:
                 command = queue.get(timeout=5)
                 commands = [ command ]
@@ -215,9 +212,10 @@ def _get_param(environ, param):
 
 
 @checked
-def root(environ, response):
+def handle(environ, response):
     if environ['PATH_INFO'] == '/socket':
-        return handle_socket(environ, response)
+        cookies = _read_cookies(environ)
+        return handle_socket(environ["wsgi.websocket"], cookies)
     elif environ['PATH_INFO'].startswith('/game/'):
         return game_handle(environ, response)
     elif environ['PATH_INFO'].startswith('/control/'):
@@ -298,11 +296,10 @@ if __name__ == "__main__":
         sys.path.append(script_dir)
         settings['script_dir'] = script_dir
 
-        eventlet.spawn(backdoor.backdoor_server, eventlet.listen(
-            ('localhost', 3000)), locals=dict(instances=instances))
+        server = pywsgi.WSGIServer(("", 8080), handle,
+            handler_class=WebSocketHandler)
+        server.serve_forever()
 
-        listener = eventlet.listen((host, port))
-        wsgi.server(listener, root)
     except:
         log.exception("Exception starting server")
     finally:

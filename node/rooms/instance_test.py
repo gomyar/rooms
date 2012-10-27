@@ -2,7 +2,6 @@ import unittest
 import time
 
 import mock
-from eventlet.queue import LightQueue
 
 from instance import Instance
 from area import Area

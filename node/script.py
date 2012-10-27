@@ -1,6 +1,5 @@
 
 from functools import wraps
-import eventlet
 
 from rooms.chat import chat as create_chat
 from rooms.chat import choice as c
@@ -68,7 +67,7 @@ def conversation(func=None):
 
 
 def chat_delay(actor):
-    eventlet.sleep(10)
+    actor.sleep(10)
 
 def kick(actor):
     pass

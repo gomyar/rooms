@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-import eventlet
-eventlet.patcher.monkey_patch()
+from gevent import monkey
+monkey.patch_socket()
 
 from optparse import OptionParser
 

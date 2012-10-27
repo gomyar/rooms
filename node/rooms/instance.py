@@ -2,8 +2,7 @@
 import time
 import random
 
-import eventlet
-from eventlet.queue import LightQueue
+import gevent.queue
 import simplejson
 
 from actor import Actor
@@ -79,7 +78,7 @@ class Instance:
         if player_id in self.player_queues:
             log.debug("Disconnecting existing player %s", player_id)
             self.disconnect(player_id)
-        queue = LightQueue()
+        queue = gevent.queue.Queue()
         self.player_queues[player_id] = queue
         return queue
 

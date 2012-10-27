@@ -1,6 +1,4 @@
 
-import eventlet
-
 from rooms.room import Room
 from rooms.door import Door
 from rooms.door import infer_direction

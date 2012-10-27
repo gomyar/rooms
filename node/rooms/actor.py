@@ -2,7 +2,7 @@ import math
 import inspect
 import time
 
-import eventlet
+import gevent
 
 from path_vector import Path
 from path_vector import distance
@@ -39,7 +39,7 @@ class Actor(object):
         self.state = State()
         self.model_type = ""
         self.call_gthread = None
-        self.call_queue = eventlet.queue.LightQueue()
+        self.call_queue = gevent.queue.Queue()
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -100,18 +100,18 @@ class Actor(object):
         if self.call_gthread:
             self.kill_gthread()
             self.remove_gthread()
-        self.call_queue.put((method_name, [player] + list(args), kwargs))
+        self.call_queue.put((method_name, [player] + list(args), kwargs), False)
         self.start_command_processor()
 
     def start_command_processor(self):
-        self.call_gthread = eventlet.spawn(self.process_command_queue)
+        self.call_gthread = gevent.spawn(self.process_command_queue)
 
     def process_command_queue(self):
         self.running = True
         while self.running:
             while not self.call_queue.empty():
                 self._process_queue_item()
-            eventlet.sleep(1)
+            self.sleep(1)
             if self.script.has_method("kickoff"):
                 self._wrapped_call("kickoff", self)
             else:
@@ -134,7 +134,7 @@ class Actor(object):
     def _wrapped_call(self, method, *args, **kwargs):
         try:
             self.script.call_method(method, *args, **kwargs)
-        except eventlet.greenlet.GreenletExit, ex:
+        except gevent.greenlet.GreenletExit, ex:
             raise
         except Exception, e:
             log.exception("Exception processing %s(%s, %s)", method, args,
@@ -267,7 +267,7 @@ class Actor(object):
         self.sleep(seconds)
 
     def sleep(self, seconds):
-        eventlet.sleep(seconds)
+        gevent.sleep(max(0, seconds))
 
     def exit(self, door_id):
         self.room.exit_through_door(self, door_id)

@@ -1,6 +1,4 @@
 
-import eventlet
-
 from actor import Actor
 from rooms.chat import load_chat as load_chat_script
 
