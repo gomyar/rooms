@@ -3,6 +3,7 @@ import inspect
 import time
 
 import gevent
+import gevent.queue
 
 from path_vector import Path
 from path_vector import distance
