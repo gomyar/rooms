@@ -1,0 +1,48 @@
+
+<html>
+    <head>
+        <link href="/static/css/web.css" rel="stylesheet" type="text/css"/>
+        <script src="/static/js/jquery-1.4.4.min.js"></script>
+        {% block javascript %}
+        {% endblock %}
+    </head>
+
+<body>
+<div id="main">
+    {% block header %}
+        <div class="title">
+            <div class="name">The House</div>
+            <div class="description">A murder mystery game</div>
+        </div>
+        {% block loginsection %}
+        {% if user.is_authenticated %}
+        <div class="hello">
+            <div class="text">Hello&nbsp;</div>
+            <div class="username">{{ user.username }}</div>
+            <a href="/accounts/logout" class="logout">Logout</a>
+        </div>
+        {% endif %}
+        {% if not user.is_authenticated %}
+        <div id="loginform">
+        <form method="post" action="/accounts/login/?next=/">
+        {% csrf_token %}
+        <table>
+        <tr><td><label for="id_username">Username:</label></td><td><input id="id_username" type="text" name="username"></input></td></tr>
+        <tr><td><label for="id_password">Password:</label></td><td><input type="password" name="password" id="id_password"></input></td></tr>
+        </table>
+        <input id="login" type="submit" value="Login" />
+        <input type="hidden" name="next" value="/" />
+        </form>
+        </div>
+        {% endif %}
+        {% endblock %}
+    {% endblock %}
+
+    <div id="content">
+    {% block main %}
+    {% endblock %}
+    </div>
+</div>
+</body>
+
+</html>

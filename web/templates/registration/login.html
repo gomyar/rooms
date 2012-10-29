@@ -1,21 +1,16 @@
-<html>
-<body>
+{% extends "base.html" %}
 
-<h2>Login here:</h2>
-{% if form.has_errors %}
-<p>Your username and password didn't match. Please try again.</p>
-{% endif %}
+{% block loginsection %}
+{% endblock %}
 
-<form method="post" action=".">
-{% csrf_token %}
-<table>
-<tr><td><label for="id_username">Username:</label></td><td>{{ form.username }}</td></tr>
-<tr><td><label for="id_password">Password:</label></td><td>{{ form.password }}</td></tr>
-</table>
-<input id="login" type="submit" value="Login" />
-<input type="hidden" name="next" value="{{ next }}" />
-</form>
-
-</body>
-
-</html>
+{% block main %}
+    <form method="post" action=".">
+    {% csrf_token %}
+    <table>
+    <tr><td><label for="id_username">Username:</label></td><td>{{ form.username }}</td></tr>
+    <tr><td><label for="id_password">Password:</label></td><td>{{ form.password }}</td></tr>
+    </table>
+    <input id="login" type="submit" value="Login" />
+    <input type="hidden" name="next" value="{{ next }}" />
+    </form>
+{% endblock %}

@@ -2,6 +2,85 @@
 div#instance_list
 {
     width : 200px;
-    background-color : darkblue;
     color: white;
+}
+
+body
+{
+    background-color : #000020;
+    color : white;
+    font-family : arial;
+}
+
+div.title
+{
+    background-image : url('/static/images/title.png');
+    background-repeat : no-repeat;
+    text-indent: 220px;
+}
+
+div.title div.name
+{
+    font-weight: bold;
+    font-size : 24px;
+}
+
+div.title div.description
+{
+    font-size : 18px;
+}
+
+div.hello
+{
+    position : absolute;
+    top : 5px;
+    right : 5px;
+    width : 150px;
+}
+
+div.hello div.text
+{
+    float : left;
+}
+
+div.hello div.username
+{
+    width : 50px;
+    float : left;
+}
+
+div.hello a.logout
+{
+    cursor : pointer;
+    color : white;
+    font-style : normal;
+    text-decoration : none;
+}
+
+div#loginform
+{
+    position : absolute;
+    top : 5px;
+    right : 5px;
+    width : 150px;
+}
+
+div#loginform label
+{
+    font-size : 14px;
+}
+
+div#loginform td
+{
+    width : 70px;
+}
+
+div#loginform input
+{
+    width : 70px;
+}
+
+div#main div#content
+{
+    margin-top : 20px;
 }

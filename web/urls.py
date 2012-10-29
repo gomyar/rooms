@@ -24,6 +24,6 @@ urlpatterns = patterns('',
     # default django login page
     (r'^accounts/login/$', 'django.contrib.auth.views.login'),
     (r'^accounts/logout/$', 'django.contrib.auth.views.logout_then_login'),
-#    (r'^accounts/profile/$', 'website.views.profile'),
+    (r'^accounts/profile/$', 'web.game.views.profile'),
 
 )

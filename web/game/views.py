@@ -35,6 +35,13 @@ def list_all_areas_for(owner_id):
     return map(lambda a: dict(area_name=a['area_name'], area_id=str(a['_id'])),
         areas)
 
+def index(request):
+    return render_to_response("index.html", dict(user=request.user),
+        context_instance=RequestContext(request))
+
+def profile(request):
+    return HttpResponseRedirect("/")
+
 @login_required
 def running_instances(request):
     user_id = request.user.username
