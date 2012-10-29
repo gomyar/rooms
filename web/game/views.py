@@ -36,7 +36,11 @@ def list_all_areas_for(owner_id):
         areas)
 
 def index(request):
-    return render_to_response("index.html", dict(user=request.user),
+    user_id = request.user.username
+    instances = master.list_instances()
+    available_maps=list_all_areas_for(user_id)
+    return render_to_response("index.html", dict(user=request.user,
+        instances=instances, available_maps=available_maps),
         context_instance=RequestContext(request))
 
 def profile(request):

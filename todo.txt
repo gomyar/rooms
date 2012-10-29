@@ -1,2 +1,5 @@
 
- - add inventory
+    - add items to mansion
+    - add notes (evidence)
+    - add dungeon game to list of available games
+

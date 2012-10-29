@@ -6,4 +6,36 @@
 
 {% block main %}
 Join an ongoing game or start your own...
+
+    <div id="opengames">
+    {% for uid, instance in instances.items %}
+    <div class="instance">
+        {{ instance.area.area_name }}
+        <div class="join_link" onclick="join_instance('{{ instance.uid }}');">The Mansion (open)</div> 
+        <form method="post" action="/join_instance">
+        {% csrf_token %}
+        <input type="hidden" name="instance_uid" value="{{ instance.uid }}"></input> 
+        <input type="submit" value="Join"></input>
+        </form>
+
+    </div>
+    {% endfor %}
+    {% if not instances %}
+    None
+    {% endif %}
+    </div>
+
+    <div id="create_instance">
+    <form method="post" action="/create_instance">
+        {% csrf_token %}
+        <select name="map_id">
+            {% for map in available_maps %}
+                <option value="{{ map.area_id }}">{{ map.area_name }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Create"></input>
+    </form>
+    </div>
+
+
 {% endblock %}
