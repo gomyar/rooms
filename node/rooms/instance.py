@@ -13,15 +13,15 @@ import logging
 log = logging.getLogger("rooms.instance")
 
 class Instance:
-    def __init__(self, uid=None, master=None):
+    def __init__(self, uid=None, node=None):
         self.uid = uid
         self.player_queues = dict()
         self.players = dict()
         self.area = None
-        self.master = master
+        self.node = node
 
     def load_map(self, map_id):
-        self.area = container.load_area(map_id)
+        self.area = self.node.container.load_area(map_id)
         self.area.instance = self
 
     def sleep(self):
@@ -109,7 +109,7 @@ class Instance:
         self.area.actor_left_instance(actor)
         self.send_to_all("actor_left_instance", actor_id=player_id)
         self.players.pop(player_id)
-        self.master.player_left(player_id, self.uid)
+        self.node.controller.player_left(player_id, self.uid)
 
         log.info("Player left instance: %s", player_id)
 

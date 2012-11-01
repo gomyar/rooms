@@ -1,3 +1,7 @@
+import httplib
+import urllib
+import simplejson
+
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -14,15 +18,50 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger()
 
-master = xmlrpclib.ServerProxy(settings.MASTER_ADDR)
 
+class ControllerClient(object):
+    def __init__(self, controller_address):
+        self.controller_address = controller_address
+
+    def __repr__(self):
+        return "<ControllerClient %s" % (self.controller_address,)
+
+    def get(self, url, **params):
+        conn = httplib.HTTPConnection(self.controller_address)
+        conn.request("GET", url + "?" + urllib.urlencode(params))
+        response = conn.getresponse().read()
+        return simplejson.loads(response)
+
+    def post(self, url, **params):
+        conn = httplib.HTTPConnection(self.controller_address)
+        conn.request("POST", url, urllib.urlencode(params))
+        response = conn.getresponse().read()
+        return simplejson.loads(response)
+
+    def list_instances(self):
+        return self.get("/controller/list_instances")
+
+    def own_instances(self, user_id):
+        return self.get("/controller/own_instances", user_id=user_id)
+
+    def create_instance(self, user_id, map_id):
+        return self.post("/controller/create_instance", user_id=user_id,
+            map_id=map_id)
+
+    def join_instance(self, user_id, instance_uid):
+        return self.post("/controller/join_instance", user_id=user_id,
+            instance_uid=instance_uid)
+
+master = ControllerClient(settings.MASTER_ADDR)
 _mongo_connection = None
+
 
 def get_mongo_conn():
     global _mongo_connection
     if not _mongo_connection:
         init_mongo()
     return _mongo_connection
+
 
 def init_mongo(host='localhost', port=27017):
     global _mongo_connection

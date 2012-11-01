@@ -1,5 +1,8 @@
 
+    - move controller class into node
+    - script-created - single-directory (one conf file) game structure
+    - all data in mongo
+
     - add items to mansion
     - add notes (evidence)
     - add dungeon game to list of available games
-

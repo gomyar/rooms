@@ -1,9 +1,6 @@
 
 import simplejson
 
-from pymongo import Connection
-from pymongo.helpers import bson
-
 from rooms.actor import Actor
 from rooms.actor import State
 from rooms.path_vector import Path
@@ -17,34 +14,6 @@ from rooms.area import Area
 from rooms.door import Door
 from rooms.inventory import Inventory
 from rooms.inventory import Item
-
-
-class MongoRoomContainer(RoomContainer):
-    def load_room(self, room_id):
-        return load_room_from_mongo(room_id)
-
-    def save_room(self, room_id, room):
-        return save_room_to_mongo(room)
-
-
-def save_room_to_mongo(room):
-    encoded_str = simplejson.dumps(room, default=_encode, indent="    ")
-    encoded_dict = simplejson.loads(encoded_str)
-    if hasattr(room, "_id"):
-        encoded_dict['_id'] = room._id
-    rooms_db = _mongo_connection.rooms_db
-    room_id = rooms_db.rooms.save(encoded_dict)
-    room._id = room_id
-    return str(room_id)
-
-def load_room_from_mongo(room_id):
-    rooms_db = _mongo_connection.rooms_db
-    room_dict = rooms_db.rooms.find_one(bson.ObjectId(room_id))
-    db_id = room_dict.pop('_id')
-    room_str = simplejson.dumps(room_dict)
-    room = simplejson.loads(room_str, object_hook=_decode)
-    room._id = db_id
-    return room
 
 
 # Room
@@ -189,8 +158,7 @@ def serialize_area(obj):
 def create_area(data):
     area = Area()
     area.area_name = data['area_name']
-    area.rooms = MongoRoomContainer(area)
-    area.rooms._room_map = data['room_map']
+    area._room_map = data['room_map']
     area.owner_id = data['owner_id']
     area.entry_point_room_id = data['entry_point_room_id']
     area.entry_point_door_id = data['entry_point_door_id']
@@ -300,28 +268,3 @@ def _decode(data):
     return data
 
 
-def init_mongo(host='localhost', port=27017):
-    global _mongo_connection
-    _mongo_connection = Connection(host, port)
-
-def load_area(area_id):
-    rooms_db = _mongo_connection.rooms_db
-    area_dict = rooms_db.areas.find_one(bson.ObjectId(area_id))
-    area_dict.pop('_id')
-    area_str = simplejson.dumps(area_dict)
-    area = simplejson.loads(area_str, object_hook=_decode)
-    return area
-
-def save_area(area):
-    encoded_str = simplejson.dumps(area, default=_encode, indent="    ")
-    encoded_dict = simplejson.loads(encoded_str)
-    rooms_db = _mongo_connection.rooms_db
-    rooms_db.areas.save(encoded_dict)
-    for room in area.rooms._rooms.values():
-        save_room_to_mongo(room)
-
-def list_all_areas_for(owner_id):
-    rooms_db = _mongo_connection.rooms_db
-    areas = rooms_db.areas.find({ 'owner_id': owner_id }, fields=['area_name'])
-    return map(lambda a: dict(area_name=a['area_name'], area_id=str(a['_id'])),
-        areas)
