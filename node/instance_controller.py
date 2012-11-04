@@ -1,40 +1,118 @@
+import urllib2
+import urllib
+import simplejson
+
+from wsgi_rpc import WSGIRPCClient
 
 
-def _call_node(host, port, method, data):
-    response = urllib2.urlopen("http://%s:%s/control/%s" % (host, port, method),
-        urllib.urlencode(data)).read()
-    return simplejson.loads(response)
-
-
-class NodeStub:
+class NodeStub(object):
     def __init__(self, host, port):
         self.instances = 0
         self.players = 0
         self.host = host
         self.port = port
+        self.wsgi_client = WSGIRPCClient(host, port)
 
     def instance_count(self):
         return self.instances
 
     def create_instance(self, map_id):
-        response = _call_node(self.host, self.port, "create_instance",
-            dict(map_id=map_id))
+        response = self.wsgi_client.create_instance(map_id=map_id)
         self.instances += 1
         return response['instance_uid']
 
     def player_joins(self, player_id, instance_uid):
-        response = _call_node(self.host, self.port, "player_joins",
-            dict(player_id=player_id, instance_uid=instance_uid))
+        response = self.wsgi_client.player_joins(player_id=player_id,
+            instance_uid=instance_uid)
         self.players += 1
         return response
 
 
-
 class InstanceController(object):
-    def __init__(self):
+    def __init__(self, node):
+        self.node = node
         self.nodes = dict()
         self.instances = dict()
         self.players = dict()
+
+    def init(self, options):
+        if options.controller_address:
+            log.info("Connecting to Controller at %s",
+                options.controller_address)
+            self.register_with_controller(options.controller_address)
+            # share client xmlrpc
+            self._start_wsgi_server(self.handle_client)
+        else:
+            log.info("Assuming Controller role")
+            self.controller = InstanceController()
+            stub = NodeStub(self.host, self.port)
+            stub.create_instance = self.create_instance
+            stub.player_joins = self.player_joins
+            self.controller.nodes[(self.host, self.port)] = stub
+            # share master xmlrpc
+            self._start_wsgi_server(self.handle_controller)
+
+    def _start_wsgi_server(self, handle):
+        server = pywsgi.WSGIServer((self.host, self.port), handle,
+            handler_class=WebSocketHandler)
+        server.start()
+
+    @checked
+    def handle_controller(self, environ, response):
+        if not self.node.controller:
+            raise Exception("This is not a Controller node")
+
+        params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
+        controller_call = environ['PATH_INFO'].replace('/controller/', '')
+        controller_method = getattr(self.node.controller, controller_call)
+        returned = controller_method(**params)
+        if returned :
+            returned = simplejson.dumps(returned)
+        else:
+            returned = "[]"
+        response('200 OK', [
+            ('content-type', 'text/javascript'),
+            ('content-length', len(returned)),
+        ])
+        return returned
+
+
+    @checked
+    def handle_client(self, environ, response):
+        path = environ['PATH_INFO'].replace("/control/", "")
+        params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
+
+        returned = ""
+
+        if path == "player_joins":
+            instance_uid = params['instance_uid']
+            player_id = params['player_id']
+            self.node.player_joins(instance_uid, player_id)
+            returned = '{"success":true}'
+            log.info("Player %s joined instance %s", player_id, instance_uid)
+
+        if path == "create_instance":
+            map_id = params['map_id']
+            uid = self.node.create_instance(map_id)
+            returned = '{"instance_uid": "%s"}' % (uid,)
+            log.info("Instance created %s : %s", map_id, uid)
+
+        response('200 OK', [
+            ('content-type', 'text/javascript'),
+            ('content-length', len(returned)),
+        ])
+        return returned
+
+
+    def register_with_controller(self, controller_address):
+        self.controller = xmlrpclib.ServerProxy('http://%s' % (
+            controller_address,))
+        self.controller.register_node(self.host, self.port)
+
+    def deregister_from_controller(self):
+        if self.controller:
+            self.controller.deregister_node(self.host, self.port)
+
 
     def register_node(self, host, port):
         self.nodes[(host, port)] = NodeStub(host, port)

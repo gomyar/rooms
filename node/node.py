@@ -3,40 +3,24 @@
 from gevent import monkey
 monkey.patch_socket()
 
-from gevent import pywsgi
-from geventwebsocket.handler import WebSocketHandler
-
-import time
 import os
 
 from optparse import OptionParser
 
-import xmlrpclib
-
 import uuid
-
-import urlparse
-from mimetypes import guess_type
-
-import simplejson
 
 from instance_controller import InstanceController
 
 from rooms.instance import Instance
-from rooms.admin import Admin
 from rooms.settings import settings
-
-from gevent.queue import Empty
 
 from mongo_container import MongoContainer
 
-import signal
 import sys
 
 from ConfigParser import ConfigParser
 
 from wsgi_server import WSGIServer
-from instance_controller import NodeStub
 
 
 import logging
@@ -69,30 +53,12 @@ class Node(object):
         node.container = MongoContainer(dbhost, int(dbport))
         node.container.init_mongo()
 
-    def init_controller(self, controller_address):
-        if options.controller_address:
-            log.info("Connecting to Controller at %s",
-                options.controller_address)
-            self.register_with_controller(options.controller_address)
-        else:
-            log.info("Assuming Controller role")
-            self.controller = InstanceController()
-            stub = NodeStub(self.host, self.port)
-            stub.create_instance = self.create_instance
-            stub.player_joins = self.player_joins
-            self.controller.nodes[(self.host, self.port)] = stub
-
-    def register_with_controller(self, controller_address):
-        self.controller = xmlrpclib.ServerProxy('http://%s' % (
-            controller_address,))
-        self.controller.register_node(self.host, self.port)
-
-    def deregister_from_controller(self):
-        if self.controller:
-            self.controller.deregister_node(self.host, self.port)
+    def init_controller(self, options):
+        self.controller = InstanceController(self)
+        self.controller.init(options)
 
     def start(self):
-        self.server = WSGIServer(self)
+        self.server = WSGIServer(host, port, self)
         self.server.serve_forever()
 
     def create_instance(self, map_id):
@@ -117,6 +83,10 @@ if __name__ == "__main__":
         parser.add_option("-c", "--controller", dest="controller_address",
             help="Address of controller node")
 
+        parser.add_option("-i", "--controller-api", dest="controller_api",
+            help="Address of controller xmlrpc api (client and controller)",
+            default="localhost:8081")
+
         parser.add_option("-a", "--address", dest="address",
             default="localhost:8080", help="Address to serve node on")
 
@@ -134,7 +104,7 @@ if __name__ == "__main__":
 
         node = Node(options.game, host, int(port))
         node.load_game()
-        node.init_controller(options.controller_address)
+        node.init_controller(options)
         node.start()
     except:
         log.exception("Exception starting server")

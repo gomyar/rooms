@@ -14,60 +14,38 @@ import simplejson
 from rooms.instance import Instance
 from rooms.admin import Admin
 
+from utils import checked
+from utils import _read_cookies
+from utils import _get_param
+
 import logging
 import logging.config
 logging.config.fileConfig("logging.conf")
 log = logging.getLogger("rooms.wsgi")
 
 
-def checked(func):
-    def tryexcept(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except:
-            log.exception("Exception calling %s", func)
-            raise
-    return tryexcept
-
-def _read_cookies(environ):
-    cookie_str = environ['HTTP_COOKIE']
-    cookies = cookie_str.split(';')
-    cookies = map(lambda c: c.strip().split('='), cookies)
-    return dict(cookies)
-
-
-@checked
-def _get_param(environ, param):
-    if 'QUERY_STRING' in environ:
-        params = dict(urlparse.parse_qsl(environ['QUERY_STRING']))
-        if param in params:
-            return params[param]
-    return None
-
-
 class WSGIServer(object):
-    def __init__(self, node):
+    def __init__(self, host, port, node):
+        self.host = host
+        self.port = port
         self.node = node
+        self.rpc_objects = {
+            'game': self.game_handle,
+            'room': self.room_handle,
+            'admin': self.admin_handle,
+        }
 
     def serve_forever(self):
-        server = pywsgi.WSGIServer(("", 8080), self.handle,
+        server = pywsgi.WSGIServer((self.host, self.port), self.handle,
             handler_class=WebSocketHandler)
         server.serve_forever()
 
     def handle(self, environ, response):
+        rest_object = environ['PATH_INFO'].strip('/').split('/')[0]
         if environ['PATH_INFO'] == '/socket':
-            cookies = _read_cookies(environ)
-            return self.handle_socket(environ["wsgi.websocket"], cookies)
-        elif environ['PATH_INFO'].startswith('/game/'):
-            return self.game_handle(environ, response)
-        elif environ['PATH_INFO'].startswith('/control/'):
-            return self.control_handle(environ, response)
-        elif environ['PATH_INFO'].startswith('/room/'):
-            return self.room_handle(environ, response)
-        elif environ['PATH_INFO'].startswith('/admin/'):
-            return self.admin_handle(environ, response)
-        elif environ['PATH_INFO'].startswith('/controller/'):
-            return self.handle_controller(environ, response)
+            return self.handle_socket(environ["wsgi.websocket"])
+        elif rest_object in self.rpc_objects:
+            return self.rpc_object[rest_object](environ, response)
         elif environ['PATH_INFO'] == '/':
             if self.check_player_joined(_get_param(environ, 'player_id')):
                 return self.www_file('/index.html', response)
@@ -76,26 +54,9 @@ class WSGIServer(object):
         else:
             return self.www_file(environ['PATH_INFO'], response)
 
-    def handle_controller(self, environ, response):
-        if not self.node.controller:
-            raise Exception("This is not a Controller node")
-        params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
-        controller_call = environ['PATH_INFO'].replace('/controller/', '')
-        controller_method = getattr(self.node.controller, controller_call)
-        returned = controller_method(**params)
-        if returned :
-            returned = simplejson.dumps(returned)
-        else:
-            returned = "[]"
-        response('200 OK', [
-            ('content-type', 'text/javascript'),
-            ('content-length', len(returned)),
-        ])
-        return returned
-
-
     @checked
-    def handle_socket(self, ws, cookies):
+    def handle_socket(self, ws):
+        cookies = _read_cookies(environ)
         player_id = None
         instance = None
         queue = None
@@ -149,33 +110,6 @@ class WSGIServer(object):
             returned = simplejson.dumps(returned)
         else:
             returned = "[]"
-        response('200 OK', [
-            ('content-type', 'text/javascript'),
-            ('content-length', len(returned)),
-        ])
-        return returned
-
-
-    @checked
-    def control_handle(self, environ, response):
-        path = environ['PATH_INFO'].replace("/control/", "")
-        params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
-
-        returned = ""
-
-        if path == "player_joins":
-            instance_uid = params['instance_uid']
-            player_id = params['player_id']
-            self.node.player_joins(instance_uid, player_id)
-            returned = '{"success":true}'
-            log.info("Player %s joined instance %s", player_id, instance_uid)
-
-        if path == "create_instance":
-            map_id = params['map_id']
-            uid = self.node.create_instance(map_id)
-            returned = '{"instance_uid": "%s"}' % (uid,)
-            log.info("Instance created %s : %s", map_id, uid)
-
         response('200 OK', [
             ('content-type', 'text/javascript'),
             ('content-length', len(returned)),
