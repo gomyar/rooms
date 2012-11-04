@@ -20,8 +20,8 @@ class Instance:
         self.area = None
         self.node = node
 
-    def load_map(self, map_id):
-        self.area = self.node.container.load_area(map_id)
+    def load_area(self, area_id):
+        self.area = self.node.container.load_area(area_id)
         self.area.instance = self
 
     def sleep(self):

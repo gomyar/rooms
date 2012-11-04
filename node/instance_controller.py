@@ -4,6 +4,16 @@ import simplejson
 
 from wsgi_rpc import WSGIRPCClient
 
+from utils import checked
+
+from gevent import pywsgi
+from geventwebsocket.handler import WebSocketHandler
+
+import logging
+import logging.config
+logging.config.fileConfig("logging.conf")
+log = logging.getLogger("rooms.controller")
+
 
 class NodeStub(object):
     def __init__(self, host, port):
@@ -36,6 +46,7 @@ class InstanceController(object):
         self.players = dict()
 
     def init(self, options):
+        self.host, self.port = options.controller_api.split(':')
         if options.controller_address:
             log.info("Connecting to Controller at %s",
                 options.controller_address)
@@ -44,16 +55,15 @@ class InstanceController(object):
             self._start_wsgi_server(self.handle_client)
         else:
             log.info("Assuming Controller role")
-            self.controller = InstanceController()
-            stub = NodeStub(self.host, self.port)
+            stub = NodeStub('', 0)
             stub.create_instance = self.create_instance
             stub.player_joins = self.player_joins
-            self.controller.nodes[(self.host, self.port)] = stub
+            self.nodes[('', 0)] = stub
             # share master xmlrpc
             self._start_wsgi_server(self.handle_controller)
 
     def _start_wsgi_server(self, handle):
-        server = pywsgi.WSGIServer((self.host, self.port), handle,
+        server = pywsgi.WSGIServer((self.host, int(self.port)), handle,
             handler_class=WebSocketHandler)
         server.start()
 
@@ -76,6 +86,17 @@ class InstanceController(object):
         ])
         return returned
 
+    def player_joins(self, instance_uid, player_id):
+        self.node.player_joins(instance_uid, player_id)
+        log.info("Player %s joined instance %s", player_id, instance_uid)
+        return '{"success":true}'
+
+    def create_instance(self, map_id):
+        map_id = params['map_id']
+        uid = self.node.create_instance(map_id)
+        log.info("Instance created %s : %s", map_id, uid)
+        return '{"instance_uid": "%s"}' % (uid,)
+
 
     @checked
     def handle_client(self, environ, response):
@@ -85,17 +106,10 @@ class InstanceController(object):
         returned = ""
 
         if path == "player_joins":
-            instance_uid = params['instance_uid']
-            player_id = params['player_id']
-            self.node.player_joins(instance_uid, player_id)
-            returned = '{"success":true}'
-            log.info("Player %s joined instance %s", player_id, instance_uid)
+            returned = self.player_joins(instance_uid, player_id)
 
         if path == "create_instance":
-            map_id = params['map_id']
-            uid = self.node.create_instance(map_id)
-            returned = '{"instance_uid": "%s"}' % (uid,)
-            log.info("Instance created %s : %s", map_id, uid)
+            returned = self.create_instance(map_id)
 
         response('200 OK', [
             ('content-type', 'text/javascript'),
@@ -103,16 +117,13 @@ class InstanceController(object):
         ])
         return returned
 
-
     def register_with_controller(self, controller_address):
-        self.controller = xmlrpclib.ServerProxy('http://%s' % (
-            controller_address,))
+        self.controller = WSGIRPCClient(controller_address.split(':'))
         self.controller.register_node(self.host, self.port)
 
-    def deregister_from_controller(self):
+    def shutdown(self):
         if self.controller:
             self.controller.deregister_node(self.host, self.port)
-
 
     def register_node(self, host, port):
         self.nodes[(host, port)] = NodeStub(host, port)

@@ -145,7 +145,7 @@ def control_handle(environ, response):
         map_id = params['map_id']
         uid = str(uuid.uuid1())
         instance = Instance(uid, master)
-        instance.load_map(map_id)
+        instance.load_area(map_id)
         instances[uid] = instance
         instance.kickoff()
         returned = '{"instance_uid": "%s"}' % (uid,)

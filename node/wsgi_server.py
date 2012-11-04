@@ -24,6 +24,18 @@ logging.config.fileConfig("logging.conf")
 log = logging.getLogger("rooms.wsgi")
 
 
+def _json_return(response, returned):
+    if returned:
+        returned = simplejson.dumps(returned)
+    else:
+        returned = "[]"
+    response('200 OK', [
+        ('content-type', 'text/javascript'),
+        ('content-length', len(returned)),
+    ])
+    return returned
+
+
 class WSGIServer(object):
     def __init__(self, host, port, node):
         self.host = host
@@ -40,6 +52,12 @@ class WSGIServer(object):
             handler_class=WebSocketHandler)
         server.serve_forever()
 
+    def _check_player_joined(self, player_id):
+        for instance in self.node.instances.values():
+            if player_id in instance.players:
+                return True
+        return False
+
     def handle(self, environ, response):
         rest_object = environ['PATH_INFO'].strip('/').split('/')[0]
         if environ['PATH_INFO'] == '/socket':
@@ -47,7 +65,7 @@ class WSGIServer(object):
         elif rest_object in self.rpc_objects:
             return self.rpc_object[rest_object](environ, response)
         elif environ['PATH_INFO'] == '/':
-            if self.check_player_joined(_get_param(environ, 'player_id')):
+            if self._check_player_joined(_get_param(environ, 'player_id')):
                 return self.www_file('/index.html', response)
             else:
                 return self.redirect(master_addr, response)
@@ -106,15 +124,7 @@ class WSGIServer(object):
         instance = self.node.instances[instance_uid]
         returned = instance.call(command, self.node.sessions[cookies['sessionid']],
             actor_id, dict(params))
-        if returned:
-            returned = simplejson.dumps(returned)
-        else:
-            returned = "[]"
-        response('200 OK', [
-            ('content-type', 'text/javascript'),
-            ('content-length', len(returned)),
-        ])
-        return returned
+        return _json_return(response, returned)
 
 
     @checked
@@ -125,15 +135,7 @@ class WSGIServer(object):
         instance = self.node.instances[instance_uid]
         returned = instance.players[sessions[cookies['sessionid']]]\
             ['player'].room.external()
-        if returned:
-            returned = simplejson.dumps(returned)
-        else:
-            returned = "[]"
-        response('200 OK', [
-            ('content-type', 'text/javascript'),
-            ('content-length', len(returned)),
-        ])
-        return returned
+        return _json_return(response, returned)
 
 
     @checked
@@ -145,20 +147,7 @@ class WSGIServer(object):
         assert(cookies['sessionid'] in self.node.sessions)
         admin = Admin(self.node.game_root)
         returned = getattr(admin, command)(**params)
-        returned = simplejson.dumps(returned)
-        response('200 OK', [
-            ('content-type', 'text/javascript'),
-            ('content-length', len(returned)),
-        ])
-        return returned
-
-
-    @checked
-    def check_player_joined(self, player_id):
-        for instance in self.node.instances.values():
-            if player_id in instance.players:
-                return True
-        return False
+        return _json_return(response, returned)
 
 
     @checked

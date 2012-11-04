@@ -61,10 +61,10 @@ class Node(object):
         self.server = WSGIServer(host, port, self)
         self.server.serve_forever()
 
-    def create_instance(self, map_id):
-        uid = str(uuid.uuid1())
+    def create_instance(self, area_id):
+        uid = self._random_uid()
         instance = Instance(uid, self)
-        instance.load_map(map_id)
+        instance.load_area(area_id)
         self.instances[uid] = instance
         instance.kickoff()
         return uid
@@ -72,6 +72,12 @@ class Node(object):
     def player_joins(self, instance_uid, player_id):
         instance = self.instances[instance_uid]
         instance.register(player_id)
+
+    def shutdown(self):
+        self.controller.deregister_node(self.host, self.port)
+
+    def random_uid(self):
+        return str(uuid.uuid1())
 
 
 if __name__ == "__main__":
@@ -111,4 +117,4 @@ if __name__ == "__main__":
     finally:
         log.info("Server stopped")
         if node:
-            node.deregister_from_controller()
+            node.shutdown()
