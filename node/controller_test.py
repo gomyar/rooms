@@ -3,6 +3,7 @@ import unittest
 
 from controller import ClientController
 from controller import MasterController
+from controller import RegisteredNode
 
 from wsgi_rpc import WSGIRPCClient
 
@@ -28,7 +29,7 @@ class MockContainer(object):
 
 class ControllerTest(unittest.TestCase):
     def setUp(self):
-        self.node = Node('', 'localhost', 8000)
+        self.node = Node('/', 'external.com', 8082)
         self.area = Area()
         self.area.area_name = "area1"
         self.area.entry_point_room_id = "room1"
@@ -41,13 +42,15 @@ class ControllerTest(unittest.TestCase):
             'client.com', 8081, 'master.com', 8080)
 
         self.client.master = self.master
-        self.master.nodes['client.com', 8081] = self.client
+        self.master.register_node('client.com', 8081, 'external.com', 8082)
+        self.master.nodes['client.com', 8081].client = self.client
 
     def testRegisterClient(self):
         self.client.register_with_master()
 
         self.assertEquals({
-            ('client.com', 8081): WSGIRPCClient('client.com', 8081),
+            ('client.com', 8081): RegisteredNode('client.com', 8081,
+                'external.com', 8082),
         }, self.master.nodes)
 
     def testWsgiClientConnect(self):
@@ -80,3 +83,4 @@ class ControllerTest(unittest.TestCase):
             'node': ('client.com', 8081),
             'players': [],
             'uid': 'instance1'}, instance)
+        self.assertEquals(instance, self.master.instances['instance1'])

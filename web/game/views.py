@@ -1,6 +1,7 @@
 import httplib
 import urllib
 import simplejson
+import sys
 
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
@@ -19,40 +20,10 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger()
 
 
-class ControllerClient(object):
-    def __init__(self, controller_address):
-        self.controller_address = controller_address
-
-    def __repr__(self):
-        return "<ControllerClient %s" % (self.controller_address,)
-
-    def get(self, url, **params):
-        conn = httplib.HTTPConnection(self.controller_address)
-        conn.request("GET", url + "?" + urllib.urlencode(params))
-        response = conn.getresponse().read()
-        return simplejson.loads(response)
-
-    def post(self, url, **params):
-        conn = httplib.HTTPConnection(self.controller_address)
-        conn.request("POST", url, urllib.urlencode(params))
-        response = conn.getresponse().read()
-        return simplejson.loads(response)
-
-    def list_instances(self):
-        return self.get("/controller/list_instances")
-
-    def own_instances(self, user_id):
-        return self.get("/controller/own_instances", user_id=user_id)
-
-    def create_instance(self, user_id, map_id):
-        return self.post("/controller/create_instance", user_id=user_id,
-            map_id=map_id)
-
-    def join_instance(self, user_id, instance_uid):
-        return self.post("/controller/join_instance", user_id=user_id,
-            instance_uid=instance_uid)
-
-master = ControllerClient(settings.MASTER_ADDR)
+sys.path.append('../node/')
+from wsgi_rpc import WSGIRPCClient
+mhost, mport = settings.MASTER_ADDR.split(':')
+master = WSGIRPCClient(mhost, int(mport))
 _mongo_connection = None
 
 
@@ -89,7 +60,7 @@ def profile(request):
 def running_instances(request):
     user_id = request.user.username
     instances = master.list_instances()
-    own_instance = master.own_instance(str(user_id))
+    own_instance = master.own_instance(user_id=str(user_id))
     if own_instance:
         instance = instances[own_instance]
         return HttpResponseRedirect(
@@ -106,7 +77,7 @@ def running_instances(request):
 def create_instance(request):
     user_id = request.user.username
     map_id = request.POST['map_id']
-    master.create_instance(str(user_id), map_id)
+    master.create_instance(area_id=map_id)
     return HttpResponseRedirect("/")
 
 @login_required
@@ -114,7 +85,8 @@ def join_instance(request):
     user_id = request.user.username
     instance_uid = request.POST['instance_uid']
     log.debug("User %s joining %s", user_id, instance_uid)
-    response = master.join_instance(str(user_id), instance_uid)
+    response = master.join_instance(user_id=str(user_id),
+        instance_uid=instance_uid)
     if response['success']:
         return HttpResponseRedirect(
             "http://%s:%s/?instance_uid=%s&player_id=%s" % \

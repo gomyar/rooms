@@ -3,6 +3,20 @@ from wsgi_rpc import WSGIRPCClient
 from wsgi_rpc import WSGIRPCServer
 
 
+class RegisteredNode(object):
+    def __init__(self, host, port, external_host, external_port):
+        self.client = WSGIRPCClient(host, port)
+        self.host = host
+        self.port = port
+        self.external_host = external_host
+        self.external_port = external_port
+
+    def __eq__(self, rhs):
+        return type(rhs) is RegisteredNode and self.host == rhs.host and \
+            self.port == rhs.port and self.external_host == rhs.external_host \
+            and self.external_port == self.external_port
+
+
 class MasterController(object):
     def __init__(self, host, port):
         self.host = host
@@ -27,8 +41,9 @@ class MasterController(object):
     def start(self):
         self.wsgi_server.start()
 
-    def register_node(self, host, port):
-        self.nodes[host, port] = WSGIRPCClient(host, port)
+    def register_node(self, host, port, external_host, external_port):
+        self.nodes[host, port] = RegisteredNode(host, port, external_host,
+            external_port)
 
     def deregister_node(self, host, port):
         self.nodes.pop((host, port))
@@ -38,7 +53,7 @@ class MasterController(object):
 
     def create_instance(self, area_id):
         node = self._least_busy_node()
-        instance_uid = node.create_instance(area_id)
+        instance_uid = node.client.create_instance(area_id=area_id)
         instance = dict(players=[],
             node=(node.host, node.port),
             area_id=area_id, uid=instance_uid)
@@ -50,16 +65,12 @@ class MasterController(object):
         if user_id not in instance['players']:
             instance['players'].append(user_id)
         node = self.nodes[instance['node']]
-        node.players += 1
-        node.player_joins(instance_uid, user_id)
-        self.players[user_id] = instance_uid
-        return dict(success=True, node=(node.host, node.port))
+        node.client.player_joins(instance_uid=instance_uid, player_uid=user_id)
+        return dict(success=True, node=(node.external_host, node.external_port))
 
     def player_left(self, user_id, instance_uid):
         instance =  self.instances[instance_uid]
         instance['players'].remove(user_id)
-        node = self.nodes[instance['node']]
-        node.players -= 1
         log.debug("Player %s left instance %s", user_id, instance_uid)
         return ""
 
@@ -83,7 +94,11 @@ class ClientController(object):
         self.wsgi_server = None
 
     def register_with_master(self):
-        self.master.register_node(self.host, self.port)
+        self.master.register_node(self.host, self.port, self.node.host,
+            self.node.port)
+
+    def deregister_with_master(self):
+        self.master.deregister_node(self.host, self.port)
 
     def init(self):
         self.master = WSGIRPCClient(self.master_host, self.master_port)

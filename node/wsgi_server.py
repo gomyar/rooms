@@ -61,9 +61,9 @@ class WSGIServer(object):
     def handle(self, environ, response):
         rest_object = environ['PATH_INFO'].strip('/').split('/')[0]
         if environ['PATH_INFO'] == '/socket':
-            return self.handle_socket(environ["wsgi.websocket"])
+            return self.handle_socket(environ, response)
         elif rest_object in self.rpc_objects:
-            return self.rpc_object[rest_object](environ, response)
+            return self.rpc_objects[rest_object](environ, response)
         elif environ['PATH_INFO'] == '/':
             if self._check_player_joined(_get_param(environ, 'player_id')):
                 return self.www_file('/index.html', response)
@@ -73,7 +73,8 @@ class WSGIServer(object):
             return self.www_file(environ['PATH_INFO'], response)
 
     @checked
-    def handle_socket(self, ws):
+    def handle_socket(self, environ, response):
+        ws = environ["wsgi.websocket"]
         cookies = _read_cookies(environ)
         player_id = None
         instance = None
@@ -133,7 +134,7 @@ class WSGIServer(object):
         log.debug("Room call: %s %s", url, instance_uid)
         cookies = _read_cookies(environ)
         instance = self.node.instances[instance_uid]
-        returned = instance.players[sessions[cookies['sessionid']]]\
+        returned = instance.players[self.node.sessions[cookies['sessionid']]]\
             ['player'].room.external()
         return _json_return(response, returned)
 

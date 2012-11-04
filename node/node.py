@@ -9,7 +9,8 @@ from optparse import OptionParser
 
 import uuid
 
-from instance_controller import InstanceController
+from controller import MasterController
+from controller import ClientController
 
 from rooms.instance import Instance
 from rooms.settings import settings
@@ -54,11 +55,20 @@ class Node(object):
         node.container.init_mongo()
 
     def init_controller(self, options):
-        self.controller = InstanceController(self)
-        self.controller.init(options)
+        mhost, mport = options.controller_address.split(':')
+        self.master = MasterController(mhost, int(mport))
+        self.master.init()
+        host, port = options.controller_api.split(':')
+        self.client = ClientController(self, host, int(port), mhost, int(mport))
+        self.client.init()
+
+        self.master.register_node(host, port, self.host, self.port)
+
+        self.master.start()
+        self.client.start()
 
     def start(self):
-        self.server = WSGIServer(host, port, self)
+        self.server = WSGIServer(self.host, self.port, self)
         self.server.serve_forever()
 
     def create_instance(self, area_id):
@@ -74,9 +84,9 @@ class Node(object):
         instance.register(player_id)
 
     def shutdown(self):
-        self.controller.deregister_node(self.host, self.port)
+        self.client.deregister_node(self.host, self.port)
 
-    def random_uid(self):
+    def _random_uid(self):
         return str(uuid.uuid1())
 
 
@@ -87,7 +97,7 @@ if __name__ == "__main__":
         parser = OptionParser()
 
         parser.add_option("-c", "--controller", dest="controller_address",
-            help="Address of controller node")
+            help="Address of controller node", default="localhost:8082")
 
         parser.add_option("-i", "--controller-api", dest="controller_api",
             help="Address of controller xmlrpc api (client and controller)",

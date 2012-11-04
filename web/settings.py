@@ -95,4 +95,4 @@ INSTALLED_APPS = (
 )
 
 # rooms settings
-MASTER_ADDR = "localhost:8080"
+MASTER_ADDR = "localhost:8082"
