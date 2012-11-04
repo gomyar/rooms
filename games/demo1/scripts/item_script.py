@@ -1,5 +1,5 @@
 
-from script import *
+from rooms.script import *
 
 @expose
 def pick_up(item, player):

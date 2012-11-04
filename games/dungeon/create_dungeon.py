@@ -1,8 +1,8 @@
 #!/usr/bin/python
 import sys
 
-from container import *
-from container import _encode
+from rooms.container import *
+from rooms.container import _encode
 from rooms.actor import *
 
 

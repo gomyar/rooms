@@ -21,7 +21,7 @@ log = logging.getLogger()
 
 
 sys.path.append('../node/')
-from wsgi_rpc import WSGIRPCClient
+from rooms.wsgi_rpc import WSGIRPCClient
 mhost, mport = settings.MASTER_ADDR.split(':')
 master = WSGIRPCClient(mhost, int(mport))
 _mongo_connection = None

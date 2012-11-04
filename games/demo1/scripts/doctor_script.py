@@ -1,6 +1,6 @@
 
 
-from script import *
+from rooms.script import *
 
 
 def kickoff(npc):

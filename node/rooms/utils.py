@@ -2,8 +2,6 @@
 import urlparse
 
 import logging
-import logging.config
-logging.config.fileConfig("logging.conf")
 log = logging.getLogger("rooms.wsgi")
 
 

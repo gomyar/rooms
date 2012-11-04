@@ -1,4 +1,4 @@
-from script import *
+from rooms.script import *
 
 def kickoff(npc):
     if npc.room.room_id == "diningroom":

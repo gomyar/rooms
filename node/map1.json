@@ -1,1 +1,0 @@
-{"py/object": "area.Area", "actors": {}, "rooms": {"lobby": {"py/object": "room.Room", "map_objects": [], "height": 50, "width": 50, "room_id": "lobby", "doors": {}, "actors": {"bed": {"py/object": "bed_actor.Bed", "room": null, "state": "idle", "player_id": "bed", "path": [{"py/tuple": [20, 20, 1334783162.294513]}, {"py/tuple": [20, 20, 1334783162.294515]}], "speed": 200.0}}}}}

@@ -1,5 +1,5 @@
 
-from script import *
+from rooms.script import *
 
 def init(area):
     create_npc(area, "butler", "ButlerScript", 'foyer')

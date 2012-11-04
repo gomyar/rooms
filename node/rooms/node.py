@@ -15,7 +15,7 @@ from controller import ClientController
 from rooms.instance import Instance
 from rooms.settings import settings
 
-from mongo_container import MongoContainer
+from rooms.mongo.mongo_container import MongoContainer
 
 import sys
 
@@ -26,7 +26,6 @@ from wsgi_server import WSGIServer
 
 import logging
 import logging.config
-logging.config.fileConfig("logging.conf")
 log = logging.getLogger("rooms.node")
 
 
@@ -114,6 +113,7 @@ if __name__ == "__main__":
                 help="Path to game dir")
 
         (options, args) = parser.parse_args()
+        logging.config.fileConfig("logging.conf")
 
         host, port = options.address.split(":")
         dbhost, dbport = options.dbaddr.split(":")

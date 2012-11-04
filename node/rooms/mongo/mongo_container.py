@@ -6,8 +6,8 @@ from pymongo.helpers import bson
 
 from rooms.room_container import RoomContainer
 
-from container import _decode
-from container import _encode
+from rooms.container import _decode
+from rooms.container import _encode
 
 
 class MongoRoomContainer(RoomContainer):

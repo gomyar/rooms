@@ -6,8 +6,8 @@ from rooms.room_container import RoomContainer
 from rooms.area import Area
 from rooms.actor import Actor
 
-from container import serialize_area
-from container import create_area
+from rooms.container import serialize_area
+from rooms.container import create_area
 
 class MockRoomContainer(RoomContainer):
     def load_room(self, room_id):

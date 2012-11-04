@@ -1,19 +1,24 @@
 #!/usr/bin/python
 import sys
 
-from container import *
-from container import _encode
+from rooms.container import *
+from rooms.container import _encode
 from rooms.actor import *
 
 from script import create_npc
+from script import create_item
 
+sys.path.append("../games/demo1")
 
 init_mongo()
 
 area = Area()
 area.rooms = MongoRoomContainer(area)
 area.area_name = "mansion"
-area.owner_id = 1
+area.owner_id = "ray"
+area.load_script("demo1_script")
+area.player_script = "player_script"
+
 
 # Foyer
 foyer = Room('foyer', (820, 1480), 420, 430, description="The Foyer")
@@ -41,6 +46,8 @@ area.rooms['hall'] = hall
 
 # Lounge
 lounge = Room('lounge', (420, 1000), 500, 420, description="The Lounge")
+lounge.add_object("sofa",
+    RoomObject("couch_east", 50, 190), (420, 1100))
 area.rooms['lounge'] = lounge
 
 # Library
@@ -84,6 +91,10 @@ diningroom.add_object("diningroom_chair_t1",
 diningroom.add_object("diningroom_chair_b1",
     RoomObject("diningroom_chair_up", 60, 40, facing=FACING_NORTH), (220, 510))
 
+
+diningroom.add_object("investigator",
+    RoomObject("diningroom_chair_up", 60, 40, facing=FACING_NORTH), (220, 610))
+
 area.rooms['diningroom'] = diningroom
 
 # Pantry
@@ -95,29 +106,32 @@ billiardroom = Room('billiardroom', (1240, 200), 500, 360, description="The Bill
 area.rooms['billiardroom'] = billiardroom
 
 
-area.create_door(foyer, cloakroom, (820, 1580), (800, 1580))
-area.create_door(foyer, trophyroom, (1240, 1580), (1260, 1580))
+#area.create_door(foyer, cloakroom, (820, 1580), (800, 1580))
+#area.create_door(foyer, trophyroom, (1240, 1580), (1260, 1580))
 area.create_door(foyer, hall, (1040, 1480), (1040, 1460))
 area.create_door(hall, diningroom, (1040, 820), (1040, 800))
 area.create_door(hall, library, (1120, 1080), (1140, 1080))
 area.create_door(hall, lounge, (940, 1240), (920, 1240))
-area.create_door(lounge, kitchen, (520, 1000), (520, 980))
-area.create_door(diningroom, kitchen, (780, 600), (760, 600))
-area.create_door(kitchen, pantry, (460, 460), (460, 440))
-area.create_door(study, diningroom, (1240, 680), (1220, 680))
-area.create_door(study, billiardroom, (1600, 580), (1600, 560))
-area.create_door(library, study, (1420, 920), (1420, 900))
+#area.create_door(lounge, kitchen, (520, 1000), (520, 980))
+#area.create_door(diningroom, kitchen, (780, 600), (760, 600))
+#area.create_door(kitchen, pantry, (460, 460), (460, 440))
+#area.create_door(study, diningroom, (1240, 680), (1220, 680))
+#area.create_door(study, billiardroom, (1600, 580), (1600, 560))
+#area.create_door(library, study, (1420, 920), (1420, 900))
 
 area.entry_point_room_id = "foyer"
 
-area.game_script = load_script("MansionGameScript")
+create_npc(area, "butler", "butler", "butler_script", 'foyer')
+create_npc(area, "thomas", "dilettante", "thomas_script", 'lounge')
+create_npc(area, "anthony", "dilettante", "anthony_script", 'lounge')
+create_npc(area, "doctor", "major", "doctor_script", 'hall')
+create_npc(area, "barnes", "professor", "barnes_script", 'library')
+create_npc(area, "lizzy", "aunt", "lizzy_script", 'lounge')
+create_npc(area, "celia", "aunt", "celia_script", 'diningroom')
 
-create_npc(area, "butler", "ButlerScript", 'foyer')
-create_npc(area, "dilettante", "DilettanteScript", 'study')
-create_npc(area, "gladys", "GladysScript", 'diningroom')
-create_npc(area, "jezabel", "JezabelScript", 'diningroom')
-create_npc(area, "major", "MajorScript", 'trophyroom')
-create_npc(area, "professor", "ProfessorScript", 'library')
-create_npc(area, "aunt", "AuntScript", 'lounge')
+create_npc(area, "bobby", "investigator", "bobby_script", 'hall')
+create_npc(area, "sergeant", "investigator", "sergeant_script", 'lounge')
+
+create_item(area, "clue", "foyer")
 
 save_area(area)

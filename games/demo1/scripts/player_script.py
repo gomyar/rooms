@@ -1,5 +1,5 @@
 
-from script import *
+from rooms.script import *
 
 @request
 def list_inventory(player):

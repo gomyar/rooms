@@ -7,7 +7,7 @@ import simplejson
 
 from actor import Actor
 from player_actor import PlayerActor
-import container
+import rooms.container
 
 import logging
 log = logging.getLogger("rooms.instance")
