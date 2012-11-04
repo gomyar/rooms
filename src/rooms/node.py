@@ -5,8 +5,6 @@ monkey.patch_socket()
 
 import os
 
-from optparse import OptionParser
-
 import uuid
 
 from controller import MasterController
@@ -23,11 +21,8 @@ from ConfigParser import ConfigParser
 
 from wsgi_server import WSGIServer
 
-
 import logging
-import logging.config
 log = logging.getLogger("rooms.node")
-
 
 
 class Node(object):
@@ -43,15 +38,15 @@ class Node(object):
         self.instances = dict()
         self.sessions = dict()
 
-    def load_game(self):
+    def load_game(self, dbhost, dbport):
         config = ConfigParser()
         config.read(os.path.join(self.game_root, "game.conf"))
         script_dir = config.get("scripts", "root")
         sys.path.append(script_dir)
         settings['script_dir'] = script_dir
 
-        node.container = MongoContainer(dbhost, int(dbport))
-        node.container.init_mongo()
+        self.container = MongoContainer(dbhost, dbport)
+        self.container.init_mongo()
 
     def init_controller(self, options):
         mhost, mport = options.controller_address.split(':')
@@ -83,48 +78,7 @@ class Node(object):
         instance.register(player_id)
 
     def shutdown(self):
-        self.client.deregister_node(self.host, self.port)
+        self.client.deregister_from_master()
 
     def _random_uid(self):
         return str(uuid.uuid1())
-
-
-if __name__ == "__main__":
-    node = None
-    try:
-        log.info("Starting server")
-        parser = OptionParser()
-
-        parser.add_option("-c", "--controller", dest="controller_address",
-            help="Address of controller node", default="localhost:8082")
-
-        parser.add_option("-i", "--controller-api", dest="controller_api",
-            help="Address of controller xmlrpc api (client and controller)",
-            default="localhost:8081")
-
-        parser.add_option("-a", "--address", dest="address",
-            default="localhost:8080", help="Address to serve node on")
-
-        parser.add_option("-d", "--dbaddr", dest="dbaddr",
-            default="localhost:27017", help="Address of mongo server")
-
-        parser.add_option("-g", "--game", dest="game",
-            default="/home/ray/projects/rooms/games/demo1",
-                help="Path to game dir")
-
-        (options, args) = parser.parse_args()
-        logging.config.fileConfig("logging.conf")
-
-        host, port = options.address.split(":")
-        dbhost, dbport = options.dbaddr.split(":")
-
-        node = Node(options.game, host, int(port))
-        node.load_game()
-        node.init_controller(options)
-        node.start()
-    except:
-        log.exception("Exception starting server")
-    finally:
-        log.info("Server stopped")
-        if node:
-            node.shutdown()

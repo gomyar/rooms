@@ -94,11 +94,11 @@ class ClientController(object):
         self.wsgi_server = None
 
     def register_with_master(self):
-        self.master.register_node(self.host, self.port, self.node.host,
-            self.node.port)
+        self.master.register_node(host=self.host, port=self.port,
+            external_host=self.node.host, external_port=self.node.port)
 
-    def deregister_with_master(self):
-        self.master.deregister_node(self.host, self.port)
+    def deregister_from_master(self):
+        self.master.deregister_node(host=self.host, port=self.port)
 
     def init(self):
         self.master = WSGIRPCClient(self.master_host, self.master_port)
