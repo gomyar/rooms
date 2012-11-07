@@ -66,7 +66,7 @@ class MongoContainer(object):
         rooms_db = self._mongo_connection.rooms_db
         rooms_db.areas.save(encoded_dict)
         for room in area.rooms._rooms.values():
-            self.save_room_to_mongo(room)
+            area.rooms.save_room_to_mongo(room)
 
     def list_all_areas_for(owner_id):
         rooms_db = self._mongo_connection.rooms_db

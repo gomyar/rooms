@@ -22,7 +22,9 @@ gui_assets.map_images = {
     'diningroom_chair_down': 'room_objects/diningroom_chair_down.png',
     'marble_side_table': 'room_objects/marble_side_table.png',
     'couch_east': 'room_objects/couch_east.png',
+    'couch_west': 'room_objects/couch_west.png',
     'large_painting_west': 'room_objects/large_painting_west.png',
+    'large_painting_east': 'room_objects/large_painting_east.png',
 
     'clue': 'items/clue.png'
 };

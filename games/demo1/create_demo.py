@@ -2,18 +2,21 @@
 import sys
 
 from rooms.container import *
+from rooms.mongo.mongo_container import MongoContainer
+from rooms.mongo.mongo_container import MongoRoomContainer
 from rooms.container import _encode
 from rooms.actor import *
 
-from script import create_npc
-from script import create_item
+from rooms.script import create_npc
+from rooms.script import create_item
 
 sys.path.append("../games/demo1")
 
-init_mongo()
+container = MongoContainer()
+container.init_mongo()
 
 area = Area()
-area.rooms = MongoRoomContainer(area)
+area.rooms = MongoRoomContainer(area, container)
 area.area_name = "mansion"
 area.owner_id = "ray"
 area.load_script("demo1_script")
@@ -46,12 +49,30 @@ area.rooms['hall'] = hall
 
 # Lounge
 lounge = Room('lounge', (420, 1000), 500, 420, description="The Lounge")
+
 lounge.add_object("sofa",
-    RoomObject("couch_east", 50, 190), (420, 1100))
+    RoomObject("couch_east", 50, 190), (0, 100))
+lounge.add_object("chair_up_1",
+    RoomObject("diningroom_chair_up", 60, 40, facing=FACING_NORTH), (50, 380))
+lounge.add_object("t1",
+    RoomObject("marble_side_table", 90, 90), (120, 330))
+lounge.add_object("chair_up_2",
+    RoomObject("diningroom_chair_up", 60, 40, facing=FACING_NORTH), (220, 380))
+lounge.add_object("painting",
+    RoomObject("large_painting_west", 10, 190), (550, 0))
+
 area.rooms['lounge'] = lounge
 
 # Library
-library = Room('library', (1160, 920), 460, 500, description="The Library")
+library = Room('library', (1140, 920), 460, 500, description="The Library")
+library.add_object("painting",
+    RoomObject("large_painting_east", 10, 190), (0, 200))
+library.add_object("sofa",
+    RoomObject("couch_west", 50, 190), (410, 100))
+library.add_object("chair_up_2",
+    RoomObject("diningroom_chair_up", 60, 40, facing=FACING_NORTH), (220, 460))
+library.add_object("chair_right",
+    RoomObject("diningroom_chair_left", 40, 60, facing=FACING_WEST), (420, 50))
 area.rooms['library'] = library
 
 # Kitchen
@@ -92,9 +113,6 @@ diningroom.add_object("diningroom_chair_b1",
     RoomObject("diningroom_chair_up", 60, 40, facing=FACING_NORTH), (220, 510))
 
 
-diningroom.add_object("investigator",
-    RoomObject("diningroom_chair_up", 60, 40, facing=FACING_NORTH), (220, 610))
-
 area.rooms['diningroom'] = diningroom
 
 # Pantry
@@ -134,4 +152,4 @@ create_npc(area, "sergeant", "investigator", "sergeant_script", 'lounge')
 
 create_item(area, "clue", "foyer")
 
-save_area(area)
+container.save_area(area)

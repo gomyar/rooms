@@ -1,0 +1,10 @@
+def kickoff(npc):
+    npc.sleep(4)
+    npc.say("< gibber >")
+    npc.sleep(8)
+    npc.say("...stole my thoughts...")
+    npc.sleep(8)
+    npc.say("< warble >")
+    npc.sleep(8)
+    npc.say("...just like Egypt...")
+    npc.sleep(4)
