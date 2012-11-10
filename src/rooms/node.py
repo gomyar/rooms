@@ -34,14 +34,16 @@ class Node(object):
         self.controller_stub = None
         self.admin_controller = None
         self.container = None
+        self.config = None
+        self.client = None
 
         self.instances = dict()
         self.sessions = dict()
 
     def load_game(self, dbhost, dbport):
-        config = ConfigParser()
-        config.read(os.path.join(self.game_root, "game.conf"))
-        script_dir = config.get("scripts", "root")
+        self.config = ConfigParser()
+        self.config.read(os.path.join(self.game_root, "game.conf"))
+        script_dir = self.config.get("scripts", "root")
         sys.path.append(script_dir)
         settings['script_dir'] = script_dir
 
@@ -50,7 +52,8 @@ class Node(object):
 
     def init_controller(self, options):
         mhost, mport = options.controller_address.split(':')
-        self.master = MasterController(mhost, int(mport))
+        self.master = MasterController(self.config, mhost, int(mport),
+            self.container)
         self.master.init()
         host, port = options.controller_api.split(':')
         self.client = ClientController(self, host, int(port), mhost, int(mport))
@@ -65,7 +68,7 @@ class Node(object):
         self.server = WSGIServer(self.host, self.port, self)
         self.server.serve_forever()
 
-    def create_instance(self, area_id):
+    def manage_area(self, area_id):
         uid = self._random_uid()
         instance = Instance(uid, self)
         instance.load_area(area_id)
@@ -78,7 +81,8 @@ class Node(object):
         instance.register(player_id)
 
     def shutdown(self):
-        self.client.deregister_from_master()
+        if self.client:
+            self.client.deregister_from_master()
 
     def _random_uid(self):
         return str(uuid.uuid1())

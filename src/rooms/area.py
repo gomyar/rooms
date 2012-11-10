@@ -25,6 +25,10 @@ class Area(object):
         self.point_map = dict()
         self.room_points = dict()
 
+    @property
+    def area_id(self):
+        return str(self._id)
+
     def rebuild_area_map(self):
         self.point_map = PointMap()
         for room_id in self.rooms._rooms:

@@ -5,37 +5,56 @@
 {% endblock %}
 
 {% block main %}
+<div id="title_desc">
 Join an ongoing game or start your own...
+</div>
 
-    <div id="opengames">
-    {% for uid, instance in instances.items %}
-    <div class="instance">
-        {{ instance.area.area_name }}
-        <div class="join_link" onclick="join_instance('{{ instance.uid }}');">The Mansion (open)</div> 
-        <form method="post" action="/join_instance">
-        {% csrf_token %}
-        <input type="hidden" name="instance_uid" value="{{ instance.uid }}"></input> 
-        <input type="submit" value="Join"></input>
+{% if game %}
+<div class="section">
+    <div class="title">Your Current Game:</div>
+    <div class="content">
+    -- your game --
+    </div>
+</div>
+
+{% else %}
+<div class="section">
+    <div class="title">Open Games:</div>
+    <div class="content">
+        <div id="opengames">
+        {% for uid, instance in instances.items %}
+            <div class="instance">
+                {{ instance.area.area_name }}
+                <div class="join_link" onclick="join_game('{{ instance.uid }}');">The Mansion (open)</div> 
+                <form method="post" action="/join_game">
+                {% csrf_token %}
+                <input type="hidden" name="instance_uid" value="{{ instance.uid }}"></input> 
+                <input type="submit" value="Join"></input>
+                </form>
+
+            </div>
+        {% endfor %}
+        {% if not instances %}
+        No Open Games
+        {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<div class="section">
+    <div class="title">Start a new Game:</div>
+    <div class="content">
+        <div id="create_instance">
+        <form method="post" action="/create_instance">
+            {% csrf_token %}
+            <input type="submit" value="Start New Game"></input>
         </form>
+        </div>
+    </div>
+</div>
 
-    </div>
-    {% endfor %}
-    {% if not instances %}
-    None
-    {% endif %}
-    </div>
-
-    <div id="create_instance">
-    <form method="post" action="/create_instance">
-        {% csrf_token %}
-        <select name="map_id">
-            {% for map in available_maps %}
-                <option value="{{ map.area_id }}">{{ map.area_name }}</option>
-            {% endfor %}
-        </select>
-        <input type="submit" value="Create"></input>
-    </form>
-    </div>
+{% endif %}
 
 
 {% endblock %}

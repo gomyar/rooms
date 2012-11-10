@@ -12,7 +12,7 @@ body
     font-family : arial;
 }
 
-div.title
+div.pagetitle
 {
     background-image : url('/static/images/title.png');
     background-repeat : no-repeat;
@@ -83,4 +83,21 @@ div#loginform input
 div#main div#content
 {
     margin-top : 20px;
+}
+
+div.section
+{
+    width : 600px;
+    background-color : black;
+    border: 1px solid darkblue;
+    margin : 10px;
+}
+
+div.section div.title
+{
+    margin: 5px;
+}
+div.section div.content
+{
+    margin: 5px 5px 5px 20px;
 }

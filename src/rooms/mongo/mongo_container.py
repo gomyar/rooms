@@ -8,6 +8,7 @@ from rooms.room_container import RoomContainer
 
 from rooms.container import _decode
 from rooms.container import _encode
+from rooms.player import Player
 
 
 class MongoRoomContainer(RoomContainer):
@@ -22,23 +23,32 @@ class MongoRoomContainer(RoomContainer):
         return self.save_room_to_mongo(room)
 
     def save_room_to_mongo(self, room):
-        encoded_str = simplejson.dumps(room, default=_encode, indent="    ")
-        encoded_dict = simplejson.loads(encoded_str)
-        if hasattr(room, "_id"):
-            encoded_dict['_id'] = room._id
         rooms_db = self.mongo_container._mongo_connection.rooms_db
-        room_id = rooms_db.rooms.save(encoded_dict)
-        room._id = room_id
-        return str(room_id)
+        _save_object(room, rooms_db.rooms)
+        return str(room._id)
 
     def load_room_from_mongo(self, room_id):
         rooms_db = self.mongo_container._mongo_connection.rooms_db
-        room_dict = rooms_db.rooms.find_one(bson.ObjectId(room_id))
-        db_id = room_dict.pop('_id')
-        room_str = simplejson.dumps(room_dict)
-        room = simplejson.loads(room_str, object_hook=_decode)
-        room._id = db_id
-        return room
+        return _load_object(room_id, rooms_db.rooms)
+
+
+def _save_object(obj, collection):
+    encoded_str = simplejson.dumps(obj, default=_encode, indent="    ")
+    encoded_dict = simplejson.loads(encoded_str)
+    if hasattr(obj, "_id"):
+        encoded_dict['_id'] = obj._id
+    obj_id = collection.save(encoded_dict)
+    obj._id = obj_id
+    return str(obj_id)
+
+def _load_object(obj_id, collection):
+    obj_dict = collection.find_one(bson.ObjectId(obj_id))
+    db_id = obj_dict.pop('_id')
+    obj_str = simplejson.dumps(obj_dict)
+    obj = simplejson.loads(obj_str, object_hook=_decode)
+    obj._id = db_id
+    return obj
+
 
 
 class MongoContainer(object):
@@ -52,19 +62,14 @@ class MongoContainer(object):
 
     def load_area(self, area_id):
         rooms_db = self._mongo_connection.rooms_db
-        area_dict = rooms_db.areas.find_one(bson.ObjectId(area_id))
-        area_dict.pop('_id')
-        area_str = simplejson.dumps(area_dict)
-        area = simplejson.loads(area_str, object_hook=_decode)
+        area = _load_object(area_id, rooms_db.areas)
         area.rooms = MongoRoomContainer(area, self)
         area.rooms._room_map = area._room_map
         return area
 
     def save_area(self, area):
-        encoded_str = simplejson.dumps(area, default=_encode, indent="    ")
-        encoded_dict = simplejson.loads(encoded_str)
         rooms_db = self._mongo_connection.rooms_db
-        rooms_db.areas.save(encoded_dict)
+        _save_object(area, rooms_db.areas)
         for room in area.rooms._rooms.values():
             area.rooms.save_room_to_mongo(room)
 
@@ -74,3 +79,21 @@ class MongoContainer(object):
             fields=['area_name'])
         return map(lambda a: dict(area_name=a['area_name'],
             area_id=str(a['_id'])), areas)
+
+    def save_game(self, game):
+        rooms_db = self._mongo_connection.rooms_db
+        _save_object(game, rooms_db.games)
+
+    def get_or_create_player(self, player_id):
+        rooms_db = self._mongo_connection.rooms_db
+        player = rooms_db.players.find_one(username=player_id)
+        if not player:
+            player = Player(player_id)
+            _save_object(player, rooms_db.players)
+        else:
+            player = _load_object(str(player['_id']), rooms_db.players)
+        return player
+
+    def save_player(self, player):
+        rooms_db = self._mongo_connection.rooms_db
+        _save_object(player, rooms_db.players)

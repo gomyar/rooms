@@ -40,9 +40,6 @@ class Instance:
             value = actor.interface_call(command, player, **kwargs)
         return value
 
-    def create_instance(self, map_id):
-        log.debug("Instance created %s", map_id)
-
     def send_update(self, player_id, command, **kwargs):
         if player_id in self.player_queues:
             self.player_queues[player_id].put(dict(command=command,

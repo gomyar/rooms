@@ -14,6 +14,8 @@ from rooms.area import Area
 from rooms.door import Door
 from rooms.inventory import Inventory
 from rooms.inventory import Item
+from rooms.player import Player
+from rooms.game import Game
 
 
 # Room
@@ -219,6 +221,41 @@ def create_player_knowledge(data):
         items[key] = value
     return item
 
+# Player
+def serialize_player(obj):
+    data = dict(
+        username = obj.username,
+        game_id = obj.game_id,
+        instance_id = obj.instance_id,
+        actor_id = obj.actor_id,
+    )
+    return data
+
+def create_player(data):
+    player = Player(data['username'])
+    player.game_id = data['game_id'],
+    player.instance_id = data['instance_id'],
+    player.actor_id = data['actor_id'],
+    return player
+
+# Game
+def serialize_game(obj):
+    data = dict(
+        area_map = obj.area_map,
+        owner_id = obj.owner_id,
+        start_area_name = obj.start_area_name,
+        open_game = obj.open_game,
+    )
+    return data
+
+def create_game(data):
+    game = Game()
+    game.area_map = data['area_map']
+    game.owner_id = data['owner_id']
+    game.start_area_name = data['start_area_name']
+    game.open_game = data['open_game']
+    return game
+
 object_serializers = dict(
     Actor=serialize_actor,
     PlayerActor=serialize_player_actor,
@@ -232,6 +269,8 @@ object_serializers = dict(
     Inventory=serialize_inventory,
     Path=serialize_path,
     State=serialize_state,
+    Player=serialize_player,
+    Game=serialize_game,
 )
 
 object_factories = dict(
@@ -247,6 +286,8 @@ object_factories = dict(
     Inventory=create_inventory,
     Path=create_path,
     State=create_state,
+    Player=create_player,
+    Game=create_game,
 )
 
 def _encode(obj):

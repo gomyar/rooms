@@ -76,16 +76,16 @@ def running_instances(request):
 @login_required
 def create_instance(request):
     user_id = request.user.username
-    map_id = request.POST['map_id']
-    master.create_instance(area_id=map_id)
+    player_info = master.player_info(player_id=user_id)
+    master.create_game(player_id=user_id)
     return HttpResponseRedirect("/")
 
 @login_required
-def join_instance(request):
+def join_game(request):
     user_id = request.user.username
     instance_uid = request.POST['instance_uid']
     log.debug("User %s joining %s", user_id, instance_uid)
-    response = master.join_instance(user_id=str(user_id),
+    response = master.join_game(user_id=str(user_id),
         instance_uid=instance_uid)
     if response['success']:
         return HttpResponseRedirect(
