@@ -1,6 +1,6 @@
 
-    - move controller class into node
-    - script-created - single-directory (one conf file) game structure
+    - move controller class into node - done
+    - script-created - single-directory (one conf file) game structure - done
     - all data in mongo
 
     - add items to mansion

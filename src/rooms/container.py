@@ -226,16 +226,16 @@ def serialize_player(obj):
     data = dict(
         username = obj.username,
         game_id = obj.game_id,
-        instance_id = obj.instance_id,
+        area_id = obj.area_id,
         actor_id = obj.actor_id,
     )
     return data
 
 def create_player(data):
     player = Player(data['username'])
-    player.game_id = data['game_id'],
-    player.instance_id = data['instance_id'],
-    player.actor_id = data['actor_id'],
+    player.game_id = data['game_id']
+    player.area_id = data['area_id']
+    player.actor_id = data['actor_id']
     return player
 
 # Game
@@ -243,7 +243,7 @@ def serialize_game(obj):
     data = dict(
         area_map = obj.area_map,
         owner_id = obj.owner_id,
-        start_area_name = obj.start_area_name,
+        start_areas = obj.start_areas,
         open_game = obj.open_game,
     )
     return data
@@ -252,7 +252,7 @@ def create_game(data):
     game = Game()
     game.area_map = data['area_map']
     game.owner_id = data['owner_id']
-    game.start_area_name = data['start_area_name']
+    game.start_areas = data['start_areas']
     game.open_game = data['open_game']
     return game
 

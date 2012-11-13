@@ -158,7 +158,7 @@ def create_game(controller):
     container.save_area(area)
 
     game.area_map['first_floor'] = area.area_id
-    game.start_area_name = 'first_floor'
+    game.start_areas = ['first_floor']
 
     container.save_game(game)
 

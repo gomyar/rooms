@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import os
+
 from gevent import monkey
 monkey.patch_socket()
 
@@ -36,7 +38,8 @@ if __name__ == "__main__":
                 help="Path to game dir")
 
         (options, args) = parser.parse_args()
-        logging.config.fileConfig("logging.conf")
+        if os.path.exists("logging.conf"):
+            logging.config.fileConfig("logging.conf")
 
         host, port = options.address.split(":")
         dbhost, dbport = options.dbaddr.split(":")
@@ -45,7 +48,7 @@ if __name__ == "__main__":
         node.load_game(dbhost, int(dbport))
         node.init_controller(options)
 
-        print "Starting Rooms"
+        log.info("Starting Rooms")
         node.start()
     except:
         log.exception("Exception starting server")

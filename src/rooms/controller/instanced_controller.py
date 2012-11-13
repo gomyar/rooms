@@ -1,6 +1,6 @@
 
-from wsgi_rpc import WSGIRPCClient
-from wsgi_rpc import WSGIRPCServer
+from rooms.wsgi_rpc import WSGIRPCClient
+from rooms.wsgi_rpc import WSGIRPCServer
 
 from rooms.script_wrapper import Script
 
@@ -67,15 +67,15 @@ class MasterController(object):
         return dict(
             username=player.username,
             game_id=player.game_id,
-            instance_id=player.instance_id,
-            actor_id=player.instance_id,
+            instance_id=player.area_id,
+            actor_id=player.area_id,
         )
 
     def create_game(self, player_id):
         # run create script
         player = self._get_or_create_player(player_id)
         game = self.create_script.call_method("create_game", self)
-        area_id = game.start_area_id()
+        area_id = game.start_area_map().values()[0]
         # tell node to manage area
         node = self._least_busy_node()
         instance_uid = node.client.manage_area(area_id=area_id)
@@ -84,7 +84,7 @@ class MasterController(object):
             area_id=area_id, uid=instance_uid)
         self.instances[instance_uid] = instance
         player.game_id = str(game._id)
-        player.instance_id = instance_uid
+        player.area_id = area_id
         self.container.save_player(player)
         return instance
 
