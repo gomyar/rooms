@@ -8,9 +8,9 @@ from rooms.npc_actor import NpcActor
 from rooms.player_actor import PlayerActor
 from rooms.script_wrapper import Script
 
-from rooms.pointmap_geography.astar import PointMap
-from rooms.pointmap_geography.astar import Point
-from rooms.pointmap_geography.astar import AStar
+from rooms.geography.astar import PointMap
+from rooms.geography.astar import Point
+from rooms.geography.astar import AStar
 
 class Area(object):
     def __init__(self):

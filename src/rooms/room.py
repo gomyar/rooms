@@ -3,7 +3,7 @@ from player_actor import PlayerActor
 from npc_actor import NpcActor
 from door import Door
 
-from pointmap_geography.pointmap_geography import PointmapGeography
+from geography.pointmap_geography import PointmapGeography
 
 import logging
 log = logging.getLogger("rooms")
