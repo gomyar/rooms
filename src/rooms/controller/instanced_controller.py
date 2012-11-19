@@ -71,14 +71,17 @@ class MasterController(object):
             actor_id=player.area_id,
         )
 
+    def _create_game(self):
+        return self.create_script.call_method("create_game", self)
+
     def create_game(self, player_id):
         # run create script
         player = self._get_or_create_player(player_id)
-        game = self.create_script.call_method("create_game", self)
+        game = self._create_game()
         area_id = game.start_area_map().values()[0]
         # tell node to manage area
         node = self._least_busy_node()
-        instance_uid = node.client.manage_area(area_id=area_id)
+        instance_uid = node.client.manage_area(game.game_id, area_id=area_id)
         instance = dict(players=[],
             node=(node.host, node.port),
             area_id=area_id, uid=instance_uid)
@@ -137,8 +140,8 @@ class ClientController(object):
     def start(self):
         self.wsgi_server.start()
 
-    def manage_area(self, area_id):
-        return self.node.manage_area(area_id)
+    def manage_area(self, game_id, area_id):
+        return self.node.manage_area(game_id, area_id)
 
     def player_joins(self, instance_uid, player_uid):
         return self.node.player_joins(instance_uid, player_uid)

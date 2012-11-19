@@ -7,17 +7,19 @@ from rooms.controller.instanced_controller import RegisteredNode
 
 from rooms.wsgi_rpc import WSGIRPCClient
 
-from node import Node
+from rooms.node import Node
 from rooms.area import Area
 from rooms.instance import Instance
 from rooms.room import Room
 from rooms.player import Player
+from rooms.game import Game
 
 from mock import Mock
 
 
 class MockContainer(object):
-    def __init__(self, area, rooms):
+    def __init__(self, game, area, rooms):
+        self.game = game
         self.area = area
         self.rooms = rooms
         self.player = Player("mock")
@@ -34,16 +36,25 @@ class MockContainer(object):
     def save_player(self, player):
         pass
 
+    def load_game(self, game_id):
+        return self.game
+
 
 class ControllerTest(unittest.TestCase):
     def setUp(self):
         self.node = Node('/', 'external.com', 8082)
+        self.game = Game()
+        self.node.game = self.game
         self.area = Area()
         self.area.area_name = "area1"
         self.area.entry_point_room_id = "room1"
+        self.game.area_map['area1'] = 'area1'
+        self.game.start_areas.append('area1')
+        self.game._id = "game1"
         self.room = Room("room1")
         self.area.rooms._rooms['room1'] = self.room
-        self.node.container = MockContainer(self.area, {'room1': self.room})
+        self.node.container = MockContainer(self.game, self.area,
+            {'room1': self.room})
 
         self.master = MasterController(dict(), 'master.com', 8080,
             self.node.container)
@@ -73,20 +84,21 @@ class ControllerTest(unittest.TestCase):
 
     def testClientCreateInstance(self):
         self.node._random_uid = lambda: "instance1"
-        self.client.manage_area("area1")
+        self.client.manage_area("game1", "area1")
 
         self.assertTrue("instance1" in self.node.instances)
         self.assertEquals("area1", self.node.instances['instance1'].area.area_name)
 
     def testPlayerJoins(self):
         self.node._random_uid = lambda: "instance1"
-        self.client.manage_area("area1")
-        self.client.player_joins("instance1", "player1")
+        self.client.manage_area("game1", "area1")
+        self.client.player_joins("area1", "player1")
 
         self.assertEquals("player1", self.node.instances['instance1'].players['player1']['player'].actor_id)
 
     def testMasterCreateInstance(self):
         self.node._random_uid = lambda: "instance1"
+        self.master._create_game = lambda: self.game
 
         instance = self.master.create_game("area1")
         instance.pop('area_id')

@@ -66,7 +66,7 @@ class WSGIServer(object):
             if self._check_player_joined(_get_param(environ, 'player_id')):
                 return self.www_file('/index.html', response)
             else:
-                return self.redirect(master_addr, response)
+                return self.www_file('/player_error.html', response)
         else:
             return self.www_file(environ['PATH_INFO'], response)
 
