@@ -2,18 +2,18 @@
 from player_actor import PlayerActor
 from npc_actor import NpcActor
 from door import Door
-
-from geography.pointmap_geography import PointmapGeography
-
-import logging
-log = logging.getLogger("rooms")
+from rooms.config import get_config
+from rooms.geography.linearopen_geography import LinearOpenGeography
 
 from actor import FACING_NORTH
 from actor import FACING_SOUTH
 from actor import FACING_EAST
 from actor import FACING_WEST
 
-geog = PointmapGeography()
+import logging
+log = logging.getLogger("rooms")
+
+_default_geog = LinearOpenGeography()
 
 
 class RoomObject(object):
@@ -54,8 +54,8 @@ class RoomObject(object):
 
 
 class Room(object):
-    def __init__(self, room_id=None, position=(0, 0), width=50, height=50,
-            description=None):
+    def __init__(self, room_id=None, position=(0, 0), width=50,
+        height=50, description=None):
         self.room_id = room_id
         self.description = description or room_id
         self.position = position
@@ -64,6 +64,7 @@ class Room(object):
         self.map_objects = dict()
         self.actors = dict()
         self.area = None
+        self.geog = _default_geog
 
     def __eq__(self, rhs):
         return rhs and self.room_id == rhs.room_id
@@ -86,7 +87,7 @@ class Room(object):
         start = (int(start[0]), int(start[1]))
         end = (int(end[0]), int(end[1]))
         try:
-            return geog.get_path(self, start, end)
+            return self.geog.get_path(self, start, end)
         except Exception, e:
             log.exception("Error %s getting path from %s to %s", e, start, end)
             raise
@@ -113,7 +114,7 @@ class Room(object):
     def actor_enters(self, actor, door_id):
         self.actors[actor.actor_id] = actor
         actor.room = self
-        actor.set_position(geog.get_available_position_closest_to(self,
+        actor.set_position(self.geog.get_available_position_closest_to(self,
             self.actors[door_id].position()))
         self.area.actor_enters_room(self, actor, door_id)
 
@@ -122,7 +123,7 @@ class Room(object):
         actor.room = self
         entry_x = self.position[0] + self.width / 2
         entry_y = self.position[1] + self.height / 2
-        position = geog.get_available_position_closest_to(self,
+        position = self.geog.get_available_position_closest_to(self,
             (entry_x, entry_y))
         actor.set_position(position)
 

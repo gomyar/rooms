@@ -20,7 +20,7 @@ class InstanceTest(unittest.TestCase):
         self.instance = Instance()
         self.area = Area()
         self.area.load_script("rooms.instance_test")
-        self.area.rooms['1'] = Room()
+        self.area.rooms['1'] = Room('1')
         self.area.entry_point_room_id = '1'
         self.area.player_script = "rooms.instance_test"
         self.instance.area = self.area
@@ -39,8 +39,8 @@ class InstanceTest(unittest.TestCase):
     def testActorStartPositionInRoom(self):
         self.instance.register("player1")
         self.instance.connect("player1")
-        self.assertEquals(20, self.instance.players['player1']['player'].x())
-        self.assertEquals(20, self.instance.players['player1']['player'].y())
+        self.assertEquals(25, self.instance.players['player1']['player'].x())
+        self.assertEquals(25, self.instance.players['player1']['player'].y())
 
     def testBasicCommand(self):
         self.instance.register("player1")

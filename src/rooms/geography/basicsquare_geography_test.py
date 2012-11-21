@@ -1,8 +1,8 @@
 
 import unittest
 
-from room import Room
-from room import RoomObject
+from rooms.room import Room
+from rooms.room import RoomObject
 from basicsquare_geography import BasicSquareGeography
 from basicsquare_geography import Rect
 

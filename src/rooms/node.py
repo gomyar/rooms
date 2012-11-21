@@ -12,13 +12,15 @@ from controller import instanced_controller
 from controller import massive_controller
 
 from rooms.instance import Instance
-from rooms.settings import settings
-
 from rooms.mongo.mongo_container import MongoContainer
+from rooms.container import Container
+
+from geography.pointmap_geography import PointmapGeography
+from geography.linearopen_geography import LinearOpenGeography
 
 import sys
 
-from ConfigParser import ConfigParser
+from rooms.config import config
 
 from wsgi_server import WSGIServer
 
@@ -33,6 +35,12 @@ controller_types = {
     'massive_client': massive_controller.ClientController,
 }
 
+geogs = {
+    'pointmap': PointmapGeography,
+    'linearopen': LinearOpenGeography,
+}
+
+
 class Node(object):
     def __init__(self, game_root, host, port):
         self.game_root = game_root
@@ -42,30 +50,29 @@ class Node(object):
         self.controller_stub = None
         self.admin_controller = None
         self.container = None
-        self.config = None
         self.client = None
 
         self.instances = dict()
         self.sessions = dict()
 
     def load_game(self, dbhost, dbport):
-        self.config = ConfigParser()
-        self.config.read(os.path.join(self.game_root, "game.conf"))
+        config.read(os.path.join(self.game_root, "game.conf"))
 
-        script_dir = self.config.get("scripts", "root")
-        sys.path.append(script_dir)
-        settings['script_dir'] = script_dir
+        sys.path.append(config.get("scripts", "root"))
 
         self.container = MongoContainer(dbhost, dbport)
         self.container.init_mongo()
+        self.container.container = Container(
+            geogs[config.get("game", "geography")](),
+        )
+
 
     def init_controller(self, options):
-        ctype = self.config.get("game", "controller")
+        ctype = config.get("game", "controller")
         master = controller_types["%s_master" % (ctype,)]
         client = controller_types["%s_client" % (ctype,)]
         mhost, mport = options.controller_address.split(':')
-        self.master = master(self.config, mhost, int(mport),
-            self.container)
+        self.master = master(mhost, int(mport), self.container)
         self.master.init()
         host, port = options.controller_api.split(':')
         self.client = client(self, host, int(port), mhost, int(mport))

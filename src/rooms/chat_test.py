@@ -8,8 +8,8 @@ from chat import chat
 from chat import choice
 from chat import load_chat
 from chat import Call
-from rooms.settings import settings
 from rooms.actor import Actor
+from rooms.config import config
 
 
 class ChatTest(unittest.TestCase):
@@ -23,9 +23,11 @@ class ChatTest(unittest.TestCase):
             self.choice1,
             self.choice2,
         ])
-        settings['script_dir'] = os.path.dirname(__file__)
         self._should_show_choice = True
         self.actor = Actor("actor1")
+        if not config.has_section("scripts"):
+            config.add_section("scripts")
+        config.set("scripts", "script_dir", os.path.dirname(__file__))
 
     def mock_chat_value(self):
         return self._should_show_choice
@@ -110,47 +112,3 @@ class ChatTest(unittest.TestCase):
         conv.said("Um hm.")
         r = conv.said("I see")
         self.assertEquals("And the music, it was glorious, so many operettos...", r)
-
-'''
-        @hasnt_talked_to_butler_before
-        "hello jeeves", "hello, sir"
-            "where is laddy chatterly?", "in the boardroom, sir"
-            "could you give me a scotch?", give_scotch
-        @has_talked_to_professor
-        "tell me about the professor", "I'm sure I don't know sir"
-            "but you must know something", "he goes to the basement a lot"
-            "could you fetch him for me", fetch_professor
-        @has_learned_about_diletent
-        "about mister diletent", "oh, him. yes?"
-            "did you know he was chatterly's lover", "so?"
-                "so I also found out he has the jade monkey", open_basement
-                "I suppose its none of my business", "youre right there sir"
-
-        {
-        'default':
-            c("hello jeeves", "hello, sir",
-                c("where is laddy chatterly?", "in the boardroom, sir"),
-                c("could you give me a scotch?", give_scotch),
-            ),
-        'has_talked_to_professor':
-            c("tell me about the professor", "I'm sure I don't know sir",
-                c("but you must know something",
-                    "he goes to the basement a lot"),
-                c("could you fetch him for me", fetch_professor),
-            ),
-        'has_learned_about_diletent':
-            c("about mister diletent", "oh, him. yes?",
-                c("did you know he was chatterly's lover", "so?",
-                    c("so I also found out about the jade monkey",
-                        open_basement),
-                    c("I suppose its none of my business",
-                        "youre right there sir"),
-                ),
-            ),
-        }
-'''
-
-#    def testListOfChoices(self):
-#        self.chat = chat(
-#            choice("first", "question1", "answer1", "second"),
-#        )

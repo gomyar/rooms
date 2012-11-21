@@ -6,8 +6,7 @@ from pymongo.helpers import bson
 
 from rooms.room_container import RoomContainer
 
-from rooms.container import _decode
-from rooms.container import _encode
+from rooms.container import Container
 from rooms.player import Player
 
 
@@ -38,12 +37,14 @@ class MongoContainer(object):
         self.port = port
         self.dbname = dbname
         self._mongo_connection = None
+        self.container = None
 
     def db(self):
         return getattr(self._mongo_connection, self.dbname)
 
     def _save_object(self, obj, collection):
-        encoded_str = simplejson.dumps(obj, default=_encode, indent="    ")
+        encoded_str = simplejson.dumps(obj, default=self.container._encode,
+            indent="    ")
         encoded_dict = simplejson.loads(encoded_str)
         if hasattr(obj, "_id"):
             encoded_dict['_id'] = obj._id
@@ -55,7 +56,7 @@ class MongoContainer(object):
         obj_dict = collection.find_one(bson.ObjectId(obj_id))
         db_id = obj_dict.pop('_id')
         obj_str = simplejson.dumps(obj_dict)
-        obj = simplejson.loads(obj_str, object_hook=_decode)
+        obj = simplejson.loads(obj_str, object_hook=self.container._decode)
         obj._id = db_id
         return obj
 

@@ -3,6 +3,7 @@ from rooms.wsgi_rpc import WSGIRPCClient
 from rooms.wsgi_rpc import WSGIRPCServer
 
 from rooms.script_wrapper import Script
+from rooms.config import get_config
 
 import logging
 log = logging.getLogger("rooms.mcontroller")
@@ -23,13 +24,12 @@ class RegisteredNode(object):
 
 
 class MasterController(object):
-    def __init__(self, config, host, port, container):
+    def __init__(self, host, port, container):
         self.host = host
         self.port = port
         self.nodes = dict()
         self.instances = dict()
         self.wsgi_server = None
-        self.config = config
         self.container = container
 
     def init(self):
@@ -73,7 +73,7 @@ class MasterController(object):
         return node
 
     def _game_id(self):
-        return self.config.get("game", "game_id")
+        return get_config("game", "game_id")
 
     def player_connects(self, player_id):
         log.debug("Player connects: %s", player_id)

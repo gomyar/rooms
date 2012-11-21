@@ -1,6 +1,5 @@
 
 from actor import Actor
-from rooms.chat import load_chat as load_chat_script
 
 import logging
 log = logging.getLogger("rooms.npc")
@@ -37,6 +36,3 @@ class NpcActor(Actor):
 
     def _delayed_chat_response(self):
         self._queue_script_method("chat_delay", self, [], {})
-
-    def load_chat(self, chat_id):
-        return load_chat_script(chat_id, self.script, self)

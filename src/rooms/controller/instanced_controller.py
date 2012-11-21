@@ -3,6 +3,7 @@ from rooms.wsgi_rpc import WSGIRPCClient
 from rooms.wsgi_rpc import WSGIRPCServer
 
 from rooms.script_wrapper import Script
+from rooms.config import get_config
 
 
 class RegisteredNode(object):
@@ -20,17 +21,16 @@ class RegisteredNode(object):
 
 
 class MasterController(object):
-    def __init__(self, config, host, port, container):
+    def __init__(self, host, port, container):
         self.host = host
         self.port = port
         self.nodes = dict()
         self.instances = dict()
         self.wsgi_server = None
-        self.config = config
         self.container = container
 
     def init(self):
-        self.create_script = Script(self.config.get('scripts', 'create_script'))
+        self.create_script = Script(get_config('scripts', 'create_script'))
         self.wsgi_server = WSGIRPCServer(self.host, self.port,
             exposed_methods=dict(
                 register_node=self.register_node,

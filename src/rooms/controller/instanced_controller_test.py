@@ -56,7 +56,7 @@ class ControllerTest(unittest.TestCase):
         self.node.container = MockContainer(self.game, self.area,
             {'room1': self.room})
 
-        self.master = MasterController(dict(), 'master.com', 8080,
+        self.master = MasterController('master.com', 8080,
             self.node.container)
         self.master.create_script = Mock()
         self.client = ClientController(self.node,

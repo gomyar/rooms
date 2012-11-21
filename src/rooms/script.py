@@ -4,6 +4,7 @@ from functools import wraps
 from rooms.chat import chat as create_chat
 from rooms.chat import choice as c
 from rooms.chat import call
+from rooms.chat import load_chat as load_chat_script
 
 from scriptutils import create_npc
 from scriptutils import create_item
@@ -74,3 +75,6 @@ def kick(actor):
 
 def move_to_object(actor, object_id):
     actor.move_to(*actor.room.map_objects[object_id].position)
+
+def load_chat(chat_script, npc):
+    return load_chat_script(chat_script, npc.script, npc)

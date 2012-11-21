@@ -26,7 +26,7 @@ class RoomContainerTest(unittest.TestCase):
         self.assertEquals("room1", room1.room_id)
 
     def testSaveARoom(self):
-        room2 = Room('room2')
+        room2 = Room(None, None, 'room2')
         self.room_container['room2'] = room2
 
         self.assertEquals(room2, self.saved_rooms['room2'])

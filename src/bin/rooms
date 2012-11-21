@@ -34,7 +34,6 @@ if __name__ == "__main__":
             default="localhost:27017", help="Address of mongo server")
 
         parser.add_option("-g", "--game", dest="game",
-            default="/home/ray/projects/rooms/games/demo1",
                 help="Path to game dir")
 
         (options, args) = parser.parse_args()
