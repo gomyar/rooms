@@ -79,7 +79,7 @@ class Container(object):
         room.description = data['description']
         for actor in room.actors.values():
             actor.room = room
-        room.geography = self.geography
+        room.geog = self.geography
         return room
 
 
