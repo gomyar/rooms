@@ -4,7 +4,6 @@ import sys
 from rooms.container import *
 from rooms.mongo.mongo_container import MongoContainer
 from rooms.mongo.mongo_container import MongoRoomContainer
-from rooms.container import _encode
 from rooms.actor import *
 from rooms.game import Game
 
@@ -27,7 +26,7 @@ def create_game(controller):
     area.player_script = "player_script"
 
     # Foyer
-    foyer = Room(area, None, None, 'foyer', (820, 1480), 420, 430, description="The Foyer")
+    foyer = Room('foyer', (820, 1480), 420, 430, description="The Foyer")
     foyer.add_object("t1",
         RoomObject("marble_side_table", 90, 90), (50, 10))
     foyer.add_object("t2",
@@ -36,22 +35,22 @@ def create_game(controller):
         RoomObject("couch_east", 50, 190), (0, 200))
     foyer.add_object("painting",
         RoomObject("large_painting_west", 10, 190), (410, 190))
-    area.add_room('foyer', foyer)
+    area.put_room(foyer, (820, 1480))
 
     # Cloackroom
-    cloakroom = Room(area, None, 'cloakroom', (280, 1440), 520, 320, description="The Cloakroom")
-    area.add_room('cloakroom', cloakroom)
+    cloakroom = Room('cloakroom', 520, 320, description="The Cloakroom")
+    area.put_room(cloakroom, (280, 1440))
 
     # Trophyroom
-    trophyroom = Room(area, None, 'trophyroom', (1260, 1440), 460, 320, description="The Trophy Room")
-    area.add_room('trophyroom', trophyroom)
+    trophyroom = Room('trophyroom', 460, 320, description="The Trophy Room")
+    area.put_room(trophyroom, (1260, 1440))
 
     # Hall
-    hall = Room(area, None, 'hall', (940, 820), 200, 640, description="The Hall")
-    area.add_room('hall', hall)
+    hall = Room('hall', 200, 640, description="The Hall")
+    area.put_room(hall, (940, 820))
 
     # Lounge
-    lounge = Room(area, None, 'lounge', (420, 1000), 500, 420, description="The Lounge")
+    lounge = Room('lounge', 500, 420, description="The Lounge")
 
     lounge.add_object("sofa",
         RoomObject("couch_east", 50, 190), (0, 100))
@@ -64,10 +63,10 @@ def create_game(controller):
     lounge.add_object("painting",
         RoomObject("large_painting_west", 10, 190), (550, 0))
 
-    area.add_room('lounge', lounge)
+    area.put_room(lounge, (420, 1000))
 
     # Library
-    library = Room(area, None, 'library', (1140, 920), 460, 500, description="The Library")
+    library = Room('library', 460, 500, description="The Library")
     library.add_object("painting",
         RoomObject("large_painting_east", 10, 190), (0, 200))
     library.add_object("sofa",
@@ -76,18 +75,18 @@ def create_game(controller):
         RoomObject("diningroom_chair_up", 60, 40, facing=FACING_NORTH), (220, 460))
     library.add_object("chair_right",
         RoomObject("diningroom_chair_left", 40, 60, facing=FACING_WEST), (420, 50))
-    area.add_room('library', library)
+    area.put_room(library, (1140, 920))
 
     # Kitchen
-    kitchen = Room(area, None, 'kitchen', (340, 460), 420, 520, description="The Kitchen")
-    area.add_room('kitchen', kitchen)
+    kitchen = Room('kitchen', 420, 520, description="The Kitchen")
+    area.put_room(kitchen, (340, 460))
 
     # Study
-    study = Room(area, None, 'study', (1240, 580), 520, 320, description="The Study")
-    area.add_room('study', study)
+    study = Room('study', 520, 320, description="The Study")
+    area.put_room(study, (1240, 580))
 
     # Diningroom
-    diningroom = Room(area, None, 'diningroom', (780, 60), 440, 740, description="The Dining Room")
+    diningroom = Room('diningroom', 440, 740, description="The Dining Room")
     diningroom.add_object("diningroom_table",
         RoomObject("diningroom_table", 160, 350), (160, 160))
     diningroom.add_object("diningroom_chair_l1",
@@ -116,15 +115,15 @@ def create_game(controller):
         RoomObject("diningroom_chair_up", 60, 40, facing=FACING_NORTH), (220, 510))
 
 
-    area.add_room('diningroom', diningroom)
+    area.put_room(diningroom, (780, 60))
 
     # Pantry
-    pantry = Room(area, None, 'pantry', (340, 60), 420, 380, description="The Pantry")
-    area.add_room('pantry', pantry)
+    pantry = Room('pantry', 420, 380, description="The Pantry")
+    area.put_room(pantry, (340, 60))
 
     # Billiardroom
-    billiardroom = Room(area, None, 'billiardroom', (1240, 200), 500, 360, description="The Billiard Room")
-    area.add_room('billiardroom', billiardroom)
+    billiardroom = Room('billiardroom', 500, 360, description="The Billiard Room")
+    area.put_room(billiardroom, (1240, 200))
 
 
     #area.create_door(foyer, cloakroom, (820, 1580), (800, 1580))

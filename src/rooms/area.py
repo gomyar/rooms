@@ -70,9 +70,10 @@ class Area(object):
     def add_npc(self, npc_actor, room_id):
         self.actor_joined_instance(npc_actor, room_id)
 
-    def add_room(self, room):
+    def put_room(self, room, position):
         self.rooms[room.room_id] = room
         room.area = self
+        room.position = position
 
     def actor_enters_room(self, room, actor, door_id=None):
         if type(actor) is PlayerActor and self.game_script and \

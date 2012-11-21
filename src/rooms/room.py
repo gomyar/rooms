@@ -54,11 +54,10 @@ class RoomObject(object):
 
 
 class Room(object):
-    def __init__(self, room_id=None, position=(0, 0), width=50,
-        height=50, description=None):
+    def __init__(self, room_id=None, width=50, height=50, description=None):
         self.room_id = room_id
         self.description = description or room_id
-        self.position = position
+        self.position = (0, 0)
         self.width = width
         self.height = height
         self.map_objects = dict()

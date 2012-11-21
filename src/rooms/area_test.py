@@ -20,15 +20,16 @@ class AreaTest(unittest.TestCase):
     def setUp(self):
         self.area = Area()
         self.area.rooms = MockRoomContainer(self.area)
-        self.room1 = Room("room1", (0, 0), 10, 10)
-        self.room1.area = self.area
-        self.room2 = Room("room2", (20, 0), 10, 10)
-        self.room2.area = self.area
+        self.room1 = Room("room1", 10, 10)
+        self.area.put_room(self.room1, (0, 0))
+        self.room2 = Room("room2", 10, 10)
+        self.area.put_room(self.room2, (20, 0))
         self.area.rooms._rooms['room1'] = self.room1
         self.area.rooms._rooms['room2'] = self.room2
 
     def testBuildAreaMap(self):
-        self.room3 = Room("room3", (30, 0), 10, 10)
+        self.room3 = Room("room3", 10, 10)
+        self.area.put_room(self.room3, (30, 0))
         self.room3.area = self.area
         self.area.rooms._rooms['room3'] = self.room3
         self.area.create_door(self.room1, self.room2, (10, 5), (0, 5))
@@ -60,8 +61,10 @@ class AreaTest(unittest.TestCase):
         self.assertEquals((10, 5), door1.position())
         self.assertEquals((20, 5), door2.position())
 
-        self.room1 = Room("room1", (20, 0), 10, 10)
-        self.room2 = Room("room2", (20, 20), 10, 10)
+        self.room1 = Room("room1", 10, 10)
+        self.area.put_room(self.room1, (20, 0))
+        self.room2 = Room("room2", 10, 10)
+        self.area.put_room(self.room2, (20, 20))
 
         self.area.create_door(self.room1, self.room2)
         door1 = self.room1.all_doors()[0]

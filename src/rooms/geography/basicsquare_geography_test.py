@@ -10,8 +10,9 @@ from basicsquare_geography import Rect
 class BasicSquareTest(unittest.TestCase):
     def setUp(self):
         self.geog = BasicSquareGeography()
-        self.room = Room("room1", (0, 0), 50, 50)
-        self.room2 = Room("room2", (50, 5), 50, 50)
+        self.room = Room("room1", 50, 50)
+        self.room2 = Room("room2", 50, 50)
+        self.room2.position = (50, 5)
 
     def testSubdivide(self):
         rects = self.geog._subdivide(self.room)
@@ -76,7 +77,7 @@ class BasicSquareTest(unittest.TestCase):
 
 
     def testReal(self):
-        self.room = Room("r1", (0, 0), 400, 400)
+        self.room = Room("r1", 400, 400)
         path = self.geog.get_path(self.room, (388, 187), (441, 264))
 
         self.assertEquals([(388, 187), (399, 203), (395, 215), (395, 215),
@@ -84,14 +85,14 @@ class BasicSquareTest(unittest.TestCase):
             (395, 245), (395, 255), (395, 255), (395, 265), (395, 265)], path)
 
     def testReal2(self):
-        self.room = Room("r1", (0, 0), 400, 400)
+        self.room = Room("r1", 400, 400)
         path = self.geog.get_path(self.room, (341, 272), (371, 184))
 
         self.assertEquals([(341, 272), (371, 184)], path)
 
     def testNextRect(self):
         self.geog = BasicSquareGeography(rect_width=10, rect_height=10)
-        self.room = Room("r1", (0, 0), 50, 50)
+        self.room = Room("r1", 50, 50)
 
         rects = self.geog._get_rects_for(self.room)
 
@@ -119,7 +120,7 @@ class BasicSquareTest(unittest.TestCase):
 
     def testPath(self):
         self.geog = BasicSquareGeography()
-        self.room = Room("room1", (0, 0), 500, 500)
+        self.room = Room("room1", 500, 500)
         self.room.add_object("obj1", RoomObject("obj1", 100, 100), (100, 100))
 
         self.assertEquals(None, self.geog._get_rects_for(self.room)[113, 128])

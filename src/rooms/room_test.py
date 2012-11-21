@@ -9,17 +9,15 @@ from actor import Actor
 class RoomTest(unittest.TestCase):
     def setUp(self):
         self.area = Area()
-        self.area.rooms['room1'] = Room("room1", (0, 0), 100, 100)
-        self.area.rooms['room1'].area = self.area
-        self.area.rooms['room2'] = Room("room2", (100, 0), 100, 100)
-        self.area.rooms['room2'].area = self.area
-        self.area.rooms['room3'] = Room("room3", (0, 100), 100, 100)
-        self.area.rooms['room3'].area = self.area
+        room1 = Room("room1", 100, 100)
+        self.area.put_room(room1, (0, 0))
+        room2 = Room("room2", 100, 100)
+        self.area.put_room(room2, (100, 0))
+        room3 = Room("room3", 100, 100)
+        self.area.put_room(room3, (0, 100))
 
-        self.area.create_door(self.area.rooms['room1'],
-            self.area.rooms['room2'], (0, 0), (10, 0))
-        self.area.create_door(self.area.rooms['room1'],
-            self.area.rooms['room3'], (10, 0), (0, 0))
+        self.area.create_door(room1, room2, (0, 0), (10, 0))
+        self.area.create_door(room1, room3, (10, 0), (0, 0))
 
         self.area.rebuild_area_map()
 

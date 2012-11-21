@@ -9,7 +9,7 @@ from rooms.room import RoomObject
 class PointmapGeogTest(unittest.TestCase):
     def setUp(self):
         self.geog = PointmapGeography(point_spacing=10)
-        self.room = Room("room1", (0, 0), 50, 50)
+        self.room = Room("room1", 50, 50)
 
     def testGetPath(self):
         path = self.geog.get_path(self.room, (10, 10), (20, 20))
@@ -23,7 +23,8 @@ class PointmapGeogTest(unittest.TestCase):
         self.assertEquals([(10, 10), (20, 20), (20, 30), (20, 40)], path)
 
     def testCreatePointMapRelativeToRoomCoords(self):
-        self.room = Room("room1", (100, 200), 50, 50)
+        self.room = Room("room1", 50, 50)
+        self.room.position = (100, 200)
 
         path = self.geog.get_path(self.room, (10, 10), (20, 40))
         self.assertEquals([], path)
