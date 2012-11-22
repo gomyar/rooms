@@ -103,3 +103,22 @@ class ActorTest(unittest.TestCase):
     def testDel(self):
         self.actor.load_script("rooms.actor_test")
         del(self.actor)
+
+    def testDocking(self):
+        self.actor2 = Actor("actor2", (50, 10))
+        self.actor.dock(self.actor2)
+
+        self.assertEquals([(10, 10), (10, 10)], self.actor2.path.basic_path_list())
+        self.actor.move_to(50, 50)
+
+        self.assertEquals([(10, 10), (50, 50)], self.actor.path.basic_path_list())
+        self.assertEquals([(10, 10), (50, 50)], self.actor2.path.basic_path_list())
+
+    def testUndocking(self):
+        self.actor2 = Actor("actor2", (50, 10))
+        self.actor.dock(self.actor2)
+
+        self.actor.undock(self.actor2)
+
+        self.assertEquals(None, self.actor2.docked_with)
+        self.assertEquals(set(), self.actor.docked)

@@ -31,10 +31,10 @@ class Path(object):
 
     def set_path(self, path):
         self.path = []
-        last_x, last_y = path.pop(0)
+        last_x, last_y = path[0]
         current_time = get_now()
         self.path.append( (last_x, last_y, current_time ) )
-        for point in path:
+        for point in path[1:]:
             x, y = point
             current_time += self.time_to_move(last_x, last_y, x, y)
             self.path.append( (x, y, current_time ) )

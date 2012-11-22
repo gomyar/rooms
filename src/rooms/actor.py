@@ -41,6 +41,8 @@ class Actor(object):
         self.model_type = ""
         self.call_gthread = None
         self.call_queue = gevent.queue.Queue()
+        self.docked = set()
+        self.docked_with = None
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -62,7 +64,7 @@ class Actor(object):
         register_actor_script(classname, self)
 
     def __del__(self):
-        if self.script:
+        if self.script and deregister_actor_script:
             deregister_actor_script(self.script.script_name, self)
 
     def kick(self):
@@ -189,6 +191,8 @@ class Actor(object):
 
     def set_path(self, path):
         self.path.set_path(path)
+        for actor in self.docked:
+            actor.set_path(path)
 
     def distance_to(self, point):
         return distance(self.x(), self.y(), point[0], point[1])
@@ -272,3 +276,12 @@ class Actor(object):
 
     def exit(self, door_id):
         self.room.exit_through_door(self, door_id)
+
+    def dock(self, actor):
+        self.docked.add(actor)
+        actor.docked_with = self
+        actor.set_path(self.path.basic_path_list())
+
+    def undock(self, actor):
+        self.docked.remove(actor)
+        actor.docked_with = None
