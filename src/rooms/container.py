@@ -89,7 +89,7 @@ class Container(object):
             actor_id = obj.actor_id,
             path = obj.path,
             room_id = obj.room.room_id,
-            state = serialize_state(obj.state),
+            state = self.serialize_state(obj.state),
             log = obj.log,
             model_type = obj.model_type,
             script_class = obj.script.script_name if obj.script else None
@@ -99,7 +99,7 @@ class Container(object):
         actor.actor_id = data['actor_id']
         actor.path = data['path']
         actor.room_id = data['room_id']
-        actor.state = create_state(data['state'])
+        actor.state = self.create_state(data['state'])
         actor.log = data['log']
         actor.model_type = data['model_type']
         if data['script_class']:
@@ -150,23 +150,23 @@ class Container(object):
 
     # NPCActor
     def serialize_npc_actor(self, obj):
-        data = serialize_actor(obj)
+        data = self.serialize_actor(obj)
         return data
 
     def create_npc_actor(self, data):
         npc_actor = NpcActor(data['actor_id'])
-        _deserialize_actor(npc_actor, data)
+        self._deserialize_actor(npc_actor, data)
         return npc_actor
 
     # itemActor
     def serialize_item_actor(self, obj):
-        data = serialize_actor(obj)
+        data = self.serialize_actor(obj)
         data['item_type'] = obj.item_type
         return data
 
     def create_item_actor(self, data):
         item_actor = ItemActor(data['actor_id'], data['item_type'])
-        _deserialize_actor(item_actor, data)
+        self._deserialize_actor(item_actor, data)
         return item_actor
 
     # RoomObject

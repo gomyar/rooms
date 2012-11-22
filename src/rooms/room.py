@@ -118,12 +118,15 @@ class Room(object):
         self.area.actor_enters_room(self, actor, door_id)
 
     def actor_joined_instance(self, actor):
-        self.actors[actor.actor_id] = actor
-        actor.room = self
         entry_x = self.position[0] + self.width / 2
         entry_y = self.position[1] + self.height / 2
         position = self.geog.get_available_position_closest_to(self,
             (entry_x, entry_y))
+        self.put_actor(actor, position)
+
+    def put_actor(self, actor, position):
+        self.actors[actor.actor_id] = actor
+        actor.room = self
         actor.set_position(position)
 
     def actor_left_instance(self, actor):
