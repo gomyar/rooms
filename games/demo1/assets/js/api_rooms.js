@@ -142,3 +142,15 @@ api_rooms.chat = function(actor_id, choice_text, data_callback)
 {
     api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + actor_id + "/chat", { "message": choice_text }, data_callback);
 }
+
+api_rooms.call_command = function(command, args)
+{
+    api_rooms.service_call("/game/"+api_rooms.instance_uid+"/"+api_rooms.player_id+"/"+command, args)
+}
+
+api_rooms.call_method = function(actor_id, method, args)
+{
+    api_rooms.service_call("/game/"+api_rooms.instance_uid+"/"+actor_id+"/"+method, args)
+}
+
+

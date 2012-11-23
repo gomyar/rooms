@@ -161,7 +161,8 @@ class Actor(object):
     def external(self, player):
         return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
             path=self.path.path_array(), speed=self.path.speed,
-            model_type=self.model_type,
+            model_type=self.model_type, state=self.state,
+            docked=bool(self.docked_with),
             methods=self._all_exposed_methods(player))
 
     def send_actor_update(self):
@@ -281,7 +282,9 @@ class Actor(object):
         self.docked.add(actor)
         actor.docked_with = self
         actor.set_path(self.path.basic_path_list())
+        actor.send_actor_update()
 
     def undock(self, actor):
         self.docked.remove(actor)
         actor.docked_with = None
+        actor.send_actor_update()
