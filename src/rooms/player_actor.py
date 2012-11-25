@@ -3,8 +3,6 @@ import collections
 import time
 
 from actor import Actor
-from inventory import Inventory
-from inventory import create_item
 from roll_system import roll
 
 import logging
@@ -12,10 +10,9 @@ log = logging.getLogger("rooms.player")
 
 
 class PlayerActor(Actor):
-    def __init__(self, player_id=None, position=(0, 0), instance=None):
+    def __init__(self, player_id=None, position=(0, 0)):
         super(PlayerActor, self).__init__(player_id, position)
         self.model_type = "investigator"
-        self.inventory = Inventory()
 
     def exit(self, door_id):
         super(PlayerActor, self).exit(door_id)

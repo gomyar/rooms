@@ -1,6 +1,4 @@
 
-from rooms.item_actor import ItemActor
-
 
 class ItemRegistry(object):
     def __init__(self):
@@ -44,7 +42,7 @@ def create_item(item_type, **kwargs):
     return item
 
 
-class Inventory:
+class Inventory(object):
     def __init__(self):
         self._items = dict()
 
@@ -57,9 +55,18 @@ class Inventory:
             self._items[item_type] = 0
         self._items[item_type] += count
 
+    def remove_item(self, item_type, count=1):
+        if item_type in self._items:
+            self._items[item_type] -= count
+            if self._items[item_type] <= 0:
+                self._items.pop(item_type)
+
     def all_items(self):
         return self._items
 
     def find_items(self, **kwargs):
         return [lookup(item) for item in self._items.keys() if \
             lookup(item).has_properties(kwargs)]
+
+    def external(self):
+        return self._items

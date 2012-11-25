@@ -12,6 +12,7 @@ from path_vector import get_now
 from rooms.script_wrapper import Script
 from rooms.script_wrapper import register_actor_script
 from rooms.script_wrapper import deregister_actor_script
+from rooms.inventory import Inventory
 
 import logging
 log = logging.getLogger("rooms.node")
@@ -43,6 +44,7 @@ class Actor(object):
         self.call_queue = gevent.queue.Queue()
         self.docked = set()
         self.docked_with = None
+        self.inventory = Inventory()
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -163,6 +165,7 @@ class Actor(object):
             path=self.path.path_array(), speed=self.path.speed,
             model_type=self.model_type, state=self.state,
             docked=bool(self.docked_with),
+            docked_with=self.docked_with.actor_id if self.docked_with else None,
             methods=self._all_exposed_methods(player))
 
     def send_actor_update(self):
@@ -288,3 +291,7 @@ class Actor(object):
         self.docked.remove(actor)
         actor.docked_with = None
         actor.send_actor_update()
+
+    def exchange(self, actor, item_type, amount=1):
+        self.inventory.remove_item(item_type, amount)
+        actor.inventory.add_item(item_type, amount)

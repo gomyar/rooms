@@ -92,7 +92,8 @@ class Container(object):
             state = self.serialize_state(obj.state),
             log = obj.log,
             model_type = obj.model_type,
-            script_class = obj.script.script_name if obj.script else None
+            inventory = obj.inventory,
+            script_class = obj.script.script_name if obj.script else None,
         )
 
     def _deserialize_actor(self, actor, data):
@@ -102,6 +103,7 @@ class Container(object):
         actor.state = self.create_state(data['state'])
         actor.log = data['log']
         actor.model_type = data['model_type']
+        actor.inventory = data['inventory']
         if data['script_class']:
             actor.load_script(data['script_class'])
 
@@ -137,13 +139,11 @@ class Container(object):
     # PlayerActor
     def serialize_player_actor(self, obj):
         data = serialize_actor(obj)
-        data['inventory'] = obj.inventory
         data['data'] = obj.data
         return data
 
     def create_player_actor(self, data):
         player_actor = PlayerActor(data['actor_id'])
-        player_actor.inventory = data['inventory']
         player_actor.data = data['data']
         _deserialize_actor(player_actor, data)
         return player_actor
