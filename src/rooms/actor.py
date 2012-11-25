@@ -34,6 +34,7 @@ class State(dict):
 class Actor(object):
     def __init__(self, actor_id, position=(0, 0)):
         self.actor_id = actor_id
+        self.actor_type = None
         self.path = Path(position)
         self.room = None
         self.log = []
@@ -161,7 +162,8 @@ class Actor(object):
         pass
 
     def external(self, player):
-        return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
+        return dict(actor_id=self.actor_id,
+            actor_type=self.actor_type or type(self).__name__,
             path=self.path.path_array(), speed=self.path.speed,
             model_type=self.model_type, state=self.state,
             docked=bool(self.docked_with),
@@ -295,3 +297,12 @@ class Actor(object):
     def exchange(self, actor, item_type, amount=1):
         self.inventory.remove_item(item_type, amount)
         actor.inventory.add_item(item_type, amount)
+
+    def match_path(self, actor):
+        xdiff = self.x() - actor.path.path[0][0]
+        ydiff = self.y() - actor.path.path[0][1]
+        newpath = [(x + xdiff, y + ydiff, t) for (x, y, t) in actor.path.path]
+        log.debug("Matched path %s with %s - %s", self.path.basic_path_list(),
+            actor.path.basic_path_list(), newpath)
+        self.path.speed = actor.path.speed
+        self.move_to(actor.path.path[-1][0], actor.path.path[-1][1])

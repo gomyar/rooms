@@ -2,6 +2,9 @@
 import time
 import math
 
+import logging
+log = logging.getLogger("rooms.path")
+
 
 def get_now():
     return time.time()
@@ -29,6 +32,9 @@ class Path(object):
     def path_end_time(self):
         return self.path[-1][2]
 
+    def path_end_position(self):
+        return self.path[-1][:2]
+
     def set_path(self, path):
         self.path = []
         last_x, last_y = path[0]
@@ -42,6 +48,9 @@ class Path(object):
 
     def basic_path_list(self):
         return [(p[0], p[1]) for p in self.path]
+
+    def position(self):
+        return (self.x(), self.y())
 
     def x(self):
         now = get_now()

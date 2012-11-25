@@ -87,6 +87,7 @@ class Container(object):
     def serialize_actor(self, obj):
         return dict(
             actor_id = obj.actor_id,
+            actor_type = obj.actor_type,
             path = obj.path,
             room_id = obj.room.room_id,
             state = self.serialize_state(obj.state),
@@ -98,6 +99,7 @@ class Container(object):
 
     def _deserialize_actor(self, actor, data):
         actor.actor_id = data['actor_id']
+        actor.actor_type = data['actor_type']
         actor.path = data['path']
         actor.room_id = data['room_id']
         actor.state = self.create_state(data['state'])
