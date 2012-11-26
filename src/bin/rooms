@@ -4,6 +4,7 @@ import os
 
 from gevent import monkey
 monkey.patch_socket()
+import gevent.backdoor
 
 from optparse import OptionParser
 
@@ -36,6 +37,9 @@ if __name__ == "__main__":
         parser.add_option("-g", "--game", dest="game",
                 help="Path to game dir")
 
+        parser.add_option("-b", "--backdoor", dest="backdoor",
+                action="store_true", help="Open backdoor socket")
+
         (options, args) = parser.parse_args()
         if os.path.exists("logging.conf"):
             logging.config.fileConfig("logging.conf")
@@ -46,6 +50,11 @@ if __name__ == "__main__":
         node = Node(options.game, host, int(port))
         node.load_game(dbhost, int(dbport))
         node.init_controller(options)
+
+        if options.backdoor:
+            server = gevent.backdoor.BackdoorServer(('127.0.0.1', 3000),
+                locals=dict(node=node))
+            server.start()
 
         log.info("Starting Rooms")
         node.start()
