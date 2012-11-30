@@ -37,22 +37,6 @@ def plot_intercept_point(position, speed, targetPos, targetDest,
     return halfway_point
 
 
-class Point(object):
-    def __init__(self, x, y, z=0):
-        self.x = x
-        self.y = y
-        self.z = z
-
-    def __repr__(self):
-        return "Point(%s, %s)" % (self.x, self.y)
-
-    def __eq__(self, rhs):
-        return rhs and rhs.x == self.x and rhs.y == self.y and rhs.z == rhs.z
-
-    def tuple(self):
-        return (self.x, self.y)
-
-
 class Path(object):
     def __init__(self, points=[], speed=0.0):
         self.path = []
@@ -61,7 +45,7 @@ class Path(object):
             self.set_path(points)
 
     def time_to_move(self, point1, point2, speed):
-        return distance(point1.x, point1.y, point2.x, point2.y) / speed
+        return distance(point1[0], point1[1], point2[0], point2[1]) / speed
 
     def set_path(self, points):
         self.path = []
@@ -78,9 +62,9 @@ class Path(object):
 
     def plot_intercept_point_from(self, point, speed):
         path_position = (self.x(), self.y())
-        intercept = plot_intercept_point(point.tuple(), speed, path_position,
-            self.path[-1][0].tuple(), self.speed)
-        return Point(*intercept)
+        intercept = plot_intercept_point(point, speed, path_position,
+            self.path[-1][0], self.speed)
+        return intercept
 
     def match_path_from(self, point, speed):
         if not self.path:
@@ -100,7 +84,7 @@ class Path(object):
         return Path()
 
     def position(self):
-        return Point(self.x(), self.y())
+        return (self.x(), self.y())
 
     def x(self):
         now = _get_now()
@@ -110,9 +94,9 @@ class Path(object):
             start, millis = path.pop(0)
         if not path:
             return self.path[-1].x
-        (start_x, start_y), start_time = start.tuple(), millis
+        (start_x, start_y), start_time = start, millis
         end_point, end_time = path[0]
-        end_x, end_y = end_point.tuple()
+        end_x, end_y = end_point
 
         if now > end_time:
             return end_x
@@ -131,9 +115,9 @@ class Path(object):
             start, millis = path.pop(0)
         if not path:
             return self.path[-1].y
-        (start_x, start_y), start_time = start.tuple(), millis
+        (start_x, start_y), start_time = start, millis
         end_point, end_time = path[0]
-        end_x, end_y = end_point.tuple()
+        end_x, end_y = end_point
 
         if now > end_time:
             return end_y
