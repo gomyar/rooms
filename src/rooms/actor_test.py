@@ -106,6 +106,7 @@ class ActorTest(unittest.TestCase):
 
     def testDocking(self):
         self.actor2 = Actor("actor2", (50, 10))
+        self.room.put_actor(self.actor2, (50, 10))
         self.actor.dock(self.actor2)
 
         self.assertEquals([(10, 10), (10, 10)], self.actor2.path.basic_path_list())
@@ -116,6 +117,7 @@ class ActorTest(unittest.TestCase):
 
     def testUndocking(self):
         self.actor2 = Actor("actor2", (50, 10))
+        self.room.put_actor(self.actor2, (50, 10))
         self.actor.dock(self.actor2)
 
         self.actor.undock(self.actor2)
