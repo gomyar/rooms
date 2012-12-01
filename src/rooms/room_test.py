@@ -37,4 +37,4 @@ class RoomTest(unittest.TestCase):
         self.actor.move_to_room("room2")
 
         self.assertEquals([(10, 0), (10, 0)], self.actor.path.basic_path_list())
-        self.assertEquals(0.47, round(self._mock_slept_for, 2))
+        self.assertEquals(70.71, round(self._mock_slept_for, 2))

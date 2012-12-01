@@ -14,37 +14,32 @@ def distance(x1, y1, x2, y2):
     return math.hypot(x2 - x1, y2 - y1)
 
 
+def path_from_waypoints(point_list, speed):
+    path = []
+    last_x, last_y = point_list[0]
+    current_time = get_now()
+    path.append( (last_x, last_y, current_time ) )
+    for point in point_list[1:]:
+        x, y = point
+        current_time += distance(last_x, last_y, x, y) / speed
+        path.append( (x, y, current_time ) )
+        last_x, last_y = x, y
+    return Path(path)
+
+
 class Path(object):
-    def __init__(self, position=(0, 0)):
-        self.speed = 150.0
-        self.set_position(position)
+    def __init__(self, waypoints=None):
+        self.path = waypoints or []
 
     def set_position(self, position):
         x, y = position
         self.path = [ (x, y, get_now() ), (x, y, get_now() ) ]
-
-    def path_array(self):
-        return self.path
-
-    def time_to_move(self, x1, y1, x2, y2):
-        return distance(x1, y1, x2, y2) / self.speed
 
     def path_end_time(self):
         return self.path[-1][2]
 
     def path_end_position(self):
         return self.path[-1][:2]
-
-    def set_path(self, path):
-        self.path = []
-        last_x, last_y = path[0]
-        current_time = get_now()
-        self.path.append( (last_x, last_y, current_time ) )
-        for point in path[1:]:
-            x, y = point
-            current_time += self.time_to_move(last_x, last_y, x, y)
-            self.path.append( (x, y, current_time ) )
-            last_x, last_y = x, y
 
     def basic_path_list(self):
         return [(p[0], p[1]) for p in self.path]

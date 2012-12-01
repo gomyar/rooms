@@ -3,7 +3,7 @@ import simplejson
 
 from rooms.actor import Actor
 from rooms.actor import State
-from rooms.path_vector import Path
+from rooms.waypoint import Path
 from rooms.player_actor import PlayerActor
 from rooms.npc_actor import NpcActor
 from rooms.item_actor import ItemActor
@@ -89,6 +89,7 @@ class Container(object):
             actor_id = obj.actor_id,
             actor_type = obj.actor_type,
             path = obj.path,
+            speed = obj.speed,
             room_id = obj.room.room_id,
             state = self.serialize_state(obj.state),
             log = obj.log,
@@ -101,6 +102,7 @@ class Container(object):
         actor.actor_id = data['actor_id']
         actor.actor_type = data['actor_type']
         actor.path = data['path']
+        actor.speed = data['speed']
         actor.room_id = data['room_id']
         actor.state = self.create_state(data['state'])
         actor.log = data['log']
@@ -129,13 +131,11 @@ class Container(object):
     def serialize_path(self, obj):
         return dict(
             path=obj.path,
-            speed=obj.speed,
         )
 
     def create_path(self, data):
         path = Path()
         path.path = data['path']
-        path.speed = data['speed']
         return path
 
     # PlayerActor

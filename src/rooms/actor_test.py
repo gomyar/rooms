@@ -33,45 +33,9 @@ class ActorTest(unittest.TestCase):
         time.time = mock.Mock(return_value=self.now)
 
     def testSetPath(self):
-        self.actor.set_path([(0.0, 0.0), (3.0, 0.0), (9.0, 0.0)])
+        self.actor.set_waypoints([(0.0, 0.0), (3.0, 0.0), (9.0, 0.0)])
         self.assertEquals([(0.0, 0.0, 0.0), (3.0, 0.0, 0.02),
             (9.0, 0.0, 0.06)], self.actor.path.path)
-
-    def testXFromPath(self):
-        self.actor.path.path = [ (0.0, 0.0, 0.0), (1.0, 0.0, 1.0),
-            (2.0, 0.0, 2.0), (3.0, 0.0, 3.0), (4.0, 0.0, 4.0) ]
-
-        self.assertEquals(0.0, self.actor.x())
-
-        time.time = mock.Mock(return_value=0.5)
-        self.assertEquals(0.5, self.actor.x())
-
-        time.time = mock.Mock(return_value=1.5)
-        self.assertEquals(1.5, self.actor.x())
-
-        time.time = mock.Mock(return_value=2.5)
-        self.assertEquals(2.5, self.actor.x())
-
-        time.time = mock.Mock(return_value=4.5)
-        self.assertEquals(4.0, self.actor.x())
-
-    def testYFromPath(self):
-        self.actor.path.path = [ (0.0, 0.0, 0.0), (0.0, 1.0, 1.0),
-            (0.0, 2.0, 2.0), (0.0, 3.0, 3.0), (0.0, 4.0, 4.0) ]
-
-        self.assertEquals(0.0, self.actor.y())
-
-        time.time = mock.Mock(return_value=0.5)
-        self.assertEquals(0.5, self.actor.y())
-
-        time.time = mock.Mock(return_value=1.5)
-        self.assertEquals(1.5, self.actor.y())
-
-        time.time = mock.Mock(return_value=2.5)
-        self.assertEquals(2.5, self.actor.y())
-
-        time.time = mock.Mock(return_value=4.5)
-        self.assertEquals(4.0, self.actor.y())
 
     def testAllowedMethod(self):
         self.mock_actor.load_script("rooms.actor_test")
@@ -124,3 +88,13 @@ class ActorTest(unittest.TestCase):
 
         self.assertEquals(None, self.actor2.docked_with)
         self.assertEquals(set(), self.actor.docked)
+
+    def testIntercept(self):
+        self.actor2 = Actor("actor2")
+        self.room.put_actor(self.actor2, (50, 10))
+
+        self.actor2.set_waypoints([(50, 10), (50, 50)])
+
+        self.actor.intercept(self.actor2)
+
+        self.assertEquals([(10, 10), (25, 50)], self.actor.path.path)

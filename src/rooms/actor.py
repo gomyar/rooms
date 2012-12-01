@@ -5,9 +5,10 @@ import time
 import gevent
 import gevent.queue
 
-from path_vector import Path
-from path_vector import distance
-from path_vector import get_now
+from rooms.waypoint import Path
+from rooms.waypoint import distance
+from rooms.waypoint import get_now
+from rooms.waypoint import path_from_waypoints
 
 from rooms.script_wrapper import Script
 from rooms.script_wrapper import register_actor_script
@@ -36,6 +37,7 @@ class Actor(object):
         self.actor_id = actor_id
         self.actor_type = None
         self.path = Path(position)
+        self.speed = 1.0
         self.room = None
         self.log = []
         self.script = None
@@ -164,7 +166,7 @@ class Actor(object):
     def external(self, player):
         return dict(actor_id=self.actor_id,
             actor_type=self.actor_type or type(self).__name__,
-            path=self.path.path_array(), speed=self.path.speed,
+            path=self.path.path, speed=self.speed,
             model_type=self.model_type, state=self.state,
             docked=bool(self.docked_with),
             docked_with=self.docked_with.actor_id if self.docked_with else None,
@@ -196,9 +198,12 @@ class Actor(object):
         self.path.set_position(position)
 
     def set_path(self, path):
-        self.path.set_path(path)
+        self.path = path
         for actor in self.docked:
             actor.set_path(path)
+
+    def set_waypoints(self, point_list):
+        self.path = path_from_waypoints(point_list, self.speed)
 
     def distance_to(self, point):
         return distance(self.x(), self.y(), point[0], point[1])
@@ -243,10 +248,17 @@ class Actor(object):
         path = self.room.get_path((self.x(), self.y()), (x, y))
         if not path or len(path) < 2:
             raise Exception("Wrong path: %s" % (path,))
-        self.set_path(path)
+        self.set_waypoints(path)
         self.send_actor_update()
         end_time = self.path.path_end_time()
         self.sleep(end_time - get_now())
+
+    def intercept(self, actor):
+        path = self.room.geog.intercept(self.path, self.position(),
+            self.speed)
+        # times are set here
+        self.set_path(path)
+        self.send_actor_update()
 
     def move_towards(self, actor):
         self.move_to(actor.x(), actor.y())
@@ -286,7 +298,7 @@ class Actor(object):
     def dock(self, actor):
         self.docked.add(actor)
         actor.docked_with = self
-        actor.set_path(self.path.basic_path_list())
+        actor.set_path(self.path)
         actor.send_actor_update()
 
     def undock(self, actor):
