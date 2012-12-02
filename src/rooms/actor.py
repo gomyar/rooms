@@ -205,8 +205,8 @@ class Actor(object):
     def set_waypoints(self, point_list):
         self.set_path(path_from_waypoints(point_list, self.speed))
 
-    def distance_to(self, point):
-        return distance(self.x(), self.y(), point[0], point[1])
+    def distance_to(self, actor):
+        return distance(self.x(), self.y(), actor.x(), actor.y())
 
     def _filters_equal(self, actor, filters):
         if not filters:
@@ -259,8 +259,13 @@ class Actor(object):
         # times are set here
         self.set_path(path)
         self.send_actor_update()
-        end_time = self.path.path_end_time()
-        self.sleep(end_time - get_now())
+        if path:
+            end_time = self.path.path[1][2]
+            log.info("Sleeping for %s", end_time - get_now())
+            self.sleep(end_time - get_now())
+
+    def animate(self, animate_id, **kwargs):
+        log.info("Animating %s(%s)", animate_id, kwargs)
 
     def move_towards(self, actor):
         self.move_to(actor.x(), actor.y())
@@ -311,12 +316,3 @@ class Actor(object):
     def exchange(self, actor, item_type, amount=1):
         self.inventory.remove_item(item_type, amount)
         actor.inventory.add_item(item_type, amount)
-
-    def match_path(self, actor):
-        xdiff = self.x() - actor.path.path[0][0]
-        ydiff = self.y() - actor.path.path[0][1]
-        newpath = [(x + xdiff, y + ydiff, t) for (x, y, t) in actor.path.path]
-        log.debug("Matched path %s with %s - %s", self.path.basic_path_list(),
-            actor.path.basic_path_list(), newpath)
-        self.path.speed = actor.path.speed
-        self.move_to(actor.path.path[-1][0], actor.path.path[-1][1])

@@ -195,10 +195,10 @@ class Room(object):
                 return True
         return False
 
-    def closest_player(self, position):
+    def closest_player_to(self, actor):
         players = self.all_players()
         if players:
-            return min(players, key=lambda p: p.distance_to(position))
+            return min(players, key=lambda p: p.distance_to(actor))
         else:
             return None
 
