@@ -50,13 +50,15 @@ def time_to_move(x1, y1, x2, y2, speed):
 
 
 def range_cutoff(x1, y1, x2, y2, irange):
+    if not irange:
+        return x2, y2
     dist = distance(x1, y1, x2, y2)
     cx = irange * (x2 - x1) / dist
     cy = irange * (y2 - y1) / dist
     return x2 - cx, y2 - cy
 
 
-def match_path_from(target_path, point, speed, irange=20.0):
+def match_path_from(target_path, point, speed, irange=0.0):
     if not target_path.path:
         return []
     path = list(target_path.path)

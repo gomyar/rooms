@@ -253,9 +253,9 @@ class Actor(object):
         end_time = self.path.path_end_time()
         self.sleep(end_time - get_now())
 
-    def intercept(self, actor):
+    def intercept(self, actor, irange=0.0):
         path = self.room.geog.intercept(actor.path, self.position(),
-            self.speed)
+            self.speed, irange)
         # times are set here
         self.set_path(path)
         self.send_actor_update()
