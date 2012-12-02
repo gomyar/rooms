@@ -66,7 +66,7 @@ class Path(object):
         diff_t = end_time - start_time
         if diff_t <= 0:
             return end_x
-        return diff_t / distance(start_x, start_y, end_x, end_y)
+        return distance(start_x, start_y, end_x, end_y) / diff_t
 
     def x(self):
         now = get_now()

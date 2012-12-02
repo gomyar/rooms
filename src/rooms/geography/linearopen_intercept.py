@@ -11,6 +11,8 @@ log = logging.getLogger("rooms.intercept")
 
 def plot_intercept_point(position, speed, targetPos, targetDest,
         targetSpeed):
+    log.info("plot_intercept_point(%s, %s, %s, %s, %s)", position, speed,
+        targetPos, targetDest, targetSpeed)
     target_start_point = targetPos
     halfway_point = targetDest
     for i in range(20):
