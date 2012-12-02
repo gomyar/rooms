@@ -1,5 +1,12 @@
 
 from rooms.waypoint import Path
+from rooms.waypoint import distance
+from rooms.waypoint import path_from_waypoints
+from rooms.waypoint import get_now
+import math
+
+import logging
+log = logging.getLogger("rooms.intercept")
 
 
 def plot_intercept_point(position, speed, targetPos, targetDest,
@@ -21,28 +28,43 @@ def plot_intercept_point(position, speed, targetPos, targetDest,
     return halfway_point
 
 
+def calculate_time_to_dest(startposition, destination, speed):
+    if speed == 0.0:
+        return 0.0
+    distance = math.hypot(destination[0] - startposition[0],
+        destination[1] - startposition[1])
+    return distance / speed
+
+
 def plot_intercept_point_from(path, point, speed):
     path_position = (path.x(), path.y())
     intercept = plot_intercept_point(point, speed, path_position,
-        path.path[-1][0], path.speed)
+        (path.path[-1][0], path.path[-1][1]), speed) # wrong target speed
     return intercept
 
 
-def match_path_from(path, point, speed):
-    if not path.path:
+def time_to_move(x1, y1, x2, y2, speed):
+    return distance(x1, y1, x2, y2) / speed
+
+
+def match_path_from(target_path, point, speed):
+    if not target_path.path:
         return []
-    path = list(path.path)
+    path = list(target_path.path)
+    log.debug("Intercept: matching path %s from %s at speed %s", path,
+        point, speed)
     while path[1:]:
-        (start, starttime), (end, endtime) = path[:2]
-        if path.time_to_move(point, end, speed) < endtime:
-            intercept = plot_intercept_point_from(path, point, speed)
+        (start_x, start_y, starttime), (end_x, end_y, endtime) = path[:2]
+        if get_now() + time_to_move(point[0], point[1], end_x, end_y, speed) < endtime:
+            i_x, i_y= plot_intercept_point_from(target_path, point, speed)
             newpath = Path()
-            newpath.path.append((intercept, path.time_to_move(point,
-                intercept, speed)))
+            newpath.path.append((point[0], point[1], get_now()))
+            newpath.path.append((i_x, i_y, get_now() + time_to_move(point[0], point[1],
+                i_x, i_y, speed)))
             newpath.path.extend([p for p in path[1:]])
             return newpath
         path.pop(0)
 
-    return Path()
+    return path_from_waypoints([point, target_path.path[-1][:2]], speed)
 
 

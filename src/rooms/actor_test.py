@@ -3,6 +3,7 @@ import unittest
 import mock
 import time
 
+import rooms.waypoint
 from actor import Actor
 from script import expose
 from script import command
@@ -25,14 +26,24 @@ def scripty_cally(player, param1, param2="value2"):
 
 class ActorTest(unittest.TestCase):
     def setUp(self):
-        self.room = Room()
-        self.actor = Actor("actor1", (10, 10))
-        self.mock_actor = Actor("mock")
-        self.actor.room = self.room
         self.now = 0.0
         time.time = mock.Mock(return_value=self.now)
+        self.room = Room()
+        self.actor = Actor("actor1")
+        self.actor.sleep = lambda s: None
+        self.mock_actor = Actor("mock")
+        self.room.put_actor(self.actor, (10, 10))
+        rooms.waypoint.get_now = self._mock_get_now
+
+    def _mock_get_now(self):
+        return self.now
+
+    def tearDown(self):
+        reload(time)
+        reload(rooms.waypoint)
 
     def testSetPath(self):
+        self.actor.speed = 150
         self.actor.set_waypoints([(0.0, 0.0), (3.0, 0.0), (9.0, 0.0)])
         self.assertEquals([(0.0, 0.0, 0.0), (3.0, 0.0, 0.02),
             (9.0, 0.0, 0.06)], self.actor.path.path)
@@ -69,7 +80,7 @@ class ActorTest(unittest.TestCase):
         del(self.actor)
 
     def testDocking(self):
-        self.actor2 = Actor("actor2", (50, 10))
+        self.actor2 = Actor("actor2")
         self.room.put_actor(self.actor2, (50, 10))
         self.actor.dock(self.actor2)
 
@@ -80,7 +91,7 @@ class ActorTest(unittest.TestCase):
         self.assertEquals([(10, 10), (50, 50)], self.actor2.path.basic_path_list())
 
     def testUndocking(self):
-        self.actor2 = Actor("actor2", (50, 10))
+        self.actor2 = Actor("actor2")
         self.room.put_actor(self.actor2, (50, 10))
         self.actor.dock(self.actor2)
 
@@ -97,4 +108,28 @@ class ActorTest(unittest.TestCase):
 
         self.actor.intercept(self.actor2)
 
-        self.assertEquals([(10, 10), (25, 50)], self.actor.path.path)
+        self.assertEquals([(10, 10), (50, 50)], self.actor.path.basic_path_list())
+
+        self.actor.set_position((40, 25))
+
+        self.actor.intercept(self.actor2)
+
+        self.assertEquals([(40, 25), (50.0, 20.830078125), (50, 50)],
+            self.actor.path.basic_path_list())
+
+    def testInterceptExample(self):
+        self.room.width = 600
+        self.room.height = 600
+        self.actor.set_position((500, 500))
+        self.actor2 = Actor("actor2")
+        self.actor2.speed = 70
+        self.room.put_actor(self.actor2, (100, 100))
+
+        self.actor2.move_to(200, 200)
+
+        self.assertEquals([(100, 100), (200, 200)],
+            self.actor2.path.basic_path_list())
+
+        self.actor.intercept(self.actor2)
+
+        self.assertEquals([(500, 500, 0.0), (200, 200, 424.26406871192853)], self.actor.path.path)

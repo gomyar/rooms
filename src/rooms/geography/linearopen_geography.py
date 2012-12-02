@@ -1,4 +1,6 @@
 
+from linearopen_intercept import match_path_from
+
 class LinearOpenGeography(object):
     def get_available_position_closest_to(self, room, position):
         return position
@@ -11,4 +13,4 @@ class LinearOpenGeography(object):
         return [start, end]
 
     def intercept(self, path, point, speed):
-        return path
+        return match_path_from(path, point, speed)

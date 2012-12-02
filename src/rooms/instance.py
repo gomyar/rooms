@@ -96,6 +96,8 @@ class Instance:
         self.players[player_id]['player'] = actor
         self.area.player_joined_instance(actor, self.area.entry_point_room_id)
         self.send_to_all("player_joined_instance", actor_id=player_id)
+        if actor.script and actor.script.has_method("player_created"):
+            actor._wrapped_call("player_created", actor)
         actor.start_command_processor()
 
         log.info("Player joined instance: %s", player_id)

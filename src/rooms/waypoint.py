@@ -31,6 +31,9 @@ class Path(object):
     def __init__(self, waypoints=None):
         self.path = waypoints or []
 
+    def __repr__(self):
+        return "Path(%s)" % (self.path,)
+
     def set_position(self, position):
         x, y = position
         self.path = [ (x, y, get_now() ), (x, y, get_now() ) ]

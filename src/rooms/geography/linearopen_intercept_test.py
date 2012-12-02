@@ -4,6 +4,9 @@ import unittest
 import rooms.waypoint
 from rooms.waypoint import Path
 
+from linearopen_intercept import plot_intercept_point_from
+from linearopen_intercept import match_path_from
+
 
 class path_vectorTest(unittest.TestCase):
     def setUp(self):
@@ -11,31 +14,20 @@ class path_vectorTest(unittest.TestCase):
         self._mock_now = 0
 
     def tearDown(self):
-        reload(rooms.path)
+        reload(rooms.waypoint)
 
     def _mock_get_now(self):
         return self._mock_now
 
-    def testBasicPath(self):
-        self.assertEquals([((10, 10), 0), ((50, 10), 20)],
-            Path([(10, 10), (50, 10)], 2).path)
-
     def testIntercept(self):
-        point1 = (10, 10)
-        point2 = (50, 50)
+        target_path = Path([(10, 10, 0), (50, 50, 100)])
+        point = plot_intercept_point_from(target_path, (50, 25), 300)
 
-        target_path = Path([point1, point2], 100)
-        point = target_path.plot_intercept_point_from((50, 25), 300)
-
-        self.assertEquals((17.8125, 17.8125), point)
+        self.assertEquals((26.25, 26.25), point)
 
     def testMatchPath(self):
-        point1 = (10, 10)
-        point2 = (50, 10)
+        target_path = Path([(10, 10, 0), (50, 10, 100)])
+        path = match_path_from(target_path, (25, 15), 200)
 
-        target_path = Path([point1, point2], 100)
-        path = target_path.match_path_from((25, 15), 200)
-
-        self.assertEquals([((15.625, 10.0), 0.053125),
-            ((50, 10), 0.4)],
+        self.assertEquals([(25, 15, 0), (50, 10, 0.12747548783981963)],
             path.path)

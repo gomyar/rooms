@@ -33,10 +33,10 @@ class State(dict):
 
 
 class Actor(object):
-    def __init__(self, actor_id, position=(0, 0)):
+    def __init__(self, actor_id):
         self.actor_id = actor_id
         self.actor_type = None
-        self.path = Path(position)
+        self.path = Path()
         self.speed = 1.0
         self.room = None
         self.log = []
@@ -203,7 +203,7 @@ class Actor(object):
             actor.set_path(path)
 
     def set_waypoints(self, point_list):
-        self.path = path_from_waypoints(point_list, self.speed)
+        self.set_path(path_from_waypoints(point_list, self.speed))
 
     def distance_to(self, point):
         return distance(self.x(), self.y(), point[0], point[1])
@@ -254,7 +254,7 @@ class Actor(object):
         self.sleep(end_time - get_now())
 
     def intercept(self, actor):
-        path = self.room.geog.intercept(self.path, self.position(),
+        path = self.room.geog.intercept(actor.path, self.position(),
             self.speed)
         # times are set here
         self.set_path(path)

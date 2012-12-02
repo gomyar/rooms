@@ -30,7 +30,7 @@ class RoomTest(unittest.TestCase):
         self.assertFalse(self.area.rooms['room3'].has_door_to("room2"))
 
     def testActorExitsThroughDoor(self):
-        self.actor = Actor("actor1", (10, 10))
+        self.actor = Actor("actor1")
         self.actor.sleep = self._mock_sleep
         self.area.rooms['room1'].actor_joined_instance(self.actor)
 
