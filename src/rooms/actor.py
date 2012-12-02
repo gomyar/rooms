@@ -48,6 +48,8 @@ class Actor(object):
         self.docked = set()
         self.docked_with = None
         self.inventory = Inventory()
+        self.followers = set()
+        self.following = None
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -73,7 +75,7 @@ class Actor(object):
             deregister_actor_script(self.script.script_name, self)
 
     def kick(self):
-        self._queue_script_method("kick", self, [], {})
+        self._queue_script_method("kickoff", self, [], {})
 
     def interface_call(self, method_name, player, *args, **kwargs):
         if not self._can_call(player, method_name):
@@ -201,6 +203,9 @@ class Actor(object):
         self.path = path
         for actor in self.docked:
             actor.set_path(path)
+        self.send_actor_update()
+        for actor in self.followers:
+            actor.kick()
 
     def set_waypoints(self, point_list):
         self.set_path(path_from_waypoints(point_list, self.speed))
@@ -249,8 +254,10 @@ class Actor(object):
         if not path or len(path) < 2:
             raise Exception("Wrong path: %s" % (path,))
         self.set_waypoints(path)
-        self.send_actor_update()
         end_time = self.path.path_end_time()
+        if self.following:
+            self.following.followers.remove(self)
+            self.following = None
         self.sleep(end_time - get_now())
 
     def intercept(self, actor, irange=0.0):
@@ -258,8 +265,9 @@ class Actor(object):
             self.speed, irange)
         # times are set here
         self.set_path(path)
-        self.send_actor_update()
         if path:
+            actor.followers.add(self)
+            self.following = actor
             end_time = self.path.path[1][2]
             log.info("Sleeping for %s", end_time - get_now())
             self.sleep(end_time - get_now())
@@ -306,7 +314,6 @@ class Actor(object):
         self.docked.add(actor)
         actor.docked_with = self
         actor.set_path(self.path)
-        actor.send_actor_update()
 
     def undock(self, actor):
         self.docked.remove(actor)
