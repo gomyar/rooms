@@ -259,6 +259,8 @@ class Actor(object):
         # times are set here
         self.set_path(path)
         self.send_actor_update()
+        end_time = self.path.path_end_time()
+        self.sleep(end_time - get_now())
 
     def move_towards(self, actor):
         self.move_to(actor.x(), actor.y())

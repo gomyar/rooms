@@ -50,6 +50,24 @@ class Path(object):
     def position(self):
         return (self.x(), self.y())
 
+    def speed(self):
+        now = get_now()
+        path = list(self.path)
+        start = path[0]
+        while path and now > path[0][2]:
+            start = path.pop(0)
+        if not path:
+            return self.path[-1][0]
+        start_x, start_y, start_time = start
+        end_x, end_y, end_time = path[0]
+
+        if now > end_time:
+            return end_x
+        diff_t = end_time - start_time
+        if diff_t <= 0:
+            return end_x
+        return diff_t / distance(start_x, start_y, end_x, end_y)
+
     def x(self):
         now = get_now()
         path = list(self.path)

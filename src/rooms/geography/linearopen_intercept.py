@@ -39,7 +39,7 @@ def calculate_time_to_dest(startposition, destination, speed):
 def plot_intercept_point_from(path, point, speed):
     path_position = (path.x(), path.y())
     intercept = plot_intercept_point(point, speed, path_position,
-        (path.path[-1][0], path.path[-1][1]), speed) # wrong target speed
+        (path.path[-1][0], path.path[-1][1]), path.speed())
     return intercept
 
 
