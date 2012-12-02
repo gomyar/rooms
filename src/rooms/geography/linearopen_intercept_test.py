@@ -6,6 +6,7 @@ from rooms.waypoint import Path
 
 from linearopen_intercept import plot_intercept_point_from
 from linearopen_intercept import match_path_from
+from linearopen_intercept import range_cutoff
 
 
 class path_vectorTest(unittest.TestCase):
@@ -31,3 +32,6 @@ class path_vectorTest(unittest.TestCase):
 
         self.assertEquals([(25, 15, 0), (50, 10, 0.12747548783981963)],
             path.path)
+
+    def testRangeCutoff(self):
+        self.assertEquals((8, 8), range_cutoff(0, 0, 8, 6, 2))

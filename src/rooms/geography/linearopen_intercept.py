@@ -49,7 +49,14 @@ def time_to_move(x1, y1, x2, y2, speed):
     return distance(x1, y1, x2, y2) / speed
 
 
-def match_path_from(target_path, point, speed):
+def range_cutoff(x1, y1, x2, y2, irange):
+    dist = distance(x1, y1, x2, y2)
+    cx = irange * (x2 - x1) / dist
+    cy = irange * (y2 - y1) / dist
+    return x2 - cx, y2 - cy
+
+
+def match_path_from(target_path, point, speed, irange=20.0):
     if not target_path.path:
         return []
     path = list(target_path.path)
@@ -58,12 +65,16 @@ def match_path_from(target_path, point, speed):
     while path[1:]:
         (start_x, start_y, starttime), (end_x, end_y, endtime) = path[:2]
         if get_now() + time_to_move(point[0], point[1], end_x, end_y, speed) < endtime:
-            i_x, i_y= plot_intercept_point_from(target_path, point, speed)
+            i_x, i_y = plot_intercept_point_from(target_path, point, speed)
+            d_x, d_y = range_cutoff(point[0], point[1], i_x, i_y, irange)
+            diff_x = i_x - d_x
+            diff_y = i_y - d_y
             newpath = Path()
             newpath.path.append((point[0], point[1], get_now()))
-            newpath.path.append((i_x, i_y, get_now() + time_to_move(point[0], point[1],
-                i_x, i_y, speed)))
-            newpath.path.extend([p for p in path[1:]])
+            newpath.path.append((d_x, d_y, get_now() + time_to_move(point[0], point[1],
+                d_x, d_y, speed)))
+            newpath.path.extend([(p[0] - diff_x, p[1] - diff_y, p[2]) for \
+                p in path[1:]])
             return newpath
         path.pop(0)
 
