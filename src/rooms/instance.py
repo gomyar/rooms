@@ -90,17 +90,18 @@ class Instance:
                 self.player_queues.pop(player_id)
 
     def register(self, player_id):
-        self.players[player_id] = dict(connected=False)
+        if player_id not in self.players:
+            self.players[player_id] = dict(connected=False)
 
-        actor = PlayerActor(player_id)
-        self.players[player_id]['player'] = actor
-        self.area.player_joined_instance(actor, self.area.entry_point_room_id)
-        if actor.script and actor.script.has_method("player_created"):
-            actor._wrapped_call("player_created", actor)
-        self.send_to_all("player_joined_instance", **actor.external())
-        actor.start_command_processor()
+            actor = PlayerActor(player_id)
+            self.players[player_id]['player'] = actor
+            self.area.player_joined_instance(actor, self.area.entry_point_room_id)
+            if actor.script and actor.script.has_method("player_created"):
+                actor._wrapped_call("player_created", actor)
+            self.send_to_all("player_joined_instance", **actor.external())
+            actor.start_command_processor()
 
-        log.info("Player joined instance: %s", player_id)
+            log.info("Player joined instance: %s", player_id)
 
     def deregister(self, player_id):
         self.disconnect(player_id)
