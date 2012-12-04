@@ -165,14 +165,14 @@ class Actor(object):
     def actor_heard(self, actor, msg):
         pass
 
-    def external(self, player):
+    def external(self, player=None):
         return dict(actor_id=self.actor_id,
             actor_type=self.actor_type or type(self).__name__,
             path=self.path.path, speed=self.speed,
             model_type=self.model_type, state=self.state,
             docked=bool(self.docked_with),
             docked_with=self.docked_with.actor_id if self.docked_with else None,
-            methods=self._all_exposed_methods(player))
+            methods=self._all_exposed_methods(player) if player else [])
 
     def send_actor_update(self):
         for actor in self.room.actors.values():
@@ -272,8 +272,13 @@ class Actor(object):
             log.info("Sleeping for %s", end_time - get_now())
             self.sleep(end_time - get_now())
 
-    def animate(self, animate_id, **kwargs):
+    def animate(self, animate_id, duration=1, **kwargs):
         log.info("Animating %s(%s)", animate_id, kwargs)
+        kwargs['duration'] = duration
+        kwargs['start_time'] = time.time()
+        kwargs['end_time'] = time.time() + duration
+        kwargs['animate_id'] = animate_id
+        self.instance.send_to_all("animation", **kwargs)
 
     def move_towards(self, actor):
         self.move_to(actor.x(), actor.y())
