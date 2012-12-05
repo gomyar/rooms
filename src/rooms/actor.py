@@ -279,6 +279,7 @@ class Actor(object):
         kwargs['end_time'] = time.time() + duration
         kwargs['animate_id'] = animate_id
         self.instance.send_to_all("animation", **kwargs)
+        self.sleep(duration)
 
     def move_towards(self, actor):
         self.move_to(actor.x(), actor.y())

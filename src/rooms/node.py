@@ -97,9 +97,9 @@ class Node(object):
         instance.kickoff()
         return uid
 
-    def player_joins(self, area_id, player_id):
+    def player_joins(self, area_id, player):
         instance = self._lookup_instance(area_id)
-        instance.register(player_id)
+        instance.register(player)
 
     def _lookup_instance(self, area_id):
         for instance_id, instance in self.instances.items():

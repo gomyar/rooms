@@ -89,11 +89,13 @@ class Instance:
             if q == queue:
                 self.player_queues.pop(player_id)
 
-    def register(self, player_id):
+    def register(self, player):
+        player_id = player.username
+        player.actor_id = player.username
         if player_id not in self.players:
             self.players[player_id] = dict(connected=False)
 
-            actor = PlayerActor(player_id)
+            actor = PlayerActor(player)
             self.players[player_id]['player'] = actor
             self.area.player_joined_instance(actor, self.area.entry_point_room_id)
             if actor.script and actor.script.has_method("player_created"):

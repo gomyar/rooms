@@ -10,9 +10,9 @@ log = logging.getLogger("rooms.player")
 
 
 class PlayerActor(Actor):
-    def __init__(self, player_id=None):
-        super(PlayerActor, self).__init__(player_id)
-        self.model_type = "investigator"
+    def __init__(self, player):
+        super(PlayerActor, self).__init__(player.actor_id)
+        self.player = player
 
     def exit(self, door_id):
         super(PlayerActor, self).exit(door_id)

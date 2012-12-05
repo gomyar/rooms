@@ -151,4 +151,5 @@ class ClientController(object):
         return self.node.manage_area(game_id, area_id)
 
     def player_joins(self, area_id, player_id):
-        return self.node.player_joins(area_id, player_id)
+        player = self.node.container.get_or_create_player(player_id=player_id)
+        return self.node.player_joins(area_id, player)
