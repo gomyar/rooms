@@ -46,3 +46,7 @@ class PlayerActor(Actor):
     def actor_heard(self, actor, message):
         msg = "You say :" if self == actor else "%s says :" % (actor.actor_id,)
         self.send_update("actor_heard", actor_id=actor.actor_id, msg=message)
+
+    def kill(self):
+        self.kill_gthread()
+        self.instance.kill_player(self)

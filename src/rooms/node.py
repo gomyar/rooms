@@ -66,7 +66,6 @@ class Node(object):
             geogs[config.get("game", "geography")](),
         )
 
-
     def init_controller(self, options):
         ctype = config.get("game", "controller")
         master = controller_types["%s_master" % (ctype,)]

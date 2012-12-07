@@ -89,6 +89,15 @@ class Instance:
             if q == queue:
                 self.player_queues.pop(player_id)
 
+    def kill_player(self, player_actor):
+        actor_id = player_actor.actor_id
+        player = player_actor.player
+        player.room_id = "system"
+        player.actor_id = None
+        self.node.container.save_player(player)
+        self.send_update(actor_id, 'kill')
+        self.deregister(actor_id)
+
     def register(self, player):
         player_id = player.username
         player.actor_id = player.username
@@ -111,8 +120,6 @@ class Instance:
         self.area.actor_left_instance(actor)
         self.send_to_all("actor_left_instance", actor_id=player_id)
         self.players.pop(player_id)
-        self.node.controller.player_left(player_id, self.uid)
-
         log.info("Player left instance: %s", player_id)
 
     def kickoff(self):

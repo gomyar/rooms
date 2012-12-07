@@ -80,6 +80,8 @@ def match_path_from(target_path, point, speed, irange=0.0):
             return newpath
         path.pop(0)
 
-    return path_from_waypoints([point, target_path.path[-1][:2]], speed)
+    i_x, i_y = target_path.path[-1][:2]
+    d_x, d_y = range_cutoff(point[0], point[1], i_x, i_y, irange)
+    return path_from_waypoints([point, (d_x, d_y)], speed)
 
 

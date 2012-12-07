@@ -261,6 +261,7 @@ class Actor(object):
         self.sleep(end_time - get_now())
 
     def intercept(self, actor, irange=0.0):
+        log.debug("Intercepting %s at range %s", actor, irange)
         path = self.room.geog.intercept(actor.path, self.position(),
             self.speed, irange)
         # times are set here
@@ -329,3 +330,8 @@ class Actor(object):
     def exchange(self, actor, item_type, amount=1):
         self.inventory.remove_item(item_type, amount)
         actor.inventory.add_item(item_type, amount)
+
+    def kill(self):
+        self.kill_gthread()
+        self.running = False
+        self.room.remove_actor(self)

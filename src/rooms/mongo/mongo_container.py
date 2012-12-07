@@ -87,7 +87,7 @@ class MongoContainer(object):
         return self._load_object(game_id, self.db().games)
 
     def get_or_create_player(self, player_id):
-        player = self.db().players.find_one(username=player_id)
+        player = self.db().players.find_one({'username': player_id})
         if not player:
             player = Player(player_id)
             self._save_object(player, self.db().players)

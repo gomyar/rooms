@@ -113,7 +113,7 @@ class Container(object):
 
     def create_actor(self, data):
         actor = Actor(data['actor_id'])
-        _deserialize_actor(actor, data)
+        self._deserialize_actor(actor, data)
         return actor
 
 
@@ -140,14 +140,14 @@ class Container(object):
 
     # PlayerActor
     def serialize_player_actor(self, obj):
-        data = serialize_actor(obj)
+        data = self.serialize_actor(obj)
         data['data'] = obj.data
         return data
 
     def create_player_actor(self, data):
         player_actor = PlayerActor(data['actor_id'])
         player_actor.data = data['data']
-        _deserialize_actor(player_actor, data)
+        self._deserialize_actor(player_actor, data)
         return player_actor
 
     # NPCActor
@@ -213,7 +213,7 @@ class Container(object):
 
     # Door
     def serialize_door(self, obj):
-        data = serialize_actor(obj)
+        data = self.serialize_actor(obj)
         data.update(dict(
             exit_room_id=obj.exit_room_id,
             exit_door_id=obj.exit_door_id,
@@ -224,7 +224,7 @@ class Container(object):
 
     def create_door(self, data):
         door = Door()
-        _deserialize_actor(door, data)
+        self._deserialize_actor(door, data)
         door.exit_room_id = data['exit_room_id']
         door.exit_door_id = data['exit_door_id']
         door.set_position(data['position'])
@@ -269,6 +269,7 @@ class Container(object):
             game_id = obj.game_id,
             area_id = obj.area_id,
             actor_id = obj.actor_id,
+            room_id = obj.room_id,
         )
         return data
 
@@ -277,6 +278,7 @@ class Container(object):
         player.game_id = data['game_id']
         player.area_id = data['area_id']
         player.actor_id = data['actor_id']
+        player.room_id = data['room_id']
         return player
 
     # Game

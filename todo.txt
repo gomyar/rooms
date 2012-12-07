@@ -6,3 +6,5 @@
     - add items to mansion
     - add notes (evidence)
     - add dungeon game to list of available games
+
+    - api optimization - diff actor updates - really important (when time comes)
