@@ -49,4 +49,5 @@ class PlayerActor(Actor):
 
     def kill(self):
         self.kill_gthread()
+        self.remove_gthread()
         self.instance.kill_player(self)

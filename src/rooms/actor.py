@@ -74,19 +74,13 @@ class Actor(object):
         if self.script and deregister_actor_script:
             deregister_actor_script(self.script.script_name, self)
 
-    def kick(self):
+    def _kick(self):
         self._queue_script_method("kickoff", self, [], {})
 
     def interface_call(self, method_name, player, *args, **kwargs):
-        if not self._can_call(player, method_name):
-            raise Exception("Illegal interface call to %s in %s" % (method_name,
-                self))
         return self.script_call(method_name, [player] + list(args), kwargs)
 
     def command_call(self, method_name, *args, **kwargs):
-        if not self._can_call(self, method_name):
-            raise Exception("Illegal command call to %s in %s" % (method_name,
-                self))
         return self.script_call(method_name, args, kwargs)
 
     def script_call(self, method_name, args, kwargs):
@@ -109,37 +103,37 @@ class Actor(object):
     def _queue_script_method(self, method_name, player, args, kwargs):
         if self.call_gthread:
             self.kill_gthread()
-            self.remove_gthread()
-        self.call_queue.put((method_name, [player] + list(args), kwargs), False)
-        self.start_command_processor()
+        self.method_call = (method_name, [player] + list(args), kwargs)
+        self.call_gthread = gevent.spawn(self.run_method_call)
 
-    def start_command_processor(self):
-        self.call_gthread = gevent.spawn(self.process_command_queue)
-
-    def process_command_queue(self):
+    def run_method_call(self):
         self.running = True
         while self.running:
-            while not self.call_queue.empty():
-                self._process_queue_item()
-            self.sleep(1)
+            self._process_queue_item()
+
+            self.sleep(0)
             if self.script.has_method("kickoff"):
                 self._wrapped_call("kickoff", self)
             else:
                 self.running = False
         self.remove_gthread()
 
+    def _process_queue_item(self):
+        if self.method_call:
+            method, args, kwargs = self.method_call
+            self._wrapped_call(method, *args, **kwargs)
+            self.method_call = None
+
     def kill_gthread(self):
         try:
+            self.running = False
             self.call_gthread.kill()
+            self.remove_gthread()
         except:
             pass
 
     def remove_gthread(self):
         self.call_gthread = None
-
-    def _process_queue_item(self):
-        method, args, kwargs = self.call_queue.get()
-        self._wrapped_call(method, *args, **kwargs)
 
     def _wrapped_call(self, method, *args, **kwargs):
         try:
@@ -205,7 +199,7 @@ class Actor(object):
             actor.set_path(path)
         self.send_actor_update()
         for actor in self.followers:
-            actor.kick()
+            actor._kick()
 
     def set_waypoints(self, point_list):
         self.set_path(path_from_waypoints(point_list, self.speed))
@@ -332,6 +326,6 @@ class Actor(object):
         actor.inventory.add_item(item_type, amount)
 
     def kill(self):
-        self.kill_gthread()
         self.running = False
         self.room.remove_actor(self)
+        self.kill_gthread()

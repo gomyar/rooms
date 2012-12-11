@@ -110,7 +110,7 @@ class Instance:
             if actor.script and actor.script.has_method("player_created"):
                 actor._wrapped_call("player_created", actor)
             self.send_to_all("player_joined_instance", **actor.external())
-            actor.start_command_processor()
+            actor._kick()
 
             log.info("Player joined instance: %s", player_id)
 
@@ -126,6 +126,5 @@ class Instance:
         for room_id in self.area.rooms._room_map.keys():
             room = self.area.rooms[room_id]
             for npc in room.all_npcs():
-                npc.start_command_processor()
+                npc._kick()
         self.area.rebuild_area_map()
-        print "Pointless kickoff call"
