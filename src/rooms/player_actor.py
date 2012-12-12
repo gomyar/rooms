@@ -31,17 +31,11 @@ class PlayerActor(Actor):
     def add_chat_message(self, msg, *args):
         self.add_log(msg, *args)
 
-    def send_update(self, event_id, **kwargs):
-        self.instance.send_update(self.actor_id, event_id, **kwargs)
+    def send_update(self, update_id, **kwargs):
+        self.instance.send_update(self.actor_id, update_id, **kwargs)
 
-    def process_actor_update(self, actor_state):
-        self.send_update("actor_update", **actor_state)
-
-    def actor_exited_room(self, actor, door_id):
-        self.send_update("actor_exited_room", actor_id=actor.actor_id)
-
-    def actor_entered_room(self, actor, door_id):
-        self.send_update("actor_entered_room", **actor.external(self))
+    def _update(self, update_id, **kwargs):
+        self.send_update(update_id, **kwargs)
 
     def actor_heard(self, actor, message):
         msg = "You say :" if self == actor else "%s says :" % (actor.actor_id,)

@@ -52,23 +52,8 @@ class Area(object):
     def load_script(self, classname):
         self.game_script = Script(classname)
 
-    def player_joined_instance(self, player, room_id):
-        if self.player_script:
-            player.load_script(self.player_script)
-        if self.game_script and \
-                self.game_script.has_method("player_joined_instance"):
-            self.game_script.call_method("player_joined_instance", player,
-                room_id)
-        self.actor_joined_instance(player, room_id)
-
     def actor_joined_instance(self, actor, room_id):
         self.rooms[room_id].actor_joined_instance(actor)
-
-    def actor_left_instance(self, actor):
-        self.rooms[actor.room.room_id].actor_left_instance(actor)
-
-    def add_npc(self, npc_actor, room_id):
-        self.actor_joined_instance(npc_actor, room_id)
 
     def put_room(self, room, position):
         self.rooms[room.room_id] = room

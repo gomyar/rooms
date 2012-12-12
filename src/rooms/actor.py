@@ -1,6 +1,7 @@
 import math
 import inspect
 import time
+import uuid
 
 import gevent
 import gevent.queue
@@ -33,8 +34,8 @@ class State(dict):
 
 
 class Actor(object):
-    def __init__(self, actor_id):
-        self.actor_id = actor_id
+    def __init__(self, actor_id=None):
+        self.actor_id = actor_id or str(uuid.uuid1())
         self.actor_type = None
         self.path = Path()
         self.speed = 1.0
@@ -75,7 +76,8 @@ class Actor(object):
             deregister_actor_script(self.script.script_name, self)
 
     def _kick(self):
-        self._queue_script_method("kickoff", self, [], {})
+        if self.script.has_method("kickoff"):
+            self._queue_script_method("kickoff", self, [], {})
 
     def interface_call(self, method_name, player, *args, **kwargs):
         return self.script_call(method_name, [player] + list(args), kwargs)
@@ -141,8 +143,8 @@ class Actor(object):
         except gevent.greenlet.GreenletExit, ex:
             raise
         except Exception, e:
-            log.exception("Exception processing %s(%s, %s)", method, args,
-                kwargs)
+            log.exception("Exception processing %s script %s(%s, %s)",
+                self, method, args, kwargs)
             self.add_error("Error in %s(%s, %s): %s" % (method, args, kwargs,
                 e.args))
 
@@ -169,16 +171,10 @@ class Actor(object):
             methods=self._all_exposed_methods(player) if player else [])
 
     def send_actor_update(self):
-        for actor in self.room.actors.values():
-            actor.process_actor_update(self.external(actor))
+        if self.room:
+            self.room._send_update("actor_update", **self.external())
 
-    def process_actor_update(self, actor_data):
-        pass
-
-    def actor_entered_room(self, actor, door_id):
-        pass
-
-    def actor_exited_room(self, actor, door_id):
+    def _update(self, update_id, **kwargs):
         pass
 
     def x(self):

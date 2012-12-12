@@ -104,12 +104,6 @@ class Room(object):
                 self.map_objects.items()]),
         )
 
-    def add_item(self, item_actor, position=None):
-        position = position or self.center()
-        self.actors[item_actor.actor_id] = item_actor
-        item_actor.room = self
-        item_actor.set_position(position)
-
     def actor_enters(self, actor, door_id):
         self.actors[actor.actor_id] = actor
         actor.room = self
@@ -118,35 +112,36 @@ class Room(object):
         self.area.actor_enters_room(self, actor, door_id)
 
     def actor_joined_instance(self, actor):
-        entry_x = self.position[0] + self.width / 2
-        entry_y = self.position[1] + self.height / 2
-        position = self.geog.get_available_position_closest_to(self,
-            (entry_x, entry_y))
         self.put_actor(actor, position)
 
-    def put_actor(self, actor, position):
+    def put_actor(self, actor, position=None):
+        if not position:
+            position = (
+                self.position[0] + self.width / 2,
+                self.position[1] + self.height / 2
+            )
+        position = self.geog.get_available_position_closest_to(self,
+            position)
+
         self.actors[actor.actor_id] = actor
         actor.room = self
         actor.set_position(position)
-
-    def actor_left_instance(self, actor):
-        self.remove_actor(actor)
+        self._send_update("put_actor", **actor.external())
 
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)
         actor.room = None
-        for a in self.actors.values():
-            a.actor_exited_room(actor, None)
+        self._send_update("remove_actor", actor_id=actor.actor_id)
+
+    def _send_update(self, update_id, **kwargs):
+        for actor in self.actors.values():
+            actor._update(update_id, **kwargs)
 
     def exit_through_door(self, actor, door_id):
         door = self.actors[door_id]
-        self.actors.pop(actor.actor_id)
-        for a in self.actors.values():
-            a.actor_exited_room(actor, door_id)
-        actor.room = None
-        door.exit_room.actor_enters(actor, door.exit_door_id)
-        for a in actor.room.actors.values():
-            a.actor_entered_room(actor, door.exit_door_id)
+        self.remove_actor(actor)
+        door.exit_room.put_actor(actor,
+            door.exit_room.actors[door.exit_door_id].position())
         actor.add_log("You entered %s", door.exit_room.description)
 
     def all_doors(self):
@@ -201,11 +196,6 @@ class Room(object):
             return min(players, key=lambda p: p.distance_to(actor))
         else:
             return None
-
-    def add_npc(self, npc, position):
-        npc.set_position(position)
-        npc.room = self
-        self.actors[npc.actor_id] = npc
 
     def actor_said(self, actor, msg):
         for heard in self.actors.values():

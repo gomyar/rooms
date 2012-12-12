@@ -105,11 +105,12 @@ class Instance:
             self.players[player_id] = dict(connected=False)
 
             actor = PlayerActor(player)
+            if self.area.player_script:
+                actor.load_script(self.area.player_script)
             self.players[player_id]['player'] = actor
-            self.area.player_joined_instance(actor, self.area.entry_point_room_id)
+            self.area.rooms[self.area.entry_point_room_id].put_actor(actor)
             if actor.script and actor.script.has_method("player_created"):
                 actor._wrapped_call("player_created", actor)
-            self.send_to_all("player_joined_instance", **actor.external())
             actor._kick()
 
             log.info("Player joined instance: %s", player_id)
@@ -117,8 +118,7 @@ class Instance:
     def deregister(self, player_id):
         self.disconnect(player_id)
         actor = self.players[player_id]['player']
-        self.area.actor_left_instance(actor)
-        self.send_to_all("actor_left_instance", actor_id=player_id)
+        self.area.rooms[actor.room.room_id].remove_actor(actor)
         self.players.pop(player_id)
         log.info("Player left instance: %s", player_id)
 
