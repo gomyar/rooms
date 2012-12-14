@@ -168,7 +168,16 @@ class Actor(object):
             model_type=self.model_type, state=self.state,
             docked=bool(self.docked_with),
             docked_with=self.docked_with.actor_id if self.docked_with else None,
+            docked_actors=self._docked_external(),
             methods=self._all_exposed_methods(player) if player else [])
+
+    def _docked_external(self):
+        external = dict()
+        for a in self.docked:
+            if a.actor_type not in external:
+                external[a.actor_type] = []
+            external[a.actor_type].append(a.external())
+        return external
 
     def send_actor_update(self):
         if self.room:
