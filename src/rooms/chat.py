@@ -82,7 +82,7 @@ class Call(object):
         return query_text == self.query_text
 
     def respond(self):
-        self.actor.script_call(self.script_function, [], {})
+        self.actor.script_call(self.script_function)
         self.parent.current_choice = self
         return ""
 

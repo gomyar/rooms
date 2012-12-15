@@ -28,6 +28,11 @@ class RoomObject(object):
     def __repr__(self):
         return "<RoomObject %s, %s, %s, %s>" % self.wall_positions()
 
+    def external(self):
+        return dict(width=self.width, height=self.height,
+            position=self.position, object_type=self.object_type,
+            facing=self.facing)
+
     def at(self, x, y):
         return self.position[0] <= x and self.position[0] + self.width >= x \
             and self.position[1] <= y and self.position[1] + self.height >= y

@@ -46,7 +46,7 @@ class Actor(object):
         self.model_type = ""
         self.call_gthread = None
         self.call_queue = gevent.queue.Queue()
-        self.docked = set()
+        self.docked = dict()
         self.docked_with = None
         self.inventory = Inventory()
         self.followers = set()
@@ -58,7 +58,7 @@ class Actor(object):
             rhs.actor_id == self.actor_id
 
     def __repr__(self):
-        return "<Actor %s>" % (self.actor_id,)
+        return "<Actor %s:%s>" % (self.actor_type, self.actor_id)
 
     def visible_actors(self):
         return [a for a in self.room.actors.values() if a != self and a.visible]
@@ -81,15 +81,16 @@ class Actor(object):
 
     def _kick(self):
         if self.script.has_method("kickoff"):
+            log.debug("Calling kickoff on %s", self)
             self._queue_script_method("kickoff", self, [], {})
 
     def interface_call(self, method_name, player, *args, **kwargs):
-        return self.script_call(method_name, [player] + list(args), kwargs)
+        return self.script_call(method_name, *([player] + list(args)), **kwargs)
 
     def command_call(self, method_name, *args, **kwargs):
-        return self.script_call(method_name, args, kwargs)
+        return self.script_call(method_name, *args, **kwargs)
 
-    def script_call(self, method_name, args, kwargs):
+    def script_call(self, method_name, *args, **kwargs):
         if self._is_request(method_name):
             return self._call_script_method(method_name, self, args,
                 kwargs)
@@ -118,7 +119,7 @@ class Actor(object):
             self._process_queue_item()
 
             self.sleep(0)
-            if self.script.has_method("kickoff"):
+            if self.script.has_method("kickoff") and self.running:
                 self._wrapped_call("kickoff", self)
             else:
                 self.running = False
@@ -179,7 +180,7 @@ class Actor(object):
 
     def _docked_internal(self):
         internal = dict()
-        for a in self.docked:
+        for a in self.docked.values():
             if a.actor_type not in internal:
                 internal[a.actor_type] = []
             internal[a.actor_type].append(a.internal())
@@ -206,7 +207,7 @@ class Actor(object):
 
     def set_path(self, path):
         self.path = path
-        for actor in self.docked:
+        for actor in self.docked.values():
             actor.set_path(path)
         self.send_actor_update()
         for actor in self.followers:
@@ -266,7 +267,7 @@ class Actor(object):
         self.sleep(end_time - get_now())
 
     def intercept(self, actor, irange=0.0):
-        log.debug("Intercepting %s at range %s", actor, irange)
+        log.debug("%s Intercepting %s at range %s", self, actor, irange)
         path = self.room.geog.intercept(actor.path, self.position(),
             self.speed, irange)
         # times are set here
@@ -323,13 +324,13 @@ class Actor(object):
         self.room.exit_through_door(self, door_id)
 
     def dock(self, actor):
-        self.docked.add(actor)
+        self.docked[actor.actor_id] = actor
         actor.docked_with = self
         actor.set_path(self.path)
         actor.set_visible(False)
 
     def undock(self, actor):
-        self.docked.remove(actor)
+        self.docked[actor.actor_id] = actor
         actor.docked_with = None
         actor.send_actor_update()
         actor.set_visible(True)
