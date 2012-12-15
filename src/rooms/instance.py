@@ -61,8 +61,9 @@ class Instance:
         return {
             "command": "sync",
             "kwargs" : {
+                "player_actor" : player.internal(),
                 "actors" : map(lambda a: a.external(player),
-                    player.room.actors.values()),
+                    player.visible_actors()),
                 "now" : time.time(),
                 "map" : "map1.json",
                 "player_log" : player.log,

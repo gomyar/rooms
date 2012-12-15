@@ -59,6 +59,9 @@ class Actor(object):
     def __repr__(self):
         return "<Actor %s>" % (self.actor_id,)
 
+    def visible_actors(self):
+        return [a for a in self.room.actors.values() if a != self]
+
     @property
     def instance(self):
         return self.room.instance
@@ -161,23 +164,28 @@ class Actor(object):
     def actor_heard(self, actor, msg):
         pass
 
-    def external(self, player=None):
+    def internal(self):
         return dict(actor_id=self.actor_id,
             actor_type=self.actor_type or type(self).__name__,
             path=self.path.path, speed=self.speed,
             model_type=self.model_type, state=self.state,
             docked=bool(self.docked_with),
             docked_with=self.docked_with.actor_id if self.docked_with else None,
-            docked_actors=self._docked_external(),
-            methods=self._all_exposed_methods(player) if player else [])
+            docked_actors=self._docked_internal())
 
-    def _docked_external(self):
-        external = dict()
+    def external(self, player=None):
+        return dict(actor_id=self.actor_id,
+            actor_type=self.actor_type or type(self).__name__,
+            path=self.path.path, speed=self.speed,
+            model_type=self.model_type)
+
+    def _docked_internal(self):
+        internal = dict()
         for a in self.docked:
-            if a.actor_type not in external:
-                external[a.actor_type] = []
-            external[a.actor_type].append(a.external())
-        return external
+            if a.actor_type not in internal:
+                internal[a.actor_type] = []
+            internal[a.actor_type].append(a.internal())
+        return internal
 
     def send_actor_update(self):
         if self.room:
