@@ -112,3 +112,10 @@ class Node(object):
 
     def _random_uid(self):
         return str(uuid.uuid1())
+
+    def find(self, player_id):
+        for instance in self.instances.values():
+            for room in instance.area.rooms._rooms.values():
+                if player_id in room.actors:
+                    return room.actors[player_id]
+        return None

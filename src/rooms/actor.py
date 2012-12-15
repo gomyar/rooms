@@ -51,6 +51,7 @@ class Actor(object):
         self.inventory = Inventory()
         self.followers = set()
         self.following = None
+        self.visible = True
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -60,7 +61,7 @@ class Actor(object):
         return "<Actor %s>" % (self.actor_id,)
 
     def visible_actors(self):
-        return [a for a in self.room.actors.values() if a != self]
+        return [a for a in self.room.actors.values() if a != self and a.visible]
 
     @property
     def instance(self):
@@ -164,7 +165,7 @@ class Actor(object):
     def actor_heard(self, actor, msg):
         pass
 
-    def internal(self):
+    def external(self):
         return dict(actor_id=self.actor_id,
             actor_type=self.actor_type or type(self).__name__,
             path=self.path.path, speed=self.speed,
@@ -173,11 +174,8 @@ class Actor(object):
             docked_with=self.docked_with.actor_id if self.docked_with else None,
             docked_actors=self._docked_internal())
 
-    def external(self, player=None):
-        return dict(actor_id=self.actor_id,
-            actor_type=self.actor_type or type(self).__name__,
-            path=self.path.path, speed=self.speed,
-            model_type=self.model_type)
+    def internal(self):
+        return self.external()
 
     def _docked_internal(self):
         internal = dict()
@@ -188,7 +186,7 @@ class Actor(object):
         return internal
 
     def send_actor_update(self):
-        if self.room:
+        if self.visible:
             self.room._send_update("actor_update", **self.external())
 
     def _update(self, update_id, **kwargs):
@@ -328,11 +326,13 @@ class Actor(object):
         self.docked.add(actor)
         actor.docked_with = self
         actor.set_path(self.path)
+        actor.set_visible(False)
 
     def undock(self, actor):
         self.docked.remove(actor)
         actor.docked_with = None
         actor.send_actor_update()
+        actor.set_visible(True)
 
     def exchange(self, actor, item_type, amount=1):
         self.inventory.remove_item(item_type, amount)
@@ -342,3 +342,11 @@ class Actor(object):
         self.running = False
         self.room.remove_actor(self)
         self.kill_gthread()
+
+    def set_visible(self, visible):
+        self.visible = visible
+        if visible:
+            self.room._send_update("put_actor", **self.external())
+        else:
+            self.room._send_update("remove_actor", actor_id=self.actor_id)
+        self.send_actor_update()
