@@ -42,6 +42,5 @@ class PlayerActor(Actor):
         self.send_update("actor_heard", actor_id=actor.actor_id, msg=message)
 
     def kill(self):
-        self.kill_gthread()
-        self.remove_gthread()
         self.instance.kill_player(self)
+        super(PlayerActor, self).kill()

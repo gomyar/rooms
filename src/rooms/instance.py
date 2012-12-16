@@ -119,7 +119,6 @@ class Instance:
     def deregister(self, player_id):
         self.disconnect(player_id)
         actor = self.players[player_id]['player']
-        self.area.rooms[actor.room.room_id].remove_actor(actor)
         self.players.pop(player_id)
         log.info("Player left instance: %s", player_id)
 

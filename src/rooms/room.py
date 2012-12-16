@@ -1,4 +1,7 @@
 
+from collections import defaultdict
+
+from rooms.null import Null
 from player_actor import PlayerActor
 from npc_actor import NpcActor
 from door import Door
@@ -61,7 +64,7 @@ class Room(object):
         self.width = width
         self.height = height
         self.map_objects = dict()
-        self.actors = dict()
+        self.actors = defaultdict(Null)
         self.area = None
         self.geog = _default_geog
 
@@ -130,7 +133,7 @@ class Room(object):
 
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)
-        actor.room = None
+        actor.room = Null()
         self._send_update("remove_actor", actor_id=actor.actor_id)
 
     def _send_update(self, update_id, **kwargs):

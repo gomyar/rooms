@@ -6,6 +6,7 @@ import uuid
 import gevent
 import gevent.queue
 
+from rooms.null import Null
 from rooms.waypoint import Path
 from rooms.waypoint import distance
 from rooms.waypoint import get_now
@@ -39,7 +40,7 @@ class Actor(object):
         self.actor_type = None
         self.path = Path()
         self.speed = 1.0
-        self.room = None
+        self.room = Null()
         self.log = []
         self.script = None
         self.state = State()
@@ -332,7 +333,6 @@ class Actor(object):
     def undock(self, actor):
         self.docked[actor.actor_id] = actor
         actor.docked_with = None
-        actor.send_actor_update()
         actor.set_visible(True)
 
     def exchange(self, actor, item_type, amount=1):
@@ -340,8 +340,15 @@ class Actor(object):
         actor.inventory.add_item(item_type, amount)
 
     def kill(self):
+        log.debug("Killing %s", self)
         self.running = False
-        self.room.remove_actor(self)
+        if self.room:
+            self.room.remove_actor(self)
+        for actor in self.docked.values():
+            actor.kill()
+        if self.docked_with:
+            self.docked_with.docked.pop(self.actor_id)
+            self.docked_with = None
         self.kill_gthread()
 
     def set_visible(self, visible):
