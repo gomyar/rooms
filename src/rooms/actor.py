@@ -81,7 +81,7 @@ class Actor(object):
             deregister_actor_script(self.script.script_name, self)
 
     def kick(self):
-        if self.script.has_method("kickoff"):
+        if self.script and self.script.has_method("kickoff"):
             log.debug("Calling kick on %s", self)
             self._queue_script_method("kickoff", self, [], {})
 

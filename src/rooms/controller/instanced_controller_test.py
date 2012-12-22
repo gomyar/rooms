@@ -13,6 +13,7 @@ from rooms.instance import Instance
 from rooms.room import Room
 from rooms.player import Player
 from rooms.game import Game
+from rooms.instance import Instance
 
 from mock import Mock
 
@@ -48,11 +49,13 @@ class ControllerTest(unittest.TestCase):
         self.area = Area()
         self.area.area_name = "area1"
         self.area.entry_point_room_id = "room1"
+        self.instance = Instance()
+        self.area.instance = self.instance
         self.game.area_map['area1'] = 'area1'
         self.game.start_areas.append('area1')
         self.game._id = "game1"
         self.room = Room("room1")
-        self.area.rooms._rooms['room1'] = self.room
+        self.area.put_room(self.room, (0, 0))
         self.node.container = MockContainer(self.game, self.area,
             {'room1': self.room})
 
@@ -94,7 +97,7 @@ class ControllerTest(unittest.TestCase):
         self.client.manage_area("game1", "area1")
         self.client.player_joins("area1", "player1")
 
-        self.assertEquals("player1", self.node.instances['instance1'].players['player1']['player'].actor_id)
+        self.assertEquals("mock", self.node.instances['instance1'].players['mock']['player'].actor_id)
 
     def testMasterCreateInstance(self):
         self.node._random_uid = lambda: "instance1"

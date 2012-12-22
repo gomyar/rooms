@@ -7,6 +7,7 @@ from room import Room
 from player import Player
 from room_container import RoomContainer
 from player_actor import PlayerActor
+from instance import Instance
 
 
 class MockRoomContainer(RoomContainer):
@@ -21,7 +22,7 @@ class AreaTest(unittest.TestCase):
     def setUp(self):
         self.area = Area()
         self.instance = Instance()
-        self.area.instance = instance
+        self.area.instance = self.instance
         self.area.rooms = MockRoomContainer(self.area)
         self.room1 = Room("room1", 10, 10)
         self.area.put_room(self.room1, (0, 0))
@@ -75,14 +76,3 @@ class AreaTest(unittest.TestCase):
 
         self.assertEquals((25, 10), door1.position())
         self.assertEquals((25, 20), door2.position())
-
-    def testPlayerJoinsArea(self):
-        self.player = Player("player1")
-        self.area.player_script = "rooms.area_test"
-
-        self.player = PlayerActor(self.player)
-
-        self.area.actor_joined_instance(self.player, "room1")
-
-        self.assertEquals("rooms.area_test",
-            self.player.script.script_module.__name__)
