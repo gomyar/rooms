@@ -20,6 +20,8 @@ class MockRoomContainer(RoomContainer):
 class AreaTest(unittest.TestCase):
     def setUp(self):
         self.area = Area()
+        self.instance = Instance()
+        self.area.instance = instance
         self.area.rooms = MockRoomContainer(self.area)
         self.room1 = Room("room1", 10, 10)
         self.area.put_room(self.room1, (0, 0))
