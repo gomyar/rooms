@@ -35,7 +35,7 @@ class ScriptTest(unittest.TestCase):
         self.actor.command_call('first_command', "value1")
 
         self.assertEquals(("first_command", [self.actor, "value1"], {}),
-            self.actor.call_queue.queue[0])
+            self.actor.method_call)
 
         self.actor._process_queue_item()
 

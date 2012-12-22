@@ -112,7 +112,7 @@ class Instance:
             self.area.rooms[self.area.entry_point_room_id].put_actor(actor)
             if actor.script and actor.script.has_method("player_created"):
                 actor._wrapped_call("player_created", actor)
-            actor._kick()
+            actor.kick()
 
             log.info("Player joined instance: %s", player_id)
 
@@ -126,5 +126,5 @@ class Instance:
         for room_id in self.area.rooms._room_map.keys():
             room = self.area.rooms[room_id]
             for npc in room.all_npcs():
-                npc._kick()
+                npc.kick()
         self.area.rebuild_area_map()

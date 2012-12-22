@@ -84,7 +84,11 @@ class MongoContainer(object):
         self._save_object(game, self.db().games)
 
     def load_game(self, game_id):
-        return self._load_object(game_id, self.db().games)
+        try:
+            return self._load_object(game_id, self.db().games)
+        except:
+            log.exception("Cannot load game %s", game_id)
+            raise
 
     def get_or_create_player(self, player_id):
         player = self.db().players.find_one({'username': player_id})

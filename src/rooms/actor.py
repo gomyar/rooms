@@ -46,13 +46,13 @@ class Actor(object):
         self.state = State()
         self.model_type = ""
         self.call_gthread = None
-        self.call_queue = gevent.queue.Queue()
         self.docked = dict()
         self.docked_with = None
         self.inventory = Inventory()
         self.followers = set()
         self.following = None
         self.visible = True
+        self.method_call = None
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -80,9 +80,9 @@ class Actor(object):
         if self.script and deregister_actor_script:
             deregister_actor_script(self.script.script_name, self)
 
-    def _kick(self):
+    def kick(self):
         if self.script.has_method("kickoff"):
-            log.debug("Calling kickoff on %s", self)
+            log.debug("Calling kick on %s", self)
             self._queue_script_method("kickoff", self, [], {})
 
     def interface_call(self, method_name, player, *args, **kwargs):
@@ -109,12 +109,14 @@ class Actor(object):
             raise
 
     def _queue_script_method(self, method_name, player, args, kwargs):
+        log.debug("queuing %s", method_name)
         if self.call_gthread:
             self.kill_gthread()
         self.method_call = (method_name, [player] + list(args), kwargs)
         self.call_gthread = gevent.spawn(self.run_method_call)
 
     def run_method_call(self):
+        log.debug("run_method_call")
         self.running = True
         while self.running:
             self._process_queue_item()
@@ -127,6 +129,7 @@ class Actor(object):
         self.remove_gthread()
 
     def _process_queue_item(self):
+        log.debug("Calling %s", self.method_call)
         if self.method_call:
             method, args, kwargs = self.method_call
             self._wrapped_call(method, *args, **kwargs)
@@ -212,7 +215,7 @@ class Actor(object):
             actor.set_path(path)
         self.send_actor_update()
         for actor in self.followers:
-            actor._kick()
+            actor.kick()
 
     def set_waypoints(self, point_list):
         self.set_path(path_from_waypoints(point_list, self.speed))
@@ -331,7 +334,7 @@ class Actor(object):
         actor.set_visible(False)
 
     def undock(self, actor):
-        self.docked[actor.actor_id] = actor
+        self.docked.pop(actor.actor_id)
         actor.docked_with = None
         actor.set_visible(True)
 

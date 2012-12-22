@@ -4,6 +4,7 @@ import unittest
 from area import Area
 from door import Door
 from room import Room
+from player import Player
 from room_container import RoomContainer
 from player_actor import PlayerActor
 
@@ -74,11 +75,12 @@ class AreaTest(unittest.TestCase):
         self.assertEquals((25, 20), door2.position())
 
     def testPlayerJoinsArea(self):
+        self.player = Player("player1")
         self.area.player_script = "rooms.area_test"
 
-        self.player = PlayerActor("player1")
+        self.player = PlayerActor(self.player)
 
-        self.area.player_joined_instance(self.player, "room1")
+        self.area.actor_joined_instance(self.player, "room1")
 
         self.assertEquals("rooms.area_test",
             self.player.script.script_module.__name__)

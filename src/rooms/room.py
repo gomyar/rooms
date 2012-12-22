@@ -12,6 +12,7 @@ from actor import FACING_NORTH
 from actor import FACING_SOUTH
 from actor import FACING_EAST
 from actor import FACING_WEST
+from actor import Actor
 
 import logging
 log = logging.getLogger("rooms")
@@ -115,7 +116,7 @@ class Room(object):
         self.area.actor_enters_room(self, actor, door_id)
 
     def actor_joined_instance(self, actor):
-        self.put_actor(actor, position)
+        self.put_actor(actor)
 
     def put_actor(self, actor, position=None):
         if not position:
@@ -203,3 +204,11 @@ class Room(object):
     def actor_said(self, actor, msg):
         for heard in self.actors.values():
             heard.actor_heard(actor, msg)
+
+    def create_actor(self, actor_type, actor_script, actor_id=None):
+        actor = Actor(actor_id)
+        actor.actor_type = actor_type
+        actor.model_type = actor_type
+        actor.load_script(actor_script)
+        actor.kick()
+        return actor

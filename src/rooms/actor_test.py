@@ -73,7 +73,7 @@ class ActorTest(unittest.TestCase):
         self.actor.command_call("scripty_cally", "1", "2")
 
         self.assertEquals(("scripty_cally", [self.actor, '1', '2'], {}),
-            self.actor.call_queue.queue[0])
+            self.actor.method_call)
 
     def testDel(self):
         self.actor.load_script("rooms.actor_test")
@@ -98,7 +98,7 @@ class ActorTest(unittest.TestCase):
         self.actor.undock(self.actor2)
 
         self.assertEquals(None, self.actor2.docked_with)
-        self.assertEquals(set(), self.actor.docked)
+        self.assertEquals({}, self.actor.docked)
 
     def testIntercept(self):
         self.actor2 = Actor("actor2")
@@ -114,7 +114,7 @@ class ActorTest(unittest.TestCase):
 
         self.actor.intercept(self.actor2)
 
-        self.assertEquals([(40, 25), (50.0, 20.830078125), (50, 50)],
+        self.assertEquals([(40, 25), (50.0, 49.999961853027344), (50.0, 50.0)],
             self.actor.path.basic_path_list())
 
     def testInterceptExample(self):

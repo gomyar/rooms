@@ -9,15 +9,15 @@ from actor import Actor
 class RoomTest(unittest.TestCase):
     def setUp(self):
         self.area = Area()
-        room1 = Room("room1", 100, 100)
-        self.area.put_room(room1, (0, 0))
-        room2 = Room("room2", 100, 100)
-        self.area.put_room(room2, (100, 0))
-        room3 = Room("room3", 100, 100)
-        self.area.put_room(room3, (0, 100))
+        self.room1 = Room("room1", 100, 100)
+        self.area.put_room(self.room1, (0, 0))
+        self.room2 = Room("room2", 100, 100)
+        self.area.put_room(self.room2, (100, 0))
+        self.room3 = Room("room3", 100, 100)
+        self.area.put_room(self.room3, (0, 100))
 
-        self.area.create_door(room1, room2, (0, 0), (10, 0))
-        self.area.create_door(room1, room3, (10, 0), (0, 0))
+        self.area.create_door(self.room1, self.room2, (0, 0), (10, 0))
+        self.area.create_door(self.room1, self.room3, (10, 0), (0, 0))
 
         self.area.rebuild_area_map()
 
@@ -38,3 +38,11 @@ class RoomTest(unittest.TestCase):
 
         self.assertEquals([(10, 0), (10, 0)], self.actor.path.basic_path_list())
         self.assertEquals(70.71, round(self._mock_slept_for, 2))
+
+    def testCreateActor(self):
+        actor = self.room1.create_actor("itemactor", "rooms.actor_test",
+            actor_id="mock1")
+        self.assertEquals("mock1", actor.actor_id)
+        self.assertEquals("itemactor", actor.actor_type)
+        self.assertEquals("itemactor", actor.model_type)
+        self.assertEquals("rooms.actor_test", actor.script.script_name)
