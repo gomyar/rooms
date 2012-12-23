@@ -5,6 +5,7 @@ from rooms.chat import chat as create_chat
 from rooms.chat import choice as c
 from rooms.chat import call
 from rooms.chat import load_chat as load_chat_script
+from rooms.waypoint import get_now
 
 from scriptutils import create_npc
 from scriptutils import create_item

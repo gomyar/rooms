@@ -205,11 +205,12 @@ class Room(object):
         for heard in self.actors.values():
             heard.actor_heard(actor, msg)
 
-    def create_actor(self, actor_type, actor_script, actor_id=None):
+    def create_actor(self, actor_type, actor_script, position=None,
+            actor_id=None):
         actor = Actor(actor_id)
         actor.actor_type = actor_type
         actor.model_type = actor_type
         actor.load_script(actor_script)
         actor.kick()
-        self.put_actor(actor)
+        self.put_actor(actor, position)
         return actor
