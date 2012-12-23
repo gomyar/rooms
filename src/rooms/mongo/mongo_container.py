@@ -9,6 +9,9 @@ from rooms.room_container import RoomContainer
 from rooms.container import Container
 from rooms.player import Player
 
+import logging
+log = logging.getLogger("rooms.mongocontainer")
+
 
 class MongoRoomContainer(RoomContainer):
     def __init__(self, area, mongo_container):

@@ -211,4 +211,5 @@ class Room(object):
         actor.model_type = actor_type
         actor.load_script(actor_script)
         actor.kick()
+        self.put_actor(actor)
         return actor
