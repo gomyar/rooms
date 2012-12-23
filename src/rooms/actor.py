@@ -27,11 +27,16 @@ FACING_WEST = "west"
 
 
 class State(dict):
+    def __init__(self, actor):
+        super(State, self).__init__()
+        self.__dict__['actor'] = actor
+
     def __getattr__(self, name):
         return self.get(name, None)
 
     def __setattr__(self, name, value):
         self[name] = value
+        self.actor.send_actor_update()
 
 
 class Actor(object):
@@ -43,7 +48,7 @@ class Actor(object):
         self.room = Null()
         self.log = []
         self.script = None
-        self.state = State()
+        self.state = State(self)
         self.model_type = ""
         self.call_gthread = None
         self.docked = dict()

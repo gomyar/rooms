@@ -51,7 +51,7 @@ class Container(object):
             Door=self.create_door,
             Inventory=self.create_inventory,
             Path=self.create_path,
-            State=self.create_state,
+#            State=self.create_state,
             Player=self.create_player,
             Game=self.create_game,
         )
@@ -104,7 +104,7 @@ class Container(object):
         actor.path = data['path']
         actor.speed = data['speed']
         actor.room_id = data['room_id']
-        actor.state = self.create_state(data['state'])
+        actor.state = self.create_state(data['state'], actor)
         actor.log = data['log']
         actor.model_type = data['model_type']
         actor.inventory = data['inventory']
@@ -121,8 +121,8 @@ class Container(object):
     def serialize_state(self, obj):
         return obj.copy()
 
-    def create_state(self, data):
-        state = State()
+    def create_state(self, data, actor):
+        state = State(actor)
         for key, value in data.items():
             state[key] = value
         return state
