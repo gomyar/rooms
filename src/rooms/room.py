@@ -130,7 +130,8 @@ class Room(object):
         self.actors[actor.actor_id] = actor
         actor.room = self
         actor.set_position(position)
-        self._send_update("put_actor", **actor.external())
+        if actor.visible:
+            self._send_put_actor(actor)
 
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)
@@ -140,6 +141,20 @@ class Room(object):
     def _send_update(self, update_id, **kwargs):
         for actor in self.actors.values():
             actor._update(update_id, **kwargs)
+
+    def _send_actor_update(self, actor):
+        for target in self.actors.values():
+            if target == actor:
+                target._update("actor_update", **actor.internal())
+            else:
+                target._update("actor_update", **actor.external())
+
+    def _send_put_actor(self, actor):
+        for target in self.actors.values():
+            if target == actor:
+                target._update("put_actor", **actor.internal())
+            else:
+                target._update("put_actor", **actor.external())
 
     def exit_through_door(self, actor, door_id):
         door = self.actors[door_id]

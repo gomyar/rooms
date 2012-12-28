@@ -16,6 +16,7 @@ from rooms.script_wrapper import Script
 from rooms.script_wrapper import register_actor_script
 from rooms.script_wrapper import deregister_actor_script
 from rooms.inventory import Inventory
+from rooms.alliance import Alliance
 
 import logging
 log = logging.getLogger("rooms.node")
@@ -53,11 +54,14 @@ class Actor(object):
         self.call_gthread = None
         self.docked = dict()
         self.docked_with = None
-        self.inventory = Inventory()
         self.followers = set()
         self.following = None
         self.visible = True
         self.method_call = None
+
+        self.health = 1.0
+        self.inventory = Inventory()
+        self.alliance = Alliance()
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -178,14 +182,16 @@ class Actor(object):
     def external(self):
         return dict(actor_id=self.actor_id,
             actor_type=self.actor_type or type(self).__name__,
-            path=self.path.path, speed=self.speed,
-            model_type=self.model_type, state=self.state,
-            docked=bool(self.docked_with),
-            docked_with=self.docked_with.actor_id if self.docked_with else None,
-            docked_actors=self._docked_internal())
+            path=self.path.path, speed=self.speed, health=self.health,
+            model_type=self.model_type)
 
     def internal(self):
-        return self.external()
+        external = self.external()
+        external.update(dict(state=self.state,
+            docked=bool(self.docked_with),
+            docked_with=self.docked_with.actor_id if self.docked_with else None,
+            docked_actors=self._docked_internal()))
+        return external
 
     def _docked_internal(self):
         internal = dict()
@@ -197,7 +203,7 @@ class Actor(object):
 
     def send_actor_update(self):
         if self.visible:
-            self.room._send_update("actor_update", **self.external())
+            self.room._send_actor_update(self)
 
     def _update(self, update_id, **kwargs):
         pass
