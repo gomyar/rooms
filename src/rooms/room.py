@@ -191,18 +191,6 @@ class Room(object):
     def wall_positions(self):
         return (self.left(), self.top(), self.right(), self.bottom())
 
-    def all_characters(self):
-        return [actor for actor in self.actors.values() if \
-            issubclass(actor.__class__, CharacterActor)]
-
-    def all_players(self):
-        return [actor for actor in self.actors.values() if \
-            issubclass(actor.__class__, PlayerActor)]
-
-    def all_npcs(self):
-        return [actor for actor in self.actors.values() if \
-            issubclass(actor.__class__, NpcActor)]
-
     def has_door_to(self, room_id):
         for key, value in self.actors.items():
             if key.startswith("door_%s" % (room_id,)):

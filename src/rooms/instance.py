@@ -125,6 +125,6 @@ class Instance:
     def kickoff(self):
         for room_id in self.area.rooms._room_map.keys():
             room = self.area.rooms[room_id]
-            for npc in room.all_npcs():
-                npc.kick()
+            for actor in room.actors.values():
+                actor.kick()
         self.area.rebuild_area_map()
