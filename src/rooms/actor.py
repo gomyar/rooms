@@ -378,7 +378,7 @@ class Actor(object):
     def set_visible(self, visible):
         self.visible = visible
         if visible:
-            self.room._send_update("put_actor", **self.external())
+            self.room._send_put_actor(self)
         else:
             self.room._send_update("remove_actor", actor_id=self.actor_id)
         self.send_actor_update()
