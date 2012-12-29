@@ -56,6 +56,7 @@ class Actor(object):
         self.docked_with = None
         self.followers = set()
         self.following = None
+        self.following_range = 0.0
         self.visible = True
         self.method_call = None
 
@@ -236,7 +237,8 @@ class Actor(object):
             actor.set_path(path)
         self.send_actor_update()
         for actor in self.followers:
-            actor.kick()
+            if actor != self:
+                actor._set_intercept_path(self, actor.following_range)
 
     def set_waypoints(self, point_list):
         self.set_path(path_from_waypoints(point_list, self.speed))
@@ -289,20 +291,26 @@ class Actor(object):
         if self.following:
             self.following.followers.remove(self)
             self.following = None
+            self.following_range = 0.0
         self.sleep(end_time - get_now())
 
     def intercept(self, actor, irange=0.0):
         log.debug("%s Intercepting %s at range %s", self, actor, irange)
-        path = self.room.geog.intercept(actor.path, self.position(),
-            self.speed, irange)
-        # times are set here
-        self.set_path(path)
+        path = self._set_intercept_path(actor, irange)
         if path:
             actor.followers.add(self)
             self.following = actor
+            self.following_range = irange
             end_time = self.path.path[1][2]
             log.info("Sleeping for %s", end_time - get_now())
             self.sleep(end_time - get_now())
+
+    def _set_intercept_path(self, actor, irange):
+        path = self.room.geog.intercept(actor.path, self.position(),
+            self.speed, irange)
+        self.path = path
+        self.send_actor_update()
+        return path
 
     def animate(self, animate_id, duration=1, **kwargs):
         log.info("Animating %s(%s)", animate_id, kwargs)
