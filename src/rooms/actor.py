@@ -16,7 +16,7 @@ from rooms.script_wrapper import Script
 from rooms.script_wrapper import register_actor_script
 from rooms.script_wrapper import deregister_actor_script
 from rooms.inventory import Inventory
-from rooms.alliance import Alliance
+from rooms.circles import Circles
 
 import logging
 log = logging.getLogger("rooms.node")
@@ -61,7 +61,7 @@ class Actor(object):
 
         self.health = 1.0
         self.inventory = Inventory()
-        self.alliance = Alliance()
+        self.circles = Circles()
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -183,14 +183,15 @@ class Actor(object):
         return dict(actor_id=self.actor_id,
             actor_type=self.actor_type or type(self).__name__,
             path=self.path.path, speed=self.speed, health=self.health,
-            model_type=self.model_type)
+            model_type=self.model_type, circle_id=self.circles.circle_id)
 
     def internal(self):
         external = self.external()
         external.update(dict(state=self.state,
             docked=bool(self.docked_with),
             docked_with=self.docked_with.actor_id if self.docked_with else None,
-            docked_actors=self._docked_internal()))
+            docked_actors=self._docked_internal(),
+            circles=self.circles.circles))
         return external
 
     def _docked_internal(self):

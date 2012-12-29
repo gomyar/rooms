@@ -16,6 +16,7 @@ from rooms.inventory import Inventory
 from rooms.inventory import Item
 from rooms.player import Player
 from rooms.game import Game
+from rooms.circles import Circles
 
 
 class Container(object):
@@ -37,6 +38,7 @@ class Container(object):
             State=self.serialize_state,
             Player=self.serialize_player,
             Game=self.serialize_game,
+            Circles=self.serialize_circles,
         )
 
         self.object_factories = dict(
@@ -54,6 +56,7 @@ class Container(object):
 #            State=self.create_state,
             Player=self.create_player,
             Game=self.create_game,
+            Circles=self.create_circles,
         )
 
     # Room
@@ -96,6 +99,7 @@ class Container(object):
             model_type = obj.model_type,
             inventory = obj.inventory,
             script_class = obj.script.script_name if obj.script else None,
+            circles = obj.circles,
         )
 
     def _deserialize_actor(self, actor, data):
@@ -110,12 +114,22 @@ class Container(object):
         actor.inventory = data['inventory']
         if data['script_class']:
             actor.load_script(data['script_class'])
+        actor.circles = data['circles']
 
     def create_actor(self, data):
         actor = Actor(data['actor_id'])
         self._deserialize_actor(actor, data)
         return actor
 
+    # Circles
+    def serialize_circles(self, obj):
+        return dict(circle_id=obj.circle_id, circles=obj.circles)
+
+    def create_circles(self, data):
+        circle = Circles()
+        circle.circle_id = data['circle_id']
+        circle.circles = data['circles']
+        return circle
 
     # State
     def serialize_state(self, obj):
