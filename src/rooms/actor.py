@@ -59,7 +59,7 @@ class Actor(object):
         self.visible = True
         self.method_call = None
 
-        self.health = 1.0
+        self._health = 1.0
         self.inventory = Inventory()
         self.circles = Circles()
 
@@ -69,6 +69,15 @@ class Actor(object):
 
     def __repr__(self):
         return "<Actor %s:%s>" % (self.actor_type, self.actor_id)
+
+    @property
+    def health(self):
+        return self._health
+
+    @health.setter
+    def health(self, health):
+        self._health = health
+        self.send_actor_update()
 
     def visible_actors(self):
         return [a for a in self.room.actors.values() if a != self and a.visible]

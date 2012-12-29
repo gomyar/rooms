@@ -100,6 +100,7 @@ class Container(object):
             inventory = obj.inventory,
             script_class = obj.script.script_name if obj.script else None,
             circles = obj.circles,
+            health = obj._health,
         )
 
     def _deserialize_actor(self, actor, data):
@@ -115,6 +116,7 @@ class Container(object):
         if data['script_class']:
             actor.load_script(data['script_class'])
         actor.circles = data['circles']
+        actor._health = data['health']
 
     def create_actor(self, data):
         actor = Actor(data['actor_id'])
