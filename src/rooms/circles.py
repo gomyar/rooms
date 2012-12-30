@@ -5,13 +5,13 @@ class Circles(object):
         self.circles = dict()
 
     def is_allied(self, actor):
-        return self.circle_id == actor.circle.circle_id
+        return self.circle_id == actor.circles.circle_id
 
     def is_friendly(self, actor):
-        return self.circle.get(actor, 0) > 0
+        return self.circles.get(actor, 0) > 0
 
     def is_neutral(self, actor):
-        return self.circle.get(actor, 0) == 0
+        return self.circles.get(actor, 0) == 0
 
     def is_enemy(self, actor):
         return self.circles.get(actor, 0) < 0
