@@ -168,6 +168,7 @@ class Actor(object):
     def _wrapped_call(self, method, *args, **kwargs):
         try:
             self.script.call_method(method, *args, **kwargs)
+            self.running = False
         except gevent.greenlet.GreenletExit, ex:
             raise
         except Exception, e:
