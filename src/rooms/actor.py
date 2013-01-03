@@ -233,13 +233,16 @@ class Actor(object):
         self.path.set_position(position)
 
     def set_path(self, path):
-        self.path = path
-        for actor in self.docked.values():
-            actor.set_path(path)
+        self._set_path(path)
         self.send_actor_update()
         for actor in self.followers:
             if actor != self:
                 actor._set_intercept_path(self, actor.following_range)
+
+    def _set_path(self, path):
+        self.path = path
+        for actor in self.docked.values():
+            actor.set_path(path)
 
     def set_waypoints(self, point_list):
         self.set_path(path_from_waypoints(point_list, self.speed))
@@ -306,10 +309,14 @@ class Actor(object):
             log.info("Sleeping for %s", end_time - get_now())
             self.sleep(end_time - get_now())
 
+    def wait_for_path(self):
+        while self.path and self.path.path_end_time() > get_now():
+            self.sleep(self.path.path_end_time() - get_now())
+
     def _set_intercept_path(self, actor, irange):
         path = self.room.geog.intercept(actor.path, self.position(),
             self.speed, irange)
-        self.path = path
+        self._set_path(path)
         self.send_actor_update()
         return path
 
@@ -352,6 +359,7 @@ class Actor(object):
         self.sleep(seconds)
 
     def sleep(self, seconds):
+        log.debug("%s sleeping for %s", self, seconds)
         gevent.sleep(max(0, seconds))
 
     def exit(self, door_id):
@@ -374,6 +382,8 @@ class Actor(object):
 
     def kill(self):
         log.debug("Killing %s", self)
+        if self.script and self.script.has_method("killed"):
+            self._wrapped_call("killed", self)
         self.running = False
         if self.room:
             self.room.remove_actor(self)
