@@ -95,9 +95,9 @@ class MasterController(object):
         return dict(instance_id=instance['uid'], host=node.external_host,
             port=node.external_port)
 
-    def create_account(self, player_id, actor_type, start_area_name):
-        log.debug("Creating account %s, %s, %s", player_id, actor_type,
-            start_area_name)
+    def create_account(self, player_id, start_area_name, **state):
+        log.debug("Creating account %s, %s, %s", player_id,
+            start_area_name, state)
         player = self._get_or_create_player(player_id=player_id)
         if player.area_id:
             if player.area_id in self.instances:
@@ -108,6 +108,7 @@ class MasterController(object):
                 node.client.manage_area(game_id=self._game_id(),
                     area_id=start_area_name)
         else:
+            player.state.update(state)
             node = self._least_busy_node()
             node.client.manage_area(game_id=self._game_id(),
                 area_id=start_area_name)

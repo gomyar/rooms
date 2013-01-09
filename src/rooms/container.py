@@ -288,6 +288,7 @@ class Container(object):
             area_id = obj.area_id,
             actor_id = obj.actor_id,
             room_id = obj.room_id,
+            state = obj.state,
         )
         return data
 
@@ -297,6 +298,7 @@ class Container(object):
         player.area_id = data['area_id']
         player.actor_id = data['actor_id']
         player.room_id = data['room_id']
+        player.state = data['state']
         return player
 
     # Game
