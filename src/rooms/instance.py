@@ -100,6 +100,7 @@ class Instance:
         self.deregister(actor_id)
 
     def register(self, player):
+        log.debug("Player registered: %s", player)
         player_id = player.username
         player.actor_id = player.username
         if player_id not in self.players:
@@ -115,6 +116,8 @@ class Instance:
             actor.kick()
 
             log.info("Player joined instance: %s", player_id)
+        else:
+            log.debug("Player already registered")
 
     def deregister(self, player_id):
         self.disconnect(player_id)

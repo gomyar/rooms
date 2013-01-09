@@ -97,6 +97,7 @@ class Node(object):
         return uid
 
     def player_joins(self, area_id, player):
+        log.debug("Player joins: %s at %s", player, area_id)
         instance = self._lookup_instance(area_id)
         instance.register(player)
 
