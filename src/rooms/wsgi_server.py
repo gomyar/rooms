@@ -82,6 +82,7 @@ class WSGIServer(object):
             instance_uid = ws.receive()
             instance = self.node.instances[instance_uid]
             log.debug("registering %s at %s", player_id, instance_uid)
+            log.debug("%s", player_id in instance.players)
             queue = instance.connect(player_id)
             log.debug("Connected to queue")
             self.node.sessions[cookies['sessionid']] = player_id

@@ -120,6 +120,7 @@ class Instance:
             log.debug("Player already registered")
 
     def deregister(self, player_id):
+        log.debug("Deregistering %s", player_id)
         self.disconnect(player_id)
         actor = self.players[player_id]['player']
         self.players.pop(player_id)
