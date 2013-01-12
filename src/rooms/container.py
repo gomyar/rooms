@@ -210,7 +210,6 @@ class Container(object):
             area_name = obj.area_name,
             owner_id = obj.owner_id,
             room_map = obj.rooms._room_map,
-            entry_point_room_id = obj.entry_point_room_id,
             entry_point_door_id = obj.entry_point_door_id,
             game_script_class = obj.game_script.script_name if obj.game_script else None,
             player_script_class = obj.player_script,
@@ -221,7 +220,6 @@ class Container(object):
         area.area_name = data['area_name']
         area._room_map = data['room_map']
         area.owner_id = data['owner_id']
-        area.entry_point_room_id = data['entry_point_room_id']
         area.entry_point_door_id = data['entry_point_door_id']
         # Second pass for top-level objects
         if data['game_script_class']:

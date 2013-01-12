@@ -95,7 +95,8 @@ class MasterController(object):
         return dict(instance_id=instance['uid'], host=node.external_host,
             port=node.external_port)
 
-    def create_account(self, player_id, start_area_name, **state):
+    def create_account(self, player_id, start_area_name, start_room_id,
+            **state):
         log.debug("Creating account %s, %s, %s", player_id,
             start_area_name, state)
         player = self._get_or_create_player(player_id=player_id)
@@ -113,6 +114,7 @@ class MasterController(object):
             node.client.manage_area(game_id=self._game_id(),
                 area_id=start_area_name)
             player.area_id = start_area_name
+            player.room_id = start_room_id
             self.container.save_player(player)
 
     def game_info(self, game_id):

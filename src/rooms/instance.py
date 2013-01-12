@@ -110,7 +110,7 @@ class Instance:
             if self.area.player_script:
                 actor.load_script(self.area.player_script)
             self.players[player_id]['player'] = actor
-            self.area.rooms[self.area.entry_point_room_id].put_actor(actor)
+            self.area.rooms[player.room_id].put_actor(actor)
             if actor.script and actor.script.has_method("player_created"):
                 actor._wrapped_call("player_created", actor)
             actor.kick()
