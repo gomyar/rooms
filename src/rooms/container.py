@@ -87,6 +87,8 @@ class Container(object):
         room.description = data['description']
         for actor in room.actors.values():
             actor.room = room
+            if actor._docked_with_id:
+                room.actors[actor._docked_with_id].dock(actor)
         room.geog = self.geography
         return room
 
@@ -107,6 +109,7 @@ class Container(object):
             circles = obj.circles,
             health = obj._health,
             visible = obj.visible,
+            _docked_with_id = obj.docked_with.actor_id if obj.docked_with else None,
         )
 
     def _deserialize_actor(self, actor, data):
@@ -124,6 +127,7 @@ class Container(object):
         actor.circles = data['circles']
         actor._health = data['health']
         actor.visible = data['visible']
+        actor._docked_with_id = data['_docked_with_id']
 
     def create_actor(self, data):
         actor = Actor(data['actor_id'])

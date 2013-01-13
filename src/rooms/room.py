@@ -214,6 +214,8 @@ class Room(object):
         actor.actor_type = actor_type
         actor.model_type = actor_type
         actor.load_script(actor_script)
+        if actor.script and actor.script.has_method("created"):
+            actor._wrapped_call("created", actor)
         actor.kick()
         self.put_actor(actor, position)
         return actor
