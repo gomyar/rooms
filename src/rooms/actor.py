@@ -88,6 +88,10 @@ class Actor(object):
         return self.room.instance
 
     @property
+    def game(self):
+        return self.instance.node.game
+
+    @property
     def area(self):
         return self.room.area
 

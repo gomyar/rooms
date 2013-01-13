@@ -51,6 +51,7 @@ class Node(object):
         self.admin_controller = None
         self.container = None
         self.client = None
+        self.game = None
 
         self.instances = dict()
         self.sessions = dict()
@@ -87,8 +88,8 @@ class Node(object):
         self.server.serve_forever()
 
     def manage_area(self, game_id, area_id):
-        game = self.container.load_game(game_id)
-        area_uid = game.area_map[area_id]
+        self.game = self.container.load_game(game_id)
+        area_uid = self.game.area_map[area_id]
         uid = self._random_uid()
         instance = Instance(uid, self)
         instance.load_area(area_uid)

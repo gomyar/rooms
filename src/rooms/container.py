@@ -17,6 +17,7 @@ from rooms.inventory import Item
 from rooms.player import Player
 from rooms.game import Game
 from rooms.circles import Circles
+from rooms.item_registry import ItemRegistry
 
 
 class Container(object):
@@ -39,6 +40,8 @@ class Container(object):
             Player=self.serialize_player,
             Game=self.serialize_game,
             Circles=self.serialize_circles,
+            ItemRegistry=self.serialize_item_registry,
+            Item=self.serialize_item,
         )
 
         self.object_factories = dict(
@@ -57,6 +60,8 @@ class Container(object):
             Player=self.create_player,
             Game=self.create_game,
             Circles=self.create_circles,
+            ItemRegistry=self.create_item_registry,
+            Item=self.create_item,
         )
 
     # Room
@@ -278,6 +283,27 @@ class Container(object):
             items[key] = value
         return item
 
+    # Item Registry
+    def serialize_item_registry(self, obj):
+        return obj._items
+
+    def create_item_registry(self, data):
+        registry = ItemRegistry()
+        registry._items = dict([(key, self.create_item(value)) for \
+            (key, value) in data.items()])
+        return registry
+
+    # Item from Registry
+    def serialize_item(self, obj):
+        item = dict(item_type=obj.item_type)
+        item.update(obj.copy())
+        return item
+
+    def create_item(self, data):
+        item = Item(item_type=data['item_type'])
+        item.update(data)
+        return item
+
     # Player
     def serialize_player(self, obj):
         data = dict(
@@ -306,6 +332,7 @@ class Container(object):
             owner_id = obj.owner_id,
             start_areas = obj.start_areas,
             open_game = obj.open_game,
+            item_registry = obj.item_registry,
         )
         return data
 
@@ -315,6 +342,7 @@ class Container(object):
         game.owner_id = data['owner_id']
         game.start_areas = data['start_areas']
         game.open_game = data['open_game']
+        game.item_registry = data['item_registry']
         return game
 
 

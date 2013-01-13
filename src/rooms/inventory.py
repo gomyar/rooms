@@ -21,12 +21,17 @@ def lookup(item_type):
 
 
 class Item(dict):
-    def __init__(self, item_type):
+    def __init__(self, item_type, category="", **state):
         super(Item, self).__init__()
         self.item_type = item_type
+        self.category = category
+        self.update(state)
 
     def __getattr__(self, name):
-        return self.__getitem__(name)
+        if name in self:
+            return self[name]
+        else:
+            return None
 
     def __setattr__(self, name, value):
         self.__setitem__(name, value)
