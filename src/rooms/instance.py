@@ -45,10 +45,6 @@ class Instance:
             self.player_queues[player_id].put(dict(command=command,
                 kwargs=kwargs))
 
-    def send_to_all(self, command, **kwargs):
-        for queue in self.player_queues.values():
-            queue.put(dict(command=command, kwargs=kwargs))
-
     def send_to_players(self, player_ids, command, **kwargs):
         for player_id in player_ids:
             self.send_update(player_id, command, **kwargs)

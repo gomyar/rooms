@@ -186,7 +186,7 @@ class Actor(object):
         self.log.append(log_entry)
         if len(self.log) > 50:
             self.log.pop(0)
-        self.instance.send_to_all("log", **log_entry)
+        self.room._send_update("log", **log_entry)
 
     def say(self, msg):
         self.room.actor_said(self, msg)
@@ -334,7 +334,7 @@ class Actor(object):
         kwargs['start_time'] = time.time()
         kwargs['end_time'] = time.time() + duration
         kwargs['animate_id'] = animate_id
-        self.instance.send_to_all("animation", **kwargs)
+        self.room._send_update("animation", **kwargs)
         self.sleep(duration)
 
     def move_towards(self, actor):
