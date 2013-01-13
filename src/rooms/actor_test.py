@@ -108,7 +108,8 @@ class ActorTest(unittest.TestCase):
 
         self.actor.intercept(self.actor2)
 
-        self.assertEquals([(10, 10), (50, 50)], self.actor.path.basic_path_list())
+        self.assertEquals([(10, 10), (50, 50)],
+            self.actor.path.basic_path_list())
 
         self.actor.set_position((40, 25))
 
@@ -121,10 +122,10 @@ class ActorTest(unittest.TestCase):
         self.room.width = 600
         self.room.height = 600
         self.actor.set_position((500, 500))
+
         self.actor2 = Actor("actor2")
         self.actor2.speed = 70
         self.room.put_actor(self.actor2, (100, 100))
-
         self.actor2.move_to(200, 200)
 
         self.assertEquals([(100, 100), (200, 200)],
@@ -132,4 +133,40 @@ class ActorTest(unittest.TestCase):
 
         self.actor.intercept(self.actor2)
 
-        self.assertEquals([(500, 500, 0.0), (200, 200, 424.26406871192853)], self.actor.path.path)
+        self.assertEquals([(500, 500, 0.0), (200, 200, 424.26406871192853)],
+            self.actor.path.path)
+
+    def testInterceptFollowsCurrentTargetNotLast(self):
+        self.room.width = 600
+        self.room.height = 600
+        self.actor.set_position((500, 500))
+
+        self.actor2 = Actor("actor2")
+        self.actor2.speed = 70
+        self.room.put_actor(self.actor2, (100, 100))
+        self.actor2.move_to(200, 200)
+        self.actor2.sleep = lambda s: None
+
+        self.actor3 = Actor("actor3")
+        self.actor3.speed = 70
+        self.room.put_actor(self.actor3, (100, 100))
+        self.actor3.move_to(300, 300)
+        self.actor3.sleep = lambda s: None
+
+        self.assertEquals([(100, 100), (200, 200)],
+            self.actor2.path.basic_path_list())
+
+        self.actor.intercept(self.actor2)
+
+        self.assertEquals([(500, 500, 0.0), (200, 200, 424.26406871192853)],
+            self.actor.path.path)
+
+        self.actor.move_to(300, 300)
+
+        self.assertEquals([(500, 500, 0.0), (300, 300, 282.842712474619)],
+            self.actor.path.path)
+
+        self.actor2.intercept(self.actor3)
+
+        self.assertEquals([(500, 500, 0.0), (300, 300, 282.842712474619)],
+            self.actor.path.path)

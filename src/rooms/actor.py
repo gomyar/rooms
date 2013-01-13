@@ -300,6 +300,10 @@ class Actor(object):
 
     def intercept(self, actor, irange=0.0):
         log.debug("%s Intercepting %s at range %s", self, actor, irange)
+        if self.following:
+            self.following.followers.remove(self)
+            self.following = None
+            self.following_range = 0.0
         path = self._set_intercept_path(actor, irange)
         if path:
             actor.followers.add(self)
