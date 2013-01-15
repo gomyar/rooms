@@ -166,6 +166,10 @@ class Room(object):
     def all_doors(self):
         return filter(lambda r: type(r) is Door, self.actors.values())
 
+    def actors_by_type(self, actor_type):
+        return [actor for actor in self.actors.values() if \
+            actor.actor_type == actor_type]
+
     def left(self):
         return self.position[0]
 
