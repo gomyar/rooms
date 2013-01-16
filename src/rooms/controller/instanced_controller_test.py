@@ -24,6 +24,7 @@ class MockContainer(object):
         self.area = area
         self.rooms = rooms
         self.player = Player("mock")
+        self.player.room_id = "room1"
 
     def load_area(self, area_id):
         return self.area

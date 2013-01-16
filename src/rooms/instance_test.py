@@ -27,6 +27,7 @@ class InstanceTest(unittest.TestCase):
         self.area.instance = self.instance
         self.instance.area = self.area
         self.player = Player("player1")
+        self.player.room_id = "1"
         self.now = 0.0
         time.time = mock.Mock(return_value=self.now)
 
