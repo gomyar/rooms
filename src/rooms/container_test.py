@@ -26,13 +26,24 @@ class MockRoomContainer(RoomContainer):
 
 class MockDbaseConnection(object):
     def __init__(self):
-        self.dbases = defaultdict(lambda: dict())
+        self.dbases = defaultdict(lambda: defaultdict(lambda: None))
 
     def load_object(self, object_id, dbase_name):
         return self.dbases[dbase_name][object_id]
 
-    def save_object(self, object_id, saved_obj, dbase_name):
+    def save_object(self, saved_obj, dbase_name, object_id):
         self.dbases[dbase_name][object_id] = saved_obj
+
+    def filter(self, dbase_name, search_fields):
+        objs = dict()
+        for key, obj in self.dbases[dbase_name].items():
+            if set(search_fields.items()).issubset(\
+                set(self.dbases[dbase_name].items())):
+                objs[key] = obj
+        return objs
+
+    def object_exists(self, dbase_name, search_fields):
+        return bool(self.filter(dbase_name, search_fields))
 
 
 class ContainerTest(unittest.TestCase):
@@ -52,7 +63,8 @@ class ContainerTest(unittest.TestCase):
     def testSaveRoom(self):
         self.container.save_room(self.room1)
 
-        self.assertTrue('lobby' in self.dbase.dbases['rooms'])
+        # Why None? because mongo creates the id
+        self.assertEquals('lobby', self.dbase.dbases['rooms'][None]['description'])
 
     def testSaveRoomWithPlayer(self):
         self.player = Player("bob")
@@ -61,8 +73,14 @@ class ContainerTest(unittest.TestCase):
 
         self.container.save_room(self.room1)
 
-        self.assertTrue('lobby' in self.dbase.dbases['rooms'])
-        self.assertTrue('bob' in self.dbase.dbases['players'])
+        self.assertEquals('lobby', self.dbase.dbases['rooms'][None]['description'])
+        self.assertEquals('bob', self.dbase.dbases['players'][None]['username'])
+
+    def testGetOrCreatePlayer(self):
+        self.assertEquals(None, self.container.load_player("nonexistant"))
+
+        player = self.container.get_or_create_player("newplayer")
+        self.assertEquals("newplayer", player.username)
 
     def testJsonPickle(self):
         pickled = self.container._serialize_area(self.area)

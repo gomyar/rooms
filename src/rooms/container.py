@@ -69,35 +69,55 @@ class Container(object):
         return self._load_object(game_id, "games")
 
     def save_game(self, game):
-        self._save_object(game.game_id, game, "games")
+        self._save_object(game, "games")
 
     def load_area(self, area_id):
         return self._load_object(area_id, "areas")
 
     def save_area(self, area):
-        self._save_object(area.area_id, area, "areas")
+        self._save_object(area, "areas")
 
     def load_room(self, room_id):
         room = self._load_object(room_id, "rooms")
 
     def save_room(self, room):
-        self._save_object(room.room_id, room, "rooms")
+        self._save_object(room, "rooms")
         for player_actor in room.player_actors():
             self.save_player(player_actor.player)
 
     def save_player(self, player):
-        self._save_object(player.username, player, "players")
+        self._save_object(player, "players")
 
     def load_player(self, player_id):
         return self._load_object(player_id, "players")
 
-    def _save_object(self, object_id, saved_object, dbase_name):
+    def get_or_create_player(self, player_id):
+        if self.dbase.object_exists("players", {'username': player_id}):
+            return self.load_player(player_id)
+        else:
+            player = Player(player_id)
+            self.save_player(player)
+            return player
+
+    def _save_object(self, saved_object, dbase_name):
+        if getattr(saved_object, '_id', None):
+            db_id = saved_object._id
+            saved_object._id = None
+        else:
+            db_id = None
         object_dict = self._obj_to_dict(saved_object)
-        self.dbase.save_object(object_id, object_dict, dbase_name)
+        db_id = self.dbase.save_object(object_dict, dbase_name, db_id)
+        saved_object._id = db_id
 
     def _load_object(self, object_id, dbase_name):
-        obj = self.dbase.load_object(object_id, dbase_name)
-        return self._dict_to_obj(obj)
+        enc_dict = self.dbase.load_object(object_id, dbase_name)
+        if enc_dict:
+            db_id = enc_dict.pop('_id')
+            obj = self._dict_to_obj(enc_dict)
+            obj._id = db_id
+            return oobj
+        else:
+            return None
 
     def _obj_to_dict(self, pyobject):
         encoded_str = simplejson.dumps(pyobject, default=self._encode,

@@ -36,6 +36,23 @@ class MongoContainer(object):
     def db(self):
         return getattr(self._mongo_connection, self.dbname)
 
+    def _collection(self, name):
+        return getattr(self.db(), name)
+
+    def load_object(self, object_id, dbase_name):
+        obj_dict = self._collection(dbase_name).find_one(
+            bson.ObjectId(object_id))
+        obj_dict['_id'] = str(obj_dict['_id'])
+        return obj_dict
+
+    def save_object(self, encoded_dict, dbase_name, object_id):
+        encoded_dict['_id'] = object_id
+        obj_id = collection.save(encoded_dict)
+        return str(obj_id)
+
+    def object_exists(self, dbase_name, search_fields):
+        return self._collection(dbase_name).find_one(search_fields)
+
     def _save_object(self, obj, collection):
         encoded_str = simplejson.dumps(obj, default=self.container._encode,
             indent="    ")
@@ -56,49 +73,3 @@ class MongoContainer(object):
 
     def init_mongo(self):
         self._mongo_connection = Connection(self.host, self.port)
-
-    def load_area(self, area_id):
-        area = self._load_object(area_id, self.db().areas)
-        area.rooms = MongoRoomContainer(area, self)
-        area.rooms._room_map = area._room_map
-        return area
-
-    def save_area(self, area):
-        self._save_object(area, self.db().areas)
-        for room in area.rooms._rooms.values():
-            area.rooms.save_room(room)
-
-    def list_all_areas_for(owner_id):
-        areas = self.db().areas.find({ 'owner_id': owner_id },
-            fields=['area_name'])
-        return map(lambda a: dict(area_name=a['area_name'],
-            area_id=str(a['_id'])), areas)
-
-    def save_game(self, game):
-        self._save_object(game, self.db().games)
-
-    def load_game(self, game_id):
-        try:
-            return self._load_object(game_id, self.db().games)
-        except:
-            log.exception("Cannot load game %s", game_id)
-            raise
-
-    def get_or_create_player(self, player_id):
-        player = self.db().players.find_one({'username': player_id})
-        if not player:
-            player = Player(player_id)
-            self._save_object(player, self.db().players)
-        else:
-            player = self._load_object(str(player['_id']), self.db().players)
-        return player
-
-    def save_player(self, player):
-        self._save_object(player, self.db().players)
-
-    def save_room(self, room):
-        self._save_object(room, self.db().rooms)
-        return str(room._id)
-
-    def load_room(self, room_id):
-        return self._load_object(room_id, self.db().rooms)

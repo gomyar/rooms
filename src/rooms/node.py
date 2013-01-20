@@ -61,9 +61,9 @@ class Node(object):
 
         sys.path.append(config.get("scripts", "root"))
 
-        self.container = MongoContainer(dbhost, dbport)
-        self.container.init_mongo()
-        self.container.container = Container(
+        mongo_container = MongoContainer(dbhost, dbport)
+        mongo_container.init_mongo()
+        self.container = Container(mongo_container,
             geogs[config.get("game", "geography")](),
         )
 
