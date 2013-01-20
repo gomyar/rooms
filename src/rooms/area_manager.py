@@ -15,14 +15,14 @@ class AreaManager(object):
     def run_save(self):
         for room in self.area.rooms._rooms.values():
             self.save_room(room)
-            if not room.all_players():
+            if not room.player_actors():
                 self.icicle_room(room)
 
     def save_room(self, room):
         log.debug("Saving room: %s", room)
         self.container.save_room(room)
 
-        players = room.all_players()
+        players = room.player_actors()
         if players:
             for player in players:
                 self.container.save_player(player.player)

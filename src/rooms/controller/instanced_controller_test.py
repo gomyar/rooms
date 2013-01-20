@@ -14,6 +14,7 @@ from rooms.room import Room
 from rooms.player import Player
 from rooms.game import Game
 from rooms.instance import Instance
+from rooms.player_actor import PlayerActor
 
 from mock import Mock
 
@@ -98,7 +99,8 @@ class ControllerTest(unittest.TestCase):
         self.client.manage_area("game1", "area1")
         self.client.player_joins("area1", "player1")
 
-        self.assertEquals("mock", self.node.instances['instance1'].players['mock']['player'].actor_id)
+        self.assertEquals(PlayerActor,
+            type(self.node.instances['instance1'].players['mock']['player']))
 
     def testMasterCreateInstance(self):
         self.node._random_uid = lambda: "instance1"

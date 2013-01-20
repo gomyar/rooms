@@ -21,51 +21,95 @@ from rooms.item_registry import ItemRegistry
 
 
 class Container(object):
-    def __init__(self, geography):
+    def __init__(self, dbase, geography):
+        self.dbase = dbase
         self.geography = geography
 
         self.object_serializers = dict(
-            Actor=self.serialize_actor,
-            PlayerActor=self.serialize_player_actor,
-            PlayerKnowledge=self.serialize_player_knowledge,
-            NpcActor=self.serialize_npc_actor,
-            ItemActor=self.serialize_item_actor,
-            Room=self.serialize_room,
-            RoomObject=self.serialize_roomobject,
-            Area=self.serialize_area,
-            Door=self.serialize_door,
-            Inventory=self.serialize_inventory,
-            Path=self.serialize_path,
-            State=self.serialize_state,
-            Player=self.serialize_player,
-            Game=self.serialize_game,
-            Circles=self.serialize_circles,
-            ItemRegistry=self.serialize_item_registry,
-            Item=self.serialize_item,
+            Actor=self._serialize_actor,
+            PlayerActor=self._serialize_player_actor,
+            PlayerKnowledge=self._serialize_player_knowledge,
+            NpcActor=self._serialize_npc_actor,
+            ItemActor=self._serialize_item_actor,
+            Room=self._serialize_room,
+            RoomObject=self._serialize_roomobject,
+            Area=self._serialize_area,
+            Door=self._serialize_door,
+            Inventory=self._serialize_inventory,
+            Path=self._serialize_path,
+            State=self._serialize_state,
+            Player=self._serialize_player,
+            Game=self._serialize_game,
+            Circles=self._serialize_circles,
+            ItemRegistry=self._serialize_item_registry,
+            Item=self._serialize_item,
         )
 
         self.object_factories = dict(
-            Actor=self.create_actor,
-            PlayerActor=self.create_player_actor,
-            PlayerKnowledge=self.create_player_knowledge,
-            NpcActor=self.create_npc_actor,
-            ItemActor=self.create_item_actor,
-            Room=self.create_room,
-            RoomObject=self.create_roomobject,
-            Area=self.create_area,
-            Door=self.create_door,
-            Inventory=self.create_inventory,
-            Path=self.create_path,
-#            State=self.create_state,
-            Player=self.create_player,
-            Game=self.create_game,
-            Circles=self.create_circles,
-            ItemRegistry=self.create_item_registry,
-            Item=self.create_item,
+            Actor=self._create_actor,
+            PlayerActor=self._create_player_actor,
+            PlayerKnowledge=self._create_player_knowledge,
+            NpcActor=self._create_npc_actor,
+            ItemActor=self._create_item_actor,
+            Room=self._create_room,
+            RoomObject=self._create_roomobject,
+            Area=self._create_area,
+            Door=self._create_door,
+            Inventory=self._create_inventory,
+            Path=self._create_path,
+#            State=self._create_state,
+            Player=self._create_player,
+            Game=self._create_game,
+            Circles=self._create_circles,
+            ItemRegistry=self._create_item_registry,
+            Item=self._create_item,
         )
 
+    def load_game(self, game_id):
+        return self._load_object(game_id, "games")
+
+    def save_game(self, game):
+        self._save_object(game.game_id, game, "games")
+
+    def load_area(self, area_id):
+        return self._load_object(area_id, "areas")
+
+    def save_area(self, area):
+        self._save_object(area.area_id, area, "areas")
+
+    def load_room(self, room_id):
+        room = self._load_object(room_id, "rooms")
+
+    def save_room(self, room):
+        self._save_object(room.room_id, room, "rooms")
+        for player_actor in room.player_actors():
+            self.save_player(player_actor.player)
+
+    def save_player(self, player):
+        self._save_object(player.username, player, "players")
+
+    def load_player(self, player_id):
+        return self._load_object(player_id, "players")
+
+    def _save_object(self, object_id, saved_object, dbase_name):
+        object_dict = self._obj_to_dict(saved_object)
+        self.dbase.save_object(object_id, object_dict, dbase_name)
+
+    def _load_object(self, object_id, dbase_name):
+        obj = self.dbase.load_object(object_id, dbase_name)
+        return self._dict_to_obj(obj)
+
+    def _obj_to_dict(self, pyobject):
+        encoded_str = simplejson.dumps(pyobject, default=self._encode,
+            indent="    ")
+        return simplejson.loads(encoded_str)
+
+    def _dict_to_obj(self, obj_dict):
+        obj_str = simplejson.dumps(obj_dict)
+        return simplejson.loads(obj_str, object_hook=self._decode)
+
     # Room
-    def serialize_room(self, obj):
+    def _serialize_room(self, obj):
         return dict(
             room_id = obj.room_id,
             position = obj.position,
@@ -76,7 +120,7 @@ class Container(object):
             description = obj.description,
         )
 
-    def create_room(self, data):
+    def _create_room(self, data):
         room = Room()
         room.room_id = data['room_id']
         room.position = data['position']
@@ -94,14 +138,14 @@ class Container(object):
 
 
     # Actor
-    def serialize_actor(self, obj):
+    def _serialize_actor(self, obj):
         return dict(
             actor_id = obj.actor_id,
             actor_type = obj.actor_type,
             path = obj.path,
             speed = obj.speed,
             room_id = obj.room.room_id,
-            state = self.serialize_state(obj.state),
+            state = self._serialize_state(obj.state),
             log = obj.log,
             model_type = obj.model_type,
             inventory = obj.inventory,
@@ -129,77 +173,77 @@ class Container(object):
         actor.visible = data['visible']
         actor._docked_with_id = data['_docked_with_id']
 
-    def create_actor(self, data):
+    def _create_actor(self, data):
         actor = Actor(data['actor_id'])
         self._deserialize_actor(actor, data)
         return actor
 
     # Circles
-    def serialize_circles(self, obj):
+    def _serialize_circles(self, obj):
         return dict(circle_id=obj.circle_id, circles=obj.circles)
 
-    def create_circles(self, data):
+    def _create_circles(self, data):
         circle = Circles()
         circle.circle_id = data['circle_id']
         circle.circles = data['circles']
         return circle
 
     # State
-    def serialize_state(self, obj):
+    def _serialize_state(self, obj):
         return obj.copy()
 
-    def create_state(self, data, actor):
+    def _create_state(self, data, actor):
         state = State(actor)
         for key, value in data.items():
             state[key] = value
         return state
 
     # Path
-    def serialize_path(self, obj):
+    def _serialize_path(self, obj):
         return dict(
             path=obj.path,
         )
 
-    def create_path(self, data):
+    def _create_path(self, data):
         path = Path()
         path.path = data['path']
         return path
 
     # PlayerActor
-    def serialize_player_actor(self, obj):
-        data = self.serialize_actor(obj)
-        data['data'] = obj.data
+    def _serialize_player_actor(self, obj):
+        data = self._serialize_actor(obj)
+        data['_player_id'] = obj.player.username
         return data
 
-    def create_player_actor(self, data):
-        player_actor = PlayerActor(data['actor_id'])
-        player_actor.data = data['data']
+    def _create_player_actor(self, data):
+        player = self.load_player(data['_player_id'])
+        player_actor = PlayerActor(player, actor_id=data['actor_id'])
         self._deserialize_actor(player_actor, data)
         return player_actor
 
     # NPCActor
-    def serialize_npc_actor(self, obj):
-        data = self.serialize_actor(obj)
+    def _serialize_npc_actor(self, obj):
+        data = self._serialize_actor(obj)
         return data
 
-    def create_npc_actor(self, data):
+    def _create_npc_actor(self, data):
         npc_actor = NpcActor(data['actor_id'])
         self._deserialize_actor(npc_actor, data)
         return npc_actor
 
     # itemActor
-    def serialize_item_actor(self, obj):
-        data = self.serialize_actor(obj)
+    def _serialize_item_actor(self, obj):
+        data = self._serialize_actor(obj)
         data['item_type'] = obj.item_type
         return data
 
-    def create_item_actor(self, data):
+    def _create_item_actor(self, data):
         item_actor = ItemActor(data['actor_id'], data['item_type'])
         self._deserialize_actor(item_actor, data)
         return item_actor
 
     # RoomObject
-    def serialize_roomobject(self, obj):
+    def _serialize_roomobject(self, obj):
         return dict(
             width=obj.width,
             height=obj.height,
@@ -208,13 +252,13 @@ class Container(object):
             facing=obj.facing,
         )
 
-    def create_roomobject(self, data):
+    def _create_roomobject(self, data):
         room_object = RoomObject(data['object_type'], data['width'],
             data['height'], data['position'], data['facing'])
         return room_object
 
     # Area
-    def serialize_area(self, obj):
+    def _serialize_area(self, obj):
         return dict(
             area_name = obj.area_name,
             owner_id = obj.owner_id,
@@ -224,7 +268,7 @@ class Container(object):
             player_script_class = obj.player_script,
         )
 
-    def create_area(self, data):
+    def _create_area(self, data):
         area = Area()
         area.area_name = data['area_name']
         area._room_map = data['room_map']
@@ -237,8 +281,8 @@ class Container(object):
         return area
 
     # Door
-    def serialize_door(self, obj):
-        data = self.serialize_actor(obj)
+    def _serialize_door(self, obj):
+        data = self._serialize_actor(obj)
         data.update(dict(
             exit_room_id=obj.exit_room_id,
             exit_door_id=obj.exit_door_id,
@@ -247,7 +291,7 @@ class Container(object):
         ))
         return data
 
-    def create_door(self, data):
+    def _create_door(self, data):
         door = Door()
         self._deserialize_actor(door, data)
         door.exit_room_id = data['exit_room_id']
@@ -257,59 +301,59 @@ class Container(object):
         return door
 
     # Inventory
-    def serialize_inventory(self, obj):
+    def _serialize_inventory(self, obj):
         data = dict(
             items=obj._items)
         return data
 
-    def create_inventory(self, data):
+    def _create_inventory(self, data):
         inv = Inventory()
         inv._items = data['items']
         return inv
 
     # Inventory item
-    def serialize_inventory_item(self, obj):
+    def _serialize_inventory_item(self, obj):
         return obj.copy()
 
-    def create_inventory_item(self, data):
+    def _create_inventory_item(self, data):
         item = Item()
         for key, value in data:
             items[key] = value
         return item
 
     # Player Knownledge
-    def serialize_player_knowledge(self, obj):
+    def _serialize_player_knowledge(self, obj):
         return obj.copy()
 
-    def create_player_knowledge(self, data):
+    def _create_player_knowledge(self, data):
         item = Item()
         for key, value in data:
             items[key] = value
         return item
 
     # Item Registry
-    def serialize_item_registry(self, obj):
+    def _serialize_item_registry(self, obj):
         return obj._items
 
-    def create_item_registry(self, data):
+    def _create_item_registry(self, data):
         registry = ItemRegistry()
         registry._items = dict([(key, self.create_item(value)) for \
             (key, value) in data.items()])
         return registry
 
     # Item from Registry
-    def serialize_item(self, obj):
+    def _serialize_item(self, obj):
         item = dict(item_type=obj.item_type)
         item.update(obj.copy())
         return item
 
-    def create_item(self, data):
+    def _create_item(self, data):
         item = Item(item_type=data['item_type'])
         item.update(data)
         return item
 
     # Player
-    def serialize_player(self, obj):
+    def _serialize_player(self, obj):
         data = dict(
             username = obj.username,
             game_id = obj.game_id,
@@ -320,7 +364,7 @@ class Container(object):
         )
         return data
 
-    def create_player(self, data):
+    def _create_player(self, data):
         player = Player(data['username'])
         player.game_id = data['game_id']
         player.area_id = data['area_id']
@@ -330,7 +374,7 @@ class Container(object):
         return player
 
     # Game
-    def serialize_game(self, obj):
+    def _serialize_game(self, obj):
         data = dict(
             area_map = obj.area_map,
             owner_id = obj.owner_id,
@@ -340,7 +384,7 @@ class Container(object):
         )
         return data
 
-    def create_game(self, data):
+    def _create_game(self, data):
         game = Game()
         game.area_map = data['area_map']
         game.owner_id = data['owner_id']

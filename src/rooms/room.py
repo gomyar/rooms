@@ -218,6 +218,6 @@ class Room(object):
         actor.kick()
         return actor
 
-    def all_players(self):
+    def player_actors(self):
         return [actor for actor in self.actors.values() if \
             issubclass(actor.__class__, PlayerActor)]

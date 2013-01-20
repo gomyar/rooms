@@ -27,9 +27,9 @@ class Instance:
     def sleep(self):
         print "Sleeping instance"
 
-    def call(self, command, player_id, actor_id, kwargs):
+    def call(self, command, player_id, kwargs):
         player = self.players[player_id]['player']
-        actor = player.room.actors[actor_id]
+        actor = player.room.actors[player.actor_id]
         if player == actor:
             if command == "exposed_commands":
                 return actor.exposed_commands()
@@ -98,11 +98,11 @@ class Instance:
     def register(self, player):
         log.debug("Player registered: %s", player)
         player_id = player.username
-        player.actor_id = player.username
         if player_id not in self.players:
             self.players[player_id] = dict(connected=False)
 
             actor = PlayerActor(player)
+            player.actor_id = actor.actor_id
             if self.area.player_script:
                 actor.load_script(self.area.player_script)
             self.players[player_id]['player'] = actor

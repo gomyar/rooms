@@ -50,7 +50,7 @@ class InstanceTest(unittest.TestCase):
         self.instance.register(self.player)
         queue = self.instance.connect("player1")
 
-        self.instance.call("walk_to", "player1", "player1",
+        self.instance.call("walk_to", "player1",
             kwargs={ 'x': 20, 'y': 10})
 
         player = self.instance.players['player1']['player']

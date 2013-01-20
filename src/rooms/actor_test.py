@@ -126,6 +126,7 @@ class ActorTest(unittest.TestCase):
         self.actor2 = Actor("actor2")
         self.actor2.speed = 70
         self.room.put_actor(self.actor2, (100, 100))
+        self.actor2.sleep = lambda t: None
         self.actor2.move_to(200, 200)
 
         self.assertEquals([(100, 100), (200, 200)],
@@ -144,14 +145,14 @@ class ActorTest(unittest.TestCase):
         self.actor2 = Actor("actor2")
         self.actor2.speed = 70
         self.room.put_actor(self.actor2, (100, 100))
-        self.actor2.move_to(200, 200)
         self.actor2.sleep = lambda s: None
+        self.actor2.move_to(200, 200)
 
         self.actor3 = Actor("actor3")
         self.actor3.speed = 70
         self.room.put_actor(self.actor3, (100, 100))
-        self.actor3.move_to(300, 300)
         self.actor3.sleep = lambda s: None
+        self.actor3.move_to(300, 300)
 
         self.assertEquals([(100, 100), (200, 200)],
             self.actor2.path.basic_path_list())

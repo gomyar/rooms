@@ -10,9 +10,12 @@ log = logging.getLogger("rooms.player")
 
 
 class PlayerActor(Actor):
-    def __init__(self, player):
-        super(PlayerActor, self).__init__(player.actor_id)
+    def __init__(self, player, actor_id=None):
+        super(PlayerActor, self).__init__(actor_id)
         self.player = player
+
+    def __repr__(self):
+        return "<PlayerActor %s:%s>" % (self.player.username, self.actor_id)
 
     def exit(self, door_id):
         super(PlayerActor, self).exit(door_id)
