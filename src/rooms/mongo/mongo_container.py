@@ -19,19 +19,10 @@ class MongoRoomContainer(RoomContainer):
         self.mongo_container = mongo_container
 
     def load_room(self, room_id):
-        return self.load_room_from_mongo(room_id)
+        return self.mongo_container.load_room(room_id)
 
     def save_room(self, room_id, room):
-        return self.save_room_to_mongo(room)
-
-    def save_room_to_mongo(self, room):
-        rooms_db = self.mongo_container.db()
-        self.mongo_container._save_object(room, rooms_db.rooms)
-        return str(room._id)
-
-    def load_room_from_mongo(self, room_id):
-        rooms_db = self.mongo_container.db()
-        return self.mongo_container._load_object(room_id, rooms_db.rooms)
+        return self.mongo_container.save_room(room)
 
 
 class MongoContainer(object):
@@ -75,7 +66,7 @@ class MongoContainer(object):
     def save_area(self, area):
         self._save_object(area, self.db().areas)
         for room in area.rooms._rooms.values():
-            area.rooms.save_room_to_mongo(room)
+            area.rooms.save_room(room)
 
     def list_all_areas_for(owner_id):
         areas = self.db().areas.find({ 'owner_id': owner_id },
@@ -104,3 +95,10 @@ class MongoContainer(object):
 
     def save_player(self, player):
         self._save_object(player, self.db().players)
+
+    def save_room(self, room):
+        self._save_object(room, self.db().rooms)
+        return str(room._id)
+
+    def load_room(self, room_id):
+        return self._load_object(room_id, self.db().rooms)

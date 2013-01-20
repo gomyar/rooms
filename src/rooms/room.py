@@ -201,13 +201,6 @@ class Room(object):
                 return True
         return False
 
-    def closest_player_to(self, actor):
-        players = self.all_players()
-        if players:
-            return min(players, key=lambda p: p.distance_to(actor))
-        else:
-            return None
-
     def actor_said(self, actor, msg):
         for heard in self.actors.values():
             heard.actor_heard(actor, msg)
@@ -224,3 +217,7 @@ class Room(object):
             actor.script.call_method("created", actor)
         actor.kick()
         return actor
+
+    def all_players(self):
+        return [actor for actor in self.actors.values() if \
+            issubclass(actor.__class__, PlayerActor)]
