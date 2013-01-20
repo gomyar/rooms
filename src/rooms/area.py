@@ -16,17 +16,13 @@ class Area(object):
     def __init__(self):
         self.area_name = None
         self.entry_point_door_id = None
-        self.rooms = RoomContainer(self)
+        self.rooms = dict()
         self.owner_id = ""
         self.game_script = None
         self.player_script = None
         self.instance = None
         self.point_map = dict()
         self.room_points = dict()
-
-    @property
-    def area_id(self):
-        return str(self._id)
 
     def rebuild_area_map(self):
         self.point_map = PointMap()

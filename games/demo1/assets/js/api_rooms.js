@@ -106,25 +106,25 @@ api_rooms.connect = function(message_callback)
 
 api_rooms.leave_instance = function(callback)
 {
-    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + api_rooms.player_id + "/leave_instance",
+    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + api_rooms.player_actor.actor_id + "/leave_instance",
         { }, callback)
 }
 
 api_rooms.list_inventory = function(data_callback)
 {
-    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + api_rooms.player_id + "/list_inventory",
+    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + api_rooms.player_actor.actor_id + "/list_inventory",
         { }, data_callback)
 }
 
 api_rooms.exit_through_door = function(door_id)
 {
-    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + api_rooms.player_id + "/exit",
+    api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + api_rooms.player_actor.actor_id + "/exit",
         { "door_id": door_id })
 }
 
 api_rooms.walk_to = function(x, y)
 {
-    api_rooms.service_call("/game/"+api_rooms.instance_uid+"/"+api_rooms.player_id+"/move_to",
+    api_rooms.service_call("/game/"+api_rooms.instance_uid+"/"+api_rooms.player_actor.actor_id +"/move_to",
         { x : x, y : y });
 }
 
@@ -145,7 +145,7 @@ api_rooms.chat = function(actor_id, choice_text, data_callback)
 
 api_rooms.call_command = function(command, args)
 {
-    api_rooms.service_call("/game/"+api_rooms.instance_uid+"/"+api_rooms.player_id+"/"+command, args)
+    api_rooms.service_call("/game/"+api_rooms.instance_uid+"/"+api_rooms.player_actor.actor_id +"/"+command, args)
 }
 
 api_rooms.call_method = function(actor_id, method, args)

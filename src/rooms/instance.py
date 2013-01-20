@@ -27,9 +27,9 @@ class Instance:
     def sleep(self):
         print "Sleeping instance"
 
-    def call(self, command, player_id, kwargs):
+    def call(self, command, player_id, actor_id, kwargs):
         player = self.players[player_id]['player']
-        actor = player.room.actors[player.actor_id]
+        actor = player.room.actors[actor_id]
         if player == actor:
             if command == "exposed_commands":
                 return actor.exposed_commands()

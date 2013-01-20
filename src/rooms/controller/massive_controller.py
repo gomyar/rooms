@@ -57,11 +57,11 @@ class MasterController(object):
             if instance['node'] == (host, port):
                 self.instances.pop(uid)
 
-    def _get_or_create_player(self, player_id):
-        return self.container.get_or_create_player(player_id)
+    def _get_or_create_player(self, username):
+        return self.container.get_or_create_player(username)
 
-    def player_info(self, player_id):
-        player = self._get_or_create_player(player_id)
+    def player_info(self, username):
+        player = self._get_or_create_player(username)
         return dict(
             username=player.username,
             game_id=player.game_id,
@@ -75,9 +75,9 @@ class MasterController(object):
     def _game_id(self):
         return get_config("game", "game_id")
 
-    def player_connects(self, player_id):
-        log.debug("Player connects: %s", player_id)
-        player = self._get_or_create_player(player_id=player_id)
+    def player_connects(self, username):
+        log.debug("Player connects: %s", username)
+        player = self._get_or_create_player(username=username)
         if player.area_id in self.instances:
             instance = self.instances[player.area_id]
             node = self.nodes[instance['node']]
@@ -91,15 +91,15 @@ class MasterController(object):
             self.instances[player.area_id] = instance
 
         node.client.player_joins(area_id=player.area_id,
-            player_id=player_id)
+            username=username)
         return dict(instance_id=instance['uid'], host=node.external_host,
             port=node.external_port)
 
-    def create_account(self, player_id, start_area_name, start_room_id,
+    def create_account(self, username, start_area_name, start_room_id,
             **state):
-        log.debug("Creating account %s, %s, %s", player_id,
+        log.debug("Creating account %s, %s, %s", username,
             start_area_name, state)
-        player = self._get_or_create_player(player_id=player_id)
+        player = self._get_or_create_player(username=username)
         if player.area_id:
             if player.area_id in self.instances:
                 instance = self.instances[player.area_id]
@@ -153,6 +153,6 @@ class ClientController(object):
     def manage_area(self, game_id, area_id):
         return self.node.manage_area(game_id, area_id)
 
-    def player_joins(self, area_id, player_id):
-        player = self.node.container.get_or_create_player(player_id=player_id)
+    def player_joins(self, area_id, username):
+        player = self.node.container.get_or_create_player(username=username)
         return self.node.player_joins(area_id, player)

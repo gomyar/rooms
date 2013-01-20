@@ -3,16 +3,17 @@ from room import Room
 
 
 class RoomContainer(object):
-    def __init__(self, area):
+    def __init__(self, area, container):
         self._area = area
+        self._container = container
         self._rooms = dict()
         self._room_map = dict()
 
     def load_room(self, room_id):
-        pass
+        return self._container.load_room(room_id)
 
     def save_room(self, room_id, room):
-        pass
+        return self._container.save_room(room)
 
     def __getitem__(self, room_id):
         if room_id not in self._rooms:

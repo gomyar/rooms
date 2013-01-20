@@ -69,33 +69,42 @@ class Container(object):
         return self._load_object(game_id, "games")
 
     def save_game(self, game):
-        self._save_object(game, "games")
+        return self._save_object(game, "games")
 
     def load_area(self, area_id):
-        return self._load_object(area_id, "areas")
+        area = self._load_object(area_id, "areas")
+        area.rooms = RoomContainer(area, self)
+        area.rooms._room_map = area._room_map
+        return area
 
     def save_area(self, area):
-        self._save_object(area, "areas")
+        return self._save_object(area, "areas")
 
     def load_room(self, room_id):
-        room = self._load_object(room_id, "rooms")
+        return self._load_object(room_id, "rooms")
 
     def save_room(self, room):
-        self._save_object(room, "rooms")
+        _id = self._save_object(room, "rooms")
         for player_actor in room.player_actors():
             self.save_player(player_actor.player)
+        return _id
 
     def save_player(self, player):
-        self._save_object(player, "players")
+        return self._save_object(player, "players")
 
-    def load_player(self, player_id):
-        return self._load_object(player_id, "players")
+    def load_player(self, username):
+        enc_dict = self.dbase.filter_one("players", username=username)
+        db_id = enc_dict.pop('_id')
+        obj = self._dict_to_obj(enc_dict)
+        obj._id = str(db_id)
+        return obj
 
-    def get_or_create_player(self, player_id):
-        if self.dbase.object_exists("players", {'username': player_id}):
-            return self.load_player(player_id)
+
+    def get_or_create_player(self, username):
+        if self.dbase.object_exists("players", username=username):
+            return self.load_player(username)
         else:
-            player = Player(player_id)
+            player = Player(username)
             self.save_player(player)
             return player
 
@@ -107,15 +116,16 @@ class Container(object):
             db_id = None
         object_dict = self._obj_to_dict(saved_object)
         db_id = self.dbase.save_object(object_dict, dbase_name, db_id)
-        saved_object._id = db_id
+        saved_object._id = str(db_id)
+        return str(db_id)
 
     def _load_object(self, object_id, dbase_name):
         enc_dict = self.dbase.load_object(object_id, dbase_name)
         if enc_dict:
             db_id = enc_dict.pop('_id')
             obj = self._dict_to_obj(enc_dict)
-            obj._id = db_id
-            return oobj
+            obj._id = str(db_id)
+            return obj
         else:
             return None
 
@@ -182,7 +192,7 @@ class Container(object):
         actor.path = data['path']
         actor.speed = data['speed']
         actor.room_id = data['room_id']
-        actor.state = self.create_state(data['state'], actor)
+        actor.state = self._create_state(data['state'], actor)
         actor.log = data['log']
         actor.model_type = data['model_type']
         actor.inventory = data['inventory']
@@ -357,7 +367,7 @@ class Container(object):
 
     def _create_item_registry(self, data):
         registry = ItemRegistry()
-        registry._items = dict([(key, self.create_item(value)) for \
+        registry._items = dict([(key, self._create_item(value)) for \
             (key, value) in data.items()])
         return registry
 

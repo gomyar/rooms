@@ -35,7 +35,7 @@ class PlayerActor(Actor):
         self.add_log(msg, *args)
 
     def send_update(self, update_id, **kwargs):
-        self.instance.send_update(self.actor_id, update_id, **kwargs)
+        self.instance.send_update(self.player.username, update_id, **kwargs)
 
     def _update(self, update_id, **kwargs):
         self.send_update(update_id, **kwargs)
