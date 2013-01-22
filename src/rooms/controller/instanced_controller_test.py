@@ -9,12 +9,11 @@ from rooms.wsgi_rpc import WSGIRPCClient
 
 from rooms.node import Node
 from rooms.area import Area
-from rooms.instance import Instance
 from rooms.room import Room
 from rooms.player import Player
 from rooms.game import Game
-from rooms.instance import Instance
 from rooms.player_actor import PlayerActor
+from rooms.null import Null
 
 from mock import Mock
 
@@ -51,8 +50,7 @@ class ControllerTest(unittest.TestCase):
         self.area = Area()
         self.area.area_name = "area1"
         self.area.entry_point_room_id = "room1"
-        self.instance = Instance()
-        self.area.instance = self.instance
+        self.area.server = Null()
         self.game.area_map['area1'] = 'area1'
         self.game.start_areas.append('area1')
         self.game._id = "game1"
@@ -88,28 +86,24 @@ class ControllerTest(unittest.TestCase):
 
 
     def testClientCreateInstance(self):
-        self.node._random_uid = lambda: "instance1"
-        self.client.manage_area("game1", "area1")
+        self.client.manage_area("area1")
 
-        self.assertTrue("instance1" in self.node.instances)
-        self.assertEquals("area1", self.node.instances['instance1'].area.area_name)
+        self.assertTrue("area1" in self.node.areas)
+        self.assertEquals("area1", self.node.areas['area1'].area_name)
 
     def testPlayerJoins(self):
-        self.node._random_uid = lambda: "instance1"
-        self.client.manage_area("game1", "area1")
+        self.client.manage_area("area1")
         self.client.player_joins("area1", "player1")
 
         self.assertEquals(PlayerActor,
-            type(self.node.instances['instance1'].players['mock']['player']))
+            type(self.node.players['mock']['player']))
 
     def testMasterCreateInstance(self):
-        self.node._random_uid = lambda: "instance1"
         self.master._create_game = lambda: self.game
 
-        instance = self.master.create_game("area1")
-        instance.pop('area_id')
+        area_info = self.master.create_game("area1")
         self.assertEquals({
             'node': ('client.com', 8081),
             'players': [],
-            'uid': 'instance1'}, instance)
-        self.assertEquals(instance, self.master.instances['instance1'])
+            'area_id': 'area1'}, area_info)
+        self.assertEquals(area_info, self.master.areas['area1'])

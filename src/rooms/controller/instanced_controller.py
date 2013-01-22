@@ -25,7 +25,7 @@ class MasterController(object):
         self.host = host
         self.port = port
         self.nodes = dict()
-        self.instances = dict()
+        self.areas = dict()
         self.wsgi_server = None
         self.container = container
 
@@ -41,8 +41,8 @@ class MasterController(object):
                 leave_game=self.leave_game,
                 player_info=self.player_info,
 
-                list_instances=self.list_instances,
-                instance_info=self.instance_info,
+                list_areas=self.list_areas,
+                area_info=self.area_info,
             )
         )
 
@@ -55,9 +55,9 @@ class MasterController(object):
 
     def deregister_node(self, host, port):
         self.nodes.pop((host, port))
-        for uid, instance in self.instances.items():
-            if instance['node'] == (host, port):
-                self.instances.pop(uid)
+        for uid, area in self.areas.items():
+            if area['node'] == (host, port):
+                self.areas.pop(uid)
 
     def _get_or_create_player(self, player_id):
         return self.container.get_or_create_player(player_id)
@@ -67,7 +67,7 @@ class MasterController(object):
         return dict(
             username=player.username,
             game_id=player.game_id,
-            instance_id=player.area_id,
+            area_id=player.area_id,
             actor_id=player.area_id,
         )
 
@@ -78,38 +78,38 @@ class MasterController(object):
         # run create script
         player = self._get_or_create_player(player_id)
         game = self._create_game()
-        area_id = game.start_area_map().values()[0]
+        area_id = game.start_areas[0]
         # tell node to manage area
         node = self._least_busy_node()
-        instance_uid = node.client.manage_area(game.game_id, area_id=area_id)
-        instance = dict(players=[],
+        node.client.manage_area(area_id=area_id)
+        area = dict(players=[],
             node=(node.host, node.port),
-            area_id=area_id, uid=instance_uid)
-        self.instances[instance_uid] = instance
+            area_id=area_id)
+        self.areas[area_id] = area
         player.game_id = str(game._id)
         player.area_id = area_id
         self.container.save_player(player)
-        return instance
+        return area
 
-    def join_game(self, user_id, instance_uid):
-        instance = self.instances[instance_uid]
-        if user_id not in instance['players']:
-            instance['players'].append(user_id)
-        node = self.nodes[instance['node']]
-        node.client.player_joins(instance_uid=instance_uid, player_uid=user_id)
+    def join_game(self, user_id, area_id):
+        area = self.areas[area_id]
+        if user_id not in area['players']:
+            area['players'].append(user_id)
+        node = self.nodes[area['node']]
+        node.client.player_joins(area_id=area_id, player_uid=user_id)
         return dict(success=True, node=(node.external_host, node.external_port))
 
-    def leave_game(self, user_id, instance_uid):
-        instance =  self.instances[instance_uid]
-        instance['players'].remove(user_id)
-        log.debug("Player %s left instance %s", user_id, instance_uid)
+    def leave_game(self, user_id, area_id):
+        area =  self.areas[area_id]
+        area['players'].remove(user_id)
+        log.debug("Player %s left area %s", user_id, area_id)
         return ""
 
-    def list_instances(self):
-        return self.instances
+    def list_areas(self):
+        return self.areas
 
-    def instance_info(self, instance_uid):
-        return self.instances[instance_uid]
+    def area_info(self, area_id):
+        return self.areas[area_id]
 
     def _least_busy_node(self):
         return self.nodes.values()[0]
@@ -140,9 +140,10 @@ class ClientController(object):
     def start(self):
         self.wsgi_server.start()
 
-    def manage_area(self, game_id, area_id):
-        return self.node.manage_area(game_id, area_id)
+    def manage_area(self, area_id):
+        return self.node.manage_area(area_id)
 
-    def player_joins(self, instance_uid, username):
+    def player_joins(self, area_id, username):
         player = self.node.container.get_or_create_player(username=username)
-        return self.node.player_joins(instance_uid, player)
+        player.area_id = area_id
+        return self.node.player_joins(area_id, player)

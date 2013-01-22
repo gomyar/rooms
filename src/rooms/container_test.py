@@ -57,8 +57,8 @@ class ContainerTest(unittest.TestCase):
     def setUp(self):
         self.area = Area()
         self.area.load_script("container_test")
-        self.area.instance = Null()
         self.area.rooms = RoomContainer(self.area, Null())
+        self.area.server = Null()
         self.room1 = Room('lobby')
         self.room1.area = self.area
         self.area.rooms['lobby'] = self.room1

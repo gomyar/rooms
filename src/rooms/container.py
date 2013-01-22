@@ -296,8 +296,6 @@ class Container(object):
             owner_id = obj.owner_id,
             room_map = obj.rooms._room_map,
             entry_point_door_id = obj.entry_point_door_id,
-            game_script_class = obj.game_script.script_name if obj.game_script else None,
-            player_script_class = obj.player_script,
         )
 
     def _create_area(self, data):
@@ -306,10 +304,6 @@ class Container(object):
         area._room_map = data['room_map']
         area.owner_id = data['owner_id']
         area.entry_point_door_id = data['entry_point_door_id']
-        # Second pass for top-level objects
-        if data['game_script_class']:
-            area.load_script(data['game_script_class'])
-        area.player_script = data['player_script_class']
         return area
 
     # Door
@@ -413,6 +407,7 @@ class Container(object):
             start_areas = obj.start_areas,
             open_game = obj.open_game,
             item_registry = obj.item_registry,
+            player_script_class = obj.player_script,
         )
         return data
 
@@ -423,6 +418,7 @@ class Container(object):
         game.start_areas = data['start_areas']
         game.open_game = data['open_game']
         game.item_registry = data['item_registry']
+        area.player_script = data['player_script_class']
         return game
 
 

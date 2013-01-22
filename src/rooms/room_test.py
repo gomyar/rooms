@@ -32,7 +32,7 @@ class RoomTest(unittest.TestCase):
     def testActorExitsThroughDoor(self):
         self.actor = Actor("actor1")
         self.actor.sleep = self._mock_sleep
-        self.area.rooms['room1'].actor_joined_instance(self.actor)
+        self.room1.put_actor(self.actor)
 
         self.actor.move_to_room("room2")
 

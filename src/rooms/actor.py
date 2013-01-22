@@ -84,12 +84,8 @@ class Actor(object):
         return [a for a in self.room.actors.values() if a != self and a.visible]
 
     @property
-    def instance(self):
-        return self.room.instance
-
-    @property
     def game(self):
-        return self.instance.node.game
+        return self.area.node.game
 
     @property
     def area(self):

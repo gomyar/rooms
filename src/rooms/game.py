@@ -9,6 +9,7 @@ class Game(object):
         self.start_areas = []
         self.open_game = True
         self.item_registry = ItemRegistry()
+        self.player_script = None
 
     def start_area_map(self):
         return dict([(key, self.area_map[key]) for key in self.start_areas])

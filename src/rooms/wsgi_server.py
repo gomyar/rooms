@@ -11,7 +11,7 @@ from mimetypes import guess_type
 
 import simplejson
 
-from rooms.instance import Instance
+from rooms.area import Area
 from rooms.admin import Admin
 
 from utils import checked
@@ -45,6 +45,7 @@ class WSGIServer(object):
             'admin': self.admin_handle,
         }
         self.sessions = dict()
+        self.player_queues = dict()
 
     def serve_forever(self):
         server = pywsgi.WSGIServer((self.host, self.port), self.handle,
@@ -52,8 +53,8 @@ class WSGIServer(object):
         server.serve_forever()
 
     def _check_player_joined(self, player_id):
-        for instance in self.node.instances.values():
-            if player_id in instance.players:
+        for area in self.node.areas.values():
+            if player_id in area.players:
                 return True
         return False
 
@@ -76,19 +77,16 @@ class WSGIServer(object):
         ws = environ["wsgi.websocket"]
         cookies = _read_cookies(environ)
         player_id = None
-        instance = None
         queue = None
         try:
             player_id = ws.receive()
-            instance_uid = ws.receive()
-            instance = self.node.instances[instance_uid]
-            log.debug("registering %s at %s", player_id, instance_uid)
-            log.debug("%s", player_id in instance.players)
-            queue = instance.connect(player_id)
+            area_uid = ws.receive()
+            log.debug("registering %s at %s", player_id, area_uid)
+            queue = self.connect(player_id)
             log.debug("Connected to queue")
             self.sessions[cookies['sessionid']] = player_id
             log.debug("Sending sync")
-            instance.send_sync(player_id)
+            self.send_sync(player_id)
             log.debug("Sync sent")
             connected = True
             while connected:
@@ -110,31 +108,30 @@ class WSGIServer(object):
             log.exception("Websocket disconnected %s", player_id)
         finally:
             log.debug("Player %s disconnecting", player_id)
-            if instance and queue:
-                instance.disconnect_queue(queue)
+            if queue:
+                self.disconnect_queue(queue)
 
 
     @checked
     def game_handle(self, environ, response):
-        _, url, instance_uid, actor_id, command = \
+        _, url, area_uid, actor_id, command = \
             environ['PATH_INFO'].split("/")
-        log.debug("Game call %s, %s, %s, %s", url, instance_uid, actor_id,
+        log.debug("Game call %s, %s, %s, %s", url, area_uid, actor_id,
             command)
         cookies = _read_cookies(environ)
         params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
-        instance = self.node.instances[instance_uid]
-        returned = instance.call(command, self.sessions[cookies['sessionid']],
+        returned = self.node.call(command, self.sessions[cookies['sessionid']],
             actor_id, dict(params))
         return _json_return(response, returned)
 
 
     @checked
     def room_handle(self, environ, response):
-        _, url, instance_uid = environ['PATH_INFO'].split("/")
-        log.debug("Room call: %s %s", url, instance_uid)
+        _, url, area_uid = environ['PATH_INFO'].split("/")
+        log.debug("Room call: %s %s", url, area_uid)
         cookies = _read_cookies(environ)
-        instance = self.node.instances[instance_uid]
-        returned = instance.players[self.sessions[cookies['sessionid']]]\
+        area = self.node.areas[area_uid]
+        returned = area.players[self.sessions[cookies['sessionid']]]\
             ['player'].room.external()
         return _json_return(response, returned)
 
@@ -165,3 +162,52 @@ class WSGIServer(object):
     def redirect(self, path, response):
         response('301 Moved Permanently', [ ('location', path) ])
         return ""
+
+
+    def send_update(self, player_id, command, **kwargs):
+        if player_id in self.player_queues:
+            self.player_queues[player_id].put(dict(command=command,
+                kwargs=kwargs))
+
+    def send_to_players(self, player_ids, command, **kwargs):
+        for player_id in player_ids:
+            self.send_update(player_id, command, **kwargs)
+
+    def send_sync(self, player_id):
+        self.player_queues[player_id].put(self.sync(player_id))
+
+    def sync(self, player_id):
+        player = self.players[player_id]['player']
+        return {
+            "command": "sync",
+            "kwargs" : {
+                "player_actor" : player.internal(),
+                "actors" : map(lambda a: a.external(),
+                    player.visible_actors()),
+                "now" : time.time(),
+                "map" : "map1.json",
+                "player_log" : player.log,
+            }
+        }
+
+    def connect(self, player_id):
+        log.debug("Connecting %s", player_id)
+        self.players[player_id]['connected'] = True
+        if player_id in self.player_queues:
+            log.debug("Disconnecting existing player %s", player_id)
+            self.disconnect(player_id)
+        queue = gevent.queue.Queue()
+        self.player_queues[player_id] = queue
+        return queue
+
+    def disconnect(self, player_id):
+        log.debug("Disconnecting %s", player_id)
+        queue = self.player_queues.pop(player_id)
+        queue.put(dict(command='disconnect'))
+
+    def disconnect_queue(self, queue):
+        for player_id, q in self.player_queues.items():
+            if q == queue:
+                self.player_queues.pop(player_id)
+
+

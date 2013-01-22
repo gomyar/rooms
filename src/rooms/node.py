@@ -11,9 +11,9 @@ import controller
 from controller import instanced_controller
 from controller import massive_controller
 
-from rooms.instance import Instance
 from rooms.mongo.mongo_container import MongoContainer
 from rooms.container import Container
+from rooms.player_actor import PlayerActor
 
 from geography.pointmap_geography import PointmapGeography
 from geography.linearopen_geography import LinearOpenGeography
@@ -54,7 +54,8 @@ class Node(object):
         self.game = None
         self.server = None
 
-        self.instances = dict()
+        self.players = dict()
+        self.areas = dict()
 
     def load_game(self, dbhost, dbport):
         config.read(os.path.join(self.game_root, "game.conf"))
@@ -66,6 +67,7 @@ class Node(object):
         self.container = Container(mongo_container,
             geogs[config.get("game", "geography")](),
         )
+        self.game = self.container.load_game(game_id)
 
     def init_controller(self, options):
         ctype = config.get("game", "controller")
@@ -89,37 +91,75 @@ class Node(object):
         self.server = WSGIServer(self.host, self.port, self)
         self.server.serve_forever()
 
-    def manage_area(self, game_id, area_id):
-        self.game = self.container.load_game(game_id)
-        area_uid = self.game.area_map[area_id]
-        uid = self._random_uid()
-        instance = Instance(uid, self)
-        instance.load_area(area_uid)
-        self.instances[uid] = instance
-        instance.kickoff()
-        return uid
+    def manage_area(self, area_id):
+        self.areas[area_id] = self.container.load_area(area_id)
+        # kickoff maybe
 
-    def player_joins(self, area_id, player):
-        log.debug("Player joins: %s at %s", player, area_id)
-        instance = self._lookup_instance(area_id)
-        instance.register(player)
+    def player_joins(self, area_name, player):
+        log.debug("Player joins: %s at %s", player, area_name)
+        self.register(player)
 
-    def _lookup_instance(self, area_id):
-        for instance_id, instance in self.instances.items():
-            if area_id == instance.area.area_name:
-                return instance
-        raise Exception("No instance for area %s" % (area_id,))
+
+    def register(self, player):
+        log.debug("Player registered: %s", player)
+        player_id = player.username
+        if player_id not in self.players:
+            self.players[player_id] = dict(connected=False)
+
+            actor = PlayerActor(player)
+            player.actor_id = actor.actor_id
+            if self.game.player_script:
+                actor.load_script(self.game.player_script)
+            self.players[player_id]['player'] = actor
+            area = self.areas[player.area_id]
+            area.rooms[player.room_id].put_actor(actor)
+            if actor.script and actor.script.has_method("player_created"):
+                actor._wrapped_call("player_created", actor)
+            actor.kick()
+
+            log.info("Player joined: %s", player_id)
+        else:
+            log.debug("Player already registered")
+
+    def deregister(self, player_id):
+        log.debug("Deregistering %s", player_id)
+        self.server.disconnect(player_id)
+        self.players.pop(player_id)
+        log.info("Player left: %s", player_id)
+
+
+
 
     def shutdown(self):
         if self.client:
             self.client.deregister_from_master()
 
-    def _random_uid(self):
-        return str(uuid.uuid1())
-
     def find(self, player_id):
-        for instance in self.instances.values():
-            for room in instance.area.rooms._rooms.values():
+        for area in self.area.values():
+            for room in area.rooms._rooms.values():
                 if player_id in room.actors:
                     return room.actors[player_id]
         return None
+
+
+    def call(self, command, player_id, actor_id, kwargs):
+        player = self.players[player_id]['player']
+        actor = player.room.actors[actor_id]
+        if player == actor:
+            if command == "exposed_commands":
+                return actor.exposed_commands()
+            value = actor.command_call(command, **kwargs)
+        else:
+            if command == "exposed_methods":
+                return actor.exposed_methods(player)
+            value = actor.interface_call(command, player, **kwargs)
+        return value
+
+    def kill_player(self, player_actor):
+        actor_id = player_actor.actor_id
+        player = player_actor.player
+        player.room_id = "system"
+        player.actor_id = None
+        self.node.container.save_player(player)
+        self.server.send_update(actor_id, 'kill')
+        self.deregister(actor_id)

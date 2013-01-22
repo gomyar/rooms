@@ -7,7 +7,6 @@ from room import Room
 from player import Player
 from room_container import RoomContainer
 from player_actor import PlayerActor
-from instance import Instance
 from rooms.null import Null
 
 
@@ -22,8 +21,6 @@ class MockRoomContainer(RoomContainer):
 class AreaTest(unittest.TestCase):
     def setUp(self):
         self.area = Area()
-        self.instance = Instance()
-        self.area.instance = self.instance
         self.area.rooms = MockRoomContainer(self.area, Null())
         self.room1 = Room("room1", 10, 10)
         self.area.put_room(self.room1, (0, 0))

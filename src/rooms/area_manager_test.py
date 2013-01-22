@@ -27,7 +27,7 @@ class MockContainer(object):
 class AreaManagerTest(unittest.TestCase):
     def setUp(self):
         self.area = Area()
-        self.area.instance = Null()
+        self.area.server = Null()
         self.area.rooms = RoomContainer(self.area, Null())
         self.room1 = Room("room1")
         self.area.rooms['room1'] = self.room1

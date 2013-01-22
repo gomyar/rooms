@@ -18,9 +18,6 @@ class Area(object):
         self.entry_point_door_id = None
         self.rooms = dict()
         self.owner_id = ""
-        self.game_script = None
-        self.player_script = None
-        self.instance = None
         self.point_map = dict()
         self.room_points = dict()
 
@@ -46,9 +43,6 @@ class Area(object):
 
     def load_script(self, classname):
         self.game_script = Script(classname)
-
-    def actor_joined_instance(self, actor, room_id):
-        self.rooms[room_id].actor_joined_instance(actor)
 
     def put_room(self, room, position):
         self.rooms[room.room_id] = room
