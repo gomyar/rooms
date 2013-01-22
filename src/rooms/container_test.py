@@ -34,7 +34,7 @@ class MockDbaseConnection(object):
     def save_object(self, saved_obj, dbase_name, object_id):
         self.dbases[dbase_name][object_id] = saved_obj
 
-    def filter(self, dbase_name, search_fields):
+    def filter(self, dbase_name, **search_fields):
         objs = dict()
         for key, obj in self.dbases[dbase_name].items():
             if set(search_fields.items()).issubset(\
@@ -42,8 +42,15 @@ class MockDbaseConnection(object):
                 objs[key] = obj
         return objs
 
-    def object_exists(self, dbase_name, search_fields):
-        return bool(self.filter(dbase_name, search_fields))
+    def filter_one(self, dbase_name, **search_fields):
+        for key, obj in self.dbases[dbase_name].items():
+            if set(search_fields.items()).issubset(\
+                set(self.dbases[dbase_name].items())):
+                return obj
+        return None
+
+    def object_exists(self, dbase_name, **search_fields):
+        return bool(self.filter(dbase_name, **search_fields))
 
 
 class ContainerTest(unittest.TestCase):
@@ -51,6 +58,7 @@ class ContainerTest(unittest.TestCase):
         self.area = Area()
         self.area.load_script("container_test")
         self.area.instance = Null()
+        self.area.rooms = RoomContainer(self.area, Null())
         self.room1 = Room('lobby')
         self.room1.area = self.area
         self.area.rooms['lobby'] = self.room1
@@ -85,9 +93,9 @@ class ContainerTest(unittest.TestCase):
     def testJsonPickle(self):
         pickled = self.container._serialize_area(self.area)
         unpickled = self.container._create_area(pickled)
-        unpickled.rooms = MockRoomContainer(self.area)
-        unpickled.rooms._rooms['lobby'] = Room('lobby')
-        unpickled.rooms._rooms['lobby'].actors['actor1'] = Actor('actor1')
+        unpickled.rooms = RoomContainer(self.area, Null())
+        unpickled.rooms['lobby'] = Room('lobby')
+        unpickled.rooms['lobby'].actors['actor1'] = Actor('actor1')
         self.assertEquals(self.area.rooms['lobby'], unpickled.rooms['lobby'])
         self.assertEquals(self.area.rooms['lobby'].actors['actor1'],
             unpickled.rooms['lobby'].actors['actor1'])

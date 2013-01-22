@@ -7,6 +7,7 @@ from rooms.room import Room
 from rooms.player_actor import PlayerActor
 from rooms.player import Player
 from rooms.null import Null
+from rooms.room_container import RoomContainer
 
 
 class MockContainer(object):
@@ -27,8 +28,9 @@ class AreaManagerTest(unittest.TestCase):
     def setUp(self):
         self.area = Area()
         self.area.instance = Null()
+        self.area.rooms = RoomContainer(self.area, Null())
         self.room1 = Room("room1")
-        self.area.rooms._rooms['room1'] = self.room1
+        self.area.rooms['room1'] = self.room1
         self.room1.area = self.area
 
         self.container = MockContainer()
@@ -66,7 +68,7 @@ class AreaManagerTest(unittest.TestCase):
         self.room1.put_actor(player_actor)
 
         self.room2 = Room("room2")
-        self.area.rooms._rooms['room2'] = self.room2
+        self.area.rooms['room2'] = self.room2
         self.room2.area = self.area
 
         player2 = Player("bob")

@@ -15,6 +15,10 @@ class RoomContainer(object):
     def save_room(self, room_id, room):
         return self._container.save_room(room)
 
+    def __iter__(self):
+        for room_id in self._rooms:
+            yield room_id
+
     def __getitem__(self, room_id):
         if room_id not in self._rooms:
             self._rooms[room_id] = self.load_room(self._room_map[room_id])

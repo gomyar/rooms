@@ -94,11 +94,13 @@ class Container(object):
 
     def load_player(self, username):
         enc_dict = self.dbase.filter_one("players", username=username)
-        db_id = enc_dict.pop('_id')
-        obj = self._dict_to_obj(enc_dict)
-        obj._id = str(db_id)
-        return obj
-
+        if enc_dict:
+            db_id = enc_dict.pop('_id')
+            obj = self._dict_to_obj(enc_dict)
+            obj._id = str(db_id)
+            return obj
+        else:
+            return None
 
     def get_or_create_player(self, username):
         if self.dbase.object_exists("players", username=username):

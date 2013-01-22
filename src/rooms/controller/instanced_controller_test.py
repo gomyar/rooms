@@ -33,7 +33,7 @@ class MockContainer(object):
     def load_room(self, room_id):
         return self.rooms[room_id]
 
-    def get_or_create_player(self, player_id):
+    def get_or_create_player(self, username):
         return self.player
 
     def save_player(self, player):

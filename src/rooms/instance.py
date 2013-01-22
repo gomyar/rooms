@@ -123,7 +123,8 @@ class Instance:
         log.info("Player left instance: %s", player_id)
 
     def kickoff(self):
-        for room_id in self.area.rooms._room_map.keys():
+        # might take this out
+        for room_id in self.area.rooms:
             room = self.area.rooms[room_id]
             for actor in room.actors.values():
                 actor.kick()

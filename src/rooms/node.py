@@ -52,9 +52,9 @@ class Node(object):
         self.container = None
         self.client = None
         self.game = None
+        self.server = None
 
         self.instances = dict()
-        self.sessions = dict()
 
     def load_game(self, dbhost, dbport):
         config.read(os.path.join(self.game_root, "game.conf"))
@@ -82,6 +82,8 @@ class Node(object):
 
         self.master.start()
         self.client.start()
+
+#        self.area_manager.start()
 
     def start(self):
         self.server = WSGIServer(self.host, self.port, self)

@@ -44,6 +44,7 @@ class WSGIServer(object):
             'room': self.room_handle,
             'admin': self.admin_handle,
         }
+        self.sessions = dict()
 
     def serve_forever(self):
         server = pywsgi.WSGIServer((self.host, self.port), self.handle,
@@ -85,7 +86,7 @@ class WSGIServer(object):
             log.debug("%s", player_id in instance.players)
             queue = instance.connect(player_id)
             log.debug("Connected to queue")
-            self.node.sessions[cookies['sessionid']] = player_id
+            self.sessions[cookies['sessionid']] = player_id
             log.debug("Sending sync")
             instance.send_sync(player_id)
             log.debug("Sync sent")
@@ -122,7 +123,7 @@ class WSGIServer(object):
         cookies = _read_cookies(environ)
         params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
         instance = self.node.instances[instance_uid]
-        returned = instance.call(command, self.node.sessions[cookies['sessionid']],
+        returned = instance.call(command, self.sessions[cookies['sessionid']],
             actor_id, dict(params))
         return _json_return(response, returned)
 
@@ -133,7 +134,7 @@ class WSGIServer(object):
         log.debug("Room call: %s %s", url, instance_uid)
         cookies = _read_cookies(environ)
         instance = self.node.instances[instance_uid]
-        returned = instance.players[self.node.sessions[cookies['sessionid']]]\
+        returned = instance.players[self.sessions[cookies['sessionid']]]\
             ['player'].room.external()
         return _json_return(response, returned)
 
@@ -144,7 +145,7 @@ class WSGIServer(object):
         log.debug("Admin call: %s %s", url, command)
         cookies = _read_cookies(environ)
         params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
-        assert(cookies['sessionid'] in self.node.sessions)
+        assert(cookies['sessionid'] in self.sessions)
         admin = Admin(self.node.game_root)
         returned = getattr(admin, command)(**params)
         return _json_return(response, returned)

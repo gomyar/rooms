@@ -26,7 +26,7 @@ class Area(object):
 
     def rebuild_area_map(self):
         self.point_map = PointMap()
-        for room_id in self.rooms._rooms:
+        for room_id in self.rooms:
             room = self.rooms[room_id]
             center = room.center()
             self.room_points[center] = room_id
