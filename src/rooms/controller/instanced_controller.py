@@ -78,9 +78,9 @@ class MasterController(object):
         # run create script
         player = self._get_or_create_player(player_id)
         game = self._create_game()
-        area_id = game.start_areas[0]
+        area_id, area_name = game.start_areas[0]
         # tell node to manage area
-        node = self._least_busy_node()
+        node = self._available_node()
         node.client.manage_area(area_id=area_id)
         area = dict(players=[],
             node=(node.host, node.port),
@@ -111,7 +111,7 @@ class MasterController(object):
     def area_info(self, area_id):
         return self.areas[area_id]
 
-    def _least_busy_node(self):
+    def _available_node(self):
         return self.nodes.values()[0]
 
 

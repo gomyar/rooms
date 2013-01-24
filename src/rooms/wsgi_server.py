@@ -1,7 +1,9 @@
 
 import os
 import uuid
+import time
 
+import gevent
 from gevent import pywsgi
 from geventwebsocket.handler import WebSocketHandler
 from gevent.queue import Empty
@@ -53,10 +55,7 @@ class WSGIServer(object):
         server.serve_forever()
 
     def _check_player_joined(self, player_id):
-        for area in self.node.areas.values():
-            if player_id in area.players:
-                return True
-        return False
+        return player_id in self.node.players
 
     def handle(self, environ, response):
         rest_object = environ['PATH_INFO'].strip('/').split('/')[0]
@@ -131,7 +130,7 @@ class WSGIServer(object):
         log.debug("Room call: %s %s", url, area_uid)
         cookies = _read_cookies(environ)
         area = self.node.areas[area_uid]
-        returned = area.players[self.sessions[cookies['sessionid']]]\
+        returned = self.node.players[self.sessions[cookies['sessionid']]]\
             ['player'].room.external()
         return _json_return(response, returned)
 
@@ -174,10 +173,10 @@ class WSGIServer(object):
             self.send_update(player_id, command, **kwargs)
 
     def send_sync(self, player_id):
-        self.player_queues[player_id].put(self.sync(player_id))
+        self.player_queues[player_id].put(self._sync(player_id))
 
-    def sync(self, player_id):
-        player = self.players[player_id]['player']
+    def _sync(self, player_id):
+        player = self.node.players[player_id]['player']
         return {
             "command": "sync",
             "kwargs" : {
@@ -192,7 +191,7 @@ class WSGIServer(object):
 
     def connect(self, player_id):
         log.debug("Connecting %s", player_id)
-        self.players[player_id]['connected'] = True
+        self.node.players[player_id]['connected'] = True
         if player_id in self.player_queues:
             log.debug("Disconnecting existing player %s", player_id)
             self.disconnect(player_id)

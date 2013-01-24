@@ -11,9 +11,6 @@ class Game(object):
         self.item_registry = ItemRegistry()
         self.player_script = None
 
-    def start_area_map(self):
-        return dict([(key, self.area_map[key]) for key in self.start_areas])
-
     @property
     def game_id(self):
         return str(self._id)

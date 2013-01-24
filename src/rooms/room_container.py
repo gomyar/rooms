@@ -21,8 +21,11 @@ class RoomContainer(object):
 
     def __getitem__(self, room_id):
         if room_id not in self._rooms:
-            self._rooms[room_id] = self.load_room(self._room_map[room_id])
+            room = self.load_room(self._room_map[room_id])
+            self._rooms[room_id] = room
             self._rooms[room_id].area = self._area
+            for actor in room.actors.values():
+                actor.kick()
         return self._rooms[room_id]
 
     def __setitem__(self, room_id, room):

@@ -52,7 +52,7 @@ class ControllerTest(unittest.TestCase):
         self.area.entry_point_room_id = "room1"
         self.area.server = Null()
         self.game.area_map['area1'] = 'area1'
-        self.game.start_areas.append('area1')
+        self.game.start_areas.append(('area1', 'area_first'))
         self.game._id = "game1"
         self.room = Room("room1")
         self.area.put_room(self.room, (0, 0))

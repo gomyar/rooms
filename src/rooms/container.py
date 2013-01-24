@@ -71,8 +71,18 @@ class Container(object):
     def save_game(self, game):
         return self._save_object(game, "games")
 
+    def _load_filter(self, collection, **fields):
+        enc_dict = self.dbase.filter_one(collection, **fields)
+        if enc_dict:
+            db_id = enc_dict.pop('_id')
+            obj = self._dict_to_obj(enc_dict)
+            obj._id = str(db_id)
+            return obj
+        else:
+            return None
+
     def load_area(self, area_id):
-        area = self._load_object(area_id, "areas")
+        area = self._load_filter("areas", area_id=area_id)
         area.rooms = RoomContainer(area, self)
         area.rooms._room_map = area._room_map
         return area
@@ -93,14 +103,7 @@ class Container(object):
         return self._save_object(player, "players")
 
     def load_player(self, username):
-        enc_dict = self.dbase.filter_one("players", username=username)
-        if enc_dict:
-            db_id = enc_dict.pop('_id')
-            obj = self._dict_to_obj(enc_dict)
-            obj._id = str(db_id)
-            return obj
-        else:
-            return None
+        return self._load_filter("players", username=username)
 
     def get_or_create_player(self, username):
         if self.dbase.object_exists("players", username=username):
@@ -292,7 +295,7 @@ class Container(object):
     # Area
     def _serialize_area(self, obj):
         return dict(
-            area_name = obj.area_name,
+            area_id = obj.area_id,
             owner_id = obj.owner_id,
             room_map = obj.rooms._room_map,
             entry_point_door_id = obj.entry_point_door_id,
@@ -300,7 +303,7 @@ class Container(object):
 
     def _create_area(self, data):
         area = Area()
-        area.area_name = data['area_name']
+        area.area_id = data['area_id']
         area._room_map = data['room_map']
         area.owner_id = data['owner_id']
         area.entry_point_door_id = data['entry_point_door_id']
@@ -402,7 +405,6 @@ class Container(object):
     # Game
     def _serialize_game(self, obj):
         data = dict(
-            area_map = obj.area_map,
             owner_id = obj.owner_id,
             start_areas = obj.start_areas,
             open_game = obj.open_game,
@@ -413,12 +415,11 @@ class Container(object):
 
     def _create_game(self, data):
         game = Game()
-        game.area_map = data['area_map']
         game.owner_id = data['owner_id']
         game.start_areas = data['start_areas']
         game.open_game = data['open_game']
         game.item_registry = data['item_registry']
-        area.player_script = data['player_script_class']
+        game.player_script = data['player_script_class']
         return game
 
 

@@ -14,7 +14,7 @@ from rooms.geography.astar import AStar
 
 class Area(object):
     def __init__(self):
-        self.area_name = None
+        self.area_id = None
         self.entry_point_door_id = None
         self.rooms = dict()
         self.owner_id = ""

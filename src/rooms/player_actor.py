@@ -4,6 +4,7 @@ import time
 
 from actor import Actor
 from roll_system import roll
+from rooms.null import Null
 
 import logging
 log = logging.getLogger("rooms.player")
@@ -13,16 +14,17 @@ class PlayerActor(Actor):
     def __init__(self, player, actor_id=None):
         super(PlayerActor, self).__init__(actor_id)
         self.player = player
+        self.server = Null()
 
     def __repr__(self):
         return "<PlayerActor %s:%s>" % (self.player.username, self.actor_id)
 
     def exit(self, door_id):
         super(PlayerActor, self).exit(door_id)
-        self.area.server.send_sync(self.actor_id)
+        self.server.send_sync(self.actor_id)
 
     def leave_game(self):
-        self.area.server.deregister(self.actor_id)
+        self.server.deregister(self.actor_id)
 
     def add_log(self, msg, *args):
         log_entry = { 'msg': msg % args, 'time': time.time() }
@@ -35,7 +37,7 @@ class PlayerActor(Actor):
         self.add_log(msg, *args)
 
     def send_update(self, update_id, **kwargs):
-        self.area.server.send_update(self.player.username, update_id, **kwargs)
+        self.server.send_update(self.player.username, update_id, **kwargs)
 
     def _update(self, update_id, **kwargs):
         self.send_update(update_id, **kwargs)

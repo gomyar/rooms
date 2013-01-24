@@ -67,14 +67,14 @@ class Node(object):
         self.container = Container(mongo_container,
             geogs[config.get("game", "geography")](),
         )
-        self.game = self.container.load_game(game_id)
+        self.game = self.container.load_game(config.get("game", "game_id"))
 
     def init_controller(self, options):
         ctype = config.get("game", "controller")
         master = controller_types["%s_master" % (ctype,)]
         client = controller_types["%s_client" % (ctype,)]
         mhost, mport = options.controller_address.split(':')
-        self.master = master(mhost, int(mport), self.container)
+        self.master = master(self, mhost, int(mport), self.container)
         self.master.init()
         host, port = options.controller_api.split(':')
         self.client = client(self, host, int(port), mhost, int(mport))
@@ -95,18 +95,14 @@ class Node(object):
         self.areas[area_id] = self.container.load_area(area_id)
         # kickoff maybe
 
-    def player_joins(self, area_name, player):
-        log.debug("Player joins: %s at %s", player, area_name)
-        self.register(player)
-
-
-    def register(self, player):
-        log.debug("Player registered: %s", player)
+    def player_joins(self, area_id, player):
+        log.debug("Player joins: %s at %s", player, area_id)
         player_id = player.username
         if player_id not in self.players:
             self.players[player_id] = dict(connected=False)
 
             actor = PlayerActor(player)
+            actor.server = self.server
             player.actor_id = actor.actor_id
             if self.game.player_script:
                 actor.load_script(self.game.player_script)
@@ -119,16 +115,13 @@ class Node(object):
 
             log.info("Player joined: %s", player_id)
         else:
-            log.debug("Player already registered")
+            log.debug("Player already here: %s", player_id)
 
     def deregister(self, player_id):
         log.debug("Deregistering %s", player_id)
         self.server.disconnect(player_id)
         self.players.pop(player_id)
         log.info("Player left: %s", player_id)
-
-
-
 
     def shutdown(self):
         if self.client:
@@ -140,7 +133,6 @@ class Node(object):
                 if player_id in room.actors:
                     return room.actors[player_id]
         return None
-
 
     def call(self, command, player_id, actor_id, kwargs):
         player = self.players[player_id]['player']
