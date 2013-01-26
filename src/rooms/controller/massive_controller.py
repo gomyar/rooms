@@ -39,8 +39,9 @@ class MasterController(object):
                 register_node=self.register_node,
                 deregister_node=self.deregister_node,
                 player_joins=self.player_joins,
+                player_connects=self.player_connects,
                 player_info=self.player_info,
-                node_info_for=self.node_info_for,
+                node_info=self.node_info,
             )
         )
 
@@ -61,6 +62,7 @@ class MasterController(object):
         return self.container.get_or_create_player(username, **state)
 
     def player_info(self, username):
+        ''' Player info straight from player object '''
         player = self._get_or_create_player(username=username)
         return dict(
             username=player.username,
@@ -76,36 +78,42 @@ class MasterController(object):
         return get_config("game", "game_id")
 
     def player_joins(self, username, area_id, room_id, **state):
+        ''' Player joins to an area running on a node '''
         log.debug("Player joins: %s", username)
         player = self.container.load_player(username=username)
         # need to double check if player already connected
         player.area_id = area_id
         player.room_id = room_id
         self.container.save_player(player)
-        node = self._lookup_node(player)
+        node = self._lookup_node(area_id)
         node.client.player_joins(area_id=player.area_id,
             username=username)
-        return dict(area_id=player.area_id, host=node.external_host,
-            port=node.external_port)
+        return dict(host=node.external_host, port=node.external_port)
 
-    def node_info_for(self, username):
+    def player_connects(self, username):
+        ''' A player, already in the game, connects, requesting node info '''
         player = self.container.load_player(username=username)
-        node = self._lookup_node(player)
-        return dict(area_id=player.area_id, host=node.external_host,
-            port=node.external_port)
+        # need to double check if player already connected
+        node = self._lookup_node(player.area_id)
+        node.client.player_joins(area_id=player.area_id,
+            username=username)
+        return dict(host=node.external_host, port=node.external_port)
 
-    def _lookup_node(self, player):
-        if player.area_id in self.areas:
-            area_info = self.areas[player.area_id]
+    def node_info(self, area_id):
+        node = self._lookup_node(area_id)
+        return dict(host=node.external_host, port=node.external_port)
+
+    def _lookup_node(self, area_id):
+        if area_id in self.areas:
+            area_info = self.areas[area_id]
             return self.nodes[area_info['node']]
         else:
             node = self._available_node()
-            node.client.manage_area(area_id=player.area_id,
-                username=player.username)
+            node.client.manage_area(area_id=area_id)
             area_info = dict(players=[],
                 node=(node.host, node.port),
-                area_id=player.area_id)
-            self.areas[player.area_id] = area_info
+                area_id=area_id)
+            self.areas[area_id] = area_info
             return node
 
     def game_info(self, game_id):
@@ -141,12 +149,10 @@ class ClientController(object):
     def start(self):
         self.wsgi_server.start()
 
-    def manage_area(self, area_id, username):
+    def manage_area(self, area_id):
         log.debug("Managing area: %s", area_id)
         self.node.manage_area(area_id)
-        self.node.player_joins(area_id,
-            self.node.container.load_player(username=username))
 
     def player_joins(self, area_id, username):
-        player = self.node.container.get_or_create_player(username=username)
+        player = self.node.container.load_player(username=username)
         return self.node.player_joins(area_id, player)
