@@ -58,12 +58,9 @@ class MasterController(object):
             if area_info['node'] == (host, port):
                 self.areas.pop(uid)
 
-    def _get_or_create_player(self, username, **state):
-        return self.container.get_or_create_player(username, **state)
-
     def player_info(self, username):
         ''' Player info straight from player object '''
-        player = self._get_or_create_player(username=username)
+        player = self.container.get_or_create_player(username)
         return dict(
             username=player.username,
             game_id=player.game_id,
@@ -82,6 +79,7 @@ class MasterController(object):
         log.debug("Player joins: %s", username)
         player = self.container.load_player(username=username)
         # need to double check if player already connected
+        player.state.update(state)
         player.area_id = area_id
         player.room_id = room_id
         self.container.save_player(player)
