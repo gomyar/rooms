@@ -2,21 +2,22 @@
 import gevent
 
 import logging
-log = logging.getLogger("rooms.areamanager")
+log = logging.getLogger("rooms.savemanager")
 
 
-class AreaManager(object):
-    def __init__(self, area, container):
-        self.area = area
+class SaveManager(object):
+    def __init__(self, node, container):
+        self.node = node
         self.container = container
         self.running = True
         self.gthread = None
 
     def run_save(self):
-        for room in self.area.rooms._rooms.values():
-            self.save_room(room)
-            if not room.player_actors():
-                self.icicle_room(room)
+        for area in self.node.areas.values():
+            for room in area.rooms.values():
+                self.save_room(room)
+                if not room.player_actors():
+                    area.rooms.pop(room.room_id)
 
     def save_room(self, room):
         log.debug("Saving room: %s", room)
@@ -27,15 +28,13 @@ class AreaManager(object):
             for player in players:
                 self.container.save_player(player.player)
 
-    def icicle_room(self, room):
-        self.area.rooms._rooms.pop(room.room_id)
-
     def shutdown(self):
         self.running = False
         self.gthread.join()
-        for room in self.area.rooms._rooms.values():
-            self.save_room(room)
-            self.icicle_room(room)
+        for area in self.node.areas.values():
+            for room in area.rooms.values():
+                self.save_room(room)
+                area.rooms.pop(room.room_id)
 
     def run_manager(self):
         while self.running:

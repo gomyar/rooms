@@ -1,7 +1,7 @@
 
 import unittest
 
-from rooms.area_manager import AreaManager
+from rooms.save_manager import SaveManager
 from rooms.area import Area
 from rooms.room import Room
 from rooms.player_actor import PlayerActor
@@ -23,24 +23,29 @@ class MockContainer(object):
     def save_player(self, player):
         self.saved.append(player)
 
+class MockNode(object):
+    def __init__(self):
+        self.areas = dict()
 
-class AreaManagerTest(unittest.TestCase):
+
+class SaveManagerTest(unittest.TestCase):
     def setUp(self):
+        self.node = MockNode()
         self.area = Area()
         self.area.server = Null()
-        self.area.rooms = RoomContainer(self.area, Null())
         self.room1 = Room("room1")
         self.area.rooms['room1'] = self.room1
         self.room1.area = self.area
+        self.node.areas[self.area.area_id] = self.area
 
         self.container = MockContainer()
-        self.serializer = AreaManager(self.area, self.container)
+        self.manager = SaveManager(self.node, self.container)
 
     def testSaveAllRoomsNoPlayers(self):
-        self.serializer.run_save()
+        self.manager.run_save()
 
         self.assertEquals([self.room1], self.container.saved)
-        self.assertEquals([], self.area.rooms._rooms.values())
+        self.assertEquals([], self.area.rooms.values())
 
 
     def testSaveAllRoomsOnePlayers(self):
@@ -48,17 +53,17 @@ class AreaManagerTest(unittest.TestCase):
         player_actor = PlayerActor(player)
         self.room1.put_actor(player_actor)
 
-        self.serializer.run_save()
+        self.manager.run_save()
 
         self.assertEquals([self.room1, player], self.container.saved)
-        self.assertEquals([self.room1], self.area.rooms._rooms.values())
+        self.assertEquals([self.room1], self.area.rooms.values())
 
     def testSaveWithPlayer(self):
         player = Player("bob")
         player_actor = PlayerActor(player)
         self.room1.put_actor(player_actor)
 
-        self.serializer.run_save()
+        self.manager.run_save()
 
         self.assertEquals([self.room1, player], self.container.saved)
 
@@ -75,9 +80,9 @@ class AreaManagerTest(unittest.TestCase):
         player_actor2 = PlayerActor(player2)
         self.room2.put_actor(player_actor2)
 
-        self.serializer.start()
-        self.serializer.shutdown()
+        self.manager.start()
+        self.manager.shutdown()
 
         self.assertEquals(set([self.room1, player, self.room2, player2]),
             set(self.container.saved))
-        self.assertEquals([], self.area.rooms._rooms.values())
+        self.assertEquals([], self.area.rooms.values())

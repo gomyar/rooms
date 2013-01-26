@@ -14,6 +14,7 @@ from controller import massive_controller
 from rooms.mongo.mongo_container import MongoContainer
 from rooms.container import Container
 from rooms.player_actor import PlayerActor
+from rooms.null import Null
 
 from geography.pointmap_geography import PointmapGeography
 from geography.linearopen_geography import LinearOpenGeography
@@ -52,7 +53,7 @@ class Node(object):
         self.container = None
         self.client = None
         self.game = None
-        self.server = None
+        self.server = Null()
 
         self.players = dict()
         self.areas = dict()

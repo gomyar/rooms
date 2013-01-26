@@ -15,6 +15,12 @@ class RoomContainer(object):
     def save_room(self, room_id, room):
         return self._container.save_room(room)
 
+    def values(self):
+        return self._rooms.values()
+
+    def pop(self, room_id):
+        self._rooms.pop(room_id)
+
     def __iter__(self):
         for room_id in self._rooms:
             yield room_id
