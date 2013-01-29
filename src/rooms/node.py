@@ -14,6 +14,7 @@ from controller import massive_controller
 from rooms.mongo.mongo_container import MongoContainer
 from rooms.container import Container
 from rooms.player_actor import PlayerActor
+from rooms.save_manager import SaveManager
 from rooms.null import Null
 
 from geography.pointmap_geography import PointmapGeography
@@ -58,6 +59,8 @@ class Node(object):
         self.players = dict()
         self.areas = dict()
 
+        self.save_manager = None
+
     def load_game(self, dbhost, dbport):
         config.read(os.path.join(self.game_root, "game.conf"))
 
@@ -69,6 +72,7 @@ class Node(object):
             geogs[config.get("game", "geography")](),
         )
         self.game = self.container.load_game(config.get("game", "game_id"))
+        self.save_manager = SaveManager(self, self.container)
 
     def init_controller(self, options):
         ctype = config.get("game", "controller")
@@ -86,7 +90,7 @@ class Node(object):
         self.master.start()
         self.client.start()
 
-#        self.area_manager.start()
+        self.save_manager.start()
 
     def start(self):
         self.server = WSGIServer(self.host, self.port, self)
@@ -99,12 +103,14 @@ class Node(object):
     def player_joins(self, area_id, player):
         log.debug("Player joins: %s at %s", player, area_id)
         player_id = player.username
-        if player_id not in self.players:
+        player_actor = self.areas[area_id].rooms[player.room_id].actors.get(player.actor_id)
+        if player_id not in self.players and not player_actor:
             self.players[player_id] = dict(connected=False)
 
             actor = PlayerActor(player)
             actor.server = self.server
             player.actor_id = actor.actor_id
+            self.container.save_player(player)
             if self.game.player_script:
                 actor.load_script(self.game.player_script)
             self.players[player_id]['player'] = actor
@@ -115,6 +121,11 @@ class Node(object):
             actor.kick()
 
             log.info("Player joined: %s", player_id)
+        elif player_actor:
+            player_actor.server = self.server
+            self.players[player_id] = dict(connected=False)
+            self.players[player_id]['player'] = player_actor
+            log.debug("Player already in room: %s", player_id)
         else:
             log.debug("Player already here: %s", player_id)
 
@@ -127,6 +138,7 @@ class Node(object):
     def shutdown(self):
         if self.client:
             self.client.deregister_from_master()
+        self.save_manager.shutdown()
 
     def find(self, player_id):
         for area in self.area.values():

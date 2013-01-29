@@ -74,3 +74,10 @@ class Area(object):
             room2_position)
         door2.opens_direction = infer_direction(room2_position,
             room1_position)
+
+    def _find_player(self, player_id):
+        for room in self.rooms.values():
+            for actor in room.actors.values():
+                if actor.actor_id == player_id:
+                    return actor
+        return None

@@ -23,6 +23,9 @@ class MockContainer(object):
     def save_player(self, player):
         self.saved.append(player)
 
+    def save_area(self, area):
+        self.saved.append(area)
+
 class MockNode(object):
     def __init__(self):
         self.areas = dict()
@@ -83,6 +86,7 @@ class SaveManagerTest(unittest.TestCase):
         self.manager.start()
         self.manager.shutdown()
 
-        self.assertEquals(set([self.room1, player, self.room2, player2]),
+        self.assertEquals(set([self.room1, player, self.room2, player2,
+            self.area]),
             set(self.container.saved))
         self.assertEquals([], self.area.rooms.values())

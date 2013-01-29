@@ -18,6 +18,9 @@ class SaveManager(object):
                 self.save_room(room)
                 if not room.player_actors():
                     area.rooms.pop(room.room_id)
+                gevent.sleep(0.1)
+            gevent.sleep(0.1)
+        gevent.sleep(0.1)
 
     def save_room(self, room):
         log.debug("Saving room: %s", room)
@@ -42,3 +45,21 @@ class SaveManager(object):
 
     def start(self):
         self.gthread = gevent.spawn(self.run_manager)
+
+    def _killall_actors(self):
+        for area in self.node.areas.values():
+            for room in area.rooms.values():
+                for actor in room.actors.values():
+                    actor.kill_gthread()
+
+    def shutdown(self):
+        log.debug("Shutting down save manager")
+        self.running = False
+        self.gthread.join()
+        self._killall_actors()
+        for area in self.node.areas.values():
+            for room in area.rooms.values():
+                self.save_room(room)
+                area.rooms.pop(room.room_id)
+            self.container.save_area(area)
+        log.debug("Save manager shut down")
