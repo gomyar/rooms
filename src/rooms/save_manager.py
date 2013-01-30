@@ -23,7 +23,6 @@ class SaveManager(object):
         gevent.sleep(0.1)
 
     def save_room(self, room):
-        log.debug("Saving room: %s", room)
         self.container.save_room(room)
 
         players = room.player_actors()

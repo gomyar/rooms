@@ -112,6 +112,7 @@ class Node(object):
 
     def manage_area(self, area_id):
         self.areas[area_id] = self.container.load_area(area_id)
+        self.areas[area_id].game = self.game
         # kickoff maybe
 
     def player_joins(self, area_id, player):
@@ -124,6 +125,7 @@ class Node(object):
             actor = PlayerActor(player)
             actor.server = self.server
             player.actor_id = actor.actor_id
+            actor.name = player.username
             self.container.save_player(player)
             if self.game.player_script:
                 actor.load_script(self.game.player_script)

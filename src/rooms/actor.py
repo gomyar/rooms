@@ -43,6 +43,7 @@ class State(dict):
 class Actor(object):
     def __init__(self, actor_id=None):
         self.actor_id = actor_id or str(uuid.uuid1())
+        self.name = ""
         self.actor_type = None
         self.path = Path()
         self.speed = 1.0
@@ -85,7 +86,7 @@ class Actor(object):
 
     @property
     def game(self):
-        return self.area.node.game
+        return self.area.game
 
     @property
     def area(self):
@@ -191,7 +192,7 @@ class Actor(object):
         pass
 
     def external(self):
-        return dict(actor_id=self.actor_id,
+        return dict(actor_id=self.actor_id, name=self.name,
             actor_type=self.actor_type or type(self).__name__,
             path=self.path.path, speed=self.speed, health=self.health,
             model_type=self.model_type, circle_id=self.circles.circle_id)

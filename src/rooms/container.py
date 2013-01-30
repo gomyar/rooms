@@ -176,6 +176,7 @@ class Container(object):
     def _serialize_actor(self, obj):
         return dict(
             actor_id = obj.actor_id,
+            name = obj.name,
             actor_type = obj.actor_type,
             path = obj.path,
             speed = obj.speed,
@@ -193,6 +194,7 @@ class Container(object):
 
     def _deserialize_actor(self, actor, data):
         actor.actor_id = data['actor_id']
+        actor.name = data['name']
         actor.actor_type = data['actor_type']
         actor.path = data['path']
         actor.speed = data['speed']
