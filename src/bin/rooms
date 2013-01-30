@@ -40,6 +40,9 @@ if __name__ == "__main__":
         parser.add_option("-b", "--backdoor", dest="backdoor",
                 action="store_true", help="Open backdoor socket")
 
+        parser.add_option("-j", "--join", dest="join",
+            action="store_true", help="Join a cluster")
+
         (options, args) = parser.parse_args()
         if os.path.exists("logging.conf"):
             logging.config.fileConfig("logging.conf")
@@ -49,7 +52,10 @@ if __name__ == "__main__":
 
         node = Node(options.game, host, int(port))
         node.load_game(dbhost, int(dbport))
-        node.init_controller(options)
+        if options.join:
+            node.join_cluster(options)
+        else:
+            node.init_controller(options)
 
         if options.backdoor:
             server = gevent.backdoor.BackdoorServer(('127.0.0.1', 3000),

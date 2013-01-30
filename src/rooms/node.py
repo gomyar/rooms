@@ -92,6 +92,20 @@ class Node(object):
 
         self.save_manager.start()
 
+    def join_cluster(self, options):
+        ctype = config.get("game", "controller")
+        client = controller_types["%s_client" % (ctype,)]
+        mhost, mport = options.controller_address.split(':')
+        host, port = options.controller_api.split(':')
+        self.client = client(self, host, int(port), mhost, int(mport))
+        self.client.init()
+
+        self.client.register_with_master()
+
+        self.client.start()
+
+        self.save_manager.start()
+
     def start(self):
         self.server = WSGIServer(self.host, self.port, self)
         self.server.serve_forever()
