@@ -59,11 +59,8 @@ class MasterController(object):
             if area['node'] == (host, port):
                 self.areas.pop(uid)
 
-    def _get_or_create_player(self, player_id):
-        return self.container.get_or_create_player(player_id)
-
-    def player_info(self, player_id):
-        player = self._get_or_create_player(player_id)
+    def player_info(self, username):
+        player = self.container.get_or_create_player(username)
         return dict(
             username=player.username,
             game_id=player.game_id,
@@ -74,9 +71,9 @@ class MasterController(object):
     def _create_game(self):
         return self.create_script.call_method("create_game", self)
 
-    def create_game(self, player_id):
+    def create_game(self, username):
         # run create script
-        player = self._get_or_create_player(player_id)
+        player = self.container.load_player(username)
         game = self._create_game()
         area_id, area_name = game.start_areas[0]
         # tell node to manage area

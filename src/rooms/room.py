@@ -206,10 +206,11 @@ class Room(object):
             heard.actor_heard(actor, msg)
 
     def create_actor(self, actor_type, actor_script, position=None,
-            actor_id=None, **state):
+            actor_id=None, name="", **state):
         actor = Actor(actor_id)
         actor.actor_type = actor_type
         actor.model_type = actor_type
+        actor.name = name
         actor.state.update(state)
         self.put_actor(actor, position)
         actor.load_script(actor_script)
@@ -221,3 +222,6 @@ class Room(object):
     def player_actors(self):
         return [actor for actor in self.actors.values() if \
             issubclass(actor.__class__, PlayerActor)]
+
+    def find_actors(self, name=None):
+        return [actor for actor in self.actors.values() if actor.name == name]

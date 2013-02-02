@@ -68,12 +68,6 @@ class MasterController(object):
             actor_id=player.actor_id,
         )
 
-    def _get_managed_node(self, player):
-        return node
-
-    def _game_id(self):
-        return get_config("game", "game_id")
-
     def player_joins(self, username, area_id, room_id, **state):
         ''' Player joins to an area running on a node '''
         log.debug("Player joins: %s", username)

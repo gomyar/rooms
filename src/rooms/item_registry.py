@@ -11,4 +11,4 @@ class ItemRegistry(object):
 
     def items(self, category=""):
         return [item for item in self._items.values() if \
-            item.category == category]
+            (not category or item.category == category)]

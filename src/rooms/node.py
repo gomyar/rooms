@@ -16,6 +16,7 @@ from rooms.container import Container
 from rooms.player_actor import PlayerActor
 from rooms.save_manager import SaveManager
 from rooms.null import Null
+from rooms.inventory import set_registry
 
 from geography.pointmap_geography import PointmapGeography
 from geography.linearopen_geography import LinearOpenGeography
@@ -73,6 +74,8 @@ class Node(object):
         )
         self.game = self.container.load_game(config.get("game", "game_id"))
         self.save_manager = SaveManager(self, self.container)
+        set_registry(self.game.item_registry)
+
 
     def init_controller(self, options):
         ctype = config.get("game", "controller")

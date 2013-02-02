@@ -1,23 +1,17 @@
 
-
-class ItemRegistry(object):
-    def __init__(self):
-        self._registered = dict()
-
-    def lookup(self, item_type):
-        return self._registered[item_type]
-
-    def add_item(self, item):
-        self._registered[item.item_type] = item
-
+from rooms.item_registry import ItemRegistry
 
 _registry = ItemRegistry()
+
+def set_registry(registry):
+    global _registry
+    _registry = registry
 
 def register_item(item):
     _registry.add_item(item)
 
 def lookup(item_type):
-    return _registry.lookup(item_type)
+    return _registry.get_item(item_type)
 
 
 class Item(dict):
