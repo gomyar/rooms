@@ -182,8 +182,9 @@ class Node(object):
     def kill_player(self, player_actor):
         actor_id = player_actor.actor_id
         player = player_actor.player
-        player.room_id = "system"
+        player.room_id = None
         player.actor_id = None
-        self.node.container.save_player(player)
-        self.server.send_update(actor_id, 'kill')
-        self.deregister(actor_id)
+        player.area_id = None
+        self.container.save_player(player)
+        self.server.send_update(player.username, 'kill')
+        self.deregister(player.username)

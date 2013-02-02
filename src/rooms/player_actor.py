@@ -48,5 +48,5 @@ class PlayerActor(Actor):
         self.send_update("actor_heard", actor_id=actor.actor_id, msg=message)
 
     def kill(self):
-        self.instance.kill_player(self)
+        self.server.node.kill_player(self)
         super(PlayerActor, self).kill()
