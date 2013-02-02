@@ -223,8 +223,8 @@ class Room(object):
         return [actor for actor in self.actors.values() if \
             issubclass(actor.__class__, PlayerActor)]
 
-    def find_actors(self, name=None):
-        return [actor for actor in self.actors.values() if actor.name == name]
+    def find_actors(self, name=None, actor_type=None):
+        return [actor for actor in self.actors.values() if actor.name == name and (not actor_type or actor_type==a1.actor_type)]
 
     def find_enemies(self, actor, actor_type=None):
         return [a1 for a1 in self.actors.values() if \
