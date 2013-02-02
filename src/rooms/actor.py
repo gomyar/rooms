@@ -311,7 +311,6 @@ class Actor(object):
             self.following = actor
             self.following_range = irange
             end_time = self.path.path[1][2]
-            log.info("Sleeping for %s", end_time - get_now())
             self.sleep(end_time - get_now())
 
     def wait_for_path(self):
@@ -364,7 +363,6 @@ class Actor(object):
         self.sleep(seconds)
 
     def sleep(self, seconds):
-        log.debug("%s sleeping for %s", self, seconds)
         gevent.sleep(max(0, seconds))
 
     def exit(self, door_id):

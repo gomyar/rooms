@@ -225,3 +225,20 @@ class Room(object):
 
     def find_actors(self, name=None):
         return [actor for actor in self.actors.values() if actor.name == name]
+
+    def find_enemies(self, actor, actor_type=None):
+        return [a1 for a1 in self.actors.values() if \
+            actor.circles.is_enemy(a1) and (not actor_type or actor_type==a1.actor_type)]
+
+    def find_enemies_in_range(self, actor, distance, actor_type=None):
+        return [a1 for a1 in self.actors.values() if \
+            actor.circles.is_enemy(a1) and actor.distance_to(a1) <= distance and (not actor_type or actor_type==a1.actor_type)]
+
+    def find_allies(self, actor, actor_type=None):
+        return [a1 for a1 in self.actors.values() if \
+            actor.circles.is_allied(a1) and actor != a1 and (not actor_type or actor_type==a1.actor_type)]
+
+    def find_allies_in_range(self, actor, distance, actor_type=None):
+        return [a1 for a1 in self.actors.values() if \
+            actor.circles.is_allied(a1) and actor != a1 and \
+            actor.distance_to(a1) <= distance and (not actor_type or actor_type==a1.actor_type)]

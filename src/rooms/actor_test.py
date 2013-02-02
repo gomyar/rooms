@@ -31,6 +31,7 @@ class ActorTest(unittest.TestCase):
         self.room = Room()
         self.actor = Actor("actor1")
         self.actor.sleep = lambda s: None
+        self.actor.circles.circle_id = "alliance1"
         self.mock_actor = Actor("mock")
         self.room.put_actor(self.actor, (10, 10))
         rooms.waypoint.get_now = self._mock_get_now
@@ -171,3 +172,39 @@ class ActorTest(unittest.TestCase):
 
         self.assertEquals([(500, 500, 0.0), (300, 300, 282.842712474619)],
             self.actor.path.path)
+
+    def testFindAllies(self):
+        self.actor2 = Actor("actor2")
+        self.room.put_actor(self.actor2, (100, 100))
+        self.actor2.circles.circle_id = "alliance1"
+
+        self.actor3 = Actor("actor3")
+        self.room.put_actor(self.actor3, (500, 500))
+        self.actor3.circles.circle_id = "alliance2"
+
+        self.actor4 = Actor("actor4")
+        self.room.put_actor(self.actor4, (500, 500))
+        self.actor4.circles.circle_id = "alliance2"
+        self.actor4.actor_type = "test"
+
+        self.actor.circles.circles['alliance2'] = -1
+
+        self.assertTrue(self.actor.circles.is_enemy(self.actor3))
+        self.assertEquals(set([self.actor3, self.actor4]),
+            set(self.room.find_enemies(self.actor)))
+        self.assertEquals([self.actor2], self.room.find_allies(self.actor))
+
+        self.assertEquals(set([self.actor3, self.actor4]),
+            set(self.room.find_enemies_in_range(self.actor, 700)))
+        self.assertEquals([], self.room.find_enemies_in_range(
+            self.actor, 70))
+
+        self.assertEquals([self.actor2], self.room.find_allies_in_range(
+            self.actor, 700))
+        self.assertEquals([], self.room.find_allies_in_range(
+            self.actor, 70))
+
+        self.assertEquals([], self.room.find_allies_in_range(
+            self.actor, 700, actor_type="test"))
+        self.assertEquals([self.actor4], self.room.find_enemies_in_range(
+            self.actor, 700, actor_type="test"))

@@ -15,6 +15,7 @@ class PlayerActor(Actor):
         super(PlayerActor, self).__init__(actor_id)
         self.player = player
         self.server = Null()
+        self.actor_type = "player"
 
     def __repr__(self):
         return "<PlayerActor %s:%s>" % (self.player.username, self.actor_id)
