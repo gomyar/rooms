@@ -172,10 +172,14 @@ class Node(object):
         if player == actor:
             if command == "exposed_commands":
                 return actor.exposed_commands()
+            if command == "api":
+                return actor.api()
             value = actor.command_call(command, **kwargs)
         else:
             if command == "exposed_methods":
                 return actor.exposed_methods(player)
+            if command == "api":
+                return actor.api()
             value = actor.interface_call(command, player, **kwargs)
         return value
 

@@ -1,4 +1,6 @@
 
+import inspect
+
 import logging
 log = logging.getLogger("rooms.node")
 
@@ -32,7 +34,7 @@ class Script(object):
 
     @property
     def methods(self):
-        return [m for m in dir(self.script_module) if \
+        return [self._describe(m) for m in dir(self.script_module) if \
             getattr(getattr(self.script_module, m), "is_exposed", None)]
 
     @property
@@ -41,8 +43,20 @@ class Script(object):
 
     @property
     def commands(self):
-        return [m for m in dir(self.script_module) if \
+        return [self._describe(m) for m in dir(self.script_module) if \
             getattr(self.get_method(m), "is_command", None)]
+
+    def api(self):
+        return dict(
+            commands = [self._describe(m) for m in dir(self.script_module) if \
+                getattr(self.get_method(m), "is_command", None)],
+            requests = [self._describe(m) for m in dir(self.script_module) if \
+                getattr(self.get_method(m), "is_request", None)],
+        )
+
+    def _describe(self, method_name):
+        method = getattr(self.script_module, method_name)
+        return {'name': method_name, 'args': method.args}
 
     def has_method(self, method):
         return hasattr(self.script_module, method)

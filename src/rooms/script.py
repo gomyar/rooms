@@ -1,5 +1,6 @@
 
 from functools import wraps
+import inspect
 
 from rooms.chat import chat as create_chat
 from rooms.chat import choice as c
@@ -24,6 +25,7 @@ def expose(func=None, **filters):
         return func(*args, **kwargs)
     wrapped.is_exposed = True
     wrapped.filters = filters
+    wrapped.args = inspect.getargspec(func).args
     return wrapped
 
 
@@ -37,6 +39,7 @@ def command(func=None, **filters):
         return func(*args, **kwargs)
     wrapped.is_command = True
     wrapped.filters = filters
+    wrapped.args = inspect.getargspec(func).args
     return wrapped
 
 
@@ -48,9 +51,9 @@ def request(func=None, **filters):
     @wraps(func)
     def wrapped(*args, **kwargs):
         return func(*args, **kwargs)
-    wrapped.is_command = True
     wrapped.is_request = True
     wrapped.filters = filters
+    wrapped.args = inspect.getargspec(func).args
     return wrapped
 
 

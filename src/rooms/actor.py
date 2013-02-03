@@ -274,11 +274,14 @@ class Actor(object):
         return self.script.commands if self.script else []
 
     def exposed_methods(self, actor):
-        return [dict(name=method) for method in \
+        return [method for method in \
             self._all_exposed_methods(actor)]
 
     def exposed_commands(self):
-        return [dict(name=command) for command in self._all_exposed_commands()]
+        return [command for command in self._all_exposed_commands()]
+
+    def api(self):
+        return self.script.api() if self.script else dict()
 
     def add_log(self, msg, *args):
         pass
