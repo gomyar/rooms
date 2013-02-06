@@ -32,7 +32,7 @@ class ScriptTest(unittest.TestCase):
         self.assertEquals(['first_command', 'second_command'],
             self.script.commands)
 
-        self.actor.command_call('first_command', "value1")
+        self.actor.call_command('first_command', "value1")
 
         self.assertEquals(("first_command", [self.actor, "value1"], {}),
             self.actor.method_call)
@@ -44,7 +44,7 @@ class ScriptTest(unittest.TestCase):
     def testFirstMethod(self):
         self.assertEquals(['first_method'], self.script.methods)
 
-        self.actor.interface_call('first_method', self.actor2, "value1")
+        self.actor.call_exposed('first_method', self.actor2, "value1")
         self.actor._process_queue_item()
 
         self.assertEquals("value1", self.actor.state.param1)

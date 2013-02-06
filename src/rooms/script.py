@@ -23,7 +23,21 @@ def expose(func=None, **filters):
     @wraps(func)
     def wrapped(*args, **kwargs):
         return func(*args, **kwargs)
-    wrapped.is_exposed = True
+    wrapped.is_exposed_command = True
+    wrapped.filters = filters
+    wrapped.args = inspect.getargspec(func).args
+    return wrapped
+
+
+def expose_request(func=None, **filters):
+    if func==None:
+        def inner(func):
+            return expose(func, **filters)
+        return inner
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        return func(*args, **kwargs)
+    wrapped.is_exposed_request = True
     wrapped.filters = filters
     wrapped.args = inspect.getargspec(func).args
     return wrapped

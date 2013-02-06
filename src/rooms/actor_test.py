@@ -67,11 +67,11 @@ class ActorTest(unittest.TestCase):
         self.actor.load_script("rooms.actor_test")
         self.mock_actor.load_script("rooms.actor_test")
 
-        self.mock_actor.interface_call("mock_you", self.actor)
+        self.mock_actor.call_exposed("mock_you", self.actor)
         self.mock_actor._process_queue_item()
         self.assertEquals("Called with actor mock", self.mock_actor._test_value)
 
-        self.actor.command_call("scripty_cally", "1", "2")
+        self.actor.call_command("scripty_cally", "1", "2")
 
         self.assertEquals(("scripty_cally", [self.actor, '1', '2'], {}),
             self.actor.method_call)

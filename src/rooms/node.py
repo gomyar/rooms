@@ -170,17 +170,13 @@ class Node(object):
         player = self.players[player_id]['player']
         actor = player.room.actors[actor_id]
         if player == actor:
-            if command == "exposed_commands":
-                return actor.exposed_commands()
             if command == "api":
                 return actor.api()
-            value = actor.command_call(command, **kwargs)
+            value = actor.call_command(command, **kwargs)
         else:
-            if command == "exposed_methods":
-                return actor.exposed_methods(player)
             if command == "api":
-                return actor.api()
-            value = actor.interface_call(command, player, **kwargs)
+                return actor.exposed_api()
+            value = actor.call_exposed(command, player, **kwargs)
         return value
 
     def kill_player(self, player_actor):

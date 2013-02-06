@@ -33,15 +33,13 @@ class Script(object):
             log.exception("Script %s is corrupt - cannot load", script_name)
 
     @property
+    def script_module(self):
+        return _scripts[self.script_name]
+
     def methods(self):
         return [self._describe(m) for m in dir(self.script_module) if \
             getattr(getattr(self.script_module, m), "is_exposed", None)]
 
-    @property
-    def script_module(self):
-        return _scripts[self.script_name]
-
-    @property
     def commands(self):
         return [self._describe(m) for m in dir(self.script_module) if \
             getattr(self.get_method(m), "is_command", None)]
@@ -54,6 +52,14 @@ class Script(object):
                 getattr(self.get_method(m), "is_request", None)],
         )
 
+    def exposed_api(self):
+        return dict(
+            commands = [self._describe(m) for m in dir(self.script_module) if \
+                getattr(self.get_method(m), "is_exposed_command", None)],
+            requests = [self._describe(m) for m in dir(self.script_module) if \
+                getattr(self.get_method(m), "is_exposed_request", None)],
+        )
+
     def _describe(self, method_name):
         method = getattr(self.script_module, method_name)
         return {'name': method_name, 'args': method.args}
@@ -63,6 +69,9 @@ class Script(object):
 
     def is_request(self, method):
         return getattr(self.get_method(method), "is_request", False)
+
+    def is_exposed_request(self, method):
+        return getattr(self.get_method(method), "is_exposed_request", False)
 
     def call_method(self, method, actor, *args, **kwargs):
         return self.get_method(method)(actor, *args, **kwargs)

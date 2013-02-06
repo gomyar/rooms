@@ -105,14 +105,14 @@ class Actor(object):
             log.debug("Calling kick on %s", self)
             self._queue_script_method("kickoff", self, [], {})
 
-    def interface_call(self, method_name, player, *args, **kwargs):
+    def call_exposed(self, method_name, player, *args, **kwargs):
         return self.script_call(method_name, *([player] + list(args)), **kwargs)
 
-    def command_call(self, method_name, *args, **kwargs):
+    def call_command(self, method_name, *args, **kwargs):
         return self.script_call(method_name, *args, **kwargs)
 
     def script_call(self, method_name, *args, **kwargs):
-        if self._is_request(method_name):
+        if self._is_request(method_name) or self._is_exposed_request(method_name):
             return self._call_script_method(method_name, self, args,
                 kwargs)
         else:
@@ -265,6 +265,9 @@ class Actor(object):
     def _is_request(self, method_name):
         return bool(self.script and self.script.is_request(method_name))
 
+    def _is_exposed_request(self, method_name):
+        return bool(self.script and self.script.is_exposed_request(method_name))
+
     def _all_exposed_methods(self, actor):
         if self == actor:
             return self._all_exposed_commands()
@@ -278,10 +281,14 @@ class Actor(object):
             self._all_exposed_methods(actor)]
 
     def exposed_commands(self):
-        return [command for command in self._all_exposed_commands()]
+        return [command for command in self.script.commands] if \
+            self.script else []
 
     def api(self):
         return self.script.api() if self.script else dict()
+
+    def exposed_api(self):
+        return self.script.exposed_api() if self.script else dict()
 
     def add_log(self, msg, *args):
         pass
