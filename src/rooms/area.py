@@ -65,10 +65,12 @@ class Area(object):
             room1_position[1])
         door2_id = "door_%s_%s_%s" % (room1.room_id, room2_position[0],
             room2_position[1])
-        door1 = Door(door1_id, room1_position, room2, door2_id)
-        door2 = Door(door2_id, room2_position, room1, door1_id)
-        room1.actors[door1_id] = door1
-        room2.actors[door2_id] = door2
+        door1 = Door(door1_id, room1_position, room2, None)
+        door2 = Door(door2_id, room2_position, room1, None)
+        door2.exit_door_id = door1.actor_id
+        door1.exit_door_id = door2.actor_id
+        room1.actors[door1.actor_id] = door1
+        room2.actors[door2.actor_id] = door2
         door1.room = room1
         door2.room = room2
         door1.opens_direction = infer_direction(room1_position,

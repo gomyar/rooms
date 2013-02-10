@@ -317,6 +317,7 @@ class Container(object):
         data.update(dict(
             exit_room_id=obj.exit_room_id,
             exit_door_id=obj.exit_door_id,
+            exit_room_description=obj.exit_room_description,
             position=(obj.x(), obj.y()),
             opens_direction=obj.opens_direction,
         ))
@@ -327,6 +328,7 @@ class Container(object):
         self._deserialize_actor(door, data)
         door.exit_room_id = data['exit_room_id']
         door.exit_door_id = data['exit_door_id']
+        door.exit_room_description = data['exit_room_description']
         door.set_position(data['position'])
         door.opens_direction = data['opens_direction']
         return door

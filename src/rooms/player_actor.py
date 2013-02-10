@@ -22,7 +22,8 @@ class PlayerActor(Actor):
 
     def exit(self, door_id):
         super(PlayerActor, self).exit(door_id)
-        self.server.send_sync(self.actor_id)
+        self.player.room_id = self.room.room_id
+        self.server.send_sync(self.player.username)
 
     def leave_game(self):
         self.server.deregister(self.actor_id)

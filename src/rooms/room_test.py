@@ -36,6 +36,26 @@ class RoomTest(unittest.TestCase):
 
         self.actor.move_to_room("room2")
 
+        self.assertEquals("room2", self.actor.room.room_id)
+        self.assertTrue(self.actor.actor_id in self.room2.actors)
+        self.assertEquals([(10, 0), (10, 0)], self.actor.path.basic_path_list())
+        self.assertEquals(70.71, round(self._mock_slept_for, 2))
+
+    def testActorWithDockedExitsThroughDoor(self):
+        self.actor = Actor("actor1")
+        self.actor.sleep = self._mock_sleep
+
+        self.room1.put_actor(self.actor)
+
+        self.child1 = Actor("child1")
+        self.room1.put_actor(self.child1)
+        self.actor.dock(self.child1)
+
+        self.actor.move_to_room("room2")
+
+        self.assertEquals("room2", self.actor.room.room_id)
+        self.assertEquals("room2", self.child1.room.room_id)
+        self.assertTrue(self.actor.actor_id in self.room2.actors)
         self.assertEquals([(10, 0), (10, 0)], self.actor.path.basic_path_list())
         self.assertEquals(70.71, round(self._mock_slept_for, 2))
 
@@ -46,3 +66,6 @@ class RoomTest(unittest.TestCase):
         self.assertEquals("itemactor", actor.actor_type)
         self.assertEquals("itemactor", actor.model_type)
         self.assertEquals("rooms.actor_test", actor.script.script_name)
+
+    def testQueryActors(self):
+        pass

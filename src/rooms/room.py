@@ -103,7 +103,7 @@ class Room(object):
 
     def external(self):
         return dict(room_id=self.room_id, position=self.position,
-            width=self.width, height=self.height,
+            width=self.width, height=self.height, description=self.description,
             map_objects=dict([(obj_id, m.external()) for (obj_id, m) in \
                 self.map_objects.items()]),
         )
@@ -159,8 +159,13 @@ class Room(object):
     def exit_through_door(self, actor, door_id):
         door = self.actors[door_id]
         self.remove_actor(actor)
+        exit_door = door.exit_room.actors[door.exit_door_id]
         door.exit_room.put_actor(actor,
-            door.exit_room.actors[door.exit_door_id].position())
+            exit_door.position())
+        for child in actor.docked.values():
+            self.remove_actor(child)
+            door.exit_room.put_actor(child,
+                exit_door.position())
         actor.add_log("You entered %s", door.exit_room.description)
 
     def all_doors(self):
@@ -223,22 +228,21 @@ class Room(object):
         return [actor for actor in self.actors.values() if \
             issubclass(actor.__class__, PlayerActor)]
 
-    def find_actors(self, name=None, actor_type=None):
-        return [actor for actor in self.actors.values() if actor.name == name and (not actor_type or actor_type==a1.actor_type)]
+    def _iter_actors(self):
+        for actor in self.actors.values():
+            yield actor
 
-    def find_enemies(self, actor, actor_type=None):
-        return [a1 for a1 in self.actors.values() if \
-            actor.circles.is_enemy(a1) and (not actor_type or actor_type==a1.actor_type)]
-
-    def find_enemies_in_range(self, actor, distance, actor_type=None):
-        return [a1 for a1 in self.actors.values() if \
-            actor.circles.is_enemy(a1) and actor.distance_to(a1) <= distance and (not actor_type or actor_type==a1.actor_type)]
-
-    def find_allies(self, actor, actor_type=None):
-        return [a1 for a1 in self.actors.values() if \
-            actor.circles.is_allied(a1) and actor != a1 and (not actor_type or actor_type==a1.actor_type)]
-
-    def find_allies_in_range(self, actor, distance, actor_type=None):
-        return [a1 for a1 in self.actors.values() if \
-            actor.circles.is_allied(a1) and actor != a1 and \
-            actor.distance_to(a1) <= distance and (not actor_type or actor_type==a1.actor_type)]
+    def find_actors(self, actor, visible=True, ally=None, enemy=None, name=None,
+            neutral=None, friendly=None, distance=None, actor_type=None):
+        for target in self._iter_actors():
+            if (visible == None or target.visible == visible) and \
+                    (ally == None or actor.circles.is_allied(target)) and \
+                    (enemy == None or actor.circles.is_enemy(target)) and \
+                    (neutral == None or actor.circles.is_neutral(target)) and \
+                    (friendly == None or actor.circles.is_friendly(target)) and \
+                    (distance == None or \
+                        actor.distance_to(target) <= distance) and \
+                    (actor_type == None or target.actor_type == actor_type) and \
+                    (name == None or target.name == name) and \
+                    target != actor:
+                yield target

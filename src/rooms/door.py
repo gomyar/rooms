@@ -30,11 +30,14 @@ def infer_direction(from_position, to_position):
 class Door(Actor):
     def __init__(self, door_id=None, position=(0, 0), exit_room=None,
             exit_door_id=None):
-        super(Door, self).__init__(door_id)
+        super(Door, self).__init__()
         self.exit_room_id = exit_room.room_id if exit_room else None
         self.exit_door_id = exit_door_id
+        self.exit_room_description = exit_room.description if \
+            exit_room else ""
         self.set_position(position)
         self.opens_direction = FACING_NORTH
+        self.name = door_id
 
     @property
     def exit_room(self):
@@ -51,6 +54,6 @@ class Door(Actor):
 
     def external(self):
         return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
-            path=self.path.path, speed=self.speed,
-            model_type=self.model_type,
+            path=self.path.path, speed=self.speed, model_type=self.model_type,
+            exit_room_description=self.exit_room_description,
             opens_direction=self.opens_direction)
