@@ -135,8 +135,8 @@ class Node(object):
             self.players[player_id]['player'] = actor
             area = self.areas[player.area_id]
             area.rooms[player.room_id].put_actor(actor)
-            if actor.script and actor.script.has_method("player_created"):
-                actor._wrapped_call("player_created", actor)
+            if actor.script.has_method("created"):
+                actor._wrapped_call("created", actor)
             actor.kick()
 
             log.info("Player joined: %s", player_id)
@@ -166,18 +166,12 @@ class Node(object):
                     return room.actors[player_id]
         return None
 
-    def call(self, command, player_id, actor_id, kwargs):
-        player = self.players[player_id]['player']
-        actor = player.room.actors[actor_id]
-        if player == actor:
-            if command == "api":
-                return actor.api()
-            value = actor.call_command(command, **kwargs)
+    def call(self, player_id, command, kwargs):
+        actor = self.players[player_id]['player']
+        if command == "api":
+            return actor.api()
         else:
-            if command == "api":
-                return actor.exposed_api()
-            value = actor.call_exposed(command, player, **kwargs)
-        return value
+            return actor.call_command(command, **kwargs)
 
     def kill_player(self, player_actor):
         actor_id = player_actor.actor_id

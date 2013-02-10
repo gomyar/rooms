@@ -214,7 +214,7 @@ class Room(object):
         actor.state.update(state)
         self.put_actor(actor, position)
         actor.load_script(actor_script)
-        if actor.script and actor.script.has_method("created"):
+        if actor.script.has_method("created"):
             actor.script.call_method("created", actor)
         actor.kick()
         return actor

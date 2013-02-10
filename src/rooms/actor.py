@@ -49,7 +49,7 @@ class Actor(object):
         self.speed = 1.0
         self.room = Null()
         self.log = []
-        self.script = None
+        self.script = Null()
         self.state = State(self)
         self.model_type = ""
         self.call_gthread = None
@@ -101,18 +101,15 @@ class Actor(object):
             deregister_actor_script(self.script.script_name, self)
 
     def kick(self):
-        if self.script and self.script.has_method("kickoff"):
+        if self.script.has_method("kickoff"):
             log.debug("Calling kick on %s", self)
             self._queue_script_method("kickoff", self, [], {})
-
-    def call_exposed(self, method_name, player, *args, **kwargs):
-        return self.script_call(method_name, *([player] + list(args)), **kwargs)
 
     def call_command(self, method_name, *args, **kwargs):
         return self.script_call(method_name, *args, **kwargs)
 
     def script_call(self, method_name, *args, **kwargs):
-        if self._is_request(method_name) or self._is_exposed_request(method_name):
+        if self.script.is_request(method_name):
             return self._call_script_method(method_name, self, args,
                 kwargs)
         else:
@@ -258,31 +255,6 @@ class Actor(object):
             if getattr(actor, key) != val:
                 return False
         return True
-
-    def _can_call(self, actor, method_name):
-        return bool(self.script and self.script.can_call(actor, method_name))
-
-    def _is_request(self, method_name):
-        return bool(self.script and self.script.is_request(method_name))
-
-    def _is_exposed_request(self, method_name):
-        return bool(self.script and self.script.is_exposed_request(method_name))
-
-    def _all_exposed_methods(self, actor):
-        if self == actor:
-            return self._all_exposed_commands()
-        return self.script.methods if self.script else []
-
-    def _all_exposed_commands(self):
-        return self.script.commands if self.script else []
-
-    def exposed_methods(self, actor):
-        return [method for method in \
-            self._all_exposed_methods(actor)]
-
-    def exposed_commands(self):
-        return [command for command in self.script.commands] if \
-            self.script else []
 
     def api(self):
         return self.script.api() if self.script else dict()

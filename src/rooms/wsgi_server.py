@@ -113,14 +113,13 @@ class WSGIServer(object):
 
     @checked
     def game_handle(self, environ, response):
-        _, url, area_uid, actor_id, command = \
+        _, url, area_uid, command = \
             environ['PATH_INFO'].split("/")
-        log.debug("Game call %s, %s, %s, %s", url, area_uid, actor_id,
-            command)
+        log.debug("Game call %s, %s, %s", url, area_uid, command)
         cookies = _read_cookies(environ)
         params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
-        returned = self.node.call(command, self.sessions[cookies['sessionid']],
-            actor_id, dict(params))
+        returned = self.node.call(self.sessions[cookies['sessionid']], command,
+            dict(params))
         return _json_return(response, returned)
 
 
