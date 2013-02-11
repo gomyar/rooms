@@ -125,13 +125,11 @@ class WSGIServer(object):
 
     @checked
     def room_handle(self, environ, response):
-        _, url, area_uid = environ['PATH_INFO'].split("/")
-        log.debug("Room call: %s %s", url, area_uid)
+        _, url, area_map = environ['PATH_INFO'].split("/")
         cookies = _read_cookies(environ)
-        area = self.node.areas[area_uid]
-        returned = self.node.players[self.sessions[cookies['sessionid']]]\
-            ['player'].room.external()
-        return _json_return(response, returned)
+        player_actor = self.node.players[self.sessions[cookies['sessionid']]]\
+            ['player']
+        return _json_return(response, player_actor.room.external())
 
 
     @checked

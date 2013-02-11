@@ -8,7 +8,6 @@ class RoomContainer(object):
         self._container = container
         self._rooms = dict()
         self._room_map = dict()
-        self._room_info = dict()
 
     def load_room(self, room_id):
         return self._container.load_room(room_id)
@@ -39,7 +38,3 @@ class RoomContainer(object):
         db_id = self.save_room(room_id, room)
         self._room_map[room_id] = db_id
         self._rooms[room_id] = room
-        self._room_info[room_id] = dict(
-            description=room.description, position=room.position,
-            width=room.width, height=room.height,
-        )
