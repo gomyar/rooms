@@ -8,11 +8,13 @@ from rooms.player_actor import PlayerActor
 from rooms.player import Player
 from rooms.null import Null
 from rooms.room_container import RoomContainer
+from rooms.actor import Actor
 
 
 class MockContainer(object):
     def __init__(self):
         self.saved = []
+        self.updated = []
 
     def load_room(self, room_id):
         pass
@@ -25,6 +27,9 @@ class MockContainer(object):
 
     def save_area(self, area):
         self.saved.append(area)
+
+    def update_actor(self, actor):
+        self.updated.append(actor)
 
 class MockNode(object):
     def __init__(self):
@@ -44,22 +49,20 @@ class SaveManagerTest(unittest.TestCase):
         self.container = MockContainer()
         self.manager = SaveManager(self.node, self.container)
 
-    def testSaveAllRoomsNoPlayers(self):
-        self.manager.run_save()
-
-        self.assertEquals([self.room1], self.container.saved)
-        self.assertEquals([], self.area.rooms.values())
-
-
-    def testSaveAllRoomsOnePlayers(self):
-        player = Player("bob")
-        player_actor = PlayerActor(player)
-        self.room1.put_actor(player_actor)
+    def testSaveWithActor(self):
+        actor = Actor("bob")
+        self.room1.put_actor(actor)
 
         self.manager.run_save()
 
-        self.assertEquals([self.room1, player], self.container.saved)
-        self.assertEquals([self.room1], self.area.rooms.values())
+        self.assertEquals([], self.container.updated)
+
+        self.manager.queue_actor(actor)
+
+        self.manager.run_save()
+
+        self.assertEquals([actor], self.container.updated)
+
 
     def testSaveWithPlayer(self):
         player = Player("bob")
@@ -68,7 +71,13 @@ class SaveManagerTest(unittest.TestCase):
 
         self.manager.run_save()
 
-        self.assertEquals([self.room1, player], self.container.saved)
+        self.assertEquals([], self.container.updated)
+
+        self.manager.queue_actor(player_actor)
+
+        self.manager.run_save()
+
+        self.assertEquals([player_actor], self.container.updated)
 
     def testShutdown(self):
         player = Player("bob")

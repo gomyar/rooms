@@ -14,9 +14,8 @@ class SaveManager(object):
         self.queue = []
 
     def run_save(self):
-        while self.queue:
+        while self.queue and self.running:
             actor = self.queue.pop(0)
-            log.debug("Updating actor: %s", actor)
             self.container.update_actor(actor)
             gevent.sleep(0.1)
             self.check_invalid_rooms()
@@ -26,16 +25,19 @@ class SaveManager(object):
         for area in self.node.areas.values():
             for room in area.rooms.values():
                 if not room.player_actors():
+                    log.debug("Icicling room %s", room)
+                    self._kill_room_actors(room)
                     self.save_room(room)
                     area.rooms.pop(room.room_id)
-                gevent.sleep(0.1)
+                    return
 
     def queue_actor(self, actor): # , room) ?
         if actor not in self.queue:
             self.queue.append(actor)
 
     def queue_actor_remove(self, actor):
-        pass
+        room = actor.room
+        self.container.remove_actor(room, actor)
 
     def save_room(self, room):
         self.container.save_room(room)
@@ -60,11 +62,14 @@ class SaveManager(object):
     def start(self):
         self.gthread = gevent.spawn(self.run_manager)
 
+    def _kill_room_actors(self, room):
+        for actor in room.actors.values():
+            actor.kill_gthread()
+
     def _killall_actors(self):
         for area in self.node.areas.values():
             for room in area.rooms.values():
-                for actor in room.actors.values():
-                    actor.kill_gthread()
+                self._kill_room_actors(room)
 
     def shutdown(self):
         log.debug("Shutting down save manager")

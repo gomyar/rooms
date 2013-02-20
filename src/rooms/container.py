@@ -118,10 +118,15 @@ class Container(object):
     def update_actor(self, actor):
         actor_dict = self._obj_to_dict(actor)
 
-        # Add PlayerActor update...
+        if isinstance(actor, PlayerActor):
+            self.save_player(actor.player)
 
         self.dbase.update_object(actor.room, "rooms", "actors.%s" % (
             actor.actor_id,), actor_dict)
+
+    def remove_actor(self, room, actor):
+        self.dbase.remove_object(room, "rooms", "actors.%s" % (
+            actor.actor_id,))
 
     def _save_object(self, saved_object, dbase_name):
         if getattr(saved_object, '_id', None):
@@ -179,6 +184,7 @@ class Container(object):
             if actor._docked_with_id:
                 room.actors[actor._docked_with_id].dock(actor)
         room.geog = self.geography
+        room.save_manager = self.save_manager
         return room
 
 

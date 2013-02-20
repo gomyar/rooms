@@ -262,9 +262,6 @@ class Actor(object):
     def api(self):
         return self.script.api() if self.script else dict()
 
-    def exposed_api(self):
-        return self.script.exposed_api() if self.script else dict()
-
     def add_log(self, msg, *args):
         pass
 

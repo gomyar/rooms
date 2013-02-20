@@ -50,15 +50,18 @@ class AreaTest(unittest.TestCase):
     def testAddDoor(self):
         self.area.create_door(self.room1, self.room2, (10, 5), (0, 5))
 
-        self.assertEquals(Door("door_room2_10_5", (10, 5), self.room2,
-            'door_room1_0_5'), self.room1.actors['door_room2_10_5'])
-        self.assertEquals(Door("door_room1_0_5", (0, 5), self.room1,
-            'door_room2_10_5'), self.room2.actors['door_room1_0_5'])
+        room1_door = list(self.room1.all_doors())[0]
+        self.assertEquals((10, 5), room1_door.position())
+        self.assertEquals("room2", room1_door.exit_room_id)
+
+        room2_door = list(self.room2.all_doors())[0]
+        self.assertEquals((0, 5), room2_door.position())
+        self.assertEquals("room1", room2_door.exit_room_id)
 
     def testAddDoorInferPosition(self):
         self.area.create_door(self.room1, self.room2)
-        door1 = self.room1.all_doors()[0]
-        door2 = self.room2.all_doors()[0]
+        door1 = list(self.room1.all_doors())[0]
+        door2 = list(self.room2.all_doors())[0]
 
         self.assertEquals((10, 5), door1.position())
         self.assertEquals((20, 5), door2.position())
@@ -69,8 +72,8 @@ class AreaTest(unittest.TestCase):
         self.area.put_room(self.room2, (20, 20))
 
         self.area.create_door(self.room1, self.room2)
-        door1 = self.room1.all_doors()[0]
-        door2 = self.room2.all_doors()[0]
+        door1 = list(self.room1.all_doors())[0]
+        door2 = list(self.room2.all_doors())[0]
 
         self.assertEquals((25, 10), door1.position())
         self.assertEquals((25, 20), door2.position())

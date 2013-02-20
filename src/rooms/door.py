@@ -38,6 +38,7 @@ class Door(Actor):
         self.set_position(position)
         self.opens_direction = FACING_NORTH
         self.name = door_id
+        self.actor_type = "door"
 
     @property
     def exit_room(self):

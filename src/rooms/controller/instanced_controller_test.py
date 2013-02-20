@@ -41,6 +41,9 @@ class MockContainer(object):
     def load_game(self, game_id):
         return self.game
 
+    def load_player(self, username):
+        return self.player
+
 
 class ControllerTest(unittest.TestCase):
     def setUp(self):

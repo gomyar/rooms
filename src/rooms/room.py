@@ -69,6 +69,7 @@ class Room(object):
         self.actors = defaultdict(Null)
         self.area = None
         self.geog = _default_geog
+        self.save_manager = Null()
 
     def __eq__(self, rhs):
         return rhs and self.room_id == rhs.room_id
@@ -136,6 +137,7 @@ class Room(object):
 
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)
+        self.save_manager.queue_actor_remove(actor)
         actor.room = Null()
         self._send_update("remove_actor", actor_id=actor.actor_id)
 
@@ -170,7 +172,7 @@ class Room(object):
         actor.add_log("You entered %s", door.exit_room.description)
 
     def all_doors(self):
-        return filter(lambda r: type(r) is Door, self.actors.values())
+        return self.find_actors(actor_type="door")
 
     def actors_by_type(self, actor_type):
         return [actor for actor in self.actors.values() if \
@@ -202,8 +204,8 @@ class Room(object):
         return (self.left(), self.top(), self.right(), self.bottom())
 
     def has_door_to(self, room_id):
-        for key, value in self.actors.items():
-            if key.startswith("door_%s" % (room_id,)):
+        for door in self.all_doors():
+            if door.exit_room_id == room_id:
                 return True
         return False
 

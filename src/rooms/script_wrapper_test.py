@@ -3,7 +3,6 @@ import unittest
 
 from rooms.script_wrapper import Script
 from script import command
-from script import expose
 
 from rooms.actor import Actor
 
@@ -12,11 +11,7 @@ from rooms.actor import Actor
 def first_command(actor, param1):
     actor.state.param1 = param1
 
-@expose
-def first_method(actor, player, param1):
-    actor.state.param1 = param1
-
-@command(call_second=True)
+@command
 def second_command(actor, param1):
     actor.state.param1 = param1
 
@@ -29,8 +24,15 @@ class ScriptTest(unittest.TestCase):
         self.actor2 = Actor("actor2")
 
     def testFirstCommand(self):
-        self.assertEquals(['first_command', 'second_command'],
-            self.script.commands)
+        self.assertEquals([{
+            'args': ['actor', 'param1'],
+            'name': 'first_command'
+        },
+        {
+            'args': ['actor', 'param1'],
+            'name': 'second_command'
+        }],
+            self.script.commands())
 
         self.actor.call_command('first_command', "value1")
 
@@ -40,20 +42,3 @@ class ScriptTest(unittest.TestCase):
         self.actor._process_queue_item()
 
         self.assertEquals("value1", self.actor.state.param1)
-
-    def testFirstMethod(self):
-        self.assertEquals(['first_method'], self.script.methods)
-
-        self.actor.call_exposed('first_method', self.actor2, "value1")
-        self.actor._process_queue_item()
-
-        self.assertEquals("value1", self.actor.state.param1)
-
-    def testCommandFilter(self):
-        self.assertFalse(self.script.can_call(self.actor,
-            "second_command"))
-
-        self.actor.state.call_second = True
-
-        self.assertTrue(self.script.can_call(self.actor,
-            "second_command"))

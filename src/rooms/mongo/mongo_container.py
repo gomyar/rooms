@@ -72,5 +72,8 @@ class MongoContainer(object):
 #            { 'upsert': True },
             )
 
+    def remove_object(self, obj, collection_name, remove_key):
+        pass # something unset something
+
     def init_mongo(self):
         self._mongo_connection = Connection(self.host, self.port)

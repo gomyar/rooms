@@ -5,21 +5,20 @@ import time
 
 import rooms.waypoint
 from actor import Actor
-from script import expose
 from script import command
 from room import Room
 
 
-@expose(go=True)
+@command
 def mock_me(actor):
     self._mock_me_called = True
 
-@expose()
+@command
 def mock_you(actor, from_actor):
     actor._test_value = "Called with actor %s" % (actor.actor_id,)
 
 
-@command()
+@command
 def scripty_cally(player, param1, param2="value2"):
     return "Hello %s %s" % (param1, param2)
 
@@ -49,25 +48,11 @@ class ActorTest(unittest.TestCase):
         self.assertEquals([(0.0, 0.0, 0.0), (3.0, 0.0, 0.02),
             (9.0, 0.0, 0.06)], self.actor.path.path)
 
-    def testAllowedMethod(self):
-        self.mock_actor.load_script("rooms.actor_test")
-        self.assertFalse(self.mock_actor._can_call(self.actor,
-            "mock_me"))
-        self.assertEquals([{'name':'mock_me'}, {'name':'mock_you'}],
-            self.mock_actor.exposed_methods(self.actor))
-
-        self.actor.state.go = True
-
-        self.assertTrue(self.mock_actor._can_call(self.actor,
-            "mock_me"))
-        self.assertEquals([{'name':'mock_me'}, {'name':'mock_you'}],
-            self.mock_actor.exposed_methods(self.actor))
-
     def testMethodCallthroughScript(self):
         self.actor.load_script("rooms.actor_test")
         self.mock_actor.load_script("rooms.actor_test")
 
-        self.mock_actor.call_exposed("mock_you", self.actor)
+        self.mock_actor.call_command("mock_you", self.actor)
         self.mock_actor._process_queue_item()
         self.assertEquals("Called with actor mock", self.mock_actor._test_value)
 
@@ -191,20 +176,21 @@ class ActorTest(unittest.TestCase):
 
         self.assertTrue(self.actor.circles.is_enemy(self.actor3))
         self.assertEquals(set([self.actor3, self.actor4]),
-            set(self.room.find_enemies(self.actor)))
-        self.assertEquals([self.actor2], self.room.find_allies(self.actor))
+            set(self.actor.find_actors(enemy=True)))
+        self.assertEquals([self.actor2], list(self.actor.find_actors(
+            ally=True)))
 
         self.assertEquals(set([self.actor3, self.actor4]),
-            set(self.room.find_enemies_in_range(self.actor, 700)))
-        self.assertEquals([], self.room.find_enemies_in_range(
-            self.actor, 70))
+            set(self.actor.find_actors(enemy=True, distance=700)))
+        self.assertEquals([], list(self.actor.find_actors(enemy=True,
+            distance=70)))
 
-        self.assertEquals([self.actor2], self.room.find_allies_in_range(
-            self.actor, 700))
-        self.assertEquals([], self.room.find_allies_in_range(
-            self.actor, 70))
+        self.assertEquals([self.actor2], list(self.actor.find_actors(ally=True,
+            distance=700)))
+        self.assertEquals([], list(self.actor.find_actors(ally=True,
+            distance=70)))
 
-        self.assertEquals([], self.room.find_allies_in_range(
-            self.actor, 700, actor_type="test"))
-        self.assertEquals([self.actor4], self.room.find_enemies_in_range(
-            self.actor, 700, actor_type="test"))
+        self.assertEquals([], list(self.actor.find_actors(ally=True,
+            distance=700, actor_type="test")))
+        self.assertEquals([self.actor4], list(self.actor.find_actors(enemy=True,
+            distance=700, actor_type="test")))
