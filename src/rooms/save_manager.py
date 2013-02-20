@@ -11,16 +11,31 @@ class SaveManager(object):
         self.container = container
         self.running = True
         self.gthread = None
+        self.queue = []
 
     def run_save(self):
+        while self.queue:
+            actor = self.queue.pop(0)
+            log.debug("Updating actor: %s", actor)
+            self.container.update_actor(actor)
+            gevent.sleep(0.1)
+            self.check_invalid_rooms()
+        gevent.sleep(0.1)
+
+    def check_invalid_rooms(self):
         for area in self.node.areas.values():
             for room in area.rooms.values():
-                self.save_room(room)
                 if not room.player_actors():
+                    self.save_room(room)
                     area.rooms.pop(room.room_id)
                 gevent.sleep(0.1)
-            gevent.sleep(0.1)
-        gevent.sleep(0.1)
+
+    def queue_actor(self, actor): # , room) ?
+        if actor not in self.queue:
+            self.queue.append(actor)
+
+    def queue_actor_remove(self, actor):
+        pass
 
     def save_room(self, room):
         self.container.save_room(room)

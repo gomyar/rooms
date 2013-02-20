@@ -69,11 +69,12 @@ class Node(object):
 
         mongo_container = MongoContainer(dbhost, dbport)
         mongo_container.init_mongo()
-        self.container = Container(mongo_container,
-            geogs[config.get("game", "geography")](),
-        )
-        self.game = self.container.load_game(config.get("game", "game_id"))
+        # Wee bit circular
         self.save_manager = SaveManager(self, self.container)
+        self.container = Container(mongo_container,
+            geogs[config.get("game", "geography")](), self.save_manager)
+        self.save_manager.container = self.container
+        self.game = self.container.load_game(config.get("game", "game_id"))
         set_registry(self.game.item_registry)
 
 

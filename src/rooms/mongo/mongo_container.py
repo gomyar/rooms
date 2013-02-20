@@ -63,5 +63,14 @@ class MongoContainer(object):
         obj._id = db_id
         return obj
 
+    def update_object(self, obj, collection_name, update_key, update_obj):
+        self._collection(collection_name).update(
+            {'_id': obj._id },
+            {
+                '$set': { update_key: update_obj },
+            },
+#            { 'upsert': True },
+            )
+
     def init_mongo(self):
         self._mongo_connection = Connection(self.host, self.port)

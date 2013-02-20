@@ -18,12 +18,14 @@ from rooms.player import Player
 from rooms.game import Game
 from rooms.circles import Circles
 from rooms.item_registry import ItemRegistry
+from rooms.null import Null
 
 
 class Container(object):
-    def __init__(self, dbase, geography):
+    def __init__(self, dbase, geography, save_manager=None):
         self.dbase = dbase
         self.geography = geography
+        self.save_manager = save_manager or Null()
 
         self.object_serializers = dict(
             Actor=self._serialize_actor,
@@ -112,6 +114,14 @@ class Container(object):
             player = Player(username)
             self.save_player(player)
             return player
+
+    def update_actor(self, actor):
+        actor_dict = self._obj_to_dict(actor)
+
+        # Add PlayerActor update...
+
+        self.dbase.update_object(actor.room, "rooms", "actors.%s" % (
+            actor.actor_id,), actor_dict)
 
     def _save_object(self, saved_object, dbase_name):
         if getattr(saved_object, '_id', None):
@@ -209,6 +219,7 @@ class Container(object):
         actor._health = data['health']
         actor.visible = data['visible']
         actor._docked_with_id = data['_docked_with_id']
+        actor.save_manager = self.save_manager
 
     def _create_actor(self, data):
         actor = Actor(data['actor_id'])

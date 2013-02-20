@@ -64,6 +64,7 @@ class Actor(object):
         self._health = 1.0
         self.inventory = Inventory()
         self.circles = Circles()
+        self.save_manager = Null()
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -174,6 +175,8 @@ class Actor(object):
                 self, method, args, kwargs)
             self.add_error("Error in %s(%s, %s): %s" % (method, args, kwargs,
                 e.args))
+        finally:
+            self.save_manager.queue_actor(self)
 
     def add_error(self, msg):
         log_entry = { 'msg': msg, 'time': time.time() }
@@ -345,6 +348,7 @@ class Actor(object):
         self.sleep(seconds)
 
     def sleep(self, seconds):
+        self.save_manager.queue_actor(self)
         gevent.sleep(max(0, seconds))
 
     def exit(self, door_id):
@@ -386,3 +390,15 @@ class Actor(object):
         else:
             self.room._send_update("remove_actor", actor_id=self.actor_id)
         self.send_actor_update()
+
+    def find_actors(self, visible=True, ally=None, enemy=None, name=None,
+            neutral=None, friendly=None, distance=None, actor_type=None):
+        for target in self.room.find_actors(distance=distance,
+                distance_from_point=self.position(), actor_type=actor_type,
+                visible=True, name=name):
+            if (ally == None or self.circles.is_allied(target)) and \
+                (enemy == None or self.circles.is_enemy(target)) and \
+                (neutral == None or self.circles.is_neutral(target)) and \
+                (friendly == None or self.circles.is_friendly(target)) and \
+                target != self:
+                yield target

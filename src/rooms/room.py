@@ -7,6 +7,7 @@ from npc_actor import NpcActor
 from door import Door
 from rooms.config import get_config
 from rooms.geography.linearopen_geography import LinearOpenGeography
+from rooms.waypoint import distance as calc_distance
 
 from actor import FACING_NORTH
 from actor import FACING_SOUTH
@@ -232,17 +233,12 @@ class Room(object):
         for actor in self.actors.values():
             yield actor
 
-    def find_actors(self, actor, visible=True, ally=None, enemy=None, name=None,
-            neutral=None, friendly=None, distance=None, actor_type=None):
+    def find_actors(self, visible=True, distance_from_point=None,
+            distance=None, actor_type=None, name=None):
         for target in self._iter_actors():
             if (visible == None or target.visible == visible) and \
-                    (ally == None or actor.circles.is_allied(target)) and \
-                    (enemy == None or actor.circles.is_enemy(target)) and \
-                    (neutral == None or actor.circles.is_neutral(target)) and \
-                    (friendly == None or actor.circles.is_friendly(target)) and \
-                    (distance == None or \
-                        actor.distance_to(target) <= distance) and \
-                    (actor_type == None or target.actor_type == actor_type) and \
+                    (distance==None or calc_distance(target.x(), target.y(),
+                        *distance_from_point) <  distance) and \
                     (name == None or target.name == name) and \
-                    target != actor:
+                    (actor_type == None or target.actor_type == actor_type):
                 yield target
