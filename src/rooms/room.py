@@ -8,6 +8,7 @@ from door import Door
 from rooms.config import get_config
 from rooms.geography.linearopen_geography import LinearOpenGeography
 from rooms.waypoint import distance as calc_distance
+from rooms.visibility_grid import VisibilityGrid
 
 from actor import FACING_NORTH
 from actor import FACING_SOUTH
@@ -70,6 +71,7 @@ class Room(object):
         self.area = None
         self.geog = _default_geog
         self.save_manager = Null()
+        self.visibility_grid = VisibilityGrid(self.width, self.height)
 
     def __eq__(self, rhs):
         return rhs and self.room_id == rhs.room_id
@@ -153,7 +155,7 @@ class Room(object):
                 target._update("actor_update", **actor.external())
 
     def _send_put_actor(self, actor):
-        for target in self.actors.values():
+        for target in self.visibility_grid.registered_listeners():
             if target == actor:
                 target._update("put_actor", **actor.internal())
             else:

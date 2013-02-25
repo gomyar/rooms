@@ -69,3 +69,6 @@ class RoomTest(unittest.TestCase):
 
     def testQueryActors(self):
         pass
+
+    def testActorUpdateInSector(self):
+        self.fail("Restrict _actor_update to visibility range")
