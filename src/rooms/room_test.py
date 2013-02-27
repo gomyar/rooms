@@ -4,10 +4,14 @@ import unittest
 from room import Room
 from area import Area
 from actor import Actor
+from rooms.timing import _set_mock_time
+from rooms.timing import _fast_forward
 
 
 class RoomTest(unittest.TestCase):
     def setUp(self):
+        _set_mock_time(0)
+
         self.area = Area()
         self.room1 = Room("room1", 100, 100)
         self.area.put_room(self.room1, (0, 0))
@@ -21,8 +25,23 @@ class RoomTest(unittest.TestCase):
 
         self.area.rebuild_area_map()
 
+        self._updates_1 = []
+        self._updates_2 = []
+
+        self._mock_slept_for = 0
+
+    def tearDown(self):
+        _set_mock_time(None)
+
     def _mock_sleep(self, seconds):
-        self._mock_slept_for = seconds
+        self._mock_slept_for += seconds
+        _fast_forward(seconds)
+
+    def _mock_actor_added_1(self, actor):
+        self._updates_1.append(("added", actor))
+
+    def _mock_actor_added_2(self, actor):
+        self._updates_2.append(("added", actor))
 
     def testDoorsExist(self):
         self.assertTrue(self.area.rooms['room1'].has_door_to("room2"))
@@ -71,4 +90,24 @@ class RoomTest(unittest.TestCase):
         pass
 
     def testActorUpdateInSector(self):
-        self.fail("Restrict _actor_update to visibility range")
+        pass#self.fail("Restrict _actor_update to visibility range")
+
+    def testAddRemoveActorsVisibility(self):
+        self.actor1 = Actor("actor1")
+        self.actor1.vision_distance = 10
+        self.actor1.actor_added = self._mock_actor_added_1
+        self.actor1.sleep = self._mock_sleep
+
+        self.actor2 = Actor("actor2")
+        self.actor2.actor_added = self._mock_actor_added_2
+        self.actor2.sleep = self._mock_sleep
+
+        self.room1.put_actor(self.actor1, (5, 5))
+        self.room1.put_actor(self.actor2, (35, 35))
+
+        self.assertEquals([], self._updates_1)
+        self.assertEquals([], self._updates_2)
+
+        self.actor2.move_to(15, 15)
+
+        self.assertEquals([("added", self.actor2)], self._updates_1)

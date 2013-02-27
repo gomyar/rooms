@@ -135,31 +135,22 @@ class Room(object):
         actor.room = self
         actor.set_position(position)
         if actor.visible:
-            self._send_put_actor(actor)
+            if actor.vision_distance:
+                self.visibility_grid.register_listener(actor)
+            else:
+                self.visibility_grid.add_actor(actor)
 
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)
         self.save_manager.queue_actor_remove(actor)
         actor.room = Null()
-        self._send_update("remove_actor", actor_id=actor.actor_id)
-
-    def _send_update(self, update_id, **kwargs):
-        for actor in self.actors.values():
-            actor._update(update_id, **kwargs)
+        self.visibility_grid.remove_actor(actor)
 
     def _send_actor_update(self, actor):
-        for target in self.actors.values():
-            if target == actor:
-                target._update("actor_update", **actor.internal())
-            else:
-                target._update("actor_update", **actor.external())
+        self.visibility_grid.send_update_actor(actor)
 
-    def _send_put_actor(self, actor):
-        for target in self.visibility_grid.registered_listeners():
-            if target == actor:
-                target._update("put_actor", **actor.internal())
-            else:
-                target._update("put_actor", **actor.external())
+    def _send_update(self, actor, update_id, **kwargs):
+        self.visibility_grid.send_update_event(actor, update_id, **kwargs)
 
     def exit_through_door(self, actor, door_id):
         door = self.actors[door_id]

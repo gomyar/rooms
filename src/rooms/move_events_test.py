@@ -5,6 +5,8 @@ from rooms.room import Room
 from rooms.actor import Actor
 from script import command
 from rooms import waypoint
+from rooms.timing import _set_mock_time
+from rooms.timing import _fast_forward
 
 
 @command
@@ -14,21 +16,17 @@ def entered(actor, actor_entered):
 
 class MoveEventsTest(unittest.TestCase):
     def setUp(self):
-        waypoint.get_now = self._mock_get_now
-        self._mock_now = 0
-
+        _set_mock_time(0)
         self._updates = []
 
         self.room = Room()
         self.actor = Actor()
         self.actor.load_script("rooms.move_events_test")
         self.actor.sleep = self._mock_sleep
-        self.actor.get_now = self._mock_get_now
         self.actor._update = self._mock_update
 
         self.actor2 = Actor()
         self.actor2.sleep = self._mock_sleep
-        self.actor2.get_now = self._mock_get_now
 
         self.actor.set_visibility_range(10)
 
@@ -36,6 +34,7 @@ class MoveEventsTest(unittest.TestCase):
         self.room.put_actor(self.actor2, (5, 10))
 
         self.actor._update = self._mock_update
+
 
     def tearDown(self):
         reload(waypoint)
@@ -45,6 +44,7 @@ class MoveEventsTest(unittest.TestCase):
 
     def _mock_sleep(self, seconds):
         self._mock_now += seconds
+        _fast_forward(seconds)
 
     def _mock_update(self, update_id, **kwargs):
         self._updates.append((update_id, kwargs))

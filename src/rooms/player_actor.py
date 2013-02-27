@@ -44,6 +44,22 @@ class PlayerActor(Actor):
     def _update(self, update_id, **kwargs):
         self.send_update(update_id, **kwargs)
 
+    def actor_updated(self, actor):
+        if actor == self:
+            self.server.send_update(self.player.username, "actor_update",
+                self.internal())
+        else:
+            self.server.send_update(self.player.username, "actor_update",
+                self.external())
+
+    def actor_added(self, actor):
+        self.server.send_update(self.player.username, "actor_update",
+            self.external())
+
+    def actor_removed(self, actor):
+        self.server.send_update(self.player.username, "actor_removed",
+            self.external())
+
     def actor_heard(self, actor, message):
         msg = "You say :" if self == actor else "%s says :" % (actor.actor_id,)
         self.send_update("actor_heard", actor_id=actor.actor_id, msg=message)

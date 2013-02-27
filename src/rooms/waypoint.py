@@ -2,12 +2,10 @@
 import time
 import math
 
+from rooms.timing import get_now
+
 import logging
 log = logging.getLogger("rooms.path")
-
-
-def get_now():
-    return time.time()
 
 
 def distance(x1, y1, x2, y2):

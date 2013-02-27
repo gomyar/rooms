@@ -10,13 +10,13 @@ from rooms.null import Null
 from rooms.waypoint import Path
 from rooms.waypoint import distance
 from rooms.waypoint import path_from_waypoints
-import rooms.waypoint
 
 from rooms.script_wrapper import Script
 from rooms.script_wrapper import register_actor_script
 from rooms.script_wrapper import deregister_actor_script
 from rooms.inventory import Inventory
 from rooms.circles import Circles
+from rooms.timing import get_now
 
 import logging
 log = logging.getLogger("rooms.node")
@@ -65,7 +65,7 @@ class Actor(object):
         self.inventory = Inventory()
         self.circles = Circles()
         self.save_manager = Null()
-        self._visibility_range = -1
+        self.vision_distance = 0
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -219,11 +219,20 @@ class Actor(object):
         if self.visible:
             self.room._send_actor_update(self)
 
+    def actor_updated(self, actor):
+        pass
+
     def _send_update(self, update_id, **kwargs):
-        self.room._send_update(update_id, **kwargs)
+        self.room._send_update(self, update_id, **kwargs)
 
     def _update(self, update_id, **kwargs):
         pass
+
+    def actor_added(self, actor):
+        log.debug("Actor %s entered visibility range of %s", actor, self)
+
+    def actor_removed(self, actor):
+        log.debug("Actor %s left visibility range of %s", actor, self)
 
     def x(self):
         return self.path.x()
@@ -285,22 +294,11 @@ class Actor(object):
             self.following_range = 0.0
 
         interval = self.room.visibility_grid.gridsize / self.speed
-        duration = end_time - self.get_now()
-        grid_pos = self.room.visibility_grid[self.position()]
-        while True:
-            self.sleep(interval)
+        duration = end_time - get_now()
+        while interval and duration > 0:
+            self.sleep(max(0, min(duration, interval)))
             duration -= interval
-            current_pos = self.room.visibility_grid[self.position()]
-            if current_pos != grid_pos:
-                self.room.visibility_grid.left_grid(self, grid_pos)
-                self.room.visibility_grid.entered_grid(self, current_pos)
-            if duration < 0:
-                break
-        self.sleep(interval)
-
-
-    def get_now(self):
-        return rooms.waypoint.get_now()
+            self.room.visibility_grid.update_actor_position(self)
 
     def intercept(self, actor, irange=0.0):
         log.debug("%s Intercepting %s at range %s", self, actor, irange)
@@ -314,11 +312,11 @@ class Actor(object):
             self.following = actor
             self.following_range = irange
             end_time = self.path.path[1][2]
-            self.sleep(end_time - self.get_now())
+            self.sleep(end_time - get_now())
 
     def wait_for_path(self):
-        while self.path and self.path.path_end_time() > self.get_now():
-            self.sleep(self.path.path_end_time() - self.get_now())
+        while self.path and self.path.path_end_time() > get_now():
+            self.sleep(self.path.path_end_time() - get_now())
 
     def _set_intercept_path(self, actor, irange):
         path = self.room.geog.intercept(actor.path, self.position(),
@@ -402,12 +400,13 @@ class Actor(object):
         self.kill_gthread()
 
     def set_visible(self, visible):
+        if visible == self.visible:
+            return
         self.visible = visible
         if visible:
-            self.room._send_put_actor(self)
+            self.room.visibility_grid.add_actor(self)
         else:
-            self._send_update("remove_actor", actor_id=self.actor_id)
-        self.send_actor_update()
+            self.room.visibility_grid.remove_actor(self)
 
     def find_actors(self, visible=True, ally=None, enemy=None, name=None,
             neutral=None, friendly=None, distance=None, actor_type=None):
@@ -420,10 +419,3 @@ class Actor(object):
                 (friendly == None or self.circles.is_friendly(target)) and \
                 target != self:
                 yield target
-
-    def set_visibility_range(self, distance):
-        self._visibility_range = distance
-
-    def can_see(self, actor):
-        return self._visibility_range == -1 or \
-            self.distance_to(actor) < self._visibility_range
