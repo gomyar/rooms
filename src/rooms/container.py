@@ -20,6 +20,9 @@ from rooms.circles import Circles
 from rooms.item_registry import ItemRegistry
 from rooms.null import Null
 
+import logging
+log = logging.getLogger("rooms.container")
+
 
 class Container(object):
     def __init__(self, dbase, geography, save_manager=None):
@@ -182,7 +185,11 @@ class Container(object):
         for actor in room.actors.values():
             actor.room = room
             if actor._docked_with_id:
-                room.actors[actor._docked_with_id].dock(actor)
+                if actor._docked_with_id not in room.actors:
+                    log.warning("Actor %s does not exist in room %s - " + \
+                        "cannot dock %s", actor._docked_with_id, room, actor)
+                else:
+                    room.actors[actor._docked_with_id].dock(actor)
         room.geog = self.geography
         room.save_manager = self.save_manager
         return room

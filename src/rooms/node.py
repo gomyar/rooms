@@ -63,7 +63,7 @@ class Node(object):
         self.save_manager = None
 
     def load_game(self, dbhost, dbport):
-        config.read(os.path.join(self.game_root, "game.conf"))
+        config.read(os.path.join(self.game_root))
 
         sys.path.append(config.get("scripts", "root"))
 

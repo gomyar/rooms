@@ -144,7 +144,8 @@ class Room(object):
         self.actors.pop(actor.actor_id)
         self.save_manager.queue_actor_remove(actor)
         actor.room = Null()
-        self.visibility_grid.remove_actor(actor)
+        if actor.vision_distance:
+            self.visibility_grid.remove_actor(actor)
 
     def _send_actor_update(self, actor):
         self.visibility_grid.send_update_actor(actor)
