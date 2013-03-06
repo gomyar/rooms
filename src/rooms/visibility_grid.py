@@ -1,6 +1,9 @@
 
 from collections import defaultdict
 
+import logging
+log = logging.getLogger("rooms.visibility")
+
 
 class VisibilityGrid(object):
     def __init__(self, width, height, gridsize=10):
@@ -9,10 +12,11 @@ class VisibilityGrid(object):
         self.gridsize = int(gridsize)
         self.registered = defaultdict(lambda: set())
         self.registered_gridpoints = defaultdict(lambda: set())
-        self.actors = defaultdict(lambda: set())
+        self.actors = dict()
         self.sectors = defaultdict(lambda: set())
 
-    def register_listener(self, actor):
+    def _register_listener(self, actor):
+        log.debug(" ** Registering listener: %s", actor)
         x, y = actor.position()
         distance = actor.vision_distance
         self.registered[actor] = distance
@@ -24,13 +28,21 @@ class VisibilityGrid(object):
             self.sectors[grid_point].add(actor)
         for target in existing:
             actor.actor_added(target)
-        self.add_actor(actor)
+        self._add_actor(actor)
 
     def _unregister_listener(self, actor):
+        log.debug(" ** Unregistering listener: %s", actor)
         for grid_point in self.registered_gridpoints[actor]:
             self.sectors[grid_point].remove(actor)
 
     def add_actor(self, actor):
+        log.debug(" ** Adding actor: %s", actor)
+        if actor.vision_distance:
+            self._register_listener(actor)
+        else:
+            self._add_actor(actor)
+
+    def _add_actor(self, actor):
         x, y = actor.position()
         grid_point = self._gridpoint(x, y)
         self.actors[actor] = grid_point
@@ -38,6 +50,7 @@ class VisibilityGrid(object):
         self._signal_changed(actor, None, self.actors[actor])
 
     def update_actor_position(self, actor):
+        log.debug(" * update actor position: %s", actor)
         x, y = actor.position()
         old_grid_point = self.actors[actor]
         new_grid_point = self._gridpoint(x, y)
@@ -50,14 +63,12 @@ class VisibilityGrid(object):
         self.actors[actor] = new_grid_point
 
     def send_update_event(self, actor, update_id, **kwargs):
-        x, y = actor.position()
-        grid_point = self._gridpoint(x, y)
+        grid_point = self.actors[actor]
         for listener in self.sectors[grid_point]:
             listener._update(update_id, **kwargs)
 
     def send_update_actor(self, actor):
-        x, y = actor.position()
-        grid_point = self._gridpoint(x, y)
+        grid_point = self.actors[actor]
         for listener in self.sectors[grid_point]:
             listener.actor_updated(actor)
 
@@ -67,10 +78,10 @@ class VisibilityGrid(object):
         removed_actors = old_actors.difference(new_actors)
         added_actors = new_actors.difference(old_actors)
         for removed in removed_actors:
-            if removed != actor:
+            if removed in self.registered:
                 removed.actor_removed(actor)
         for added in added_actors:
-            if added != actor:
+            if added in self.registered:
                 added.actor_added(actor)
 
     def _signal_registered_changed(self, actor, x, y):
@@ -98,6 +109,7 @@ class VisibilityGrid(object):
                 actor.actor_removed(listener)
 
     def remove_actor(self, actor):
+        log.debug(" ** Removing actor; %s", actor)
         if actor in self.registered:
             self._unregister_listener(actor)
         else:

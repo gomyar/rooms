@@ -47,14 +47,6 @@ class SaveManager(object):
             for player in players:
                 self.container.save_player(player.player)
 
-    def shutdown(self):
-        self.running = False
-        self.gthread.join()
-        for area in self.node.areas.values():
-            for room in area.rooms.values():
-                self.save_room(room)
-                area.rooms.pop(room.room_id)
-
     def run_manager(self):
         while self.running:
             self.run_save()
@@ -74,7 +66,8 @@ class SaveManager(object):
     def shutdown(self):
         log.debug("Shutting down save manager")
         self.running = False
-        self.gthread.join()
+        if self.gthread:
+            self.gthread.join()
         self._killall_actors()
         for area in self.node.areas.values():
             for room in area.rooms.values():

@@ -152,7 +152,7 @@ class WSGIServer(object):
             return [open(filepath).read()]
         else:
             response('404 Not Found', [])
-            return "Not Found"
+            return "File Not Found: %s" % (path,)
 
     @checked
     def redirect(self, path, response):

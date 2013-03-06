@@ -63,7 +63,7 @@ class Node(object):
         self.save_manager = None
 
     def load_game(self, dbhost, dbport):
-        config.read(os.path.join(self.game_root))
+        config.read(os.path.join(self.game_root, "game.conf"))
 
         sys.path.append(config.get("scripts", "root"))
 
@@ -158,7 +158,8 @@ class Node(object):
     def shutdown(self):
         if self.client:
             self.client.deregister_from_master()
-        self.save_manager.shutdown()
+        if self.save_manager:
+            self.save_manager.shutdown()
 
     def find(self, player_id):
         for area in self.area.values():

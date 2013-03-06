@@ -54,7 +54,7 @@ class VisibilityGridTest(unittest.TestCase):
 
     def testMovement(self):
         # actor1 enters room.
-        self.visibility_grid.register_listener(self.actor1)
+        self.visibility_grid._register_listener(self.actor1)
         # actor1 registers interest in x sectors
         # actor1 get responses for each sector, one at a time []
         self.assertEquals([], self.actor1.updates)
@@ -79,7 +79,7 @@ class VisibilityGridTest(unittest.TestCase):
 
     def testListenerMovesOutOfRange(self):
         # actor1 enters room.
-        self.visibility_grid.register_listener(self.actor1)
+        self.visibility_grid._register_listener(self.actor1)
 
         # actor2 enters room
         self.visibility_grid.add_actor(self.actor2)
@@ -100,9 +100,9 @@ class VisibilityGridTest(unittest.TestCase):
         self.actor2.vision_distance = 10
 
         # actor1 enters room.
-        self.visibility_grid.register_listener(self.actor1)
+        self.visibility_grid._register_listener(self.actor1)
         # actor2 registers
-        self.visibility_grid.register_listener(self.actor2)
+        self.visibility_grid._register_listener(self.actor2)
 
         # actor2 gets add message
         self.assertEquals([("added", self.actor1)], self.actor2.updates)
@@ -119,5 +119,41 @@ class VisibilityGridTest(unittest.TestCase):
         # actor2 gets nothing
         self.assertEquals([("added", self.actor1), ("removed", self.actor1)],
             self.actor2.updates)
+
+    def testTwoListenersOneActor(self):
+        self.actor2.vision_distance = 10
+
+        self.actor3 = MockActor("actor3", 15, 15, 0)
+
+        # actor1 enters room.
+        self.visibility_grid._register_listener(self.actor1)
+        # actor2 registers
+        self.visibility_grid._register_listener(self.actor2)
+        # actor 3 added
+        self.visibility_grid._add_actor(self.actor3)
+
+        # actor2 gets add message
+        self.assertEquals([("added", self.actor1), ("added", self.actor3)],
+            self.actor2.updates)
+        # actor1 gets add message
+        self.assertEquals([("added", self.actor2), ("added", self.actor3)],
+            self.actor1.updates)
+        # nothing for actor3
+        self.assertEquals([], self.actor3.updates)
+
+        # actor2 moves away slightly
+        self.actor2.pos = 5, 5
+        self.visibility_grid.update_actor_position(self.actor2)
+
+        # actor1 gets removal message
+        self.assertEquals([("added", self.actor2), ("added", self.actor3),
+            ("removed", self.actor2)],
+            self.actor1.updates)
+        # actor2 gets nothing
+        self.assertEquals([("added", self.actor1), ("added", self.actor3),
+            ("removed", self.actor1)],
+            self.actor2.updates)
+        # nothing for actor3
+        self.assertEquals([], self.actor3.updates)
 
 

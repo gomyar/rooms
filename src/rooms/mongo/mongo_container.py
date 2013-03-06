@@ -28,6 +28,9 @@ class MongoContainer(object):
     def load_object(self, object_id, dbase_name):
         obj_dict = self._collection(dbase_name).find_one(
             bson.ObjectId(object_id))
+        if not obj_dict:
+            raise Exception("Object %s not found in dbase %s" % (object_id,
+                dbase_name))
         obj_dict['_id'] = str(obj_dict['_id'])
         return obj_dict
 

@@ -135,10 +135,7 @@ class Room(object):
         actor.room = self
         actor.set_position(position)
         if actor.visible:
-            if actor.vision_distance:
-                self.visibility_grid.register_listener(actor)
-            else:
-                self.visibility_grid.add_actor(actor)
+            self.visibility_grid.add_actor(actor)
 
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)
@@ -148,6 +145,8 @@ class Room(object):
             self.visibility_grid.remove_actor(actor)
 
     def _send_actor_update(self, actor):
+        log.debug("Sending actor update for: %s", actor)
+        import ipdb; ipdb.set_trace()
         self.visibility_grid.send_update_actor(actor)
 
     def _send_update(self, actor, update_id, **kwargs):

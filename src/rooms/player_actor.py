@@ -16,6 +16,7 @@ class PlayerActor(Actor):
         self.player = player
         self.server = Null()
         self.actor_type = "player"
+        self.vision_distance = 500
 
     def __repr__(self):
         return "<PlayerActor %s:%s>" % (self.player.username, self.actor_id)
@@ -39,26 +40,40 @@ class PlayerActor(Actor):
         self.add_log(msg, *args)
 
     def send_update(self, update_id, **kwargs):
+        log.debug(" ******** Sending update %s %s", update_id, kwargs)
         self.server.send_update(self.player.username, update_id, **kwargs)
 
     def _update(self, update_id, **kwargs):
         self.send_update(update_id, **kwargs)
 
     def actor_updated(self, actor):
+        log.debug(" - playeractor - actor updated %s", actor)
         if actor == self:
+            log.debug(" - playeractor - internal update")
             self.server.send_update(self.player.username, "actor_update",
-                self.internal())
+                **actor.internal())
         else:
+            log.debug(" - playeractor - external update")
             self.server.send_update(self.player.username, "actor_update",
-                self.external())
+                **actor.external())
 
     def actor_added(self, actor):
-        self.server.send_update(self.player.username, "actor_update",
-            self.external())
+        log.debug(" - playeractor - actor added %s", actor)
+        if actor == self:
+            self.server.send_update(self.player.username, "actor_update",
+                **actor.internal())
+        else:
+            self.server.send_update(self.player.username, "actor_update",
+                **actor.external())
 
     def actor_removed(self, actor):
-        self.server.send_update(self.player.username, "actor_removed",
-            self.external())
+        log.debug(" - playeractor - actor removed %s", actor)
+        if actor == self:
+            self.server.send_update(self.player.username, "actor_removed",
+                **actor.internal())
+        else:
+            self.server.send_update(self.player.username, "actor_removed",
+                **actor.external())
 
     def actor_heard(self, actor, message):
         msg = "You say :" if self == actor else "%s says :" % (actor.actor_id,)

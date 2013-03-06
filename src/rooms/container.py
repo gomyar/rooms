@@ -144,13 +144,10 @@ class Container(object):
 
     def _load_object(self, object_id, dbase_name):
         enc_dict = self.dbase.load_object(object_id, dbase_name)
-        if enc_dict:
-            db_id = enc_dict.pop('_id')
-            obj = self._dict_to_obj(enc_dict)
-            obj._id = str(db_id)
-            return obj
-        else:
-            return None
+        db_id = enc_dict.pop('_id')
+        obj = self._dict_to_obj(enc_dict)
+        obj._id = str(db_id)
+        return obj
 
     def _obj_to_dict(self, pyobject):
         encoded_str = simplejson.dumps(pyobject, default=self._encode,
@@ -183,7 +180,7 @@ class Container(object):
         room.actors = data['actors']
         room.description = data['description']
         for actor in room.actors.values():
-            actor.room = room
+            room.put_actor(actor, actor.position())
             if actor._docked_with_id:
                 if actor._docked_with_id not in room.actors:
                     log.warning("Actor %s does not exist in room %s - " + \

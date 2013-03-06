@@ -293,7 +293,7 @@ class Actor(object):
             self.following = None
             self.following_range = 0.0
 
-        interval = self.room.visibility_grid.gridsize / self.speed
+        interval = self.room.visibility_grid.gridsize / float(self.speed)
         duration = end_time - get_now()
         while interval > 0 and duration > 0:
             self.sleep(max(0, min(duration, interval)))
