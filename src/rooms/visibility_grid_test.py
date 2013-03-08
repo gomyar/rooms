@@ -30,7 +30,7 @@ class MockActor(object):
 
 class VisibilityGridTest(unittest.TestCase):
     def setUp(self):
-        self.visibility_grid = VisibilityGrid(50, 50, 10)
+        self.visibility_grid = VisibilityGrid(1000, 1000, 10)
 
         self.actor1 = MockActor("actor1", 25, 25, 10)
         self.actor2 = MockActor("actor2", 15, 15, 0)
@@ -156,4 +156,23 @@ class VisibilityGridTest(unittest.TestCase):
         # nothing for actor3
         self.assertEquals([], self.actor3.updates)
 
+    def testRegisteredGidsMovesWitActor(self):
+        # actor1 enters room.
+        self.visibility_grid._register_listener(self.actor1)
 
+        self.assertEquals(set([(1, 2), (3, 2), (1, 3), (3, 3), (3, 1), (2, 1), (2, 3), (2, 2), (1, 1)]), self.visibility_grid.registered_gridpoints[self.actor1])
+
+        self.actor1.pos = (35, 35)
+        self.visibility_grid.update_actor_position(self.actor1)
+
+        self.assertEquals(set([(3, 2), (3, 3), (4, 4), (2, 3), (4, 3), (2, 2), (4, 2), (3, 4), (2, 4)]), self.visibility_grid.registered_gridpoints[self.actor1])
+
+    def testGridRealExample(self):
+        actor = MockActor("actor1", 131, 131, 500)
+
+        self.assertEquals([], self.visibility_grid._gridpoints(131, 131, 500))
+        self.visibility_grid._register_listener(actor)
+        self.assertEquals([], self.visibility_grid.registered_gridpoints[actor])
+
+    def testGridpointsMoveWithActor(self):
+        self.fail()

@@ -50,7 +50,10 @@ class VisibilityGrid(object):
         self._signal_changed(actor, None, self.actors[actor])
 
     def update_actor_position(self, actor):
-        log.debug(" * update actor position: %s", actor)
+#        log.debug(" * update actor position: %s", actor)
+        if actor not in self.actors:
+            # might be invisible
+            return
         x, y = actor.position()
         old_grid_point = self.actors[actor]
         new_grid_point = self._gridpoint(x, y)
@@ -60,6 +63,8 @@ class VisibilityGrid(object):
             self._signal_changed(actor, old_grid_point, new_grid_point)
             if actor in self.registered:
                 self._signal_registered_changed(actor, x, y)
+                gridpoints = set(self._gridpoints(x, y, self.registered[actor]))
+                self.registered_gridpoints[actor] = gridpoints
         self.actors[actor] = new_grid_point
 
     def send_update_event(self, actor, update_id, **kwargs):
@@ -70,7 +75,8 @@ class VisibilityGrid(object):
     def send_update_actor(self, actor):
         grid_point = self.actors[actor]
         for listener in self.sectors[grid_point]:
-            listener.actor_updated(actor)
+            if listener in self.registered:
+                listener.actor_updated(actor)
 
     def _signal_changed(self, actor, old_grid_point, new_grid_point):
         old_actors = self.sectors[old_grid_point]
@@ -125,6 +131,8 @@ class VisibilityGrid(object):
         x2, y2 = (int(x + distance), int(y + distance))
         x2, y2 = (x2 / self.gridsize + 1,
             y2 / self.gridsize + 1)
-        for ry in range(max(0, y1), min(self.width / self.gridsize, y2)):
-            for rx in range(max(0, x1), min(self.height / self.gridsize, x2)):
-                yield (rx, ry)
+        points = []
+        for ry in range(max(0, y1), min(self.height / self.gridsize, y2)):
+            for rx in range(max(0, x1), min(self.width / self.gridsize, x2)):
+                points.append((rx, ry))
+        return points

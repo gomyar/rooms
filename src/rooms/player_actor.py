@@ -68,12 +68,8 @@ class PlayerActor(Actor):
 
     def actor_removed(self, actor):
         log.debug(" - playeractor - actor removed %s", actor)
-        if actor == self:
-            self.server.send_update(self.player.username, "actor_removed",
-                **actor.internal())
-        else:
-            self.server.send_update(self.player.username, "actor_removed",
-                **actor.external())
+        self.server.send_update(self.player.username, "remove_actor",
+            actor_id=actor.actor_id)
 
     def actor_heard(self, actor, message):
         msg = "You say :" if self == actor else "%s says :" % (actor.actor_id,)

@@ -176,6 +176,8 @@ class Container(object):
         room.position = data['position']
         room.width = data['width']
         room.height = data['height']
+        room.visibility_grid.width = data['width']
+        room.visibility_grid.height = data['height']
         room.map_objects = data['map_objects']
         room.actors = data['actors']
         room.description = data['description']

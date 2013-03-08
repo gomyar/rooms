@@ -71,7 +71,7 @@ class Room(object):
         self.area = None
         self.geog = _default_geog
         self.save_manager = Null()
-        self.visibility_grid = VisibilityGrid(self.width, self.height)
+        self.visibility_grid = VisibilityGrid(self.width, self.height, 100)
 
     def __eq__(self, rhs):
         return rhs and self.room_id == rhs.room_id
@@ -131,9 +131,9 @@ class Room(object):
         position = self.geog.get_available_position_closest_to(self,
             position)
 
+        actor.set_position(position)
         self.actors[actor.actor_id] = actor
         actor.room = self
-        actor.set_position(position)
         if actor.visible:
             self.visibility_grid.add_actor(actor)
 
@@ -145,8 +145,7 @@ class Room(object):
             self.visibility_grid.remove_actor(actor)
 
     def _send_actor_update(self, actor):
-        log.debug("Sending actor update for: %s", actor)
-        import ipdb; ipdb.set_trace()
+#        log.debug("Sending actor update for: %s", actor)
         self.visibility_grid.send_update_actor(actor)
 
     def _send_update(self, actor, update_id, **kwargs):

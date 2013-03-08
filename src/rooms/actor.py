@@ -193,10 +193,14 @@ class Actor(object):
         pass
 
     def external(self):
+#        log.debug(" ******** %s %s", self, self.room.visibility_grid.registered_gridpoints[self])
+        vision_grid = list(self.room.visibility_grid.registered_gridpoints[self] if self in self.room.visibility_grid.registered_gridpoints else [])
+        vision_grid.sort()
         return dict(actor_id=self.actor_id, name=self.name,
             actor_type=self.actor_type or type(self).__name__,
             path=self.path.path, speed=self.speed, health=self.health,
-            model_type=self.model_type, circle_id=self.circles.circle_id)
+            model_type=self.model_type, circle_id=self.circles.circle_id,
+            vision_grid=vision_grid)
 
     def internal(self):
         external = self.external()
@@ -245,6 +249,7 @@ class Actor(object):
 
     def set_position(self, position):
         self.path.set_position(position)
+        self.room.visibility_grid.update_actor_position(self)
 
     def set_path(self, path):
         self._set_path(path)
