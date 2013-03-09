@@ -47,13 +47,10 @@ class PlayerActor(Actor):
         self.send_update(update_id, **kwargs)
 
     def actor_updated(self, actor):
-        log.debug(" - playeractor - actor updated %s", actor)
         if actor == self:
-            log.debug(" - playeractor - internal update")
             self.server.send_update(self.player.username, "actor_update",
                 **actor.internal())
         else:
-            log.debug(" - playeractor - external update")
             self.server.send_update(self.player.username, "actor_update",
                 **actor.external())
 
