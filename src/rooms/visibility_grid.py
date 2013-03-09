@@ -58,13 +58,14 @@ class VisibilityGrid(object):
         old_grid_point = self.actors[actor]
         new_grid_point = self._gridpoint(x, y)
         if old_grid_point != new_grid_point:
-            self.sectors[old_grid_point].remove(actor)
-            self.sectors[new_grid_point].add(actor)
             self._signal_changed(actor, old_grid_point, new_grid_point)
             if actor in self.registered:
                 self._signal_registered_changed(actor, x, y)
                 gridpoints = set(self._gridpoints(x, y, self.registered[actor]))
                 self.registered_gridpoints[actor] = gridpoints
+            else:
+                self.sectors[old_grid_point].remove(actor)
+                self.sectors[new_grid_point].add(actor)
         self.actors[actor] = new_grid_point
 
     def send_update_event(self, actor, update_id, **kwargs):
@@ -85,6 +86,7 @@ class VisibilityGrid(object):
         added_actors = new_actors.difference(old_actors)
         for removed in removed_actors:
             if removed in self.registered:
+                log.debug("removing from registered")
                 removed.actor_removed(actor)
         for added in added_actors:
             if added in self.registered:
@@ -100,10 +102,12 @@ class VisibilityGrid(object):
 
         removed_actors = set()
         for grid_point in removed_gridpoints:
+            self.sectors[grid_point].remove(actor)
             removed_actors.update(self.sectors[grid_point])
 
         added_actors = set()
         for grid_point in added_gridpoints:
+            self.sectors[grid_point].add(actor)
             added_actors.update(self.sectors[grid_point])
 
         for listener in added_actors:
@@ -112,6 +116,7 @@ class VisibilityGrid(object):
 
         for listener in removed_actors:
             if actor != listener:
+                log.debug("removing registered or something")
                 actor.actor_removed(listener)
 
     def remove_actor(self, actor):
@@ -136,3 +141,7 @@ class VisibilityGrid(object):
             for rx in range(max(0, x1), min(self.width / self.gridsize, x2)):
                 points.append((rx, ry))
         return points
+
+    def _actor_sectors(self, actor):
+        return set([gridpoint for gridpoint in self.sectors if \
+            actor in self.sectors[gridpoint]])

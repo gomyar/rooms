@@ -105,9 +105,9 @@ class RoomTest(unittest.TestCase):
         self.room1.put_actor(self.actor1, (5, 5))
         self.room1.put_actor(self.actor2, (35, 35))
 
-        self.assertEquals([], self._updates_1)
+        self.assertEquals([('added', self.actor1), ('added', self.actor2)], self._updates_1)
         self.assertEquals([], self._updates_2)
 
         self.actor2.move_to(15, 15)
 
-        self.assertEquals([("added", self.actor2)], self._updates_1)
+        self.assertEquals([("added", self.actor1), ("added", self.actor2)], self._updates_1)
