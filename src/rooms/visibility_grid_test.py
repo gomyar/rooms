@@ -177,3 +177,31 @@ class VisibilityGridTest(unittest.TestCase):
         self.assertEquals(4096, len(self.visibility_grid._gridpoints(131, 131, 500)))
         self.visibility_grid._register_listener(actor)
         self.assertEquals(4096, len(self.visibility_grid.registered_gridpoints[actor]))
+
+    def testUpdateVisionDistance(self):
+        actor1 = MockActor("actor1", 25, 25, 0)
+        actor2 = MockActor("actor2", 15, 15, 0)
+
+        self.visibility_grid.add_actor(actor1)
+        self.visibility_grid.add_actor(actor2)
+
+        self.assertEquals([], actor1.updates)
+        self.assertEquals([], actor2.updates)
+
+        actor1.vision_distance = 10
+        self.visibility_grid.vision_distance_changed(actor1)
+
+        # Note: self is not added. I like this.
+        self.assertEquals([("added", actor2)],
+            actor1.updates)
+        self.assertEquals([], actor2.updates)
+
+        actor1.vision_distance = 0
+        self.visibility_grid.vision_distance_changed(actor1)
+
+        # Note: self is not added. I like this.
+        self.assertEquals([("added", actor2), ("removed", actor2)],
+            actor1.updates)
+        self.assertEquals([], actor2.updates)
+
+

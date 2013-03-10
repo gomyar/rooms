@@ -206,12 +206,13 @@ class Room(object):
             heard.actor_heard(actor, msg)
 
     def create_actor(self, actor_type, actor_script, position=None,
-            actor_id=None, name="", **state):
+            actor_id=None, name="", visible=True, **state):
         actor = Actor(actor_id)
         actor.actor_type = actor_type
         actor.model_type = actor_type
         actor.name = name
         actor.state.update(state)
+        actor.visible = visible
         self.put_actor(actor, position)
         actor.load_script(actor_script)
         if actor.script.has_method("created"):

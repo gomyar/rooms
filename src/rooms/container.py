@@ -212,6 +212,7 @@ class Container(object):
             health = obj._health,
             visible = obj.visible,
             _docked_with_id = obj.docked_with.actor_id if obj.docked_with else None,
+            vision_distance = obj._vision_distance,
         )
 
     def _deserialize_actor(self, actor, data):
@@ -232,6 +233,7 @@ class Container(object):
         actor.visible = data['visible']
         actor._docked_with_id = data['_docked_with_id']
         actor.save_manager = self.save_manager
+        actor._vision_distance = data['vision_distance']
 
     def _create_actor(self, data):
         actor = Actor(data['actor_id'])

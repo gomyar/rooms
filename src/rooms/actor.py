@@ -65,7 +65,7 @@ class Actor(object):
         self.inventory = Inventory()
         self.circles = Circles()
         self.save_manager = Null()
-        self.vision_distance = 0
+        self._vision_distance = 0
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -93,6 +93,15 @@ class Actor(object):
     @property
     def area(self):
         return self.room.area
+
+    @property
+    def vision_distance(self):
+        return self._vision_distance
+
+    @vision_distance.setter
+    def vision_distance(self, distance):
+        self._vision_distance = distance
+        self.room.visibility_grid.vision_distance_changed(self)
 
     def load_script(self, classname):
         self.script = Script(classname)

@@ -10,7 +10,7 @@ class VisibilityGrid(object):
         self.width = width
         self.height = height
         self.gridsize = int(gridsize)
-        self.registered = defaultdict(lambda: set())
+        self.registered = defaultdict(lambda: 0)
         self.registered_gridpoints = defaultdict(lambda: set())
         self.actors = dict()
         self.sectors = defaultdict(lambda: set())
@@ -68,8 +68,6 @@ class VisibilityGrid(object):
             self._signal_changed(actor, old_grid_point, new_grid_point)
             if actor in self.registered:
                 self._signal_registered_changed(actor, x, y)
-                gridpoints = set(self._gridpoints(x, y, self.registered[actor]))
-                self.registered_gridpoints[actor] = gridpoints
             else:
                 self.sectors[old_grid_point].remove(actor)
                 self.sectors[new_grid_point].add(actor)
@@ -101,8 +99,7 @@ class VisibilityGrid(object):
 
     def _signal_registered_changed(self, actor, x, y):
         gridpoints = self.registered_gridpoints[actor]
-        distance = self.registered[actor]
-        newgridpoints = set(self._gridpoints(x, y, distance))
+        newgridpoints = set(self._gridpoints(x, y, actor.vision_distance))
 
         removed_gridpoints = gridpoints.difference(newgridpoints)
         added_gridpoints = newgridpoints.difference(gridpoints)
@@ -123,8 +120,9 @@ class VisibilityGrid(object):
 
         for listener in removed_actors:
             if actor != listener and self._gridpoint(*listener.position()) not in newgridpoints:
-                log.debug("removing registered or something")
                 actor.actor_removed(listener)
+
+        self.registered_gridpoints[actor] = newgridpoints
 
     def remove_actor(self, actor):
         log.debug(" ** Removing actor; %s", actor)
@@ -138,6 +136,8 @@ class VisibilityGrid(object):
         return (int(x) / self.gridsize, int(y) / self.gridsize)
 
     def _gridpoints(self, x, y, distance):
+        if not distance:
+            return []
         x1, y1 = (int(x - distance), int(y - distance))
         x1, y1 = (x1 / self.gridsize, y1 / self.gridsize)
         x2, y2 = (int(x + distance), int(y + distance))
@@ -152,3 +152,11 @@ class VisibilityGrid(object):
     def _actor_sectors(self, actor):
         return set([gridpoint for gridpoint in self.sectors if \
             actor in self.sectors[gridpoint]])
+
+    def vision_distance_changed(self, actor):
+        if actor.vision_distance and actor not in self.registered:
+            self._register_listener(actor)
+        elif not actor.vision_distance and actor in self.registered:
+            self._unregister_listener(actor)
+        else:
+            self._signal_registered_changed(actor, *actor.position())
