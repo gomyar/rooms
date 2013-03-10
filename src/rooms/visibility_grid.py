@@ -15,6 +15,13 @@ class VisibilityGrid(object):
         self.actors = dict()
         self.sectors = defaultdict(lambda: set())
 
+    def visible_actors(self, actor):
+        gridpoints = self.registered_gridpoints[actor]
+        actors = set()
+        for gridpoint in gridpoints:
+            actors.update(self.sectors[gridpoint])
+        return actors
+
     def _register_listener(self, actor):
         log.debug(" ** Registering listener: %s", actor)
         x, y = actor.position()
@@ -111,11 +118,11 @@ class VisibilityGrid(object):
             added_actors.update(self.sectors[grid_point])
 
         for listener in added_actors:
-            if actor != listener and self._gridpoint(*listener.position()) not in self.registered_gridpoints[actor]:
+            if actor != listener and self._gridpoint(*listener.position()) not in newgridpoints:
                 actor.actor_added(listener)
 
         for listener in removed_actors:
-            if actor != listener and self._gridpoint(*listener.position()) not in self.registered_gridpoints[actor]:
+            if actor != listener and self._gridpoint(*listener.position()) not in newgridpoints:
                 log.debug("removing registered or something")
                 actor.actor_removed(listener)
 

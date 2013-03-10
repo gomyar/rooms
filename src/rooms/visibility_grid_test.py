@@ -148,12 +148,12 @@ class VisibilityGridTest(unittest.TestCase):
         self.visibility_grid.update_actor_position(self.actor2)
 
         # actor1 gets removal message
-        self.assertEquals([("added", self.actor1), ("added", self.actor2), ("added", self.actor3),
-            ("removed", self.actor2)],
+        self.assertEquals([("added", self.actor1), ("added", self.actor2),
+            ("added", self.actor3), ("removed", self.actor2)],
             self.actor1.updates)
         # actor2 gets nothing
-        self.assertEquals([("added", self.actor1), ("added", self.actor2), ("added", self.actor3),
-            ("removed", self.actor1)],
+        self.assertEquals([("added", self.actor1), ("added", self.actor2),
+            ("added", self.actor3), ("removed", self.actor1)],
             self.actor2.updates)
         # nothing for actor3
         self.assertEquals([], self.actor3.updates)

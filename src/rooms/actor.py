@@ -84,7 +84,7 @@ class Actor(object):
         self.send_actor_update()
 
     def visible_actors(self):
-        return [a for a in self.room.actors.values() if a != self and a.visible]
+        return [a for a in self.room.visibility_grid.visible_actors(self) if a != self]
 
     @property
     def game(self):
