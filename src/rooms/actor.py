@@ -245,10 +245,12 @@ class Actor(object):
         pass
 
     def actor_added(self, actor):
-        log.debug("Actor %s entered visibility range of %s", actor, self)
+        if self.script and self.script.has_method("actor_entered_vision"):
+            self.script.call_method("actor_entered_vision", self, actor)
 
     def actor_removed(self, actor):
-        log.debug("Actor %s left visibility range of %s", actor, self)
+        if self.script and self.script.has_method("actor_left_vision"):
+            self.script.call_method("actor_left_vision", self, actor)
 
     def x(self):
         return self.path.x()
