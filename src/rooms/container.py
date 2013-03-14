@@ -48,6 +48,7 @@ class Container(object):
             Circles=self._serialize_circles,
             ItemRegistry=self._serialize_item_registry,
             Item=self._serialize_item,
+            Null=self._serialize_null,
         )
 
         self.object_factories = dict(
@@ -68,6 +69,7 @@ class Container(object):
             Circles=self._create_circles,
             ItemRegistry=self._create_item_registry,
             Item=self._create_item,
+            Null=self._create_null,
         )
 
     def load_game(self, game_id):
@@ -430,6 +432,13 @@ class Container(object):
         player.room_id = data['room_id']
         player.state = data['state']
         return player
+
+    # Null
+    def _serialize_null(self, obj):
+        return dict()
+
+    def _create_null(self, data):
+        return Null()
 
     # Game
     def _serialize_game(self, obj):

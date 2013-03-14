@@ -111,3 +111,6 @@ class RoomTest(unittest.TestCase):
         self.actor2.move_to(15, 15)
 
         self.assertEquals([("added", self.actor1), ("added", self.actor2)], self._updates_1)
+
+    def testAddingActorDoesntSendEventIfDockedOrNotVisible(self):
+        self.fail("Do this")

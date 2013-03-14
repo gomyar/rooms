@@ -219,11 +219,11 @@ class Actor(object):
         external.update(dict(state=self.state,
             docked=bool(self.docked_with),
             docked_with=self.docked_with.actor_id if self.docked_with else None,
-            docked_actors=self._docked_internal(),
+            docked_actors=self.docked_actor_map(),
             circles=self.circles.circles))
         return external
 
-    def _docked_internal(self):
+    def docked_actor_map(self):
         internal = dict()
         for a in self.docked.values():
             if a.actor_type not in internal:
@@ -438,3 +438,11 @@ class Actor(object):
                 (friendly == None or self.circles.is_friendly(target)) and \
                 target != self:
                 yield target
+
+    def create_child(self, actor_type, actor_script, docked=True, name="",
+            visible=True, **state):
+        child = self.room.create_actor(actor_type, actor_script,
+            visible=visible and not docked, name=name, **state)
+        if docked:
+            self.dock(child)
+        return child

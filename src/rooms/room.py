@@ -67,7 +67,7 @@ class Room(object):
         self.width = width
         self.height = height
         self.map_objects = dict()
-        self.actors = defaultdict(Null)
+        self.actors = dict()
         self.area = None
         self.geog = _default_geog
         self.save_manager = Null()
