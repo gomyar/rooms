@@ -66,6 +66,8 @@ class Actor(object):
         self.circles = Circles()
         self.save_manager = Null()
         self._vision_distance = 0
+        self._children = []
+        self.parent_id = None
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -230,6 +232,14 @@ class Actor(object):
                 internal[a.actor_type] = []
             internal[a.actor_type].append(a.internal())
         return internal
+
+    def docked_actors(self):
+        actors = dict()
+        for a in self.docked.values():
+            if a.actor_type not in actors:
+                actors[a.actor_type] = []
+            actors[a.actor_type].append(a)
+        return actors
 
     def send_actor_update(self):
         if self.visible:
@@ -443,6 +453,12 @@ class Actor(object):
             visible=True, **state):
         child = self.room.create_actor(actor_type, actor_script,
             visible=visible and not docked, name=name, **state)
+        child.parent_id = self.actor_id
         if docked:
             self.dock(child)
+        self._children.append(child.actor_id)
         return child
+
+    @property
+    def child_actors(self):
+        return [self.room.actors[actor_id] for actor_id in self._children]

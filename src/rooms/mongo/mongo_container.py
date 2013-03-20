@@ -67,13 +67,18 @@ class MongoContainer(object):
         return obj
 
     def update_object(self, obj, collection_name, update_key, update_obj):
-        self._collection(collection_name).update(
-            {'_id': obj._id },
-            {
-                '$set': { update_key: update_obj },
-            },
-#            { 'upsert': True },
-            )
+        try:
+            self._collection(collection_name).update(
+                {'_id': obj._id },
+                {
+                    '$set': { update_key: update_obj },
+                },
+    #            { 'upsert': True },
+                )
+        except:
+            log.exception("Exception updating object in %s.update_key: %s",
+                collection_name, update_obj)
+            raise
 
     def remove_object(self, obj, collection_name, remove_key):
         pass # something unset something
