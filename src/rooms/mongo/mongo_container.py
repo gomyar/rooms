@@ -67,13 +67,14 @@ class MongoContainer(object):
         return obj
 
     def update_object(self, obj, collection_name, update_key, update_obj):
+        log.debug("   ********* updating object %s", update_obj)
         try:
             self._collection(collection_name).update(
                 {'_id': obj._id },
                 {
                     '$set': { update_key: update_obj },
                 },
-    #            { 'upsert': True },
+                upsert=True,
                 )
         except:
             log.exception("Exception updating object in %s.update_key: %s",
@@ -81,7 +82,16 @@ class MongoContainer(object):
             raise
 
     def remove_object(self, obj, collection_name, remove_key):
-        pass # something unset something
+        try:
+            self._collection(collection_name).update(
+                {'_id': obj._id },
+                {
+                    '$unset': { remove_key: 1 },
+                },
+                )
+        except:
+            log.exception("Exception removing object %s.%s.%s",
+                collection_name, obj._id, remove_key)
 
     def init_mongo(self):
         self._mongo_connection = Connection(self.host, self.port)

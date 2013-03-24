@@ -61,6 +61,7 @@ class PlayerActor(Actor):
                 **actor.external())
 
     def actor_removed(self, actor):
+        log.debug(" --- actor removed: %s", actor)
         self.server.send_update(self.player.username, "remove_actor",
             actor_id=actor.actor_id)
 

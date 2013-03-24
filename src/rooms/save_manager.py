@@ -37,6 +37,8 @@ class SaveManager(object):
 
     def queue_actor_remove(self, actor):
         room = actor.room
+        if actor in self.queue:
+            self.queue.remove(actor)
         self.container.remove_actor(room, actor)
 
     def save_room(self, room):
