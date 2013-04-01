@@ -109,10 +109,10 @@ class VisibilityGrid(object):
         removed_actors = old_actors.difference(new_actors)
         added_actors = new_actors.difference(old_actors)
         for removed in removed_actors:
-            if removed in self.registered:
+            if removed in self.registered and removed != actor:
                 removed.actor_removed(actor)
         for added in added_actors:
-            if added in self.registered:
+            if added in self.registered and added != actor:
                 added.actor_added(actor)
 
     def _signal_registered_changed(self, actor, x, y):
