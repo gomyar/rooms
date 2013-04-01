@@ -34,13 +34,19 @@ class VisibilityGrid(object):
             existing.update(self.sectors[grid_point])
             self.sectors[grid_point].add(actor)
         for target in existing:
-            actor.actor_added(target)
+            if target != actor:
+                actor.actor_added(target)
         self._add_actor(actor)
 
     def _unregister_listener(self, actor):
         log.debug(" ** Unregistering listener: %s", actor)
+        removing = set()
         for grid_point in self.registered_gridpoints[actor]:
+            removing.update(self.sectors[grid_point])
             self.sectors[grid_point].remove(actor)
+        for target in removing:
+            if target != actor:
+                actor.actor_removed(target)
         self._remove_actor(actor)
 
     def _remove_actor(self, actor):
@@ -64,20 +70,24 @@ class VisibilityGrid(object):
         self._signal_changed(actor, None, self.actors[actor])
 
     def update_actor_position(self, actor):
-#        log.debug(" * update actor position: %s", actor)
+        log.debug(" * update actor position: %s", actor)
         if actor not in self.actors:
             # might be invisible
+            log.debug(" might be invisible")
             return
         x, y = actor.position()
         old_grid_point = self.actors[actor]
         new_grid_point = self._gridpoint(x, y)
         if old_grid_point != new_grid_point:
+            log.debug("signal changed %s", actor)
             self._signal_changed(actor, old_grid_point, new_grid_point)
             if actor in self.registered:
+                log.debug("registered changed")
                 self._signal_registered_changed(actor, x, y)
             else:
                 self.sectors[old_grid_point].remove(actor)
                 self.sectors[new_grid_point].add(actor)
+        log.debug("old grid point %s == %s", self.actors[actor], new_grid_point)
         self.actors[actor] = new_grid_point
 
     def send_update_event(self, actor, update_id, **kwargs):
@@ -100,7 +110,6 @@ class VisibilityGrid(object):
         added_actors = new_actors.difference(old_actors)
         for removed in removed_actors:
             if removed in self.registered:
-                log.debug("removing from registered")
                 removed.actor_removed(actor)
         for added in added_actors:
             if added in self.registered:

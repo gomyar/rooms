@@ -192,7 +192,8 @@ class VisibilityGridTest(unittest.TestCase):
         self.visibility_grid.vision_distance_changed(actor1)
 
         # Note: self is not added. I like this.
-        self.assertEquals([("added", actor2)],
+        # nuh uh: self should be added (for player callback)
+        self.assertEquals([("added", actor2), ("added", actor1)],
             actor1.updates)
         self.assertEquals([], actor2.updates)
 
@@ -200,7 +201,8 @@ class VisibilityGridTest(unittest.TestCase):
         self.visibility_grid.vision_distance_changed(actor1)
 
         # Note: self is not added. I like this.
-        self.assertEquals([("added", actor2), ("removed", actor2)],
+        self.assertEquals([("added", actor2), ("added", actor1),
+            ("removed", actor2), ("removed", actor1)],
             actor1.updates)
         self.assertEquals([], actor2.updates)
 

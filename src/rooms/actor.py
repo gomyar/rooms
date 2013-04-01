@@ -74,7 +74,8 @@ class Actor(object):
             rhs.actor_id == self.actor_id
 
     def __repr__(self):
-        return "<Actor %s:%s>" % (self.actor_type, self.actor_id)
+#        return "<Actor %s:%s>" % (self.actor_type, self.actor_id)
+        return "<Actor %s:%s>" % (self.actor_type, self.name)
 
     @property
     def health(self):
@@ -255,12 +256,16 @@ class Actor(object):
         pass
 
     def actor_added(self, actor):
-        if self.script and self.script.has_method("actor_entered_vision"):
+        if self.script and self.script.has_method("actor_entered_vision") and \
+                actor != self:
             self.script.call_method("actor_entered_vision", self, actor)
+            #self.script_call("actor_entered_vision", actor)
 
     def actor_removed(self, actor):
-        if self.script and self.script.has_method("actor_left_vision"):
+        if self.script and self.script.has_method("actor_left_vision") and \
+                actor != self:
             self.script.call_method("actor_left_vision", self, actor)
+            #self.script_call("actor_left_vision", actor)
 
     def x(self):
         return self.path.x()
@@ -324,8 +329,12 @@ class Actor(object):
 
         interval = self.room.visibility_grid.gridsize / float(self.speed)
         duration = end_time - get_now()
+        print "*** duration=%s"%duration
         while interval > 0 and duration > 0:
-            self.sleep(max(0, min(duration, interval)))
+            slept = max(0, min(duration, interval))
+            log.debug("sleeping for %s on %s", slept, gevent.getcurrent())
+            self.sleep(slept)
+            print "*** calling update interval=%s duration=%s" % (interval, duration)
             duration -= interval
             self.room.visibility_grid.update_actor_position(self)
 

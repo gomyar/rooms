@@ -27,13 +27,18 @@ class ActorTest(unittest.TestCase):
     def setUp(self):
         self.now = 0.0
         time.time = mock.Mock(return_value=self.now)
-        self.room = Room()
+        self.room = Room(1000, 1000)
         self.actor = Actor("actor1")
-        self.actor.sleep = lambda s: None
+        self.actor.sleep = self._mock_sleep
         self.actor.circles.circle_id = "alliance1"
         self.mock_actor = Actor("mock")
         self.room.put_actor(self.actor, (10, 10))
         rooms.waypoint.get_now = self._mock_get_now
+
+        self._slept = []
+
+    def _mock_sleep(self, seconds):
+        self._slept.append(seconds)
 
     def _mock_get_now(self):
         return self.now
@@ -194,3 +199,13 @@ class ActorTest(unittest.TestCase):
             distance=700, actor_type="test")))
         self.assertEquals([self.actor4], list(self.actor.find_actors(enemy=True,
             distance=700, actor_type="test")))
+
+    def testSleepOnMove(self):
+        self.actor.move_to(110, 10)
+
+        self.assertEquals([100.0], self._slept)
+
+    def testSleepOnMoveMultiple(self):
+        self.actor.move_to(160, 10)
+
+        self.assertEquals([100.0, 50.0], self._slept)
