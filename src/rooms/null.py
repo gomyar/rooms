@@ -26,3 +26,6 @@ class Null(object):
 
     def __nonzero__(self):
         return False
+
+    def __contains__(self, key):
+        return False

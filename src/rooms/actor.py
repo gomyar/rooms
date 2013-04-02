@@ -52,7 +52,7 @@ class Actor(object):
         self.script = Null()
         self.state = State(self)
         self.model_type = ""
-        self.call_gthread = None
+        self.kickoff_gthread = None
         self.docked = dict()
         self.docked_with = None
         self.followers = set()
@@ -115,88 +115,42 @@ class Actor(object):
             deregister_actor_script(self.script.script_name, self)
 
     def kick(self):
-        if self.script.has_method("kickoff"):
-            log.debug("Calling kick on %s", self)
-            self._queue_script_method("kickoff", self, [], {})
+        self.kill_gthread()
+        if "kickoff" in self.script:
+            self.kickoff_gthread = gevent.spawn(self.run_kickoff)
+
+    def run_kickoff(self):
+        while "kickoff" in self.script:
+            now = get_now()
+            try:
+                self.script.kickoff(self)
+            except:
+                log.exception("Exception running kickoff on %s", self)
+            self.sleep(min(0, max(3, get_now() - now)))
 
     def call_command(self, method_name, *args, **kwargs):
-        return self.script_call(method_name, *args, **kwargs)
-
-    def script_call(self, method_name, *args, **kwargs):
         if self.script.is_request(method_name):
-            return self._call_script_method(method_name, self, args,
-                kwargs)
+            return self.script._call_function(method_name, self, *args,
+                **kwargs)
         else:
-            self._queue_script_method(method_name, self, args, kwargs)
-
-    def _call_script_method(self, method_name, player, args, kwargs):
-        try:
-            return self.script.call_method(method_name, player, *args, **kwargs)
-        except Exception, e:
-            log.exception("Exception calling %s(%s, %s)", method_name, args,
-                kwargs)
-            self.add_error("Error calling %s(%s, %s): %s" % (method_name, args,
-                kwargs, e.args))
-            raise
-
-    def _queue_script_method(self, method_name, player, args, kwargs):
-        log.debug("queuing %s", method_name)
-        if self.call_gthread:
             self.kill_gthread()
-        self.method_call = (method_name, [player] + list(args), kwargs)
-        self.call_gthread = gevent.spawn(self.run_method_call)
+            self.kickoff_gthread = gevent.spawn(self._background_command,
+                method_name, *args, **kwargs)
 
-    def run_method_call(self):
-        log.debug("run_method_call")
-        self.running = True
-        while self.running:
-            self._process_queue_item()
-
-            self.sleep(0)
-            if self.script.has_method("kickoff") and self.running:
-                self._wrapped_call("kickoff", self)
-            else:
-                self.running = False
-        self.remove_gthread()
-
-    def _process_queue_item(self):
-        log.debug("Calling %s", self.method_call)
-        if self.method_call:
-            method, args, kwargs = self.method_call
-            self._wrapped_call(method, *args, **kwargs)
-            self.method_call = None
+    def _background_command(self, method_name, *args, **kwargs):
+        try:
+            self.script._call_function(method_name, self, *args, **kwargs)
+        except:
+            log.exception("Exception calling background: %s %s, %s, %s",
+                method_name, self, args, kwargs)
+        self.kick()
 
     def kill_gthread(self):
         try:
-            self.running = False
-            self.call_gthread.kill()
-            self.remove_gthread()
+            self.kickoff_gthread.kill()
         except:
             pass
-
-    def remove_gthread(self):
-        self.call_gthread = None
-
-    def _wrapped_call(self, method, *args, **kwargs):
-        try:
-            self.script.call_method(method, *args, **kwargs)
-            self.running = False
-        except gevent.greenlet.GreenletExit, ex:
-            raise
-        except Exception, e:
-            log.exception("Exception processing %s script %s(%s, %s)",
-                self, method, args, kwargs)
-            self.add_error("Error in %s(%s, %s): %s" % (method, args, kwargs,
-                e.args))
-        finally:
-            self.save_manager.queue_actor(self)
-
-    def add_error(self, msg):
-        log_entry = { 'msg': msg, 'time': time.time() }
-        self.log.append(log_entry)
-        if len(self.log) > 50:
-            self.log.pop(0)
-        self._send_update("log", **log_entry)
+        self.kickoff_gthread = None
 
     def say(self, msg):
         self.room.actor_said(self, msg)
@@ -205,17 +159,10 @@ class Actor(object):
         pass
 
     def external(self):
-#        log.debug(" ******** %s %s", self, self.room.visibility_grid.registered_gridpoints[self])
-        vision_grid = list(self.room.visibility_grid.registered_gridpoints[self] if self in self.room.visibility_grid.registered_gridpoints else [])
-        vision_grid.sort()
-
-        in_sectors = [gridpoint for gridpoint in self.room.visibility_grid.sectors if self in self.room.visibility_grid.sectors[gridpoint]]
-
         return dict(actor_id=self.actor_id, name=self.name,
             actor_type=self.actor_type or type(self).__name__,
             path=self.path.path, speed=self.speed, health=self.health,
-            model_type=self.model_type, circle_id=self.circles.circle_id,
-            vision_grid=vision_grid, in_sectors=in_sectors)
+            model_type=self.model_type, circle_id=self.circles.circle_id)
 
     def internal(self):
         external = self.external()
@@ -256,16 +203,12 @@ class Actor(object):
         pass
 
     def actor_added(self, actor):
-        if self.script and self.script.has_method("actor_entered_vision") and \
-                actor != self:
-            self.script.call_method("actor_entered_vision", self, actor)
-            #self.script_call("actor_entered_vision", actor)
+        if "actor_entered_vision" in self.script:
+            self.script.actor_entered_vision(self, actor)
 
     def actor_removed(self, actor):
-        if self.script and self.script.has_method("actor_left_vision") and \
-                actor != self:
-            self.script.call_method("actor_left_vision", self, actor)
-            #self.script_call("actor_left_vision", actor)
+        if "actor_left_vision" in self.script:
+            self.script.actor_left_vision(self, actor)
 
     def x(self):
         return self.path.x()
@@ -329,12 +272,8 @@ class Actor(object):
 
         interval = self.room.visibility_grid.gridsize / float(self.speed)
         duration = end_time - get_now()
-        print "*** duration=%s"%duration
         while interval > 0 and duration > 0:
-            slept = max(0, min(duration, interval))
-            log.debug("sleeping for %s on %s", slept, gevent.getcurrent())
-            self.sleep(slept)
-            print "*** calling update interval=%s duration=%s" % (interval, duration)
+            self.sleep(max(0, min(duration, interval)))
             duration -= interval
             self.room.visibility_grid.update_actor_position(self)
 
@@ -425,9 +364,8 @@ class Actor(object):
 
     def kill(self):
         log.debug("Killing %s", self)
-        if self.script and self.script.has_method("killed"):
-            self._wrapped_call("killed", self)
-        self.running = False
+        if "killed" in self.script:
+            self.script.killed()
         if self.room:
             self.room.remove_actor(self)
         for actor in self.docked.values():

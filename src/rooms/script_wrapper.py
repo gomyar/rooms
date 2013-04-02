@@ -32,13 +32,16 @@ class Script(object):
         except:
             log.exception("Script %s is corrupt - cannot load", script_name)
 
+    def __repr__(self):
+        return "<Script %s>" % (self.script_name,)
+
     @property
     def script_module(self):
         return _scripts[self.script_name]
 
     def commands(self):
         return [self._describe(m) for m in dir(self.script_module) if \
-            getattr(self.get_method(m), "is_command", None)]
+            getattr(getattr(self, m), "is_command", None)]
 
     def api(self):
         return dict(
@@ -52,15 +55,18 @@ class Script(object):
         method = getattr(self.script_module, method_name)
         return {'name': method_name, 'args': method.args}
 
-    def call_method(self, method, actor, *args, **kwargs):
-        return self.get_method(method)(actor, *args, **kwargs)
-
-    def has_method(self, method):
-        return hasattr(self.script_module, method)
-
-    def get_method(self, method):
-        return getattr(self.script_module, method)
-
     def is_request(self, method):
-        return getattr(self.get_method(method), "is_request", False)
+        return getattr(getattr(self, method), "is_request", False)
 
+    def _call_function(self, function, *args, **kwargs):
+        return getattr(self, function)(*args, **kwargs)
+
+    def __getattr__(self, key):
+        if key in self:
+            return getattr(self.script_module, key)
+        else:
+            raise AttributeError("Function %s does not exist in script %s" % (
+                key, self))
+
+    def __contains__(self, key):
+        return hasattr(self.script_module, key)

@@ -6,6 +6,7 @@ import time
 import rooms.waypoint
 from actor import Actor
 from script import command
+from script import request
 from room import Room
 
 
@@ -18,9 +19,20 @@ def mock_you(actor, from_actor):
     actor._test_value = "Called with actor %s" % (actor.actor_id,)
 
 
-@command
+@request
 def scripty_cally(player, param1, param2="value2"):
     return "Hello %s %s" % (param1, param2)
+
+
+class MockScript(object):
+    def __init__(self):
+        self._kickoff_called = False
+
+    def kickoff(self, actor):
+        self._kickoff_called = True
+
+    def __contains__(self, key):
+        return True
 
 
 class ActorTest(unittest.TestCase):
@@ -57,14 +69,11 @@ class ActorTest(unittest.TestCase):
         self.actor.load_script("rooms.actor_test")
         self.mock_actor.load_script("rooms.actor_test")
 
-        self.mock_actor.call_command("mock_you", self.actor)
-        self.mock_actor._process_queue_item()
+        self.mock_actor.script.mock_you(self.mock_actor, self.actor)
         self.assertEquals("Called with actor mock", self.mock_actor._test_value)
 
-        self.actor.call_command("scripty_cally", "1", "2")
-
-        self.assertEquals(("scripty_cally", [self.actor, '1', '2'], {}),
-            self.actor.method_call)
+        response = self.actor.call_command("scripty_cally", "1", "2")
+        self.assertEquals("Hello 1 2", response)
 
     def testDel(self):
         self.actor.load_script("rooms.actor_test")
@@ -209,3 +218,14 @@ class ActorTest(unittest.TestCase):
         self.actor.move_to(160, 10)
 
         self.assertEquals([100.0, 50.0], self._slept)
+
+    def testKick(self):
+        script = MockScript()
+        self.actor.script = script
+        self.actor.run_kickoff = lambda: None
+
+        self.assertIsNone(self.actor.kickoff_gthread)
+
+        self.actor.kick()
+
+        self.assertIsNotNone(self.actor.kickoff_gthread)

@@ -67,7 +67,6 @@ class MongoContainer(object):
         return obj
 
     def update_object(self, obj, collection_name, update_key, update_obj):
-        log.debug("   ********* updating object %s", update_obj.actor_type)
         try:
             self._collection(collection_name).update(
                 {'_id': obj._id },

@@ -34,11 +34,7 @@ class ScriptTest(unittest.TestCase):
         }],
             self.script.commands())
 
-        self.actor.call_command('first_command', "value1")
+    def testScriptMethodCallDirectly(self):
+        self.actor.script.first_command(self.actor, "hello")
 
-        self.assertEquals(("first_command", [self.actor, "value1"], {}),
-            self.actor.method_call)
-
-        self.actor._process_queue_item()
-
-        self.assertEquals("value1", self.actor.state.param1)
+        self.assertEquals("hello", self.actor.state.param1)

@@ -218,8 +218,8 @@ class Room(object):
         actor.visible = visible
         self.put_actor(actor, position)
         actor.load_script(actor_script)
-        if actor.script.has_method("created"):
-            actor.script.call_method("created", actor)
+        if "created" in actor.script:
+            actor.script.created(actor)
         actor.kick()
         return actor
 

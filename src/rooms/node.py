@@ -136,8 +136,8 @@ class Node(object):
             self.players[player_id]['player'] = actor
             area = self.areas[player.area_id]
             area.rooms[player.room_id].put_actor(actor)
-            if actor.script.has_method("created"):
-                actor._wrapped_call("created", actor)
+            if "created" in actor.script:
+                actor.script.created(actor)
             actor.kick()
 
             log.info("Player joined: %s", player_id)
