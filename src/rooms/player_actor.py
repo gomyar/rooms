@@ -45,7 +45,6 @@ class PlayerActor(Actor):
         self.send_update(update_id, **kwargs)
 
     def actor_updated(self, actor):
-        log.debug("update....")
         self.server.send_update(self.player.username, "actor_update",
             **actor.external())
 
@@ -59,7 +58,6 @@ class PlayerActor(Actor):
             **self.internal())
 
     def actor_removed(self, actor):
-        log.debug(" --- actor removed: %s", actor)
         self.server.send_update(self.player.username, "remove_actor",
             actor_id=actor.actor_id)
 

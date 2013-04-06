@@ -147,6 +147,8 @@ class Actor(object):
     def _background_command(self, method_name, *args, **kwargs):
         try:
             self.script._call_function(method_name, self, *args, **kwargs)
+        except gevent.greenlet.GreenletExit, ex:
+            raise
         except:
             log.exception("Exception calling background: %s %s, %s, %s",
                 method_name, self, args, kwargs)

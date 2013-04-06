@@ -56,7 +56,7 @@ class VisibilityGridTest(unittest.TestCase):
 
     def testMovement(self):
         # actor1 enters room.
-        self.visibility_grid._register_listener(self.actor1)
+        self.visibility_grid.register_listener(self.actor1)
         # actor1 registers interest in x sectors
         # actor1 get responses for each sector, one at a time []
         self.assertEquals([], self.actor1.updates)
@@ -81,7 +81,7 @@ class VisibilityGridTest(unittest.TestCase):
 
     def testListenerMovesOutOfRange(self):
         # actor1 enters room.
-        self.visibility_grid._register_listener(self.actor1)
+        self.visibility_grid.register_listener(self.actor1)
         self.visibility_grid.add_actor(self.actor1)
 
         # actor2 enters room
@@ -103,10 +103,10 @@ class VisibilityGridTest(unittest.TestCase):
         self.actor2.vision_distance = 10
 
         # actor1 enters room.
-        self.visibility_grid._register_listener(self.actor1)
+        self.visibility_grid.register_listener(self.actor1)
         self.visibility_grid.add_actor(self.actor1)
         # actor2 registers
-        self.visibility_grid._register_listener(self.actor2)
+        self.visibility_grid.register_listener(self.actor2)
         self.visibility_grid.add_actor(self.actor2)
 
         # actor2 gets add message
@@ -131,13 +131,13 @@ class VisibilityGridTest(unittest.TestCase):
         self.actor3 = MockActor("actor3", 15, 15, 0)
 
         # actor1 enters room.
-        self.visibility_grid._register_listener(self.actor1)
+        self.visibility_grid.register_listener(self.actor1)
         self.visibility_grid.add_actor(self.actor1)
         # actor2 registers
-        self.visibility_grid._register_listener(self.actor2)
+        self.visibility_grid.register_listener(self.actor2)
         self.visibility_grid.add_actor(self.actor2)
         # actor 3 added
-        self.visibility_grid._add_actor(self.actor3)
+        self.visibility_grid.add_actor(self.actor3)
 
         # actor2 gets add message
         self.assertEquals([("added", self.actor1), ("added", self.actor3)],
@@ -165,23 +165,23 @@ class VisibilityGridTest(unittest.TestCase):
 
     def testRegisteredGidsMovesWitActor(self):
         # actor1 enters room.
-        self.visibility_grid._register_listener(self.actor1)
+        self.visibility_grid.register_listener(self.actor1)
         self.visibility_grid.add_actor(self.actor1)
 
         self.assertEquals(set([(1, 2), (3, 2), (1, 3), (3, 3), (3, 1), (2, 1), (2, 3), (2, 2), (1, 1)]), self.visibility_grid.registered_gridpoints[self.actor1])
-        self.assertEquals(set([(1, 2), (3, 2), (1, 3), (3, 3), (3, 1), (2, 1), (2, 3), (2, 2), (1, 1)]), self.visibility_grid._actor_sectors(self.actor1))
+        self.assertEquals(set([(2, 2)]), self.visibility_grid._actor_sectors(self.actor1))
 
         self.actor1.pos = (35, 35)
         self.visibility_grid.update_actor_position(self.actor1)
 
         self.assertEquals(set([(3, 2), (3, 3), (4, 4), (2, 3), (4, 3), (2, 2), (4, 2), (3, 4), (2, 4)]), self.visibility_grid.registered_gridpoints[self.actor1])
-        self.assertEquals(set([(3, 2), (3, 3), (4, 4), (2, 3), (4, 3), (2, 2), (4, 2), (3, 4), (2, 4)]), self.visibility_grid._actor_sectors(self.actor1))
+        self.assertEquals(set([(3, 3)]), self.visibility_grid._actor_sectors(self.actor1))
 
     def testGridRealExample(self):
         actor = MockActor("actor1", 131, 131, 500)
 
         self.assertEquals(4096, len(self.visibility_grid._gridpoints(131, 131, 500)))
-        self.visibility_grid._register_listener(actor)
+        self.visibility_grid.register_listener(actor)
         self.assertEquals(4096, len(self.visibility_grid.registered_gridpoints[actor]))
 
     def testUpdateVisionDistance(self):
@@ -208,4 +208,14 @@ class VisibilityGridTest(unittest.TestCase):
         # Note: self is not added. I like this.
         self.assertEquals([("added", actor2), ("removed", actor2)],
             actor1.updates)
+        self.assertEquals([], actor2.updates)
+
+    def testRegisterListenerDoesntSendUpdate(self):
+        actor1 = MockActor("actor1", 25, 25, 10)
+        actor2 = MockActor("actor2", 15, 15, 10)
+
+        self.visibility_grid.register_listener(actor1)
+        self.visibility_grid.register_listener(actor2)
+
+        self.assertEquals([], actor1.updates)
         self.assertEquals([], actor2.updates)
