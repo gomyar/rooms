@@ -36,7 +36,6 @@ class VisibilityGrid(object):
         for target in existing:
             if target != actor:
                 actor.actor_added(target)
-        self._add_actor(actor)
 
     def _unregister_listener(self, actor):
         log.debug(" ** Unregistering listener: %s", actor)
@@ -47,7 +46,8 @@ class VisibilityGrid(object):
         for target in removing:
             if target != actor:
                 actor.actor_removed(target)
-        self._remove_actor(actor)
+        self.registered.pop(actor)
+        self.registered_gridpoints.pop(actor)
 
     def _remove_actor(self, actor):
         grid_point = self.actors.pop(actor)
@@ -57,12 +57,6 @@ class VisibilityGrid(object):
 
     def add_actor(self, actor):
         log.debug(" ** Adding actor: %s", actor)
-        if actor.vision_distance:
-            self._register_listener(actor)
-        else:
-            self._add_actor(actor)
-
-    def _add_actor(self, actor):
         x, y = actor.position()
         grid_point = self._gridpoint(x, y)
         self.actors[actor] = grid_point
@@ -144,10 +138,7 @@ class VisibilityGrid(object):
 
     def remove_actor(self, actor):
         log.debug(" ** Removing actor; %s", actor)
-        if actor in self.registered:
-            self._unregister_listener(actor)
-        else:
-            self._remove_actor(actor)
+        self._remove_actor(actor)
 
     def _gridpoint(self, x, y):
         return (int(x) / self.gridsize, int(y) / self.gridsize)

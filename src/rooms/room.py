@@ -136,7 +136,7 @@ class Room(object):
         actor.room = self
         if actor.visible:
             self.visibility_grid.add_actor(actor)
-        elif actor.vision_distance:
+        if actor.vision_distance:
             self.visibility_grid._register_listener(actor)
 
     def remove_actor(self, actor):
@@ -145,7 +145,7 @@ class Room(object):
         actor.room = Null()
         if actor.visible:
             self.visibility_grid.remove_actor(actor)
-        elif actor.vision_distance:
+        if actor.vision_distance:
             self.visibility_grid._unregister_listener(actor)
 
     def _send_actor_update(self, actor):

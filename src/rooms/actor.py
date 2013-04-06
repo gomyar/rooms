@@ -60,6 +60,7 @@ class Actor(object):
         self.following_range = 0.0
         self.visible = True
         self.method_call = None
+        self.running = True
 
         self._health = 1.0
         self.inventory = Inventory()
@@ -120,13 +121,19 @@ class Actor(object):
             self.kickoff_gthread = gevent.spawn(self.run_kickoff)
 
     def run_kickoff(self):
-        while "kickoff" in self.script:
+        while self.running and "kickoff" in self.script:
             now = get_now()
             try:
                 self.script.kickoff(self)
+            except gevent.greenlet.GreenletExit, ex:
+                raise
             except:
                 log.exception("Exception running kickoff on %s", self)
             self.sleep(min(0, max(3, get_now() - now)))
+
+    def pause(self):
+        self.running = False
+        self.kill_gthread()
 
     def call_command(self, method_name, *args, **kwargs):
         if self.script.is_request(method_name):
@@ -365,7 +372,7 @@ class Actor(object):
     def kill(self):
         log.debug("Killing %s", self)
         if "killed" in self.script:
-            self.script.killed()
+            self.script.killed(self)
         if self.room:
             self.room.remove_actor(self)
         for actor in self.docked.values():

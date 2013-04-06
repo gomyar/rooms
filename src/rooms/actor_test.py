@@ -229,3 +229,41 @@ class ActorTest(unittest.TestCase):
         self.actor.kick()
 
         self.assertIsNotNone(self.actor.kickoff_gthread)
+
+    def testActorRemainsAsListenerWhenDocked(self):
+        # Add actor to room (check listener in visibility grid)
+        self.actor = Actor("actor1")
+        self.actor.vision_distance = 100
+
+        self.room.put_actor(self.actor)
+
+        self.assertTrue(self.actor in self.room.visibility_grid.registered)
+
+        # Add actor2 (check listener in visibility grid)
+        self.actor2 = Actor("actor2")
+        self.actor2.vision_distance = 100
+
+        self.room.put_actor(self.actor2)
+
+        self.assertTrue(self.actor2 in self.room.visibility_grid.registered)
+
+        # Dock actor2 in actor
+        self.actor.dock(self.actor2)
+
+        # Check actor2 still receives updates
+        self.assertTrue(self.actor2 in self.room.visibility_grid.registered)
+
+    def testActorRemainsAsListenerWhenInvisible(self):
+        # Add actor to room (check listener in visibility grid)
+        self.actor = Actor("actor1")
+        self.actor.vision_distance = 100
+
+        self.room.put_actor(self.actor)
+
+        self.assertTrue(self.actor in self.room.visibility_grid.registered)
+        self.assertTrue(self.actor in self.room.visibility_grid.actors)
+
+        self.actor.set_visible(False)
+
+        self.assertTrue(self.actor in self.room.visibility_grid.registered)
+        self.assertFalse(self.actor in self.room.visibility_grid.actors)

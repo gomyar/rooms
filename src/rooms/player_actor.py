@@ -45,20 +45,18 @@ class PlayerActor(Actor):
         self.send_update(update_id, **kwargs)
 
     def actor_updated(self, actor):
-        if actor == self:
-            self.server.send_update(self.player.username, "actor_update",
-                **actor.internal())
-        else:
-            self.server.send_update(self.player.username, "actor_update",
-                **actor.external())
+        log.debug("update....")
+        self.server.send_update(self.player.username, "actor_update",
+            **actor.external())
 
     def actor_added(self, actor):
-        if actor == self:
-            self.server.send_update(self.player.username, "actor_update",
-                **actor.internal())
-        else:
-            self.server.send_update(self.player.username, "actor_update",
-                **actor.external())
+        self.server.send_update(self.player.username, "actor_update",
+            **actor.external())
+
+    def send_actor_update(self):
+        super(PlayerActor, self).send_actor_update()
+        self.server.send_update(self.player.username, "actor_update",
+            **self.internal())
 
     def actor_removed(self, actor):
         log.debug(" --- actor removed: %s", actor)

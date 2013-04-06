@@ -82,6 +82,7 @@ class VisibilityGridTest(unittest.TestCase):
     def testListenerMovesOutOfRange(self):
         # actor1 enters room.
         self.visibility_grid._register_listener(self.actor1)
+        self.visibility_grid.add_actor(self.actor1)
 
         # actor2 enters room
         self.visibility_grid.add_actor(self.actor2)
@@ -103,8 +104,10 @@ class VisibilityGridTest(unittest.TestCase):
 
         # actor1 enters room.
         self.visibility_grid._register_listener(self.actor1)
+        self.visibility_grid.add_actor(self.actor1)
         # actor2 registers
         self.visibility_grid._register_listener(self.actor2)
+        self.visibility_grid.add_actor(self.actor2)
 
         # actor2 gets add message
         self.assertEquals([("added", self.actor1)], self.actor2.updates)
@@ -129,8 +132,10 @@ class VisibilityGridTest(unittest.TestCase):
 
         # actor1 enters room.
         self.visibility_grid._register_listener(self.actor1)
+        self.visibility_grid.add_actor(self.actor1)
         # actor2 registers
         self.visibility_grid._register_listener(self.actor2)
+        self.visibility_grid.add_actor(self.actor2)
         # actor 3 added
         self.visibility_grid._add_actor(self.actor3)
 
@@ -161,6 +166,7 @@ class VisibilityGridTest(unittest.TestCase):
     def testRegisteredGidsMovesWitActor(self):
         # actor1 enters room.
         self.visibility_grid._register_listener(self.actor1)
+        self.visibility_grid.add_actor(self.actor1)
 
         self.assertEquals(set([(1, 2), (3, 2), (1, 3), (3, 3), (3, 1), (2, 1), (2, 3), (2, 2), (1, 1)]), self.visibility_grid.registered_gridpoints[self.actor1])
         self.assertEquals(set([(1, 2), (3, 2), (1, 3), (3, 3), (3, 1), (2, 1), (2, 3), (2, 2), (1, 1)]), self.visibility_grid._actor_sectors(self.actor1))
