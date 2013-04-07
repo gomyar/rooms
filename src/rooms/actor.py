@@ -382,6 +382,7 @@ class Actor(object):
         if self.docked_with:
             self.docked_with.docked.pop(self.actor_id)
             self.docked_with = None
+        self.running = False
         self.kill_gthread()
 
     def set_visible(self, visible):
