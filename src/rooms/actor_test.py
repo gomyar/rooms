@@ -27,12 +27,16 @@ def scripty_cally(player, param1, param2="value2"):
 class MockScript(object):
     def __init__(self):
         self._kickoff_called = False
+        self._mock_actor_killed = None
 
     def kickoff(self, actor):
         self._kickoff_called = True
 
     def __contains__(self, key):
         return True
+
+    def killed(self, actor):
+        self._mock_actor_killed = actor
 
 
 class ActorTest(unittest.TestCase):
@@ -267,3 +271,25 @@ class ActorTest(unittest.TestCase):
 
         self.assertTrue(self.actor in self.room.visibility_grid.registered)
         self.assertFalse(self.actor in self.room.visibility_grid.actors)
+
+    def testCallKillOnScriptWhenHealthLeesThanZero(self):
+        mock_script = MockScript()
+        self.actor.script = mock_script
+        self.actor.health = 0.5
+
+        self.assertIsNone(mock_script._mock_actor_killed)
+
+        self.actor.health = -0.1
+
+        self.assertEquals(self.actor, mock_script._mock_actor_killed)
+
+    def testActorIsChild(self):
+        chlid1 = self.actor.create_child("child1", "rooms.actor_test")
+
+        self.assertTrue(child1.is_child(self.actor))
+        self.assertEquals([child1.actor_id], self.actor._children)
+
+        child2 = child1.create_child("child2", "rooms.actor_test")
+
+        self.assertTrue(child2.is_child(self.actor))
+        self.assertEquals([child1.actor_id], self.actor._children)

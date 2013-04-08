@@ -68,7 +68,7 @@ class Actor(object):
         self.save_manager = Null()
         self._vision_distance = 0
         self._children = []
-        self.parent_id = None
+        self.parents = []
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -76,7 +76,7 @@ class Actor(object):
 
     def __repr__(self):
 #        return "<Actor %s:%s>" % (self.actor_type, self.actor_id)
-        return "<Actor %s:%s>" % (self.actor_type, self.name)
+        return "<Actor %s:%s>" % (self.name or self.actor_id, self.actor_type)
 
     @property
     def health(self):
@@ -85,7 +85,10 @@ class Actor(object):
     @health.setter
     def health(self, health):
         self._health = health
-        self.send_actor_update()
+        if self._health > 0:
+            self.send_actor_update()
+        else:
+            self.kill()
 
     def visible_actors(self):
         return [a for a in self.room.visibility_grid.visible_actors(self) if a != self]
@@ -117,6 +120,7 @@ class Actor(object):
 
     def kick(self):
         self.kill_gthread()
+        self.running = True
         if "kickoff" in self.script:
             self.kickoff_gthread = gevent.spawn(self.run_kickoff)
 
@@ -410,12 +414,15 @@ class Actor(object):
             visible=True, **state):
         child = self.room.create_actor(actor_type, actor_script,
             visible=visible and not docked, name=name, **state)
-        child.parent_id = self.actor_id
+        child.parents = self.parents + [self.actor_id]
         if docked:
             self.dock(child)
         self._children.append(child.actor_id)
         return child
 
-    @property
-    def child_actors(self):
-        return [self.room.actors[actor_id] for actor_id in self._children]
+    def is_child(self, actor):
+        return actor.actor_id in self.parents
+
+    def child_actors_in_room(self):
+        return [self.room.actors[actor_id] for actor_id in self._children if \
+            actor_id in self.room.actors]

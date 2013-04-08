@@ -216,7 +216,7 @@ class Container(object):
             _docked_with_id = obj.docked_with.actor_id if obj.docked_with else None,
             vision_distance = obj._vision_distance,
             children = obj._children,
-            parent_id = obj.parent_id,
+            parents = obj.parents,
         )
 
     def _deserialize_actor(self, actor, data):
@@ -239,7 +239,7 @@ class Container(object):
         actor.save_manager = self.save_manager
         actor._vision_distance = data['vision_distance']
         actor._children = data['children']
-        actor.parent_id = data['parent_id']
+        actor.parents = data['parents']
 
     def _create_actor(self, data):
         actor = Actor(data['actor_id'])
