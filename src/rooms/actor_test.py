@@ -283,8 +283,15 @@ class ActorTest(unittest.TestCase):
 
         self.assertEquals(self.actor, mock_script._mock_actor_killed)
 
+        # Assert the killed callback only gets called once
+        mock_script._mock_actor_killed = None
+
+        self.actor.health = -0.2
+
+        self.assertIsNone(mock_script._mock_actor_killed)
+
     def testActorIsChild(self):
-        chlid1 = self.actor.create_child("child1", "rooms.actor_test")
+        child1 = self.actor.create_child("child1", "rooms.actor_test")
 
         self.assertTrue(child1.is_child(self.actor))
         self.assertEquals([child1.actor_id], self.actor._children)

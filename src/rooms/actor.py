@@ -84,11 +84,12 @@ class Actor(object):
 
     @health.setter
     def health(self, health):
-        self._health = health
-        if self._health > 0:
-            self.send_actor_update()
-        else:
+        if self._health > 0 and health <= 0:
+            self._health = health
             self.kill()
+        else:
+            self._health = health
+            self.send_actor_update()
 
     def visible_actors(self):
         return [a for a in self.room.visibility_grid.visible_actors(self) if a != self]
