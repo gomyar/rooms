@@ -44,13 +44,20 @@ class PlayerActor(Actor):
     def _update(self, update_id, **kwargs):
         self.send_update(update_id, **kwargs)
 
-    def actor_updated(self, actor):
+    def docked_actor_update(self, actor):
         self.server.send_update(self.player.username, "actor_update",
-            **actor.external())
+            **actor.internal())
+
+    def actor_updated(self, actor):
+        if actor.is_child(self):
+            self.server.send_update(self.player.username, "actor_update",
+                **actor.internal())
+        else:
+            self.server.send_update(self.player.username, "actor_update",
+                **actor.external())
 
     def actor_added(self, actor):
-        self.server.send_update(self.player.username, "actor_update",
-            **actor.external())
+        self.actor_updated(actor)
 
     def send_actor_update(self):
         super(PlayerActor, self).send_actor_update()

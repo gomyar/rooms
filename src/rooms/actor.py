@@ -191,8 +191,8 @@ class Actor(object):
         internal = dict()
         for a in self.docked.values():
             if a.actor_type not in internal:
-                internal[a.actor_type] = []
-            internal[a.actor_type].append(a.internal())
+                internal[a.actor_type] = dict()
+            internal[a.actor_type][a.actor_id] = a.internal()
         return internal
 
     def docked_actors(self):
@@ -204,8 +204,13 @@ class Actor(object):
         return actors
 
     def send_actor_update(self):
+        if self.docked_with:
+            self.docked_with.docked_actor_update(self)
         if self.visible:
             self.room._send_actor_update(self)
+
+    def docked_actor_update(self, actor):
+        pass
 
     def actor_updated(self, actor):
         pass
