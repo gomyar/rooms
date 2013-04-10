@@ -69,7 +69,7 @@ class MongoContainer(object):
     def update_object(self, obj, collection_name, update_key, update_obj):
         try:
             self._collection(collection_name).update(
-                {'_id': obj._id },
+                {'_id': bson.ObjectId(obj._id) },
                 {
                     '$set': { update_key: update_obj },
                 },
