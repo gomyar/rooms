@@ -300,3 +300,14 @@ class ActorTest(unittest.TestCase):
 
         self.assertTrue(child2.is_child(self.actor))
         self.assertEquals([child1.actor_id], self.actor._children)
+
+    def testParentProperty(self):
+        child1 = self.actor.create_child("child1", "rooms.actor_test")
+        self.assertEquals(self.actor, child1.parent)
+
+    def testChildActorsWhenKilledAreRemovedfromList(self):
+        child1 = self.actor.create_child("child1", "rooms.actor_test")
+        self.assertEquals([child1.actor_id], self.actor._children)
+
+        child1.kill()
+        self.assertEquals([], self.actor._children)

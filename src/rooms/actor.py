@@ -37,6 +37,8 @@ class State(dict):
 
     def __setattr__(self, name, value):
         self[name] = value
+        # might need to check the value has actually changed before update
+        # actually, we had a diff/cache idea for that didn't we?
         self.actor.send_actor_update()
 
 
@@ -110,6 +112,11 @@ class Actor(object):
     def vision_distance(self, distance):
         self._vision_distance = distance
         self.room.visibility_grid.vision_distance_changed(self)
+
+    @property
+    def parent(self):
+        if self.parents:
+            return self.room.actors.get(self.parents[0])
 
     def load_script(self, classname):
         self.script = Script(classname)
@@ -385,6 +392,8 @@ class Actor(object):
         log.debug("Killing %s", self)
         if "killed" in self.script:
             self.script.killed(self)
+        if self.parent:
+            self.parent._children.remove(self.actor_id)
         if self.room:
             self.room.remove_actor(self)
         for actor in self.docked.values():
