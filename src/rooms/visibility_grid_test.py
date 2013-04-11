@@ -258,6 +258,9 @@ class VisibilityGridTest(unittest.TestCase):
         # actor1 gets response [actor2]
         self.assertEquals([("added", self.actor2)], self.actor1.updates)
 
+        self.assertTrue(self.actor2 in self.visibility_grid.visible_actors(
+            self.actor1))
+
         # actor2 moves away slightly
         self.actor2.pos = 5, 5
         self.visibility_grid.update_actor_position(self.actor2)
@@ -306,6 +309,9 @@ class VisibilityGridTest(unittest.TestCase):
         # actor1 gets response [actor2]
         self.assertEquals([("added", self.actor2)], self.actor1.updates)
 
+        self.assertTrue(self.actor2 in self.visibility_grid.visible_actors(
+            self.actor1))
+
         self.visibility_grid.unregister_listener(self.actor1)
 
         self.assertEquals([("added", self.actor2), ("removed", self.actor2)],
@@ -321,7 +327,13 @@ class VisibilityGridTest(unittest.TestCase):
         # actor1 gets response [actor2]
         self.assertEquals([("added", self.actor2)], self.actor1.updates)
 
+        self.assertTrue(self.actor2 in self.visibility_grid.visible_actors(
+            self.actor1))
+
         self.visibility_grid.remove_actor(self.actor2)
 
         self.assertEquals([("added", self.actor2), ("removed", self.actor2)],
             self.actor1.updates)
+
+        self.assertFalse(self.actor2 in self.visibility_grid.visible_actors(
+            self.actor1))

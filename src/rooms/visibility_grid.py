@@ -22,6 +22,7 @@ class VisibilityGrid(object):
         actors = set()
         for gridpoint in gridpoints:
             actors.update(self.sectors[gridpoint])
+        actors.update(self.visible_to_all)
         return actors
 
     def register_listener(self, actor):

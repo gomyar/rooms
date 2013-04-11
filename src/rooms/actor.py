@@ -184,7 +184,8 @@ class Actor(object):
         return dict(actor_id=self.actor_id, name=self.name,
             actor_type=self.actor_type or type(self).__name__,
             path=self.path.path, speed=self.speed, health=self.health,
-            model_type=self.model_type, circle_id=self.circles.circle_id)
+            model_type=self.model_type, circle_id=self.circles.circle_id,
+            visible_to_all=self.visible_to_all)
 
     def internal(self):
         external = self.external()
