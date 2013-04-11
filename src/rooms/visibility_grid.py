@@ -15,6 +15,7 @@ class VisibilityGrid(object):
         self.actors = dict()
         self.sectors = defaultdict(lambda: set())
         self.registered_sectors = defaultdict(lambda: set())
+        self.visible_to_all = set()
 
     def visible_actors(self, actor):
         gridpoints = self.registered_gridpoints[actor]
@@ -34,6 +35,7 @@ class VisibilityGrid(object):
         for grid_point in gridpoints:
             existing.update(self.sectors[grid_point])
             self.registered_sectors[grid_point].add(actor)
+        existing.update(self.visible_to_all)
         for target in existing:
             if target != actor:
                 actor.actor_added(target)
@@ -44,6 +46,7 @@ class VisibilityGrid(object):
         for grid_point in self.registered_gridpoints[actor]:
             removing.update(self.sectors[grid_point])
             self.registered_sectors[grid_point].remove(actor)
+        removing.update(self.visible_to_all)
         for target in removing:
             if target != actor:
                 actor.actor_removed(target)
@@ -51,17 +54,27 @@ class VisibilityGrid(object):
         self.registered_gridpoints.pop(actor)
 
     def _remove_actor(self, actor):
-        grid_point = self.actors.pop(actor)
-        self.sectors[grid_point].remove(actor)
-        self._signal_changed(actor, grid_point, None)
+        if actor.visible_to_all:
+            self.visible_to_all.remove(actor)
+            for target in self.registered.keys():
+                target.actor_removed(actor)
+        else:
+            grid_point = self.actors.pop(actor)
+            self.sectors[grid_point].remove(actor)
+            self._signal_changed(actor, grid_point, None)
 
     def add_actor(self, actor):
         log.debug(" ** Adding actor: %s", actor)
-        x, y = actor.position()
-        grid_point = self._gridpoint(x, y)
-        self.actors[actor] = grid_point
-        self.sectors[grid_point].add(actor)
-        self._signal_changed(actor, None, self.actors[actor])
+        if actor.visible_to_all:
+            self.visible_to_all.add(actor)
+            for target in self.registered.keys():
+                target.actor_added(actor)
+        else:
+            x, y = actor.position()
+            grid_point = self._gridpoint(x, y)
+            self.actors[actor] = grid_point
+            self.sectors[grid_point].add(actor)
+            self._signal_changed(actor, None, self.actors[actor])
 
     def update_actor_position(self, actor):
         log.debug(" * update actor position: %s", actor)
@@ -77,16 +90,23 @@ class VisibilityGrid(object):
                 self.actors[actor] = new_grid_point
         if actor in self.registered:
             log.debug("registered changed")
+            x, y = actor.position()
             self._signal_registered_changed(actor, x, y)
 
     def send_update_event(self, actor, update_id, **kwargs):
-        if actor in self.actors:
+        if actor.visible_to_all:
+            for target in self.registered.keys():
+                target._update(update_id, **kwargs)
+        elif actor in self.actors:
             grid_point = self.actors[actor]
             for listener in self.registered_sectors[grid_point]:
                 listener._update(update_id, **kwargs)
 
     def send_update_actor(self, actor):
-        if actor in self.actors:
+        if actor.visible_to_all:
+            for target in self.registered.keys():
+                target.actor_updated(actor)
+        elif actor in self.actors:
             grid_point = self.actors[actor]
             for listener in self.registered_sectors[grid_point]:
                 listener.actor_updated(actor)
@@ -121,11 +141,11 @@ class VisibilityGrid(object):
             added_actors.update(self.sectors[grid_point])
 
         for listener in added_actors:
-            if actor != listener and self._gridpoint(*listener.position()) not in gridpoints:
+            if actor != listener and self._gridpoint(*listener.position()) not in gridpoints and not actor.visible_to_all:
                 actor.actor_added(listener)
 
         for listener in removed_actors:
-            if actor != listener and self._gridpoint(*listener.position()) not in newgridpoints:
+            if actor != listener and self._gridpoint(*listener.position()) not in newgridpoints and not actor.visible_to_all:
                 actor.actor_removed(listener)
 
         self.registered_gridpoints[actor] = newgridpoints

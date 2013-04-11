@@ -213,6 +213,7 @@ class Container(object):
             circles = obj.circles,
             health = obj._health,
             visible = obj.visible,
+            visible_to_all = obj.visible_to_all,
             _docked_with_id = obj.docked_with.actor_id if obj.docked_with else None,
             vision_distance = obj._vision_distance,
             children = obj._children,
@@ -235,6 +236,7 @@ class Container(object):
         actor.circles = data['circles']
         actor._health = data['health']
         actor.visible = data['visible']
+        actor.visible_to_all = data['visible_to_all']
         actor._docked_with_id = data['_docked_with_id']
         actor.save_manager = self.save_manager
         actor._vision_distance = data['vision_distance']

@@ -69,6 +69,7 @@ class Actor(object):
         self.circles = Circles()
         self.save_manager = Null()
         self._vision_distance = 0
+        self.visible_to_all = False
         self._children = []
         self.parents = []
 
@@ -426,9 +427,10 @@ class Actor(object):
                 yield target
 
     def create_child(self, actor_type, actor_script, docked=True, name="",
-            visible=True, **state):
+            visible=True, visible_to_all=False, **state):
         child = self.room.create_actor(actor_type, actor_script,
-            visible=visible and not docked, name=name, **state)
+            visible=visible and not docked, name=name,
+            visible_to_all=visible_to_all, **state)
         child.parents = self.parents + [self.actor_id]
         if docked:
             self.dock(child)

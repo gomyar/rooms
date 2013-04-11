@@ -6,11 +6,12 @@ from rooms.visibility_grid import VisibilityGrid
 
 
 class MockActor(object):
-    def __init__(self, name, x, y, vision_distance=0):
+    def __init__(self, name, x, y, vision_distance=0, visible_to_all=False):
         self.name = name
         self.updates = []
         self.pos = x, y
         self.vision_distance = vision_distance
+        self.visible_to_all = visible_to_all
 
     def __repr__(self):
         return "<MockActor %s>" % (self.name,)
@@ -26,6 +27,9 @@ class MockActor(object):
 
     def actor_updated(self, actor):
         self.updates.append(("updated", actor))
+
+    def _update(self, update_id, **kwargs):
+        self.updates.append((update_id, kwargs))
 
 
 class VisibilityGridTest(unittest.TestCase):
@@ -219,3 +223,105 @@ class VisibilityGridTest(unittest.TestCase):
 
         self.assertEquals([], actor1.updates)
         self.assertEquals([], actor2.updates)
+
+    def testActorVisibleToAll(self):
+        actor1 = MockActor("actor1", 35, 35)
+        actor2 = MockActor("actor2", 5, 5, 0, visible_to_all=True)
+
+        self.visibility_grid.register_listener(actor1)
+        self.visibility_grid.add_actor(actor2)
+
+        self.assertEquals([("added", actor2)], actor1.updates)
+
+        self.visibility_grid.send_update_actor(actor2)
+        self.assertEquals([("added", actor2), ("updated", actor2)],
+            actor1.updates)
+
+        self.visibility_grid.send_update_event(actor2, "blah")
+        self.assertEquals([("added", actor2), ("updated", actor2),
+            ("blah", {})],
+            actor1.updates)
+
+        self.visibility_grid.remove_actor(actor2)
+
+        self.assertEquals([("added", actor2), ("updated", actor2),
+            ("blah", {}), ("removed", actor2)],
+            actor1.updates)
+
+    def testVisibleToAllMovesOutsideRange(self):
+        self.actor2 = MockActor("actor2", 15, 15, 0, visible_to_all=True)
+        # actor1 enters room.
+        self.visibility_grid.register_listener(self.actor1)
+
+        # actor2 enters room
+        self.visibility_grid.add_actor(self.actor2)
+        # actor1 gets response [actor2]
+        self.assertEquals([("added", self.actor2)], self.actor1.updates)
+
+        # actor2 moves away slightly
+        self.actor2.pos = 5, 5
+        self.visibility_grid.update_actor_position(self.actor2)
+
+        # actor1 gets no removal message from visible_to_all actor
+        self.assertEquals([("added", self.actor2)],
+            self.actor1.updates)
+
+        self.actor1.pos = 35, 35
+        self.visibility_grid.update_actor_position(self.actor1)
+
+        self.assertEquals([("added", self.actor2)],
+            self.actor1.updates)
+
+    def testAddRegisteredListenerAfterVisibleToAll(self):
+        self.actor2 = MockActor("actor2", 15, 15, 0, visible_to_all=True)
+
+        # actor2 enters room
+        self.visibility_grid.add_actor(self.actor2)
+        # actor1 enters room.
+        self.visibility_grid.register_listener(self.actor1)
+        # actor1 gets response [actor2]
+        self.assertEquals([("added", self.actor2)], self.actor1.updates)
+
+        # actor2 moves away slightly
+        self.actor2.pos = 5, 5
+        self.visibility_grid.update_actor_position(self.actor2)
+
+        # actor1 gets no removal message from visible_to_all actor
+        self.assertEquals([("added", self.actor2)],
+            self.actor1.updates)
+
+        self.actor1.pos = 35, 35
+        self.visibility_grid.update_actor_position(self.actor1)
+
+        self.assertEquals([("added", self.actor2)],
+            self.actor1.updates)
+
+    def testRemoveRegisteredListenerAfterVisibleToAll(self):
+        self.actor2 = MockActor("actor2", 15, 15, 0, visible_to_all=True)
+
+        # actor2 enters room
+        self.visibility_grid.add_actor(self.actor2)
+        # actor1 enters room.
+        self.visibility_grid.register_listener(self.actor1)
+        # actor1 gets response [actor2]
+        self.assertEquals([("added", self.actor2)], self.actor1.updates)
+
+        self.visibility_grid.unregister_listener(self.actor1)
+
+        self.assertEquals([("added", self.actor2), ("removed", self.actor2)],
+            self.actor1.updates)
+
+    def testJustMakingSureRemovingVisibletoAllWorks(self):
+        self.actor2 = MockActor("actor2", 15, 15, 0, visible_to_all=True)
+
+        # actor2 enters room
+        self.visibility_grid.add_actor(self.actor2)
+        # actor1 enters room.
+        self.visibility_grid.register_listener(self.actor1)
+        # actor1 gets response [actor2]
+        self.assertEquals([("added", self.actor2)], self.actor1.updates)
+
+        self.visibility_grid.remove_actor(self.actor2)
+
+        self.assertEquals([("added", self.actor2), ("removed", self.actor2)],
+            self.actor1.updates)
