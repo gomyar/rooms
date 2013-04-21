@@ -119,6 +119,10 @@ class Actor(object):
         if self.parents:
             return self.room.actors.get(self.parents[0])
 
+    def parent_id(self):
+        if self.parents:
+            return self.parent.actor_id
+
     def load_script(self, classname):
         self.script = Script(classname)
         register_actor_script(classname, self)
@@ -142,6 +146,7 @@ class Actor(object):
                 raise
             except:
                 log.exception("Exception running kickoff on %s", self)
+                self.running = False
             self.sleep(min(0, max(3, get_now() - now)))
 
     def pause(self):
@@ -185,7 +190,7 @@ class Actor(object):
             actor_type=self.actor_type or type(self).__name__,
             path=self.path.path, speed=self.speed, health=self.health,
             model_type=self.model_type, circle_id=self.circles.circle_id,
-            visible_to_all=self.visible_to_all)
+            visible_to_all=self.visible_to_all, parent_id=self.parent_id())
 
     def internal(self):
         external = self.external()

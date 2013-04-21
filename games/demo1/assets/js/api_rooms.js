@@ -148,3 +148,15 @@ api_rooms.call_command = function(command, args)
     api_rooms.service_call("/game/" + api_rooms.instance_uid + "/" + command, args)
 }
 
+api_rooms.actors_by_type = function()
+{
+    var actors = {};
+    for (var i in api_rooms.actors)
+    {
+        var actor = api_rooms.actors[i];
+        if (!actor.actor_type in actors)
+            actors[actor.actor_type] = {};
+        actors[actor.actor_type][actor.name + ": "+actor.actor_id] = actor;
+    }
+    return actors;
+}
