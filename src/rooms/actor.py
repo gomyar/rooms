@@ -117,7 +117,7 @@ class Actor(object):
     @property
     def parent(self):
         if self.parents:
-            return self.room.actors.get(self.parents[0])
+            return self.room.actors.get(self.parents[-1])
 
     def parent_id(self):
         if self.parents:

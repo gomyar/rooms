@@ -56,7 +56,8 @@ class Area(object):
             self.game_script.call_method('player_enters_room', room, actor)
 
     def create_door(self, room1, room2, room1_position=None,
-            room2_position=None):
+            room2_position=None, door1_visible_to_all=False,
+            door2_visible_to_all=False):
         if not room1_position:
             room1_position = room1.calculate_door_position(room2)
         if not room2_position:
@@ -77,6 +78,10 @@ class Area(object):
             room2_position)
         door2.opens_direction = infer_direction(room2_position,
             room1_position)
+        door1.visible_to_all = door1_visible_to_all
+        door2.visible_to_all = door2_visible_to_all
+        door1.name = room2.description
+        door2.name = room1.description
 
     def _find_player(self, player_id):
         for room in self.rooms.values():

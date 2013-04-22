@@ -54,7 +54,7 @@ class Door(Actor):
             self.exit_room_id, self.exit_door_id)
 
     def external(self):
-        return dict(actor_id=self.actor_id, actor_type=type(self).__name__,
-            path=self.path.path, speed=self.speed, model_type=self.model_type,
-            exit_room_description=self.exit_room_description,
-            opens_direction=self.opens_direction)
+        ext = super(Door, self).external()
+        ext.update(dict(exit_room_description=self.exit_room_description,
+            opens_direction=self.opens_direction))
+        return ext
