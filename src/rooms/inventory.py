@@ -15,10 +15,11 @@ def lookup(item_type):
 
 
 class Item(dict):
-    def __init__(self, item_type, category="", **state):
+    def __init__(self, item_type, category="", price=0.0, **state):
         super(Item, self).__init__()
         self.item_type = item_type
         self.category = category
+        self.price = price
         self.update(state)
 
     def __getattr__(self, name):

@@ -409,12 +409,14 @@ class Container(object):
 
     # Item from Registry
     def _serialize_item(self, obj):
-        item = dict(item_type=obj.item_type)
+        item = dict(item_type=obj.item_type, category=obj.category,
+            price=obj.price)
         item.update(obj.copy())
         return item
 
     def _create_item(self, data):
-        item = Item(item_type=data['item_type'])
+        item = Item(item_type=data['item_type'], category=data['category'],
+            price=data['price'])
         item.update(data)
         return item
 

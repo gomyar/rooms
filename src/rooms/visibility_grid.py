@@ -141,6 +141,7 @@ class VisibilityGrid(object):
             self.registered_sectors[grid_point].add(actor)
             added_actors.update(self.sectors[grid_point])
 
+        log.debug("added actors for %s: %s", actor, added_actors)
         for listener in added_actors:
             if actor != listener and self._gridpoint(*listener.position()) not in gridpoints and not actor.visible_to_all:
                 actor.actor_added(listener)

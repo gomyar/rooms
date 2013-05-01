@@ -308,6 +308,7 @@ class Actor(object):
         while interval > 0 and duration > 0:
             self.sleep(max(0, min(duration, interval)))
             duration -= interval
+            log.debug("added actors moving %s", self)
             self.room.visibility_grid.update_actor_position(self)
 
     def intercept(self, actor, irange=0.0):
