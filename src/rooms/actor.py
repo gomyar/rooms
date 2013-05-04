@@ -381,11 +381,11 @@ class Actor(object):
     def exit(self, door_id):
         self.room.exit_through_door(self, door_id)
 
-    def dock(self, actor):
+    def dock(self, actor, visible=False):
         self.docked[actor.actor_id] = actor
         actor.docked_with = self
         actor.set_path(self.path)
-        actor.set_visible(False)
+        actor.set_visible(visible)
 
     def undock(self, actor):
         self.docked.pop(actor.actor_id)
@@ -434,13 +434,13 @@ class Actor(object):
                 yield target
 
     def create_child(self, actor_type, actor_script, docked=True, name="",
-            visible=True, visible_to_all=False, **state):
+            visible=False, visible_to_all=False, **state):
         child = self.room.create_actor(actor_type, actor_script,
-            visible=visible and not docked, name=name,
+            visible=(not docked) or visible, name=name,
             visible_to_all=visible_to_all, **state)
         child.parents = self.parents + [self.actor_id]
         if docked:
-            self.dock(child)
+            self.dock(child, visible)
         self._children.append(child.actor_id)
         return child
 
@@ -450,3 +450,7 @@ class Actor(object):
     def child_actors_in_room(self):
         return [self.room.actors[actor_id] for actor_id in self._children if \
             actor_id in self.room.actors]
+
+    def children(self, actor_type=None):
+        return [child for child in self.child_actors_in_room() if \
+            not actor_type or actor_type == child.actor_type]

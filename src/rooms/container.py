@@ -190,7 +190,8 @@ class Container(object):
                     log.warning("Actor %s does not exist in room %s - " + \
                         "cannot dock %s", actor._docked_with_id, room, actor)
                 else:
-                    room.actors[actor._docked_with_id].dock(actor)
+                    room.actors[actor._docked_with_id].dock(actor,
+                        actor.visible)
         room.geog = self.geography
         room.save_manager = self.save_manager
         return room

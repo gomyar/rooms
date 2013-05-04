@@ -311,3 +311,15 @@ class ActorTest(unittest.TestCase):
 
         child1.kill()
         self.assertEquals([], self.actor._children)
+
+    def testChildVisibility(self):
+        child1 = self.actor.create_child("child1", "rooms.actor_test",
+            visible=True)
+        self.assertTrue(child1.visible)
+        child1 = self.actor.create_child("child1", "rooms.actor_test",
+            docked=True)
+        self.assertFalse(child1.visible)
+        child1 = self.actor.create_child("child1", "rooms.actor_test",
+            docked=True, visible=True)
+        self.assertTrue(child1.visible)
+
