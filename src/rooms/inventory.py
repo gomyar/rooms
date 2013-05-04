@@ -34,6 +34,9 @@ class Item(dict):
     def has_properties(self, properties):
         return all([item in self.items() for item in properties.items()])
 
+    def external(self):
+        return self.copy()
+
 
 def create_item(item_type, **kwargs):
     item = Item(item_type)
@@ -61,12 +64,16 @@ class Inventory(object):
             if self._items[item_type] <= 0:
                 self._items.pop(item_type)
 
+    def get_amount(self, item_type):
+        return self._items[item_type]
+
     def all_items(self):
         return self._items
 
     def find_items(self, **kwargs):
-        return [lookup(item) for item in self._items.keys() if \
-            lookup(item).has_properties(kwargs)]
+        return [(lookup(item), amount) for (item, amount) in \
+            self._items.items() if lookup(item).has_properties(kwargs)]
 
-    def external(self):
-        return self._items
+    def external(self, **kwargs):
+        return [(item.external(), amount) for (item, amount) in \
+            self.find_items(**kwargs)]

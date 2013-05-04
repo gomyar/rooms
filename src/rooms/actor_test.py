@@ -323,3 +323,22 @@ class ActorTest(unittest.TestCase):
             docked=True, visible=True)
         self.assertTrue(child1.visible)
 
+    def testExchangeWithAnotherActor(self):
+        self.actor2 = Actor("actor2")
+        self.room.put_actor(self.actor2, (50, 10))
+
+        self.actor.inventory.add_item("item1", 10)
+        self.actor2.inventory.add_item("item1", 10)
+
+        self.actor.exchange(self.actor2, "item1", 5)
+
+        self.assertEquals(5, self.actor.inventory.get_amount("item1"))
+        self.assertEquals(15, self.actor2.inventory.get_amount("item1"))
+
+        try:
+            self.actor.exchange(self.actor2, "item1", 6)
+            self.fail("Should have thrown")
+        except AssertionError, ae:
+            raise
+        except Exception, e:
+            self.assertEquals("Not enough item1 in inventory", str(e))

@@ -393,6 +393,8 @@ class Actor(object):
         actor.set_visible(True)
 
     def exchange(self, actor, item_type, amount=1):
+        if amount > self.inventory.get_amount(item_type):
+            raise Exception("Not enough %s in inventory" % (item_type))
         self.inventory.remove_item(item_type, amount)
         actor.inventory.add_item(item_type, amount)
 

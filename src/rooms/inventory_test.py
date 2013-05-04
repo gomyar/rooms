@@ -31,12 +31,12 @@ class InventoryTest(unittest.TestCase):
         self.inventory.add_item("item3")
 
         found = self.inventory.find_items(desc="this")
-        self.assertTrue(item1 in found)
-        self.assertTrue(item2 in found)
+        self.assertTrue((item1, 1) in found)
+        self.assertTrue((item2, 1) in found)
 
         found = self.inventory.find_items(name="bob")
-        self.assertTrue(item1 in found)
-        self.assertTrue(item3 in found)
+        self.assertTrue((item1, 1) in found)
+        self.assertTrue((item3, 1) in found)
 
         self.assertEquals([],
             self.inventory.find_items(name="fred", desc="that"))
