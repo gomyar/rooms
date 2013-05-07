@@ -77,3 +77,10 @@ class Inventory(object):
     def external(self, **kwargs):
         return [(item.external(), amount) for (item, amount) in \
             self.find_items(**kwargs)]
+
+    def get_item(self, item_type):
+        amount = self.get_amount(item_type)
+        if amount:
+            return lookup(item_type), amount
+        else:
+            raise Exception("No items of type %s" % item_type)
