@@ -330,6 +330,9 @@ class Container(object):
 
     # Area
     def _serialize_area(self, obj):
+        for room in obj.rooms.values():
+            self._save_object(room, "rooms")
+            obj.rooms._room_map[room.room_id] = room._id
         return dict(
             area_id = obj.area_id,
             owner_id = obj.owner_id,
@@ -451,12 +454,17 @@ class Container(object):
 
     # Game
     def _serialize_game(self, obj):
+        area_map = dict()
+        for area_id, area in obj.area_map.items():
+            self._save_object(area, "areas")
+            area_map[area_id] = area._id
         data = dict(
             owner_id = obj.owner_id,
             start_areas = obj.start_areas,
             open_game = obj.open_game,
             item_registry = obj.item_registry,
             player_script_class = obj.player_script,
+            area_map = area_map,
         )
         return data
 
@@ -467,6 +475,7 @@ class Container(object):
         game.open_game = data['open_game']
         game.item_registry = data['item_registry']
         game.player_script = data['player_script_class']
+        game.area_map = data['area_map']
         return game
 
 
