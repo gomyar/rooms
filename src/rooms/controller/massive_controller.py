@@ -5,6 +5,8 @@ from rooms.wsgi_rpc import WSGIRPCServer
 from rooms.script_wrapper import Script
 from rooms.config import get_config
 
+from rooms.controller.admin_controller import AdminController
+
 import logging
 log = logging.getLogger("rooms.mcontroller")
 
@@ -22,6 +24,9 @@ class RegisteredNode(object):
             self.port == rhs.port and self.external_host == rhs.external_host \
             and self.external_port == self.external_port
 
+    def external(self):
+        return dict(host=self.external_host, port=self.external_port)
+
 
 class MasterController(object):
     def __init__(self, node, host, port, container):
@@ -32,6 +37,7 @@ class MasterController(object):
         self.areas = dict()
         self.wsgi_server = None
         self.container = container
+        self.admin = AdminController(self)
 
     def init(self):
         self.wsgi_server = WSGIRPCServer(self.host, self.port,
@@ -42,6 +48,10 @@ class MasterController(object):
                 player_connects=self.player_connects,
                 player_info=self.player_info,
                 node_info=self.node_info,
+
+                admin_list_areas=self.admin.list_areas,
+                admin_show_nodes=self.admin.show_nodes,
+                admin_show_area=self.admin.show_area,
             )
         )
 
@@ -136,7 +146,9 @@ class ClientController(object):
         self.master = WSGIRPCClient(self.master_host, self.master_port)
         self.wsgi_server = WSGIRPCServer(self.host, int(self.port),
             dict(manage_area=self.manage_area,
-                player_joins=self.player_joins))
+                player_joins=self.player_joins,
+                admin_show_area=self.admin_show_area,
+                ))
 
     def start(self):
         self.wsgi_server.start()
@@ -148,3 +160,15 @@ class ClientController(object):
     def player_joins(self, area_id, username):
         player = self.node.container.load_player(username=username)
         return self.node.player_joins(area_id, player)
+
+    def _roominfo(self, room):
+        info = room.external(False)
+        info['players'] = len([p for p in self.node.players.values() if \
+            p['connected'] and p['player'].room.room_id == room.room_id])
+        return info
+
+    def admin_show_area(self, area_id):
+        area = self.node.areas[area_id]
+        rooms = dict([(room.room_id, self._roominfo(room)) for room in \
+            area.rooms.values()])
+        return rooms

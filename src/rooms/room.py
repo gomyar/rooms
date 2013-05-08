@@ -105,11 +105,11 @@ class Room(object):
         map_object.position = position
         self.map_objects[object_id] = map_object
 
-    def external(self):
+    def external(self, map_objects=True):
         return dict(room_id=self.room_id, position=self.position,
             width=self.width, height=self.height, description=self.description,
             map_objects=dict([(obj_id, m.external()) for (obj_id, m) in \
-                self.map_objects.items()]),
+                self.map_objects.items()]) if map_objects else None,
         )
 
     def actor_enters(self, actor, door_id):

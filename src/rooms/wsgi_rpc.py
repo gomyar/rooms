@@ -17,7 +17,10 @@ class _MethodStub(object):
         self.rest_method = rest_method
         self.client = client
 
-    def __call__(self, **kwargs):
+    def __call__(self, *args, **kwargs):
+        if args:
+            raise Exception("We don't support non-keyword args in "
+                "call to %s (%s), must have param=" % (self.rest_method, args))
         response = urllib2.urlopen("http://%s:%s%s/%s" % (
             self.client.host, self.client.port, self.rest_object,
             self.rest_method), urllib.urlencode(kwargs)).read()
