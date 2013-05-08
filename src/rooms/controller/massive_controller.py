@@ -171,4 +171,4 @@ class ClientController(object):
         area = self.node.areas[area_id]
         rooms = dict([(room.room_id, self._roominfo(room)) for room in \
             area.rooms.values()])
-        return rooms
+        return dict(active_rooms=rooms, area_id=area_id)
