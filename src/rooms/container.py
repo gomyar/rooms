@@ -332,11 +332,15 @@ class Container(object):
     def _serialize_area(self, obj):
         for room in obj.rooms.values():
             self._save_object(room, "rooms")
-            obj.rooms._room_map[room.room_id] = room._id
+        if type(obj.rooms) is RoomContainer:
+            room_map = obj.rooms._room_map
+        else:
+            room_map = dict([(room.room_id, room._id) for room in \
+                obj.rooms.values()])
         return dict(
             area_id = obj.area_id,
             owner_id = obj.owner_id,
-            room_map = obj.rooms._room_map,
+            room_map = room_map,
             entry_point_door_id = obj.entry_point_door_id,
         )
 
