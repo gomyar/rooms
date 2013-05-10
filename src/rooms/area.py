@@ -66,8 +66,8 @@ class Area(object):
             room1_position[1])
         door2_id = "door_%s_%s_%s" % (room1.room_id, room2_position[0],
             room2_position[1])
-        door1 = Door(door1_id, room1_position, room2, None)
-        door2 = Door(door2_id, room2_position, room1, None)
+        door1 = Door(door1_id, room1_position, room2.room_id, None)
+        door2 = Door(door2_id, room2_position, room1.room_id, None)
         door2.exit_door_id = door1.actor_id
         door1.exit_door_id = door2.actor_id
         room1.actors[door1.actor_id] = door1
@@ -82,6 +82,9 @@ class Area(object):
         door2.visible_to_all = door2_visible_to_all
         door1.name = room2.description
         door2.name = room1.description
+        if room1.area != room2.area:
+            door1.exit_area_id = room2.area.area_id
+            door2.exit_area_id = room1.area.area_id
 
     def _find_player(self, player_id):
         for room in self.rooms.values():

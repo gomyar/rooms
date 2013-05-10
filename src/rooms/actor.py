@@ -361,7 +361,7 @@ class Actor(object):
 
     def _move_to_adjacent_room(self, room_id):
         doors = self.room.all_doors()
-        door = [door for door in doors if door.exit_room.room_id == room_id]
+        door = [door for door in doors if door.exit_room_id == room_id]
         door = door[0]
         self.move_to(*door.position())
         self.exit(door.actor_id)
