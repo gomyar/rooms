@@ -54,8 +54,8 @@ class WSGIServer(object):
             handler_class=WebSocketHandler)
         server.serve_forever()
 
-    def _check_player_joined(self, player_id):
-        return player_id in self.node.players
+    def _check_player_joined(self, token):
+        return self.node.player_by_token(token)
 
     def handle(self, environ, response):
         rest_object = environ['PATH_INFO'].strip('/').split('/')[0]
@@ -64,7 +64,7 @@ class WSGIServer(object):
         elif rest_object in self.rpc_objects:
             return self.rpc_objects[rest_object](environ, response)
         elif environ['PATH_INFO'] == '/':
-            if self._check_player_joined(_get_param(environ, 'player_id')):
+            if self._check_player_joined(_get_param(environ, 'token')):
                 return self.www_file('/index.html', response)
             else:
                 return self.www_file('/player_error.html', response)
@@ -78,9 +78,15 @@ class WSGIServer(object):
         player_id = None
         queue = None
         try:
-            player_id = ws.receive()
-            area_uid = ws.receive()
-            log.debug("registering %s at %s", player_id, area_uid)
+            token = ws.receive()
+            player_actor = self.node.player_by_token(token)
+            if not player_actor:
+                log.debug("No such player for token")
+                return
+
+            player_id = player_actor.player.username
+
+            log.debug("registering %s", player_id)
             queue = self.connect(player_id)
             log.debug("Connected to queue")
             self.sessions[cookies['sessionid']] = player_id
@@ -113,9 +119,9 @@ class WSGIServer(object):
 
     @checked
     def game_handle(self, environ, response):
-        _, url, area_uid, command = \
+        _, url, command = \
             environ['PATH_INFO'].split("/")
-        log.debug("Game call %s, %s, %s", url, area_uid, command)
+        log.debug("Game call %s, %s", url, command)
         cookies = _read_cookies(environ)
         params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
         returned = self.node.call(self.sessions[cookies['sessionid']], command,

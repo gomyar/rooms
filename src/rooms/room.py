@@ -80,10 +80,6 @@ class Room(object):
         return "<Room %s at %s w:%s h:%s>" % (self.room_id,self.position,
             self.width, self.height)
 
-    @property
-    def instance(self):
-        return self.area.instance
-
     def object_at(self, x, y):
         for map_object in self.map_objects.values():
             if map_object.at(x, y):
@@ -119,9 +115,6 @@ class Room(object):
             self.actors[door_id].position()))
         self.area.actor_enters_room(self, actor, door_id)
 
-    def actor_joined_instance(self, actor):
-        self.put_actor(actor)
-
     def put_actor(self, actor, position=None):
         if not position:
             position = (
@@ -154,8 +147,18 @@ class Room(object):
     def _send_update(self, actor, update_id, **kwargs):
         self.visibility_grid.send_update_event(actor, update_id, **kwargs)
 
-    def exit_through_door(self, actor, door_id):
-        door = self.actors[door_id]
+    def player_exit_to_area(self, actor, door):
+        self.remove_actor(actor)
+        self.area.node.players.pop(actor.player.username)
+        self.area.node.save_manager.update_player_location(actor.player,
+            door.exit_area_id, door.exit_room_id)
+        response = self.area.node.master.player_moves_area(
+            actor.player.username)
+        actor._update("moved_node", **response)
+        actor._update("disconnect")
+        actor.kill_gthread()
+
+    def actor_exit_to_room(self, actor, door):
         self.remove_actor(actor)
         exit_door = door.exit_room.actors[door.exit_door_id]
         door.exit_room.put_actor(actor,

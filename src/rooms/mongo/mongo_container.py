@@ -80,6 +80,23 @@ class MongoContainer(object):
                 collection_name, update_obj)
             raise
 
+    def update_object_fields(self, obj, collection_name, **kwargs):
+        try:
+            self._collection(collection_name).update(
+                {'_id': bson.ObjectId(obj._id) },
+                {
+                    '$set': kwargs,
+                },
+                upsert=True,
+                )
+        except:
+            log.exception("Exception updating object in %s.update_key: %s",
+                collection_name, update_obj)
+            raise
+
+
+
+
     def remove_object(self, obj, collection_name, remove_key):
         try:
             self._collection(collection_name).update(

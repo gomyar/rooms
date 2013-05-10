@@ -21,6 +21,11 @@ class SaveManager(object):
             self.check_invalid_rooms()
         gevent.sleep(0.1)
 
+    def update_player_location(self, player, area_id, room_id):
+        self.container.update_player_location(player, area_id, room_id)
+        if player in self.queue:
+            self.queue.remove(player)
+
     def check_invalid_rooms(self):
         for area in self.node.areas.values():
             for room in area.rooms.values():

@@ -117,6 +117,7 @@ class Node(object):
     def manage_area(self, area_id):
         self.areas[area_id] = self.container.load_area(area_id)
         self.areas[area_id].game = self.game
+        self.areas[area_id].node = self
         # kickoff maybe
 
     def player_joins(self, area_id, player):
@@ -124,7 +125,8 @@ class Node(object):
         player_id = player.username
         player_actor = self.areas[area_id].rooms[player.room_id].actors.get(player.actor_id)
         if player_id not in self.players and not player_actor:
-            self.players[player_id] = dict(connected=False)
+            self.players[player_id] = dict(connected=False,
+                token=self._create_token(player_id))
 
             actor = PlayerActor(player)
             actor.server = self.server
@@ -143,11 +145,22 @@ class Node(object):
             log.info("Player joined: %s", player_id)
         elif player_actor:
             player_actor.server = self.server
-            self.players[player_id] = dict(connected=False)
+            self.players[player_id] = dict(connected=False,
+                token=self._create_token(player_id))
             self.players[player_id]['player'] = player_actor
             log.debug("Player already in room: %s", player_id)
         else:
             log.debug("Player already here: %s", player_id)
+        return dict(token=self.players[player_id]['token'])
+
+    def _create_token(self, player_id):
+        return player_id
+
+    def player_by_token(self, token):
+        for player in self.players.values():
+            if player['token'] == token:
+                return player['player']
+        return None
 
     def deregister(self, player_id):
         log.debug("Deregistering %s", player_id)

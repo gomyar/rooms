@@ -48,6 +48,7 @@ class MasterController(object):
                 player_connects=self.player_connects,
                 player_info=self.player_info,
                 node_info=self.node_info,
+                player_moves_area=self.player_moves_area,
 
                 admin_list_areas=self.admin.list_areas,
                 admin_show_nodes=self.admin.show_nodes,
@@ -78,6 +79,14 @@ class MasterController(object):
             actor_id=player.actor_id,
         )
 
+    def player_moves_area(self, username):
+        player = self.container.load_player(username=username)
+        node = self._lookup_node(player.area_id)
+        response = node.client.player_joins(area_id=player.area_id,
+            username=username)
+        return dict(host=node.external_host, port=node.external_port,
+            token=response['token'])
+
     def player_joins(self, username, area_id, room_id, **state):
         ''' Player joins to an area running on a node '''
         log.debug("Player joins: %s", username)
@@ -88,18 +97,20 @@ class MasterController(object):
         player.room_id = room_id
         self.container.save_player(player)
         node = self._lookup_node(area_id)
-        node.client.player_joins(area_id=player.area_id,
+        response = node.client.player_joins(area_id=player.area_id,
             username=username)
-        return dict(host=node.external_host, port=node.external_port)
+        return dict(host=node.external_host, port=node.external_port,
+            token=response['token'])
 
     def player_connects(self, username):
         ''' A player, already in the game, connects, requesting node info '''
         player = self.container.load_player(username=username)
         # need to double check if player already connected
         node = self._lookup_node(player.area_id)
-        node.client.player_joins(area_id=player.area_id,
+        response = node.client.player_joins(area_id=player.area_id,
             username=username)
-        return dict(host=node.external_host, port=node.external_port)
+        return dict(host=node.external_host, port=node.external_port,
+            token=response['token'])
 
     def node_info(self, area_id):
         node = self._lookup_node(area_id)

@@ -21,9 +21,15 @@ class PlayerActor(Actor):
         return "<PlayerActor %s:%s>" % (self.player.username, self.actor_id)
 
     def exit(self, door_id):
-        super(PlayerActor, self).exit(door_id)
-        self.player.room_id = self.room.room_id
-        self.server.send_sync(self.player.username)
+        door = self.room.actors[door_id]
+        self.player.room_id = door.exit_room_id
+
+        if door.exit_area_id:
+            self.room.player_exit_to_area(self, door)
+            self.kill_gthread()
+        else:
+            self.room.actor_exit_to_room(self, door)
+            self.server.send_sync(self.player.username)
 
     def leave_game(self):
         self.server.deregister(self.actor_id)

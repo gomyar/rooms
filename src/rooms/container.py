@@ -129,6 +129,10 @@ class Container(object):
         self.dbase.update_object(actor.room, "rooms", "actors.%s" % (
             actor.actor_id,), actor_dict)
 
+    def update_player_location(self, player, area_id, room_id):
+        self.dbase.update_object_fields(player, "players", area_id=area_id,
+            room_id=room_id)
+
     def remove_actor(self, room, actor):
         self.dbase.remove_object(room, "rooms", "actors.%s" % (
             actor.actor_id,))

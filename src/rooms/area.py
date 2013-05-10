@@ -21,6 +21,7 @@ class Area(object):
         self.point_map = dict()
         self.room_points = dict()
         self.game = None
+        self.node = None
 
     def rebuild_area_map(self):
         self.point_map = PointMap()
