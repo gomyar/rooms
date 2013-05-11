@@ -70,6 +70,8 @@ class Area(object):
         door1 = Door(door1_id, room1_position, room2.room_id, None)
         door2 = Door(door2_id, room2_position, room1.room_id, None)
         door2.exit_door_id = door1.actor_id
+        door2.exit_position = room1_position
+        door1.exit_position = room2_position
         door1.exit_door_id = door2.actor_id
         room1.actors[door1.actor_id] = door1
         room2.actors[door2.actor_id] = door2

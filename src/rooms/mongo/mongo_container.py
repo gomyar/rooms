@@ -48,16 +48,6 @@ class MongoContainer(object):
     def filter(self, dbase_name, **search_fields):
         return self._collection(dbase_name).find(search_fields)
 
-    def _save_object(self, obj, collection):
-        encoded_str = simplejson.dumps(obj, default=self.container._encode,
-            indent="    ")
-        encoded_dict = simplejson.loads(encoded_str)
-        if hasattr(obj, "_id"):
-            encoded_dict['_id'] = bson.ObjectId(obj._id)
-        obj_id = collection.save(encoded_dict)
-        obj._id = str(obj_id)
-        return obj._id
-
     def _load_object(self, obj_id, collection):
         obj_dict = collection.find_one(bson.ObjectId(obj_id))
         db_id = obj_dict.pop('_id')
@@ -93,9 +83,6 @@ class MongoContainer(object):
             log.exception("Exception updating object in %s.update_key: %s",
                 collection_name, update_obj)
             raise
-
-
-
 
     def remove_object(self, obj, collection_name, remove_key):
         try:

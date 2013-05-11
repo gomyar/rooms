@@ -38,6 +38,7 @@ class Door(Actor):
         self.name = door_id
         self.actor_type = "door"
         self.exit_area_id = None
+        self.exit_position = (0, 0)
 
     @property
     def exit_room(self):

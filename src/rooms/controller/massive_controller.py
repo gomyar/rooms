@@ -82,6 +82,7 @@ class MasterController(object):
     def player_moves_area(self, username):
         player = self.container.load_player(username=username)
         node = self._lookup_node(player.area_id)
+        node.client.load_from_limbo(area_id=player.area_id)
         response = node.client.player_joins(area_id=player.area_id,
             username=username)
         return dict(host=node.external_host, port=node.external_port,
@@ -159,10 +160,14 @@ class ClientController(object):
             dict(manage_area=self.manage_area,
                 player_joins=self.player_joins,
                 admin_show_area=self.admin_show_area,
+                load_from_limbo=self.load_from_limbo,
                 ))
 
     def start(self):
         self.wsgi_server.start()
+
+    def load_from_limbo(self, area_id):
+        self.node.load_from_limbo(area_id=area_id)
 
     def manage_area(self, area_id):
         log.debug("Managing area: %s", area_id)

@@ -150,8 +150,14 @@ class Room(object):
     def player_exit_to_area(self, actor, door):
         self.remove_actor(actor)
         self.area.node.players.pop(actor.player.username)
+        actor.path.set_position(door.exit_position)
         self.area.node.save_manager.update_player_location(actor.player,
             door.exit_area_id, door.exit_room_id)
+        for docked in actor.docked.values():
+            self.remove_actor(docked)
+        transport = [actor] + actor.docked.values()
+        self.area.node.move_actors_to_limbo(door.exit_area_id,
+            door.exit_room_id, transport)
         response = self.area.node.master.player_moves_area(
             actor.player.username)
         actor._update("moved_node", **response)

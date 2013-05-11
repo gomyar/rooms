@@ -19,6 +19,7 @@ from rooms.game import Game
 from rooms.circles import Circles
 from rooms.item_registry import ItemRegistry
 from rooms.null import Null
+from rooms.limbo import Limbo
 
 import logging
 log = logging.getLogger("rooms.container")
@@ -49,6 +50,7 @@ class Container(object):
             ItemRegistry=self._serialize_item_registry,
             Item=self._serialize_item,
             Null=self._serialize_null,
+            Limbo=self._serialize_limbo,
         )
 
         self.object_factories = dict(
@@ -70,6 +72,7 @@ class Container(object):
             ItemRegistry=self._create_item_registry,
             Item=self._create_item,
             Null=self._create_null,
+            Limbo=self._create_limbo,
         )
 
     def load_game(self, game_id):
@@ -365,6 +368,7 @@ class Container(object):
             position=(obj.x(), obj.y()),
             opens_direction=obj.opens_direction,
             exit_area_id=obj.exit_area_id,
+            exit_position=obj.exit_position,
         ))
         return data
 
@@ -376,6 +380,7 @@ class Container(object):
         door.set_position(data['position'])
         door.opens_direction = data['opens_direction']
         door.exit_area_id = data['exit_area_id']
+        door.exit_position = data['exit_position']
         return door
 
     # Inventory
@@ -460,6 +465,17 @@ class Container(object):
     def _create_null(self, data):
         return Null()
 
+    # Limbo
+    def _serialize_limbo(self, limbo):
+        return dict(
+            area_id=limbo.area_id,
+            room_id=limbo.room_id,
+            actors=limbo.actors,
+        )
+
+    def _create_limbo(self, data):
+        return Limbo(data['area_id'], data['room_id'], data['actors'])
+
     # Game
     def _serialize_game(self, obj):
         area_map = dict()
@@ -504,3 +520,18 @@ class Container(object):
             else:
                 raise TypeError("No such type:%s" % obj_type)
         return data
+
+
+    def save_actors_to_limbo(self, area_id, room_id, actors):
+        limbo = Limbo(area_id, room_id, actors)
+        self._save_object(limbo, "limbo")
+
+    def load_limbos_for(self, area_id):
+        limbos = self.dbase.filter("limbo", area_id=area_id)
+        loaded = []
+        for enc_dict in limbos:
+            db_id = enc_dict.pop('_id')
+            obj = self._dict_to_obj(enc_dict)
+            obj._id = str(db_id)
+            loaded.append(obj)
+        return loaded

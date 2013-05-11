@@ -197,3 +197,18 @@ class Node(object):
         self.container.save_player(player)
         self.server.send_update(player.username, 'kill')
         self.deregister(player.username)
+
+    def move_actors_to_limbo(self, exit_area_id, exit_room_id, actors):
+        self.container.save_actors_to_limbo(exit_area_id, exit_room_id, actors)
+
+    def load_from_limbo(self, area_id):
+        limbos = self.container.load_limbos_for(area_id)
+        for limbo in limbos:
+            area = self.areas[area_id]
+            room = area.rooms[limbo.room_id]
+            actors = dict([(actor.actor_id, actor) for actor in \
+                limbo.actors])
+            for actor_id, actor in actors.items():
+                if actor.parents:
+                    actors[actor.parents[0]].dock(actor)
+                room.put_actor(actor, actor.position())
