@@ -212,3 +212,4 @@ class Node(object):
                 if actor.parents:
                     actors[actor.parents[0]].dock(actor)
                 room.put_actor(actor, actor.position())
+        self.container.remove_limbos_for(area_id)

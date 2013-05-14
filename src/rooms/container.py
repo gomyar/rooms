@@ -535,3 +535,6 @@ class Container(object):
             obj._id = str(db_id)
             loaded.append(obj)
         return loaded
+
+    def remove_limbos_for(self, area_id):
+        self.dbase.remove("limbo", area_id=area_id)

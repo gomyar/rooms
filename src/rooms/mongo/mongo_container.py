@@ -39,6 +39,9 @@ class MongoContainer(object):
             encoded_dict['_id'] = bson.ObjectId(object_id)
         return self._collection(dbase_name).save(encoded_dict)
 
+    def remove(self, collection_name, **kwargs):
+        self._collection(collection_name).remove(kwargs)
+
     def object_exists(self, dbase_name, **search_fields):
         return bool(self.filter_one(dbase_name, **search_fields))
 
