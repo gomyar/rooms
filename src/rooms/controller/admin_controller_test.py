@@ -44,7 +44,7 @@ class AdminControllerTest(unittest.TestCase):
         self.master.register_node("internal.local", 8000, "external.local",
             8000)
         self.assertEquals({
-            ('internal.local', 8000):
+            'internal.local:8000':
                 {'host': 'external.local', 'port': 8000}},
             self.admin.show_nodes())
 
@@ -55,4 +55,4 @@ class AdminControllerTest(unittest.TestCase):
 
         self.assertEquals({'area1': dict(players=[],
             node=('internal.local', 8000),
-            area_id='area1')}, self.admin.show_areas())
+            area_id='area1')}, self.admin.list_areas())
