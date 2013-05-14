@@ -56,6 +56,12 @@ class Area(object):
                 self.game_script.has_method('player_enters_room'):
             self.game_script.call_method('player_enters_room', room, actor)
 
+    def create_room(self, room_id, position, width=50, height=50,
+            description=None):
+        room = Room(room_id, width, height, description)
+        self.put_room(room, position)
+        return room
+
     def create_door(self, room1, room2, room1_position=None,
             room2_position=None, door1_visible_to_all=False,
             door2_visible_to_all=False):

@@ -49,6 +49,7 @@ class MasterController(object):
                 player_info=self.player_info,
                 node_info=self.node_info,
                 player_moves_area=self.player_moves_area,
+                send_message=self.send_message,
 
                 admin_list_areas=self.admin.list_areas,
                 admin_show_nodes=self.admin.show_nodes,
@@ -68,6 +69,11 @@ class MasterController(object):
         for uid, area_info in self.areas.items():
             if area_info['node'] == (host, port):
                 self.areas.pop(uid)
+
+    def send_message(self, actor_id, room_id, area_id, message):
+        node = self._lookup_node(area_id)
+        node.client.send_message(actor_id=actor_id, room_id=room_id,
+            area_id=area_id, message=message)
 
     def player_info(self, username):
         ''' Player info straight from player object '''
@@ -165,10 +171,14 @@ class ClientController(object):
                 player_joins=self.player_joins,
                 admin_show_area=self.admin_show_area,
                 load_from_limbo=self.load_from_limbo,
+                send_message=self.send_message,
                 ))
 
     def start(self):
         self.wsgi_server.start()
+
+    def send_message(self, actor_id, room_id, area_id, message):
+        self.node.send_message(actor_id, room_id, area_id, message)
 
     def load_from_limbo(self, area_id):
         self.node.load_from_limbo(area_id=area_id)

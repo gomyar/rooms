@@ -120,7 +120,7 @@ class Actor(object):
             return self.room.actors.get(self.parents[-1])
 
     def parent_id(self):
-        if self.parents:
+        if self.parents and self.parent:
             return self.parent.actor_id
 
     def load_script(self, classname):
@@ -404,8 +404,7 @@ class Actor(object):
 
     def kill(self):
         log.debug("Killing %s", self)
-        if "killed" in self.script:
-            self.script.killed(self)
+        self._call_kill_script()
         if self.parent:
             self.parent._children.remove(self.actor_id)
         if self.room:
@@ -417,6 +416,13 @@ class Actor(object):
             self.docked_with = None
         self.running = False
         self.kill_gthread()
+
+    def _call_kill_script(self):
+        if "killed" in self.script:
+            try:
+                self.script.killed(self)
+            except:
+                log.exception("Exception in kill() call to %s", self)
 
     def set_visible(self, visible):
         if visible == self.visible:
@@ -443,8 +449,9 @@ class Actor(object):
             visible=False, visible_to_all=False, **state):
         child = self.room.create_actor(actor_type, actor_script,
             visible=(not docked) or visible, name=name,
-            visible_to_all=visible_to_all, **state)
-        child.parents = self.parents + [self.actor_id]
+            visible_to_all=visible_to_all,
+            parents=self.parents+[self.actor_id],
+            **state)
         if docked:
             self.dock(child, visible)
         self._children.append(child.actor_id)
@@ -460,3 +467,13 @@ class Actor(object):
     def children(self, actor_type=None):
         return [child for child in self.child_actors_in_room() if \
             not actor_type or actor_type == child.actor_type]
+
+    def send_message(self, actor_id, room_id, area_id, message):
+        self.room.send_message(actor_id, room_id, area_id, message)
+
+    def message_received(self, message):
+        if "message_received" in self.script:
+            return self.script.message_received(self, message)
+        else:
+            raise Exception("No message received script function for %s:%s" % (
+                self, message))

@@ -231,7 +231,7 @@ class Room(object):
 
     def create_actor(self, actor_type, actor_script, position=None,
             actor_id=None, name="", visible=True, visible_to_all=False,
-            **state):
+            parents=None, **state):
         actor = Actor(actor_id)
         actor.actor_type = actor_type
         actor.model_type = actor_type
@@ -239,6 +239,7 @@ class Room(object):
         actor.state.update(state)
         actor.visible = visible
         actor.visible_to_all = visible_to_all
+        actor.parents = parents or []
         self.put_actor(actor, position)
         actor.load_script(actor_script)
         if "created" in actor.script:
@@ -263,3 +264,6 @@ class Room(object):
                     (name == None or target.name == name) and \
                     (actor_type == None or target.actor_type == actor_type):
                 yield target
+
+    def send_message(self, actor_id, room_id, area_id, message):
+        self.area.node.send_message(actor_id, room_id, area_id, message)
