@@ -162,7 +162,19 @@ class Room(object):
             actor.player.username)
         actor._update("moved_node", **response)
         actor._update("disconnect")
-        actor.kill_gthread()
+        actor.running = False
+
+    def actor_exit_to_area(self, actor, door):
+        self.remove_actor(actor)
+        actor.path.set_position(door.exit_position)
+        for docked in actor.docked.values():
+            self.remove_actor(docked)
+        transport = [actor] + actor.docked.values()
+        self.area.node.move_actors_to_limbo(door.exit_area_id,
+            door.exit_room_id, transport)
+        response = self.area.node.master.actor_moves_area(
+            door.exit_area_id)
+        actor.running = False
 
     def actor_exit_to_room(self, actor, door):
         self.remove_actor(actor)

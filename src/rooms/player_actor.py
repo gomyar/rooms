@@ -26,7 +26,6 @@ class PlayerActor(Actor):
 
         if door.exit_area_id:
             self.room.player_exit_to_area(self, door)
-            self.kill_gthread()
         else:
             self.room.actor_exit_to_room(self, door)
             self.server.send_sync(self.player.username)

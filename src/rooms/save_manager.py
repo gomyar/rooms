@@ -16,7 +16,8 @@ class SaveManager(object):
     def run_save(self):
         while self.queue and self.running:
             actor = self.queue.pop(0)
-            self.container.update_actor(actor)
+            if actor.room:
+                self.container.update_actor(actor)
             gevent.sleep(0.1)
             self.check_invalid_rooms()
         gevent.sleep(0.1)

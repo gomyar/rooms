@@ -379,7 +379,11 @@ class Actor(object):
         gevent.sleep(max(0, seconds))
 
     def exit(self, door_id):
-        self.room.actor_exit_to_room(self, self.actors[door_id])
+        door = self.room.actors[door_id]
+        if door.exit_area_id:
+            self.room.actor_exit_to_area(self, door)
+        else:
+            self.room.actor_exit_to_room(self, door)
 
     def dock(self, actor, visible=False):
         self.docked[actor.actor_id] = actor

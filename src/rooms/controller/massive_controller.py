@@ -88,6 +88,10 @@ class MasterController(object):
         return dict(host=node.external_host, port=node.external_port,
             token=response['token'])
 
+    def actor_moves_area(self, area_id):
+        node = self._lookup_node(area_id)
+        node.client.load_from_limbo(area_id=area_id)
+
     def player_joins(self, username, area_id, room_id, **state):
         ''' Player joins to an area running on a node '''
         log.debug("Player joins: %s", username)
