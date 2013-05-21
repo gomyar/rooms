@@ -67,8 +67,17 @@ class Inventory(object):
     def get_amount(self, item_type):
         return self._items[item_type]
 
+    def total(self):
+        return sum(self._items.values())
+
     def all_items(self):
-        return self._items
+        return self._items.copy()
+
+    def items(self):
+        return self._items.items()
+
+    def keys(self):
+        return self._items.keys()
 
     def find_items(self, **kwargs):
         return [(lookup(item), amount) for (item, amount) in \
