@@ -257,16 +257,13 @@ class Actor(object):
         self.room.visibility_grid.update_actor_position(self)
 
     def set_path(self, path):
-        self._set_path(path)
-        for actor in self.followers:
-            if actor != self:
-                actor._set_intercept_path(self, actor.following_range)
-
-    def _set_path(self, path):
         self.path = path
         for actor in self.docked.values():
             actor.set_path(path)
         self.send_actor_update()
+        for actor in self.followers:
+            if actor != self:
+                actor._set_intercept_path(self, actor.following_range)
 
     def set_waypoints(self, point_list):
         self.set_path(path_from_waypoints(point_list, self.speed))
