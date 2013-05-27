@@ -122,6 +122,18 @@ class ActorTest(unittest.TestCase):
 
         self.assertEquals(1.6, self._slept[0])
 
+    def testInterceptCircular(self):
+        self.actor2 = Actor("actor2")
+        self.actor3 = Actor("actor2")
+
+        self.actor.set_position((10, 10))
+        self.actor2.set_position((30, 30))
+        self.actor3.set_position((10, 20))
+
+        self.actor.intercept(self.actor2)
+        self.actor2.intercept(self.actor3)
+        self.actor3.intercept(self.actor)
+
     def testInterceptExample(self):
         self.room.width = 600
         self.room.height = 600

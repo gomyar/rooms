@@ -333,7 +333,7 @@ class Actor(object):
     def _set_intercept_path(self, actor, irange):
         path = self.room.geog.intercept(actor.path, self.position(),
             self.speed, irange)
-        self._set_path(path)
+        self.set_path(path)
         return path
 
     def animate(self, animate_id, duration=1, **kwargs):
