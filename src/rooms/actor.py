@@ -258,7 +258,6 @@ class Actor(object):
 
     def set_path(self, path):
         self._set_path(path)
-        self.send_actor_update()
         for actor in self.followers:
             if actor != self:
                 actor._set_intercept_path(self, actor.following_range)
@@ -267,6 +266,7 @@ class Actor(object):
         self.path = path
         for actor in self.docked.values():
             actor.set_path(path)
+        self.send_actor_update()
 
     def set_waypoints(self, point_list):
         self.set_path(path_from_waypoints(point_list, self.speed))
@@ -334,7 +334,6 @@ class Actor(object):
         path = self.room.geog.intercept(actor.path, self.position(),
             self.speed, irange)
         self._set_path(path)
-        self.send_actor_update()
         return path
 
     def animate(self, animate_id, duration=1, **kwargs):
