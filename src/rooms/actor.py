@@ -297,19 +297,12 @@ class Actor(object):
         if not path or len(path) < 2:
             raise Exception("Wrong path: %s" % (path,))
         self.set_waypoints(path)
-        end_time = self.path.path_end_time()
         if self.following:
             self.following.followers.remove(self)
             self.following = None
             self.following_range = 0.0
 
-        interval = self.room.visibility_grid.gridsize / float(self.speed)
-        duration = end_time - get_now()
-        while interval > 0 and duration > 0:
-            self.sleep(max(0, min(duration, interval)))
-            duration -= interval
-            log.debug("added actors moving %s", self)
-            self.room.visibility_grid.update_actor_position(self)
+        self.update_grid(self.path)
 
     def intercept(self, actor, irange=0.0):
         log.debug("%s Intercepting %s at range %s", self, actor, irange)
@@ -322,8 +315,16 @@ class Actor(object):
             actor.followers.add(self)
             self.following = actor
             self.following_range = irange
-            end_time = self.path.path[1][2]
-            self.sleep(end_time - get_now())
+            self.update_grid(self.path)
+
+    def update_grid(self, path):
+        end_time = path.path_end_time()
+        interval = self.room.visibility_grid.gridsize / float(self.speed)
+        duration = end_time - get_now()
+        while interval > 0 and duration > 0:
+            self.sleep(max(0, min(duration, interval)))
+            duration -= interval
+            self.room.visibility_grid.update_actor_position(self)
 
     def wait_for_path(self):
         while self.path and self.path.path_end_time() > get_now():

@@ -104,23 +104,23 @@ class ActorTest(unittest.TestCase):
         self.assertEquals(None, self.actor2.docked_with)
         self.assertEquals({}, self.actor.docked)
 
+
     def testIntercept(self):
         self.actor2 = Actor("actor2")
         self.room.put_actor(self.actor2, (50, 10))
+        self.actor.speed = 25
+        self.actor2.speed = 25
 
         self.actor2.set_waypoints([(50, 10), (50, 50)])
 
-        self.actor.intercept(self.actor2)
-
-        self.assertEquals([(10, 10), (50, 50)],
-            self.actor.path.basic_path_list())
-
-        self.actor.set_position((40, 25))
+        self.actor.set_position((40, 30))
 
         self.actor.intercept(self.actor2)
 
-        self.assertEquals([(40, 25), (50.0, 49.999961853027344), (50.0, 50.0)],
+        self.assertEquals([(40, 30), (50, 30), (50, 50)],
             self.actor.path.basic_path_list())
+
+        self.assertEquals(1.6, self._slept[0])
 
     def testInterceptExample(self):
         self.room.width = 600
