@@ -125,10 +125,12 @@ class ActorTest(unittest.TestCase):
     def testInterceptCircular(self):
         self.actor2 = Actor("actor2")
         self.actor3 = Actor("actor2")
+        self.actor2.sleep = lambda t: None
+        self.actor3.sleep = lambda t: None
 
         self.actor.set_position((10, 10))
-        self.actor2.set_position((30, 30))
-        self.actor3.set_position((10, 20))
+        self.room.put_actor(self.actor2, (30, 30))
+        self.room.put_actor(self.actor3, (10, 20))
 
         self.actor.intercept(self.actor2)
         self.actor2.intercept(self.actor3)
@@ -354,3 +356,40 @@ class ActorTest(unittest.TestCase):
             raise
         except Exception, e:
             self.assertEquals("Not enough item1 in inventory", str(e))
+
+    def testInterceptNoPath(self):
+        self.actor2 = Actor("actor2")
+        self.actor2._geog_intercept = lambda pa, po, sp, ir: []
+        self.room.put_actor(self.actor2, (50, 10))
+
+        self.actor.intercept(self.actor2)
+
+        # Actor stays put
+        self.assertEquals((10, 10), self.actor.position())
+
+    def testStopUpdatesVisibiltyGrid(self):
+        self.actor.move_to(150, 10)
+        self.now = 100.0
+        self.actor.stop()
+        self.assertEquals((110, 10), self.actor.position())
+        self.assertEquals((1, 0), self.room.visibility_grid.actors[self.actor])
+
+    def testFollowersInterceptNoPath(self):
+        self.actor2 = Actor("actor2")
+        self.actor2.sleep = lambda t: None
+        self.room.put_actor(self.actor2, (50, 10))
+
+        self.actor2.intercept(self.actor)
+
+        self.assertEquals([(50, 10, 0.0), (10, 10, 40.0)],
+            self.actor2.path.path)
+
+        self.now = 0.5
+        self.actor2._geog_intercept = lambda pa, po, sp, ir: []
+
+        # Following actors cannot get an intercept path
+        self.actor.move_to(20, 10)
+
+        # Following actors stop where they are
+        self.assertEquals([(49, 10, 0.5), (49, 10, 0.5)], self.actor2.path.path)
+        self.assertEquals((49, 10), self.actor2.position())

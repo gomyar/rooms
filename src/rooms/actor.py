@@ -261,7 +261,7 @@ class Actor(object):
         for actor in self.docked.values():
             actor.set_path(path)
         self.send_actor_update()
-        for actor in self.followers:
+        for actor in set(self.followers):
             if actor != self:
                 actor._set_intercept_path(self, actor.following_range)
 
@@ -328,10 +328,16 @@ class Actor(object):
             self.sleep(self.path.path_end_time() - get_now())
 
     def _set_intercept_path(self, actor, irange):
-        path = self.room.geog.intercept(actor.path, self.position(),
+        path = self._geog_intercept(actor.path, self.position(),
             self.speed, irange)
-        self.set_path(path)
+        if path:
+            self.set_path(path)
+        else:
+            self.stop()
         return path
+
+    def _geog_intercept(self, path, position, speed, irange):
+        return self.room.geog.intercept(path, position, speed, irange)
 
     def animate(self, animate_id, duration=1, **kwargs):
         log.info("Animating %s(%s)", animate_id, kwargs)
@@ -365,6 +371,7 @@ class Actor(object):
 
     def stop(self):
         self.move_to(self.x(), self.y())
+        self.room.visibility_grid.update_actor_position(self)
 
     def perform_action(self, action_id, seconds=0.0, **data):
         self.action = Action(action_id, seconds, data)
