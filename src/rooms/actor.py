@@ -198,7 +198,8 @@ class Actor(object):
             docked=bool(self.docked_with),
             docked_with=self.docked_with.actor_id if self.docked_with else None,
             docked_actors=self.docked_actor_map(),
-            circles=self.circles.circles))
+            circles=self.circles.circles,
+            vision_distance=self.vision_distance))
         return external
 
     def docked_actor_map(self):
