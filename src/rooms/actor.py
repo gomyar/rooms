@@ -55,6 +55,7 @@ class Actor(object):
         self.state = State(self)
         self.model_type = ""
         self.kickoff_gthread = None
+        self.move_gthread = None
         self.docked = dict()
         self.docked_with = None
         self.followers = set()
@@ -135,7 +136,10 @@ class Actor(object):
         self.kill_gthread()
         self.running = True
         if "kickoff" in self.script:
-            self.kickoff_gthread = gevent.spawn(self.run_kickoff)
+            self._run_on_gthread(self.run_kickoff)
+
+    def _run_on_gthread(self, method, *args, **kwargs):
+        self.kickoff_gthread = gevent.spawn(method, *args, **kwargs)
 
     def run_kickoff(self):
         while self.running and "kickoff" in self.script:
@@ -159,8 +163,8 @@ class Actor(object):
                 **kwargs)
         else:
             self.kill_gthread()
-            self.kickoff_gthread = gevent.spawn(self._background_command,
-                method_name, *args, **kwargs)
+            self._run_on_gthread(self._background_command, method_name, *args,
+                **kwargs)
 
     def _background_command(self, method_name, *args, **kwargs):
         try:
@@ -265,6 +269,8 @@ class Actor(object):
         for actor in set(self.followers):
             if actor != self:
                 actor._set_intercept_path(self, actor.following_range)
+        if self.visible:
+            self.update_grid()
 
     def set_waypoints(self, point_list):
         self.set_path(path_from_waypoints(point_list, self.speed))
@@ -299,8 +305,7 @@ class Actor(object):
             self.following.followers.remove(self)
             self.following = None
             self.following_range = 0.0
-
-        self.update_grid(self.path)
+        self.sleep(self.path.path_end_time() - get_now())
 
     def intercept(self, actor, irange=0.0):
         log.debug("%s Intercepting %s at range %s", self, actor, irange)
@@ -313,16 +318,41 @@ class Actor(object):
             actor.followers.add(self)
             self.following = actor
             self.following_range = irange
-            self.update_grid(self.path)
 
-    def update_grid(self, path):
-        end_time = path.path_end_time()
-        interval = self.room.visibility_grid.gridsize / float(self.speed)
-        duration = end_time - get_now()
-        while interval > 0 and duration > 0:
-            self.sleep(max(0, min(duration, interval)))
-            duration -= interval
-            self.room.visibility_grid.update_actor_position(self)
+    def update_grid(self):
+        log.debug("update_grid %s", self)
+        try:
+            self.move_gthread.kill()
+        except:
+            pass
+        self.move_gthread = gevent.spawn(self._update_grid, self.path)
+
+    def _update_grid(self, path):
+        try:
+            end_time = path.path_end_time()
+            speed = self.path.speed()
+            if speed:
+                interval = self.room.visibility_grid.gridsize / \
+                    float(speed)
+            else:
+                interval = 0
+            duration = end_time - get_now()
+            while interval > 0 and duration > 0:
+                self.sleep(max(0, min(duration, interval)))
+                duration -= interval
+                self.room.visibility_grid.update_actor_position(self)
+
+                speed = self.path.speed()
+                if speed:
+                    interval = self.room.visibility_grid.gridsize / \
+                        float(speed)
+                else:
+                    interval = 0
+
+        except gevent.greenlet.GreenletExit, ex:
+            log.debug("Normal greenlet exit")
+        except Exception, e:
+            log.exception("Exception updating grid")
 
     def wait_for_path(self):
         while self.path and self.path.path_end_time() > get_now():

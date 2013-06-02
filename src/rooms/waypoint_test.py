@@ -62,3 +62,20 @@ class PathVectorTest(unittest.TestCase):
         self._mock_now =4.5
         self.assertEquals(4.0, self.path.y())
 
+    def testSpeedFromPath(self):
+        self.path = Path([(0, 0, 0), (100, 0, 100)])
+
+        self.assertEquals(1, self.path.speed())
+
+        self.path = Path([(0, 0, 0), (10, 0, 10), (30, 0, 20), (60, 0, 30)])
+
+        self.assertEquals(1, self.path.speed())
+
+        self._mock_now = 10.1
+        self.assertEquals(2, self.path.speed())
+
+        self._mock_now = 20.1
+        self.assertEquals(3, self.path.speed())
+
+        self._mock_now = 30.1
+        self.assertEquals(0, self.path.speed())

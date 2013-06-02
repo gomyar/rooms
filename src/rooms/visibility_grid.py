@@ -17,6 +17,13 @@ class VisibilityGrid(object):
         self.registered_sectors = defaultdict(lambda: set())
         self.visible_to_all = set()
 
+    def external(self):
+        return dict(
+            width=self.width, height=self.height,
+            gridsize=self.gridsize,
+            actors=dict([(actor.actor_id, point) for actor, point in self.actors.items()])
+        )
+
     def visible_actors(self, actor):
         gridpoints = self.registered_gridpoints[actor]
         actors = set()

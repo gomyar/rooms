@@ -24,7 +24,7 @@ class path_vectorTest(unittest.TestCase):
         target_path = Path([(10, 10, 0), (50, 50, 100)])
         point = plot_intercept_point_from(target_path, (50, 25), 300)
 
-        self.assertEquals((10.9765625, 10.9765625), point)
+        self.assertEquals((10.05859375, 10.05859375), point)
 
     def testMatchPath(self):
         target_path = Path([(10, 10, 0), (50, 10, 100)])

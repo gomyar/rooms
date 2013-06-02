@@ -60,7 +60,8 @@ class RoomObject(object):
 
 
 class Room(object):
-    def __init__(self, room_id=None, width=50, height=50, description=None):
+    def __init__(self, room_id=None, width=50, height=50, description=None,
+            visibility_grid_gridsize=10):
         self.room_id = room_id
         self.description = description or room_id
         self.position = (0, 0)
@@ -106,6 +107,7 @@ class Room(object):
             width=self.width, height=self.height, description=self.description,
             map_objects=dict([(obj_id, m.external()) for (obj_id, m) in \
                 self.map_objects.items()]) if map_objects else None,
+            visibility_grid=self.visibility_grid.external(),
         )
 
     def actor_enters(self, actor, door_id):
