@@ -353,6 +353,8 @@ class Actor(object):
             log.debug("Normal greenlet exit")
         except Exception, e:
             log.exception("Exception updating grid")
+        finally:
+            self.room.visibility_grid.update_actor_position(self)
 
     def wait_for_path(self):
         while self.path and self.path.path_end_time() > get_now():
