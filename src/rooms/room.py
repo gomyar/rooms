@@ -61,7 +61,7 @@ class RoomObject(object):
 
 class Room(object):
     def __init__(self, room_id=None, width=50, height=50, description=None,
-            visibility_grid_gridsize=10):
+            visibility_grid_gridsize=100):
         self.room_id = room_id
         self.description = description or room_id
         self.position = (0, 0)
@@ -72,7 +72,8 @@ class Room(object):
         self.area = None
         self.geog = _default_geog
         self.save_manager = Null()
-        self.visibility_grid = VisibilityGrid(self.width, self.height, 100)
+        self.visibility_grid = VisibilityGrid(self.width, self.height,
+            visibility_grid_gridsize)
 
     def __eq__(self, rhs):
         return rhs and self.room_id == rhs.room_id
