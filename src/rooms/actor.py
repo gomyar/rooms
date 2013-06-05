@@ -241,12 +241,10 @@ class Actor(object):
         pass
 
     def actor_added(self, actor):
-        if "actor_entered_vision" in self.script:
-            self.script.actor_entered_vision(self, actor)
+        self._call_script("actor_entered_vision", actor)
 
     def actor_removed(self, actor):
-        if "actor_left_vision" in self.script:
-            self.script.actor_left_vision(self, actor)
+        self._call_script("actor_left_vision", actor)
 
     def x(self):
         return self.path.x()
@@ -259,7 +257,7 @@ class Actor(object):
 
     def set_position(self, position):
         self.path.set_position(position)
-        self.room.visibility_grid.update_actor_position(self)
+        self._update_actor_grid()
 
     def set_path(self, path):
         self.path = path
@@ -331,30 +329,28 @@ class Actor(object):
         try:
             end_time = path.path_end_time()
             speed = self.path.speed()
-            if speed:
-                interval = self.room.visibility_grid.gridsize / \
-                    float(speed)
-            else:
-                interval = 0
+            interval = self.room.visibility_grid.gridsize / \
+                float(speed) if speed else 0
             duration = end_time - get_now()
             while interval > 0 and duration > 0:
                 self.sleep(max(0, min(duration, interval)))
                 duration -= interval
-                self.room.visibility_grid.update_actor_position(self)
+                self._update_actor_grid()
 
                 speed = self.path.speed()
-                if speed:
-                    interval = self.room.visibility_grid.gridsize / \
-                        float(speed)
-                else:
-                    interval = 0
-
+                interval = self.room.visibility_grid.gridsize / \
+                    float(speed) if speed else 0
         except gevent.greenlet.GreenletExit, ex:
             log.debug("Normal greenlet exit")
+            self._update_actor_grid()
         except Exception, e:
             log.exception("Exception updating grid")
-        finally:
+
+    def _update_actor_grid(self):
+        try:
             self.room.visibility_grid.update_actor_position(self)
+        except Exception, e:
+            log.exception("Exception updating actor %s on grid", self)
 
     def wait_for_path(self):
         while self.path and self.path.path_end_time() > get_now():
@@ -404,7 +400,7 @@ class Actor(object):
 
     def stop(self):
         self.move_to(self.x(), self.y())
-        self.room.visibility_grid.update_actor_position(self)
+        self._update_actor_grid()
 
     def perform_action(self, action_id, seconds=0.0, **data):
         self.action = Action(action_id, seconds, data)
@@ -455,11 +451,15 @@ class Actor(object):
         self.kill_gthread()
 
     def _call_kill_script(self):
-        if "killed" in self.script:
+        self._call_script("killed")
+
+    def _call_script(self, method, *args, **kwargs):
+        if method in self.script:
             try:
-                self.script.killed(self)
+                return getattr(self.script, method)(self, *args, **kwargs)
             except:
-                log.exception("Exception in kill() call to %s", self)
+                log.exception("Exception calling script %s(%s, %s, %s)", method,
+                    self, args, kwargs)
 
     def set_visible(self, visible):
         if visible == self.visible:
