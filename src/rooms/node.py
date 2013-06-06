@@ -188,6 +188,14 @@ class Node(object):
         else:
             return actor.call_command(command, **kwargs)
 
+    def actor_request(self, player_id, actor_id, command, kwargs):
+        player = self.players[player_id]['player']
+        actor = player.room.actors[actor_id]
+        if command == "api":
+            return actor.api()
+        else:
+            return actor.call_request(command, player, **kwargs)
+
     def kill_player(self, player_actor):
         actor_id = player_actor.actor_id
         player = player_actor.player

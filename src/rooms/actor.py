@@ -166,6 +166,13 @@ class Actor(object):
             self._run_on_gthread(self._background_command, method_name, *args,
                 **kwargs)
 
+    def call_request(self, method_name, player_actor, *args, **kwargs):
+        if self.script.is_request(method_name):
+            return self.script._call_function(method_name, self, player_actor,
+                *args, **kwargs)
+        else:
+            raise Exception("No such request: %s" % (method_name,))
+
     def _background_command(self, method_name, *args, **kwargs):
         try:
             self.script._call_function(method_name, self, *args, **kwargs)

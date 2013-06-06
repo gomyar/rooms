@@ -43,6 +43,7 @@ class WSGIServer(object):
         self.node = node
         self.rpc_objects = {
             'game': self.game_handle,
+            'actors': self.actors_handle,
             'room': self.room_handle,
             'admin': self.admin_handle,
         }
@@ -126,6 +127,18 @@ class WSGIServer(object):
         params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
         returned = self.node.call(self.sessions[cookies['sessionid']], command,
             dict(params))
+        return _json_return(response, returned)
+
+
+    @checked
+    def actors_handle(self, environ, response):
+        _, url, actor_id, command = \
+            environ['PATH_INFO'].split("/")
+        log.debug("Actor request call %s, %s", url, command)
+        cookies = _read_cookies(environ)
+        params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
+        returned = self.node.actor_request(self.sessions[cookies['sessionid']],
+            actor_id, command, dict(params))
         return _json_return(response, returned)
 
 
