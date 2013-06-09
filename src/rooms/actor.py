@@ -73,6 +73,7 @@ class Actor(object):
         self.visible_to_all = False
         self._children = []
         self.parents = []
+        self.__running_kill = False
 
     def __eq__(self, rhs):
         return rhs and type(rhs) == type(self) and \
@@ -88,7 +89,7 @@ class Actor(object):
 
     @health.setter
     def health(self, health):
-        if self._health > 0 and health <= 0:
+        if health <= 0:
             self._health = health
             self.kill()
         else:
@@ -443,6 +444,9 @@ class Actor(object):
         actor.inventory.add_item(item_type, amount)
 
     def kill(self):
+        if self.__running_kill:
+            return
+        self.__running_kill = True
         log.debug("Killing %s", self)
         self._call_kill_script()
         if self.parent:
@@ -456,6 +460,7 @@ class Actor(object):
             self.docked_with = None
         self.running = False
         self.kill_gthread()
+        self.__running_kill = False
 
     def _call_kill_script(self):
         self._call_script("killed")
