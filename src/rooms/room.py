@@ -251,8 +251,9 @@ class Room(object):
         return actor
 
     def player_actors(self):
-        return [actor for actor in self.actors.values() if \
-            issubclass(actor.__class__, PlayerActor)]
+        for actor in self._iter_actors():
+            if issubclass(actor.__class__, PlayerActor):
+                yield actor
 
     def _iter_actors(self):
         for actor in self.actors.values():
@@ -268,5 +269,18 @@ class Room(object):
                     (actor_type == None or target.actor_type == actor_type):
                 yield target
 
-    def send_message(self, actor_id, room_id, area_id, message):
-        self.area.node.send_message(actor_id, room_id, area_id, message)
+    def send_message(self, from_actor_id, actor_id, room_id, area_id, message):
+        self.area.node.send_message(from_actor_id, actor_id, room_id, area_id,
+            message)
+
+    def has_active_players(self):
+        for actor in self.player_actors():
+            if actor.running == True:
+                return True
+        return False
+
+    def has_active_actors(self):
+        for actor in self._iter_actors():
+            if actor.running == True:
+                return True
+        return False

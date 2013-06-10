@@ -30,7 +30,7 @@ class SaveManager(object):
     def check_invalid_rooms(self):
         for area in self.node.areas.values():
             for room in area.rooms.values():
-                if not room.player_actors():
+                if not room.has_active_players():
                     log.debug("Icicling room %s", room)
                     self._kill_room_actors(room)
                     self.save_room(room)
@@ -50,10 +50,8 @@ class SaveManager(object):
     def save_room(self, room):
         self.container.save_room(room)
 
-        players = room.player_actors()
-        if players:
-            for player in players:
-                self.container.save_player(player.player)
+        for player in room.player_actors():
+            self.container.save_player(player.player)
 
     def run_manager(self):
         while self.running:

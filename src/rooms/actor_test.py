@@ -297,13 +297,6 @@ class ActorTest(unittest.TestCase):
 
         self.assertEquals(self.actor, mock_script._mock_actor_killed)
 
-        # Assert the killed callback only gets called once
-        mock_script._mock_actor_killed = None
-
-        self.actor.health = -0.2
-
-        self.assertIsNone(mock_script._mock_actor_killed)
-
     def testActorIsChild(self):
         child1 = self.actor.create_child("child1", "rooms.actor_test")
 
@@ -393,3 +386,16 @@ class ActorTest(unittest.TestCase):
         # Following actors stop where they are
         self.assertEquals([(49, 10, 0.5), (49, 10, 0.5)], self.actor2.path.path)
         self.assertEquals((49, 10), self.actor2.position())
+
+    def testKillChildrenOnKill(self):
+        self.actor1 = Actor("actor1")
+        self.room.put_actor(self.actor1, (50, 10))
+
+        child = self.actor1.create_child("test", "rooms.actor_test")
+        self.assertTrue(child.actor_id in self.room.actors)
+        self.assertTrue(self.actor1.actor_id in self.room.actors)
+
+        self.actor1.kill()
+
+        self.assertFalse(child.actor_id in self.room.actors)
+        self.assertFalse(self.actor1.actor_id in self.room.actors)

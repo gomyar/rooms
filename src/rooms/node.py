@@ -226,10 +226,11 @@ class Node(object):
                 actor.kick()
         self.container.remove_limbos_for(area_id)
 
-    def send_message(self, actor_id, room_id, area_id, message):
+    def send_message(self, from_actor_id, actor_id, room_id, area_id, message):
         if area_id in self.areas:
             self.areas[area_id].rooms[room_id].actors[actor_id].message_received(
-                message)
+                from_actor_id, message)
         else:
-            self.master.send_message(actor_id=actor_id, room_id=room_id,
-                area_id=area_id, message=message)
+            self.master.send_message(from_actor_id=from_actor_id,
+                actor_id=actor_id, room_id=room_id, area_id=area_id,
+                message=message)

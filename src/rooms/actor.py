@@ -518,11 +518,12 @@ class Actor(object):
             not actor_type or actor_type == child.actor_type]
 
     def send_message(self, actor_id, room_id, area_id, message):
-        self.room.send_message(actor_id, room_id, area_id, message)
+        self.room.send_message(self.actor_id, actor_id, room_id, area_id,
+            message)
 
-    def message_received(self, message):
+    def message_received(self, from_actor_id, message):
         if "message_received" in self.script:
-            return self.script.message_received(self, message)
+            return self.script.message_received(self, from_actor_id, message)
         else:
             raise Exception("No message received script function for %s:%s" % (
                 self, message))

@@ -4,6 +4,7 @@ import unittest
 from room import Room
 from area import Area
 from actor import Actor
+from player_actor import PlayerActor
 from rooms.timing import _set_mock_time
 from rooms.timing import _fast_forward
 
@@ -111,3 +112,25 @@ class RoomTest(unittest.TestCase):
         self.actor2.move_to(15, 15)
 
         self.assertEquals([("added", self.actor2)], self._updates_1)
+
+    def testCanIcicle(self):
+        self.assertFalse(self.room1.has_active_players())
+
+        self.player = PlayerActor(None, "player1")
+        self.room1.put_actor(self.player)
+
+        self.assertTrue(self.room1.has_active_players())
+
+        self.player.pause()
+        self.assertFalse(self.room1.has_active_players())
+
+    def testHasActiveActors(self):
+        self.assertFalse(self.room1.has_active_actors())
+
+        self.actor = Actor("actor1")
+        self.room1.put_actor(self.actor)
+
+        self.assertTrue(self.room1.has_active_actors())
+
+        self.actor.pause()
+        self.assertFalse(self.room1.has_active_actors())
