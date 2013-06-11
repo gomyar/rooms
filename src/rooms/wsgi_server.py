@@ -111,7 +111,7 @@ class WSGIServer(object):
                 except Empty, err:
                     ws.send(simplejson.dumps([{'command':"heartbeat"}]))
         except:
-            log.exception("Websocket disconnected %s", player_id)
+            log.warning("Websocket disconnected %s", player_id)
         finally:
             log.debug("Player %s disconnecting", player_id)
             if queue:
