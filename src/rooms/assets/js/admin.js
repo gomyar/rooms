@@ -29,10 +29,13 @@ function onmessage(msg)
             console.log("Sync: "+message.kwargs.actors.length+" actors");
             console.log(message);
 
-            api_rooms.load_room(function(data){console.log("Room loaded");});
-            gui.viewport_x = api_rooms.player_actor.x();
-            gui.viewport_y = api_rooms.player_actor.y();
-            gui.actorRedraw();
+            api_rooms.load_room(function(data){
+                console.log("Room loaded");
+                gui.viewport_x = api_rooms.room.width / 2;
+                gui.viewport_y = api_rooms.room.height / 2;
+                gui.zoom = 1.05 * api_rooms.room.height / gui.canvas.height;
+                gui.actorRedraw();
+            });
         }
     }
 }
