@@ -54,6 +54,7 @@ class MasterController(object):
                 admin_list_areas=self.admin.list_areas,
                 admin_show_nodes=self.admin.show_nodes,
                 admin_show_area=self.admin.show_area,
+                admin_connects=self.admin_connects,
             )
         )
 
@@ -123,6 +124,14 @@ class MasterController(object):
         return dict(host=node.external_host, port=node.external_port,
             token=response['token'])
 
+    def admin_connects(self, username, area_id, room_id):
+        ''' An admin user connects '''
+        node = self._lookup_node(area_id)
+        response = node.client.admin_joins(
+            username=username, area_id=area_id, room_id=room_id)
+        return dict(host=node.external_host, port=node.external_port,
+            token=response['token'])
+
     def node_info(self, area_id):
         node = self._lookup_node(area_id)
         return dict(host=node.external_host, port=node.external_port)
@@ -169,6 +178,7 @@ class ClientController(object):
         self.wsgi_server = WSGIRPCServer(self.host, int(self.port),
             dict(manage_area=self.manage_area,
                 player_joins=self.player_joins,
+                admin_joins=self.admin_joins,
                 admin_show_area=self.admin_show_area,
                 load_from_limbo=self.load_from_limbo,
                 send_message=self.send_message,
@@ -192,6 +202,9 @@ class ClientController(object):
         player = self.node.container.load_player(username=username)
         return self.node.player_joins(area_id, player)
 
+    def admin_joins(self, username, area_id, room_id):
+        return self.node.admin_joins(username, area_id, room_id)
+
     def _roominfo(self, room):
         info = room.external(False)
         info['players'] = len([p for p in self.node.players.values() if \
@@ -202,4 +215,5 @@ class ClientController(object):
         area = self.node.areas[area_id]
         rooms = dict([(room.room_id, self._roominfo(room)) for room in \
             area.rooms.values()])
-        return dict(active_rooms=rooms, area_id=area_id)
+        return dict(active_rooms=rooms, area_id=area_id,
+            node_addr=self.node.host, node_port=self.node.port)

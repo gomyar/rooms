@@ -58,6 +58,7 @@ class Node(object):
         self.server = Null()
 
         self.players = dict()
+        self.admins = dict()
         self.areas = dict()
 
         self.save_manager = None
@@ -153,8 +154,23 @@ class Node(object):
             log.debug("Player already here: %s", player_id)
         return dict(token=self.players[player_id]['token'])
 
+    def admin_joins(self, username, area_id, room_id):
+        log.debug("Admin joins: %s at %s / %s", username, area_id, room_id)
+        token=self._create_token(username + "ADMIN")
+        self.admins[username] = dict(connected=False, token=token)
+        return dict(token=token)
+
+    def is_admin_token(self, token):
+        return token in self.admins
+
     def _create_token(self, player_id):
         return player_id
+
+    def admin_by_token(self, token):
+        for key, admin in self.admins.items():
+            if admin['token'] == token:
+                return key
+        return None
 
     def player_by_token(self, token):
         for player in self.players.values():

@@ -1,0 +1,973 @@
+body
+{
+    padding : 0px;
+    margin : 0px;
+    border : 0px;
+    font-family : courier;
+    font-size : 12px;
+    font-weight : bold;
+    color : white;
+    background-color : black;
+}
+
+#screen
+{
+    position : absolute;
+    top : 0px;
+    left : 0px;
+}
+
+div#main
+{
+    position : absolute;
+    top : 0px;
+    left : 0px;
+    right : 0px;
+    bottom : 100px;
+}
+
+div#menu
+{
+    position : absolute;
+    bottom : 0px;
+    height : 100px;
+    width : 100%;
+    overflow : hidden;
+    scroll : none;
+}
+
+div#menu div#menuwrapper
+{
+    border : 1px solid white;
+    height : 98px;
+    background-color : black;
+}
+
+
+div#menu div#menuwrapper div.shipicon img
+{
+    width : 90px;
+    height : 90px;
+}
+
+div#menu div.stationicon
+{
+    margin : 5px;
+    width : 90px;
+    height : 90px;
+    background-image : url('/images/gamescreen/stationicon.png');
+}
+
+div#menu div.playerinfo
+{
+    float : left;
+}
+
+div.npccontrol
+{
+    position : absolute;
+    width : 100px;
+    border : 1px solid white;
+    background-color : black;
+}
+
+div.npccontrol div.npcicon
+{
+    margin : 5px;
+    width : 90px;
+    height : 90px;
+    background-image : url('/images/gamescreen/ship_types/lambda.png');
+}
+
+div.stationcontrol
+{
+    position : absolute;
+    width : 100px;
+    border : 1px solid white;
+    background-color : black;
+}
+
+div.stationcontrol div.stationicon
+{
+    margin : 5px;
+    width : 90px;
+    height : 90px;
+    background-image : url('/images/gamescreen/stationicon.png');
+}
+
+div.stationcontrol div.controlbuttons
+{
+    margin : 5px;
+}
+
+div.stationcontrol div.alliance
+{
+    margin : 5px;
+}
+
+div.jumpgatecontrol
+{
+    position : absolute;
+    width : 100px;
+    border : 1px solid white;
+    background-color : black;
+}
+
+div.jumpgatecontrol div.jumpgateicon
+{
+    margin : 5px;
+    width : 90px;
+    height : 90px;
+    background-image : url('/images/gamescreen/jumpgateicon.png');
+}
+
+div.jumpgatecontrol div.controlbuttons
+{
+    margin : 5px;
+}
+
+
+div.mapcontrol div.genericlabel
+{
+    text-align : center;
+}
+
+
+div.planetcontrol
+{
+    position : absolute;
+    width : 100px;
+    border : 1px solid white;
+    background-color : black;
+}
+
+div.planeticon
+{
+    margin : 5px;
+    width : 90px;
+    height : 90px;
+}
+
+div.planeticon div.surface
+{
+    width : 90px;
+    height : 90px;
+    margin : 5px;
+    position : absolute;
+    top ; 0px;
+    left : 0px;
+    z-index : 1;
+}
+
+div.planeticon div.atmosphere
+{
+    width : 90px;
+    height : 90px;
+    margin : 5px;
+    position : absolute;
+    top ; 0px;
+    left : 0px;
+    z-index : 2;
+}
+
+div.planetcontrol div.controlbuttons
+{
+    margin : 5px;
+}
+
+div.genericbutton
+{
+    float : left;
+    margin : 5px;
+    min-width : 80px;
+    height : 18px;
+    background-color : darkblue;
+    border : 1px solid grey;
+    color : white;
+    text-align : center;
+    cursor : pointer;
+}
+
+div.genericbutton:hover
+{
+    border : 1px solid white;
+}
+
+div.stationgui
+{
+    position : absolute;
+    width : 800px;
+    top : 10%;
+    bottom : 10%;
+    left : 0px;
+    right : 0px;
+    margin-left : auto;
+    margin-right : auto;
+    background-color : black;
+    border : 1px solid white;
+}
+
+div.stationgui div.title
+{
+    font-size : 20px;
+    height : 24px;
+}
+
+div.stationgui div.undock
+{
+    position : absolute;
+    width : 100%;
+    bottom : 0px;
+}
+
+div.stationgui div.undock div.genericbutton
+{
+    float : right;
+}
+
+div.stationgui div.inventory
+{
+    position: absolute;
+    width : 790px;
+    top: 40px;
+    bottom : 0px;
+    margin : 5px;
+}
+
+div.stationgui div.inventory div.sellpanel
+{
+    position : absolute;
+    width : 380px;
+    top : 0px;
+    bottom : 25px;
+    margin : 5px 0px 0px 5px;
+    border : 1px solid grey;
+}
+
+div.stationgui div.inventory div.title
+{
+    height : 14px;
+    font-size : 12px;
+    margin-left : 5px;
+    width : 150px;
+    float : left;
+}
+
+div.stationgui div.inventory div.title_amount
+{
+    height : 14px;
+    font-size : 12px;
+    margin-left : 5px;
+    width : 50px;
+    float : left;
+}
+
+div.stationgui div.inventory div.title_price
+{
+    height : 14px;
+    font-size : 12px;
+    margin-left : 5px;
+    width : 50px;
+    float : left;
+}
+
+div.stationgui div.inventory div.buypanel
+{
+    position : absolute;
+    width : 380px;
+    top : 0px;
+    bottom : 25px;
+    margin : 5px 0px 0px 15px;
+    border : 1px solid grey;
+    left : 380px;
+}
+
+div.stationgui div.inventoryitems
+{
+    position : absolute;
+    width : 370px;
+    top: 15px;
+    bottom : 0px;
+    margin : 5px;
+    scroll : auto;
+    background-color : darkblue;
+    overflow : scroll;
+}
+
+div.stationgui div.inventoryitems div.item
+{
+    border : 1px solid grey;
+    clear : both;
+    height : 25px;
+}
+
+div.stationgui div.inventoryitems div.item div.name
+{
+    width : 150px;
+    float : left;
+    margin : 2px;
+}
+
+div.stationgui div.inventoryitems div.item div.amount
+{
+    width : 50px;
+    float : left;
+    margin : 2px;
+}
+
+div.stationgui div.inventoryitems div.item div.price
+{
+    width : 50px;
+    float : left;
+    margin : 2px;
+}
+
+div.stationgui div.tabs
+{
+    width : 650px;
+    height : 20px;
+}
+
+div.stationgui div.tabs div.tab
+{
+    float : left;
+    width : 150px;
+    height : 14px;
+    border : 1px solid grey;
+    cursor : pointer;
+    text-align : center;
+    margin-left : 5px;
+    background-color : darkblue;
+}
+
+div.stationgui div.tabs div.tab:hover
+{
+    border : 1px solid white;
+}
+
+div.buypopup div.genericlabel
+{
+    float : left;
+}
+
+div.buypopup div.name
+{
+    float : left;
+}
+
+div.buypopup input
+{
+    width : 80px;
+    float : left;
+    height : 16px;
+    font-size : 12px;
+    font-weight : bold;
+}
+
+div.sellpopup div.genericlabel
+{
+    float : left;
+}
+
+div.sellpopup div.name
+{
+    float : left;
+}
+
+div.sellpopup input
+{
+    width : 80px;
+    float : left;
+    height : 16px;
+    font-size : 12px;
+    font-weight : bold;
+}
+
+div.money
+{
+    position : absolute;
+    width : 220px;
+    height : 20px;
+    left : 20px;
+    bottom : 5px;
+}
+
+div.money div.genericlabel
+{
+    float : left;
+    width : auto;
+}
+
+div.money div.amount
+{
+    float : left;
+}
+
+div.planetgui
+{
+    position : absolute;
+    width : 800px;
+    top : 10%;
+    bottom : 10%;
+    left : 0px;
+    right : 0px;
+    margin-left : auto;
+    margin-right : auto;
+    background-color : black;
+    border : 1px solid white;
+}
+
+div.planetgui div.title
+{
+    font-size : 20px;
+    height : 24px;
+}
+
+div.planetgui div.undock
+{
+    position : absolute;
+    width : 100%;
+    bottom : 0px;
+}
+
+div.planetgui div.undock div.genericbutton
+{
+    float : right;
+}
+
+div.planetgui div.inventory
+{
+    position: absolute;
+    width : 790px;
+    top: 40px;
+    bottom : 0px;
+    margin : 5px;
+}
+
+div.planetgui div.inventory div.sellpanel
+{
+    position : absolute;
+    width : 380px;
+    top : 0px;
+    bottom : 25px;
+    margin : 5px 0px 0px 5px;
+    border : 1px solid grey;
+}
+
+div.planetgui div.inventory div.title
+{
+    height : 14px;
+    font-size : 12px;
+    margin-left : 5px;
+}
+
+div.planetgui div.inventory div.buypanel
+{
+    position : absolute;
+    width : 380px;
+    top : 0px;
+    bottom : 25px;
+    margin : 5px 0px 0px 15px;
+    border : 1px solid grey;
+    left : 380px;
+}
+
+div.planetgui div.inventoryitems
+{
+    position : absolute;
+    width : 370px;
+    top: 15px;
+    bottom : 0px;
+    margin : 5px;
+    scroll : auto;
+    background-color : darkblue;
+    overflow : scroll;
+}
+
+div.planetgui div.inventoryitems div.item
+{
+    border : 1px solid grey;
+    clear : both;
+    height : 25px;
+}
+
+div.planetgui div.inventoryitems div.item div.name
+{
+    width : 200px;
+    float : left;
+    margin : 2px;
+}
+
+div.planetgui div.inventoryitems div.item div.amount
+{
+    width : 50px;
+    float : left;
+    margin : 2px;
+}
+
+div.planetgui div.tabs
+{
+    width : 550px;
+    height : 20px;
+}
+
+div.planetgui div.tabs div.tab
+{
+    float : left;
+    width : 150px;
+    height : 14px;
+    border : 1px solid grey;
+    cursor : pointer;
+    text-align : center;
+    margin-left : 5px;
+    background-color : darkblue;
+}
+
+div.planetgui div.tabs div.tab:hover
+{
+    border : 1px solid white;
+}
+
+
+div.loading
+{
+    text-align: center;
+    top: 50%;
+    position: absolute;
+    width : 100%;
+}
+
+div.genericpopup
+{
+    position : absolute;
+    width : 200px;
+    height : 150px;
+    top : 0px;
+    bottom : 0px;
+    left : 0px;
+    right : 0px;
+    margin : auto;
+    background-color : black;
+    border : 1px solid white;
+}
+
+div.genericlabel
+{
+    width : 100px;
+}
+
+div.genericvalue
+{
+    width : 100px;
+}
+
+div.playercontrols
+{
+    float : left;
+}
+
+div.playercontrols div.control_laser
+{
+    width : 50px;
+    height : 90px;
+    background-color : darkblue;
+    border : 1px solid white;
+    margin : 2px;
+    float : left;
+    background-image : url("/images/gamescreen/modules/small_laser.png");
+    background-repeat : no-repeat;
+    background-position : 0px 40px;
+}
+
+div.playercontrols div.control_launcher
+{
+    width : 50px;
+    height : 90px;
+    background-color : darkblue;
+    border : 1px solid grey;
+    margin : 2px;
+    float : left;
+    cursor : pointer;
+    background-image : url("/images/gamescreen/modules/warhead_launcher.png");
+    background-repeat : no-repeat;
+    background-position : 0px 40px;
+}
+
+div.playercontrols div.control_launcher:hover
+{
+    border : 1px solid white;
+}
+
+div.controlpopup
+{
+    width : 50px;
+    height : 100px;
+    background-color : darkblue;
+    border : 1px solid white;
+    margin : 2px;
+    position : absolute;
+    z-index : 10;
+}
+
+div.smalltext
+{
+    font-size : 8px;
+}
+
+div.stationgui div.dockyard
+{
+    position: absolute;
+    width : 790px;
+    top: 40px;
+    bottom : 0px;
+    margin : 5px;
+}
+
+div.stationgui div.dockyard div.installed_upgrades
+{
+    position : absolute;
+    width : 380px;
+    top : 0px;
+    bottom : 25px;
+    margin : 5px 0px 0px 5px;
+    border : 1px solid grey;
+}
+
+div.stationgui div.dockyard div.title
+{
+    height : 14px;
+    font-size : 12px;
+    margin-left : 5px;
+}
+
+div.stationgui div.dockyard div.inventory_upgrades
+{
+    position : absolute;
+    width : 380px;
+    top : 0px;
+    bottom : 25px;
+    margin : 5px 0px 0px 15px;
+    border : 1px solid grey;
+    left : 380px;
+}
+
+div.stationgui div.dockyarditems
+{
+    position : absolute;
+    width : 370px;
+    top: 15px;
+    bottom : 0px;
+    margin : 5px;
+    scroll : auto;
+    background-color : darkblue;
+    overflow : scroll;
+}
+
+div.stationgui div.dockyarditems div.item
+{
+    border : 1px solid grey;
+    clear : both;
+    height : 25px;
+}
+
+div.stationgui div.dockyarditems div.item div.name
+{
+    width : 200px;
+    float : left;
+    margin : 2px;
+}
+
+div.stationgui div.dockyarditems div.item div.amount
+{
+    width : 50px;
+    float : left;
+    margin : 2px;
+}
+
+div.areamap
+{
+    position : absolute;
+    width : 90px;
+    height : 90px;
+    border : 1px solid white;
+    top : 4px;
+    right : 4px;
+}
+
+div.galaxy_button
+{
+    position : absolute;
+    right : 5px;
+}
+
+div.inventory_button
+{
+    position : absolute;
+    right : 5px;
+    top : 25px;
+}
+
+div.logout_button
+{
+    position : absolute;
+    right : 5px;
+    top : 70px;
+}
+
+div.galaxymap
+{
+    position : absolute;
+    width : 800px;
+    top : 10%;
+    bottom : 10%;
+    left : 0px;
+    right : 0px;
+    margin-left : auto;
+    margin-right : auto;
+    border : 1px solid white;
+    background-color : black;
+    overflow : hidden;
+}
+
+div.galaxymap div.system
+{
+    position : absolute;
+    width : 5px;
+    height : 5px;
+    border : 1px solid grey;
+    cursor : pointer;
+}
+
+div.galaxymap div.system.current
+{
+    border : 1px solid white;
+    background-color : green;
+}
+
+div.galaxymap div.system:hover
+{
+    border : 1px solid white;
+}
+
+div.galaxymap div.hover
+{
+    position: absolute;
+    border : 1px solid white;
+    background-color : black;
+}
+
+div.galaxymap div.systeminfo
+{
+    position : absolute;
+    width : 100px;
+    border : 1px solid white;
+    background-color : black;
+}
+
+div.galaxymap div.systeminfo div.systemstar
+{
+    width : 90px;
+    height : 90px;
+}
+
+div.galaxymap div.systeminfo div.genericlabel
+{
+    text-align : center;
+}
+
+div.galaxymap div.federal
+{
+    background-color : blue;
+}
+
+div.galaxymap div.commune
+{
+    background-color : red;
+}
+
+div.galaxymap div.trading
+{
+    background-color : green;
+}
+
+div.zoomcontrols
+{
+    position : absolute;
+    right : 5px;
+    bottom : 5px;
+    width : 80px;
+    height : 30px;
+    background-color : black
+    border : 1px solid white;
+    margin : 5px;
+}
+
+
+div.zoomcontrols div
+{
+    width : 25px;
+    height : 25px;
+    background-color : darkblue;
+    border : 1px solid grey;
+    margin-bottom : 5px;
+    margin-left : 10px;
+    cursor : pointer;
+    float : left;
+}
+
+div.zoomcontrols div:hover
+{
+    border : 1px solid white;
+}
+
+div.actor_list
+{
+    position : absolute;
+    top : 5px;
+    left : 5px;
+    min-width : 100px;
+    height : auto;
+}
+
+div.actor_list div.actor
+{
+    min-width : 94px;
+    height : 15px;
+    border : 1px solid white;
+    background-color : black;
+    font-weight : normal;
+    margin-bottom : 2px;
+    padding-left : 2px;
+    padding-right : 2px;
+}
+
+div.planetinfo
+{
+    position : absolute;
+    top : 0px;
+    bottom : 0px;
+    width : 470px;
+    height : 250px;
+    margin-left : auto;
+    margin-right : auto;
+    margin-top : auto;
+    margin-bottom : auto;
+    left : 0px;
+    right : 0px;
+    background-color : black;
+    border : 1px solid white;
+}
+
+div.planetinfo div.basicinfo
+{
+    position : absolute;
+    top : 0px;
+    left : 0px;
+    width : 150px;
+    height : 180px;
+    margin : 4px;
+}
+
+div.planetinfo div.mineralinfo
+{
+    position : absolute;
+    top : 0px;
+    left : 160px;
+    width : 150px;
+    height : 180px;
+    margin : 4px;
+}
+
+div.planetinfo div.colonyinfo
+{
+    position : absolute;
+    top : 0px;
+    left : 310px;
+    width : 150px;
+    height : 180px;
+    margin : 4px;
+}
+div.planetinfo div.genericlabel
+{
+    width : 120px;
+}
+
+div.planetinfo div.genericvalue
+{
+    float : right;
+    width : 30px;
+    margin-top : -16px;
+}
+
+div.planetinfo div.closebutton
+{
+    position : absolute;
+    bottom : 10px;
+    left : 210px;
+}
+
+div.shipyard div.shiplist
+{
+    margin-left : 5px;
+    position : absolute;
+    top : 45px;
+    bottom : 30px;
+    overflow : scroll;
+}
+
+div.shipyard div.ship
+{
+    margin-left : 5px;
+    margin-top : 5px;
+    width : 765px;
+    height : 100px;
+    border : 1px solid grey;
+}
+
+div.shipyard div.ship img
+{
+    width : 90px;
+    height : 90px;
+    margin : 4px;
+    float : left;
+}
+
+div.shipyard div.ship div.ship_data
+{
+    float : left;
+    top : 5px;
+    left : 5px;
+    width : 600px;
+    height : 100px;
+}
+
+div.shipyard div.ship div.ship_type
+{
+    width : 600px;
+}
+
+div.shipyard div.ship div
+{
+    width : 80px;
+    height : 20px;
+    float : left;
+    font-size : 12px;
+}
+
+div.shipyard div.ship div.genericbutton
+{
+    float : right;
+}
+
+div.logwindow
+{
+    position : absolute;
+    left : 10px;
+    bottom : 10px;
+    width : 600px;
+}
+
+div.logwindow div.logentry
+{
+    width : 590px;
+}

@@ -90,3 +90,5 @@ class Admin(object):
     def choice_move_down(self, chat_script, *index):
         pass
 
+    def view_room(self, area_id, room_id):
+        pass
