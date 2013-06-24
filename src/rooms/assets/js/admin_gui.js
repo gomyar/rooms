@@ -312,7 +312,6 @@ gui.draw = function()
             map_object.height / gui.zoom,
             "rgb(0, 255, 0)"
         );
-//        gui.ctx.drawImage(map_object.img, gui.canvas_x(map_object.position[0]), gui.canvas_y(map_object.position[1]), map_object.width / gui.zoom, map_object.height / gui.zoom);
     }
 
     // Draw actors
@@ -446,7 +445,7 @@ gui.optionalRedraw = function(until_time)
 
 gui.actorRedraw = function()
 {
-    var until_time = Math.max(api_rooms.get_now(), api_rooms.player_actor.end_time());
+    var until_time = api_rooms.get_now();
     for (var i in api_rooms.actors)
     {
         var actor = api_rooms.actors[i];

@@ -233,8 +233,7 @@ class Actor(object):
     def send_actor_update(self):
         if self.docked_with:
             self.docked_with.docked_actor_update(self)
-        if self.visible:
-            self.room._send_actor_update(self)
+        self.room._send_actor_update(self)
 
     def docked_actor_update(self, actor):
         pass
@@ -327,11 +326,14 @@ class Actor(object):
 
     def update_grid(self):
         log.debug("update_grid %s", self)
+        self._kill_move_gthread()
+        self.move_gthread = gevent.spawn(self._update_grid, self.path)
+
+    def _kill_move_gthread(self):
         try:
             self.move_gthread.kill()
         except:
             pass
-        self.move_gthread = gevent.spawn(self._update_grid, self.path)
 
     def _update_grid(self, path):
         try:

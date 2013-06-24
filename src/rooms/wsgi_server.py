@@ -55,6 +55,7 @@ class WSGIServer(object):
         }
         self.sessions = dict()
         self.player_queues = dict()
+        self.admin_queues = dict()
 
     def serve_forever(self):
         server = pywsgi.WSGIServer((self.host, self.port), self.handle,
@@ -101,39 +102,10 @@ class WSGIServer(object):
             log.debug("Connected to queue")
             self.sessions[cookies['sessionid']] = player_id
             log.debug("Sending sync")
-            self.send_sync(player_id)
-            log.debug("Sync sent")
-            connected = True
-            while connected:
-                try:
-                    command = queue.get(timeout=5)
-                    commands = [ command ]
-                    if command['command'] == "disconnect":
-                        connected = False
-                    while queue.qsize() > 0:
-                        if command['command'] == "disconnect":
-                            connected = False
-                        command = queue.get()
-                        commands.append(command)
-                    dumps = simplejson.dumps(commands)
-                    ws.send(dumps)
-                except Empty, err:
-                    ws.send(simplejson.dumps([{'command':"heartbeat"}]))
-        except:
-            log.warning("Websocket disconnected %s", player_id)
-        finally:
-            log.debug("Player %s disconnecting", player_id)
-            if queue:
-                self.disconnect_queue(queue)
-
-    def handle_admin_socket(self, ws, cookies):
-        try:
-            log.debug("registering %s", player_id)
-            queue = self.admin_connect(player_id)
-            log.debug("Connected to queue")
-            self.sessions[cookies['sessionid']] = player_id
-            log.debug("Sending sync")
-            self.send_sync(player_id)
+            if admin_name:
+                self.admin_sync(admin_name)
+            else:
+                self.send_sync(player_id)
             log.debug("Sync sent")
             connected = True
             while connected:
@@ -157,9 +129,6 @@ class WSGIServer(object):
             log.debug("Player %s disconnecting", player_id)
             if queue:
                 self.disconnect_queue(queue)
-
-       
-
 
     @checked
     def game_handle(self, environ, response):
@@ -225,7 +194,6 @@ class WSGIServer(object):
         response('301 Moved Permanently', [ ('location', path) ])
         return ""
 
-
     def send_update(self, player_id, command, **kwargs):
         if player_id in self.player_queues:
             self.player_queues[player_id].put(dict(command=command,
@@ -234,6 +202,11 @@ class WSGIServer(object):
     def send_to_players(self, player_ids, command, **kwargs):
         for player_id in player_ids:
             self.send_update(player_id, command, **kwargs)
+
+    def send_to_admins(self, command, **kwargs):
+        for admin_name in self.node.admins:
+            self.admin_queues[admin_name].put(dict(command=command,
+                kwargs=kwargs))
 
     def send_sync(self, player_id):
         self.player_queues[player_id].put(self._sync(player_id))
@@ -252,6 +225,23 @@ class WSGIServer(object):
             }
         }
 
+    def admin_sync(self, admin_name):
+        self.admin_queues[admin_name].put(self._admin_sync(admin_name))
+
+    def _admin_sync(self, admin_name):
+        admin = self.node.admins[admin_name]
+        room = self.node.areas[admin['area_id']].rooms[admin['room_id']]
+        return {
+            "command": "sync",
+            "kwargs" : {
+                "actors" : map(lambda a: a.internal(),
+                    room.actors.values()),
+                "now" : time.time(),
+                "map" : "map1.json",
+                "player_log" : [],
+            }
+        }
+
     def connect(self, player_id):
         log.debug("Connecting %s", player_id)
         self.node.players[player_id]['connected'] = True
@@ -265,11 +255,8 @@ class WSGIServer(object):
     def admin_connect(self, admin_name):
         log.debug("Connecting %s", admin_name)
         self.node.admins[admin_name]['connected'] = True
-        if admin_name in self.player_queues:
-            log.debug("Disconnecting existing player %s", admin_name)
-            self.disconnect(admin_name)
         queue = gevent.queue.Queue()
-        self.player_queues[admin_name] = queue
+        self.admin_queues[admin_name] = queue
         return queue
 
     def disconnect(self, player_id):

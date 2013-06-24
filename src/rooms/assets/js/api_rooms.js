@@ -27,7 +27,15 @@ api_rooms.Actor = function(actor)
 
 api_rooms.Actor.prototype.end_time = function()
 {
-    return this.path[this.path.length-1][2] * 1000;
+    try
+    {
+        return this.path[this.path.length-1][2] * 1000;
+    }
+    catch(e)
+    {
+        console.log("exception "+e);
+        console.log(this);
+    }
 }
 
 api_rooms.Actor.prototype.x = function()

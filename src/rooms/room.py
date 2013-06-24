@@ -138,6 +138,7 @@ class Room(object):
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)
         self.save_manager.queue_actor_remove(actor)
+        actor._kill_move_gthread()
         actor.room = Null()
         if actor.visible:
             self.visibility_grid.remove_actor(actor)
@@ -145,7 +146,11 @@ class Room(object):
             self.visibility_grid.unregister_listener(actor)
 
     def _send_actor_update(self, actor):
-        self.visibility_grid.send_update_actor(actor)
+        if actor.visible:
+            self.visibility_grid.send_update_actor(actor)
+        if self.area:
+            self.area.node.server.send_to_admins("actor_update",
+                **actor.internal())
 
     def _send_update(self, actor, update_id, **kwargs):
         self.visibility_grid.send_update_event(actor, update_id, **kwargs)

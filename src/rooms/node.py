@@ -157,7 +157,8 @@ class Node(object):
     def admin_joins(self, username, area_id, room_id):
         log.debug("Admin joins: %s at %s / %s", username, area_id, room_id)
         token=self._create_token(username + "ADMIN")
-        self.admins[username] = dict(connected=False, token=token)
+        self.admins[username] = dict(connected=False, token=token,
+            area_id=area_id, room_id=room_id)
         return dict(token=token)
 
     def is_admin_token(self, token):
