@@ -41,8 +41,8 @@ gui.canvas_clicked = function(e)
 {
     if (!gui.swallow_click)
     {
-        var click_x = gui.real_x(e.clientX);
-        var click_y = gui.real_y(e.clientY);
+        var click_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
+        var click_y = gui.real_y((e.clientY - $(gui.canvas).offset().top));
 
         actor = gui.find_actor(click_x, click_y);
         if (actor)
@@ -55,14 +55,17 @@ gui.canvas_clicked = function(e)
 
 gui.canvas_mousemove = function(e)
 {
+    gui.mouse_client_x = (e.clientX - $(gui.canvas).offset().left);
+    gui.mouse_client_y = (e.clientY - $(gui.canvas).offset().top);
+
     if (gui.mouse_down)
     {
-        var moved_x = gui.move_start_x - e.clientX
-        var moved_y = gui.move_start_y - e.clientY;
+        var moved_x = gui.move_start_x - (e.clientX - $(gui.canvas).offset().left)
+        var moved_y = gui.move_start_y - (e.clientY - $(gui.canvas).offset().top);
         gui.viewport_x += moved_x * gui.zoom;
         gui.viewport_y += moved_y * gui.zoom;
-        gui.move_start_x = e.clientX;
-        gui.move_start_y = e.clientY;
+        gui.move_start_x = (e.clientX - $(gui.canvas).offset().left);
+        gui.move_start_y = (e.clientY - $(gui.canvas).offset().top);
 
         if (Math.abs(moved_x) > 1 || Math.abs(moved_y) > 1)
             gui.swallow_click = true;
@@ -71,8 +74,8 @@ gui.canvas_mousemove = function(e)
     }
     else
     {
-        var click_x = gui.real_x(e.clientX);
-        var click_y = gui.real_y(e.clientY);
+        var click_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
+        var click_y = gui.real_y((e.clientY - $(gui.canvas).offset().top));
 
         var actors = gui.find_all_actors_at(click_x, click_y);
         if (actors.length > 0)
@@ -110,8 +113,8 @@ gui.show_actor_list = function(actors)
 gui.canvas_mousedown = function(e)
 {
     gui.mouse_down = true;
-    gui.move_start_x = e.clientX;
-    gui.move_start_y = e.clientY;
+    gui.move_start_x = (e.clientX - $(gui.canvas).offset().left);
+    gui.move_start_y = (e.clientY - $(gui.canvas).offset().top);
 
     if ($(".mapcontrol").size() > 0)
         gui.swallow_click = true;
@@ -124,12 +127,12 @@ gui.canvas_mouseup = function(e)
 
 gui.canvas_mousewheel = function(e, delta, deltaX, deltaY)
 {
-    var start_x = gui.real_x(e.clientX);
-    var start_y = gui.real_y(e.clientY);
+    var start_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
+    var start_y = gui.real_y((e.clientY - $(gui.canvas).offset().top));
     gui.zoom += gui.zoom * 0.1 * -deltaY;
 
-    var end_x = gui.real_x(e.clientX);
-    var end_y = gui.real_y(e.clientY);
+    var end_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
+    var end_y = gui.real_y((e.clientY - $(gui.canvas).offset().top));
     var moved_x = start_x - end_x;
     var moved_y = start_y - end_y;
     gui.viewport_x += moved_x;
@@ -142,8 +145,8 @@ gui.canvas_clicked = function(e)
 {
     if (!gui.swallow_click)
     {
-        var click_x = gui.real_x(e.clientX);
-        var click_y = gui.real_y(e.clientY);
+        var click_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
+        var click_y = gui.real_y((e.clientY - $(gui.canvas).offset().top));
 
         actor = gui.find_actor(click_x, click_y);
         if (actor)
@@ -215,8 +218,8 @@ gui.find_all_actors_at = function(x, y)
 
 gui.resetCanvas = function()
 {
-    gui.canvas.width = $("#main").width();
-    gui.canvas.height = $("#main").height();
+    gui.canvas.width = $("#screen").width();
+    gui.canvas.height = $("#screen").height();
     gui.ctx=gui.canvas.getContext("2d");
     gui.requestRedraw();
 }
@@ -328,8 +331,8 @@ gui.draw = function()
     if (gui.selected_actor)
         gui.draw_rect(gui.canvas_x(gui.selected_actor.x()) - 15, gui.canvas_y(gui.selected_actor.y()) - 15, 32, 32, "rgb(150,250,150)");
 
-    gui.draw_text_centered(50, 20, "("+parseInt(gui.viewport_x)+", "+parseInt(gui.viewport_y)+")", "white");
-    gui.draw_text_centered(75, 50, "canvas("+parseInt(gui.canvas_left())+", "+parseInt(gui.canvas_top())+", "+parseInt(gui.canvas_right())+","+parseInt(gui.canvas_bottom())+")", "white");
+    gui.draw_text_centered(50, 20, "Viewport: ("+parseInt(gui.viewport_x)+", "+parseInt(gui.viewport_y)+")", "white");
+    gui.draw_text_centered(50, 60, "Mouse: ("+parseInt(gui.mouse_client_x)+", "+parseInt(gui.mouse_client_y)+")", "white");
     gui.draw_text_centered(50, 80, "Zoom:" + Math.round(gui.zoom*100)/100, "white");
 
 
