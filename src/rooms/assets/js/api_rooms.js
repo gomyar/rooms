@@ -196,7 +196,7 @@ api_rooms.command_actor_update = function(data)
 {
     if (data.actor_id == api_rooms.player_actor.actor_id)
         api_rooms.player_actor = new api_rooms.Actor(data);
-    else if ("docked_with" in data && data.docked_with == api_rooms.player_actor.actor_id)
+    else if ("docked_with" in data && data.docked_with && data.docked_with == api_rooms.player_actor.actor_id)
         api_rooms.player_actor.docked_actors[data.actor_type][data.actor_id] = data;
     else
         api_rooms.actors[data.actor_id] = new api_rooms.Actor(data);

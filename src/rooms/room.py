@@ -148,7 +148,7 @@ class Room(object):
     def _send_actor_update(self, actor):
         if actor.visible:
             self.visibility_grid.send_update_actor(actor)
-        if self.area:
+        if self.area and self.area.node:
             self.area.node.server.send_to_admins("actor_update",
                 **actor.internal())
 
@@ -282,6 +282,8 @@ class Room(object):
         for actor in self.player_actors():
             if actor.running == True:
                 return True
+        if self.area.node and self.area.node.admins:
+            return True
         return False
 
     def has_active_actors(self):
