@@ -14,8 +14,8 @@ div#canvaswrapper
 {
     position : absolute;
     height : 100%;
-    left : 150px;
-    right : 150px;
+    left : 210px;
+    right : 210px;
 }
 
 #screen
@@ -32,14 +32,14 @@ div#main
     top : 0px;
     left : 0px;
     right : 0px;
-    bottom : 150px;
+    bottom : 200px;
 }
 
 div#logpanel
 {
     position : absolute;
     bottom : 0px;
-    height : 150px;
+    height : 200px;
     width : 100%;
     overflow : hidden;
     scroll : none;
@@ -50,17 +50,51 @@ div#controls
     position : absolute;
     top : 0px;
     left : 0px;
-    width : 150px;
+    width : 210px;
     height : 100%;
 }
 
-div#selected_actor
+div#admin_actor_panel
 {
     position : absolute;
     top : 0px;
     left : auto;
     right : 0px;
-    width : 150px;
+    width : 210px;
     height : 100%;
 }
 
+div#admin_actor_panel div.title
+{
+    height : 12px;
+    width : 190px;
+    background-color: darkblue;
+}
+
+div#admin_actor_panel div.section
+{
+    
+}
+
+div#admin_actor_panel div.info
+{
+    border : 1px solid black;
+    height : 16px;
+    width : 200px;
+}
+
+div#admin_actor_panel div.info div.key
+{
+    width : 98px;
+    float : left;
+    height : 15px;
+    white-space: nowrap;
+}
+
+div#admin_actor_panel div.info div.value
+{
+    width : 100px;
+    float : left;
+    height : 15px;
+    white-space: nowrap;
+}

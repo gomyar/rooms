@@ -21,8 +21,8 @@ gui.move_start_x = 0;
 gui.move_start_y = 0;
 gui.swallow_click = false;
 
-
 gui.selected_actor = null;
+gui.highlighted_actor = null;
 
 
 gui.init_input = function()
@@ -47,8 +47,6 @@ gui.canvas_clicked = function(e)
         actor = gui.find_actor(click_x, click_y);
         if (actor)
             gui.select_actor(actor);
-        else 
-            gui.walk_to(click_x, click_y)
     }
     gui.swallow_click = false;
 }
@@ -81,14 +79,14 @@ gui.canvas_mousemove = function(e)
         if (actors.length > 0)
         {
             $(gui.canvas).css('cursor', 'pointer');
-            gui.selected_actor = actors[0];
+            gui.highlighted_actor = actors[0];
             gui.show_actor_list(actors);
             gui.requestRedraw();
         }
         else
         {
             $(gui.canvas).css('cursor', 'auto');
-            gui.selected_actor = null;
+            gui.highlighted_actor = null;
             $('.actor_list').remove();
             gui.requestRedraw();
         }
@@ -192,6 +190,7 @@ gui.at_position = function(actor, x, y)
 gui.select_actor = function(actor)
 {
     gui.selected_actor = actor;
+    admin_actor_panel.init(actor);
 }
 
 
@@ -328,6 +327,8 @@ gui.draw = function()
 
         gui.draw_path(gui.ctx, actor.path);
     }
+    if (gui.highlighted_actor)
+        gui.draw_rect(gui.canvas_x(gui.highlighted_actor.x()) - 15, gui.canvas_y(gui.highlighted_actor.y()) - 15, 32, 32, "rgb(150,150,250)");
     if (gui.selected_actor)
         gui.draw_rect(gui.canvas_x(gui.selected_actor.x()) - 15, gui.canvas_y(gui.selected_actor.y()) - 15, 32, 32, "rgb(150,250,150)");
 

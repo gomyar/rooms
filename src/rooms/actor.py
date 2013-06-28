@@ -211,6 +211,7 @@ class Actor(object):
             docked_with=self.docked_with.actor_id if self.docked_with else None,
             docked_actors=self.docked_actor_map(),
             circles=self.circles.circles,
+            inventory=dict(self.inventory.items()),
             vision_distance=self.vision_distance))
         return external
 
