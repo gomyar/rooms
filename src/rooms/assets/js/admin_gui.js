@@ -90,7 +90,7 @@ gui.show_actor_list = function(actors)
     for (var i in actors)
     {
         var actor = actors[i];
-        if (actor.docked_with || !actor.visible)
+        if (gui.should_draw_actor(actor))
             continue;
         actor_list.append(
             div('actor', {'text': actor.name ? actor.name : actor.actor_type})
@@ -175,6 +175,10 @@ gui.find_actor = function(x, y)
     return null;
 }
 
+gui.should_draw_actor = function(actor)
+{
+    return !gui.draw_invisible_actors && (actor.docked_with || !actor.visible);
+}
 
 gui.at_position = function(actor, x, y)
 {
@@ -218,7 +222,7 @@ gui.show_selected_actor_list = function(actors)
     for (var i in actors)
     {
         var actor = actors[i];
-        if (actor.docked_with || !actor.visible)
+        if (gui.should_draw_actor(actor))
             continue;
         var text = actor.name ? actor.name : actor.actor_type;
         actor_list[actor_list.length] = div("actor", {'text': text}).click(
@@ -341,7 +345,7 @@ gui.draw = function()
     for (var i in api_rooms.actors)
     {
         var actor = api_rooms.actors[i];
-        if (actor.docked_with || !actor.visible)
+        if (gui.should_draw_actor(actor))
             continue;
         gui.ctx.save();
         gui.ctx.translate(gui.canvas_x(actor.x()), gui.canvas_y(actor.y()));

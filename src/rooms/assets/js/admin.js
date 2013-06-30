@@ -6,6 +6,8 @@ function init()
 
     gui.canvas = $("#screen")[0];
     gui.init_input();
+
+    admin_controls.init();
 //    generic.gui = new generic.Gui($("#main"));
 
 //    $("#menu_quit").click(gui_game.menu_quit_clicked);
@@ -37,6 +39,8 @@ function onmessage(msg)
                 gui.actorRedraw();
             });
         }
+        if (message.command == "actor_update")
+            gui.actorRedraw();
     }
 }
 
