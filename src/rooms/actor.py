@@ -212,7 +212,8 @@ class Actor(object):
             docked_actors=self.docked_actor_map(),
             circles=self.circles.circles,
             inventory=dict(self.inventory.items()),
-            vision_distance=self.vision_distance))
+            vision_distance=self.vision_distance),
+            visible=self.visible)
         return external
 
     def docked_actor_map(self):

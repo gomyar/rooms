@@ -24,6 +24,8 @@ gui.swallow_click = false;
 gui.selected_actor = null;
 gui.highlighted_actor = null;
 
+gui.draw_invisible_actors = false;
+
 
 gui.init_input = function()
 {
@@ -36,20 +38,6 @@ gui.init_input = function()
     $(gui.canvas).mousewheel(gui.canvas_mousewheel);
 }
 
-
-gui.canvas_clicked = function(e)
-{
-    if (!gui.swallow_click)
-    {
-        var click_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
-        var click_y = gui.real_y((e.clientY - $(gui.canvas).offset().top));
-
-        actor = gui.find_actor(click_x, click_y);
-        if (actor)
-            gui.select_actor(actor);
-    }
-    gui.swallow_click = false;
-}
 
 gui.canvas_mousemove = function(e)
 {
@@ -79,7 +67,8 @@ gui.canvas_mousemove = function(e)
         if (actors.length > 0)
         {
             $(gui.canvas).css('cursor', 'pointer');
-            gui.highlighted_actor = actors[0];
+            if (!actors[0].docked_with && actors[0].visible)
+                gui.highlighted_actor = actors[0];
             gui.show_actor_list(actors);
             gui.requestRedraw();
         }
@@ -101,11 +90,13 @@ gui.show_actor_list = function(actors)
     for (var i in actors)
     {
         var actor = actors[i];
+        if (actor.docked_with || !actor.visible)
+            continue;
         actor_list.append(
-            div('actor', {'text': actor.name})
+            div('actor', {'text': actor.name ? actor.name : actor.actor_type})
         );
     }
-    $("#main").append(actor_list);
+    $("#canvaswrapper").append(actor_list);
 }
 
 gui.canvas_mousedown = function(e)
@@ -141,16 +132,25 @@ gui.canvas_mousewheel = function(e, delta, deltaX, deltaY)
 
 gui.canvas_clicked = function(e)
 {
+    $(".selected_actor_list").remove();
     if (!gui.swallow_click)
     {
         var click_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
         var click_y = gui.real_y((e.clientY - $(gui.canvas).offset().top));
 
-        actor = gui.find_actor(click_x, click_y);
-        if (actor)
-            gui.select_actor(actor);
-        else 
-            gui.walk_to(click_x, click_y)
+        var actors = gui.find_all_actors_at(click_x, click_y);
+        if (actors.length > 1)
+        {
+            gui.show_selected_actor_list(actors);
+            gui.requestRedraw();
+        }
+        else if (actors.length == 1)
+        {
+            console.log("Selecting  ");
+            gui.select_actor(actors[0]);
+            $('.selected_actor_list').remove();
+            gui.requestRedraw();
+        }
     }
     gui.swallow_click = false;
 }
@@ -211,6 +211,27 @@ gui.find_all_actors_at = function(x, y)
 }
 
 
+gui.show_selected_actor_list = function(actors)
+{
+    $(".selected_actor_list").remove();
+    var actor_list = [];
+    for (var i in actors)
+    {
+        var actor = actors[i];
+        if (actor.docked_with || !actor.visible)
+            continue;
+        var text = actor.name ? actor.name : actor.actor_type;
+        actor_list[actor_list.length] = div("actor", {'text': text}).click(
+            actor, function(e) {
+                gui.select_actor(e.data);
+                $(".selected_actor_list").remove();
+            }
+        );
+    }
+    $("#canvaswrapper").append(
+        div("selected_actor_list", {'text': 'Selected Actors:'}).append(actor_list)
+    );
+}
 
 
 // ----------------- ols gui.js
@@ -320,6 +341,8 @@ gui.draw = function()
     for (var i in api_rooms.actors)
     {
         var actor = api_rooms.actors[i];
+        if (actor.docked_with || !actor.visible)
+            continue;
         gui.ctx.save();
         gui.ctx.translate(gui.canvas_x(actor.x()), gui.canvas_y(actor.y()));
         gui.draw_actor(actor);
