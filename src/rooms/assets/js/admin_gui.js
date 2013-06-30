@@ -379,12 +379,6 @@ gui.draw_vision_grid = function()
         gui.draw_line(gui.canvas_x(x), gui.canvas_y(0), gui.canvas_x(x), gui.canvas_y(height), "#111111");
     for (var y=0; y<height; y += gridsize)
         gui.draw_line(gui.canvas_x(0), gui.canvas_y(y), gui.canvas_x(width), gui.canvas_y(y), "#111111");
-    for (var actor_id in api_rooms.room.visibility_grid.actors)
-    {
-        var blip = api_rooms.room.visibility_grid.actors[actor_id];
-        gui.fill_circle(gui.canvas_x(blip[0] * gridsize), gui.canvas_y(blip[1] * gridsize), 2, "#ffffff");
-
-    }
 }
 
 

@@ -41,6 +41,10 @@ function onmessage(msg)
         }
         if (message.command == "actor_update")
             gui.actorRedraw();
+        if (message.command == "debug")
+            console.log("debug: "+message.kwargs.msg);
+        if (message.command == "exception")
+            console.log("exception: "+message.kwargs.msg);
     }
 }
 

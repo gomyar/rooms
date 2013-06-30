@@ -148,9 +148,12 @@ class Room(object):
     def _send_actor_update(self, actor):
         if actor.visible:
             self.visibility_grid.send_update_actor(actor)
+        self.send_to_admins("actor_update", **actor.internal())
+
+    def send_to_admins(self, update_id, **kwargs):
         if self.area and self.area.node:
-            self.area.node.server.send_to_admins("actor_update",
-                **actor.internal())
+            self.area.node.server.send_to_admins(update_id,
+                **kwargs)
 
     def _send_update(self, actor, update_id, **kwargs):
         self.visibility_grid.send_update_event(actor, update_id, **kwargs)

@@ -2,6 +2,8 @@ import math
 import inspect
 import time
 import uuid
+import traceback
+import sys
 
 import gevent
 import gevent.queue
@@ -531,3 +533,24 @@ class Actor(object):
         else:
             raise Exception("No message received script function for %s:%s" % (
                 self, message))
+
+    def debug(self, msg, *args):
+        args = [self.actor_id, self.actor_type, self.room.room_id] + list(args)
+        log.debug("actor:%%s type:%%s room:%%s %s" % (msg,), *args)
+        log_entry = { 'msg': msg % args, 'time': time.time(),
+            'actor_id': self.actor_id }
+        self.room.send_to_admins("debug", **log_entry)
+
+    def exception(self, msg, *args):
+        args = [self.actor_id, self.actor_type, self.room.room_id] + list(args)
+        log.exception("actor:%%s type:%%s room:%%s %s" % (msg,), *args)
+
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        stacktrace = traceback.format_exception(exc_type, exc_value,
+            exc_traceback)
+        stacktrace = [str(s) for s in stacktrace]
+        stacktrace = "\n".join(stacktrace)
+
+        log_entry = { 'msg': msg % args, 'time': time.time(),
+            'actor_id': self.actor_id, 'stacktrace': stacktrace }
+        self.room.send_to_admins("exception", **log_entry)
