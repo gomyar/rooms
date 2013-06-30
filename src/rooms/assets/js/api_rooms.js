@@ -149,11 +149,29 @@ api_rooms.service_call = function(url, data, callback)
 
 api_rooms.load_room = function(callback)
 {
-    jQuery.get('/room/', function(data) {
-        api_rooms.room = jQuery.parseJSON(data);
+    api_rooms.ajax_get('/room/', function(data) {
+        api_rooms.room = data;
         if (callback)
             callback(data);
         gui.requestRedraw();
+    });
+
+}
+
+api_rooms.ajax_get = function(url, callback)
+{
+     $.ajax({
+        'url': url,
+        'complete': function (xhr, status) {
+            if (status === 'error' || !xhr.responseText) {
+                alert("Error loading "+url);
+            }
+            else {
+                var data = xhr.responseText;
+                callback(jQuery.parseJSON(data));
+            }
+        },
+        'type': 'GET'
     });
 }
 
