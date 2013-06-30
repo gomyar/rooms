@@ -8,6 +8,7 @@ function init()
     gui.init_input();
 
     admin_controls.init();
+    logpanel.init();
 //    generic.gui = new generic.Gui($("#main"));
 
 //    $("#menu_quit").click(gui_game.menu_quit_clicked);
@@ -42,9 +43,15 @@ function onmessage(msg)
         if (message.command == "actor_update")
             gui.actorRedraw();
         if (message.command == "debug")
+        {
             console.log("debug: "+message.kwargs.msg);
+            logpanel.add_log(message.kwargs.actor_id, message.kwargs.time, message.kwargs.msg);
+        }
         if (message.command == "exception")
+        {
             console.log("exception: "+message.kwargs.msg);
+            logpanel.add_log(message.kwargs.actor_id, message.kwargs.time, message.kwargs.msg);
+        }
     }
 }
 

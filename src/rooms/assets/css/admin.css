@@ -41,8 +41,38 @@ div#logpanel
     bottom : 0px;
     height : 250px;
     width : 100%;
-    overflow : hidden;
-    scroll : none;
+    overflow : scroll;
+}
+
+div#logpanel div.logentry
+{
+    height : 12px;
+    width : 100%;
+    clear : both;
+}
+
+div#logpanel div.logentry div.time
+{
+    width : 10%;
+    float : left;
+}
+
+div#logpanel div.logentry div.name
+{
+    width : 10%;
+    float : left;
+}
+
+div#logpanel div.logentry div.type
+{
+    width : 10%;
+    float : left;
+}
+
+div#logpanel div.logentry div.msg
+{
+    width : 69%;
+    float : left;
 }
 
 div#controls
