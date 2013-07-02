@@ -45,12 +45,12 @@ function onmessage(msg)
         if (message.command == "debug")
         {
             console.log("debug: "+message.kwargs.msg);
-            logpanel.add_log(message.kwargs.actor_id, message.kwargs.time, message.kwargs.msg);
+            logpanel.add_log(message.kwargs.actor_id, "debug", message.kwargs.time, message.kwargs.msg);
         }
         if (message.command == "exception")
         {
             console.log("exception: "+message.kwargs.msg);
-            logpanel.add_log(message.kwargs.actor_id, message.kwargs.time, message.kwargs.msg);
+            logpanel.add_log(message.kwargs.actor_id, "exception", message.kwargs.time, message.kwargs.msg, message.kwargs.stacktrace);
         }
     }
 }

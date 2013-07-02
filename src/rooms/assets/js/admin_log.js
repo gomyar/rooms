@@ -8,7 +8,7 @@ logpanel.init = function()
 {
 }
 
-logpanel.add_log = function(actor_id, time, msg)
+logpanel.add_log = function(actor_id, log_type, time, msg, stacktrace)
 {
     if (actor_id in logpanel.actor_logs)
     {
@@ -23,15 +23,42 @@ logpanel.add_log = function(actor_id, time, msg)
     if (panel.height() + panel[0].scrollTop - panel[0].scrollHeight > 10)
         scrollToBottom = true;
     panel.append(
-        div("logentry").append(
+        div("logentry " + log_type).append(
             div("time", {'text': logpanel.formatdate(time) }),
             div("name", {'text': api_rooms.actors[actor_id].name }),
             div("type", {'text': api_rooms.actors[actor_id].actor_type }),
-            div("msg", {'text': msg })
+            logpanel.logmessage(msg, stacktrace)
         )
     );
     if (scrollToBottom)
         panel[0].scrollTop = panel[0].scrollHeight
+}
+
+logpanel.logmessage = function(msg, stacktrace)
+{
+    if (stacktrace)
+        return div("msg").append(
+            logpanel._format_stacktrace(stacktrace)
+        );
+    else
+        return div("msg", {'text': msg});
+}
+
+logpanel._format_stacktrace = function(stacktrace)
+{
+    if (stacktrace)
+    {
+        var lines = stacktrace.split("\n");
+        var stack = [];
+        for (var i in lines)
+        {
+            var line = lines[i];
+            stack[stack.length] = div("stackline", {'text': line});
+        }
+        return stack;
+    }
+    else
+        return ""
 }
 
 logpanel.formatdate = function(time)

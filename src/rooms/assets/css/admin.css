@@ -51,6 +51,16 @@ div#logpanel div.logentry
     clear : both;
 }
 
+div#logpanel div.logentry.debug
+{
+    color : white;
+}
+
+div#logpanel div.logentry.exception
+{
+    color : red;
+}
+
 div#logpanel div.logentry div.time
 {
     width : 10%;
