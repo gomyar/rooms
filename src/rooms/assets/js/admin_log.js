@@ -4,20 +4,37 @@ var logpanel = {};
 logpanel.global = [];
 logpanel.actor_logs = {};
 
+logpanel.current_actor_id = null;
+
 logpanel.init = function()
 {
 }
 
 logpanel.add_log = function(actor_id, log_type, time, msg, stacktrace)
 {
-    if (actor_id in logpanel.actor_logs)
-    {
-        var logs = logpanel.actor_logs[actor_id];
-        logs[logs.length] = msg;
-    }
-    else
-        logpanel.actor_logs[actor_id] = [msg];
+    if (!(actor_id in logpanel.actor_logs))
+        logpanel.actor_logs[actor_id] = [];
+    var logs = logpanel.actor_logs[actor_id];
+    logs[logs.length] = {'msg': msg, 'time': time, 'stacktrace': stacktrace};
 
+    if (!logpanel.current_actor_id || actor_id == logpanel.current_actor_id)
+        logpanel.add_log_entry(actor_id, log_type, time, msg, stacktrace);
+}
+
+logpanel.show_log = function(actor_id)
+{
+    var panel = $("#logpanel");
+    panel.empty();
+    if (actor_id in logpanel.actor_logs)
+        for (var i in logpanel.actor_logs[actor_id])
+        {
+            var entry = logpanel.actor_logs[actor_id];
+            logpanel.add_log_entry(actor_id, entry.log_type, entry.time, entry.msg, entry.stacktrace);
+        }
+}
+
+logpanel.add_log_entry = function(actor_id, log_type, time, msg, stacktrace)
+{
     var panel = $("#logpanel");
     var scrollToBottom = false;
     if (panel.height() + panel[0].scrollTop - panel[0].scrollHeight > 10)
@@ -46,19 +63,14 @@ logpanel.logmessage = function(msg, stacktrace)
 
 logpanel._format_stacktrace = function(stacktrace)
 {
-    if (stacktrace)
+    var lines = stacktrace.split("\n");
+    var stack = [];
+    for (var i in lines)
     {
-        var lines = stacktrace.split("\n");
-        var stack = [];
-        for (var i in lines)
-        {
-            var line = lines[i];
-            stack[stack.length] = div("stackline", {'text': line});
-        }
-        return stack;
+        var line = lines[i];
+        stack[stack.length] = div("stackline", {'text': line});
     }
-    else
-        return ""
+    return stack;
 }
 
 logpanel.formatdate = function(time)
