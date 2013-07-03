@@ -15,7 +15,7 @@ logpanel.add_log = function(actor_id, log_type, time, msg, stacktrace)
     if (!(actor_id in logpanel.actor_logs))
         logpanel.actor_logs[actor_id] = [];
     var logs = logpanel.actor_logs[actor_id];
-    logs[logs.length] = {'msg': msg, 'time': time, 'stacktrace': stacktrace};
+    logs[logs.length] = {'msg': msg, 'time': time, 'log_type': log_type, 'stacktrace': stacktrace};
 
     if (!logpanel.current_actor_id || actor_id == logpanel.current_actor_id)
         logpanel.add_log_entry(actor_id, log_type, time, msg, stacktrace);
@@ -28,7 +28,7 @@ logpanel.show_log = function(actor_id)
     if (actor_id in logpanel.actor_logs)
         for (var i in logpanel.actor_logs[actor_id])
         {
-            var entry = logpanel.actor_logs[actor_id];
+            var entry = logpanel.actor_logs[actor_id][i];
             logpanel.add_log_entry(actor_id, entry.log_type, entry.time, entry.msg, entry.stacktrace);
         }
 }

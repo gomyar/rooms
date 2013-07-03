@@ -195,6 +195,7 @@ gui.select_actor = function(actor)
 {
     gui.selected_actor = actor;
     admin_actor_panel.init(actor);
+    logpanel.show_log(actor.actor_id);
 }
 
 
