@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from setuptools import setup, find_packages, findall
 
@@ -10,3 +10,4 @@ setup(name='Rooms',
         ('rooms/assets', findall('rooms/assets')),
       ],
 )
+# depends: simplejson, gevent, gevent-websocket

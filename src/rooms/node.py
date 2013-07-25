@@ -4,8 +4,9 @@ from gevent import monkey
 monkey.patch_socket()
 
 import os
-
 import uuid
+
+import gevent
 
 import controller
 from controller import instanced_controller
@@ -17,6 +18,7 @@ from rooms.player_actor import PlayerActor
 from rooms.save_manager import SaveManager
 from rooms.null import Null
 from rooms.inventory import set_registry
+from rooms.script_wrapper import _script_listener
 
 from geography.pointmap_geography import PointmapGeography
 from geography.linearopen_geography import LinearOpenGeography
@@ -77,6 +79,7 @@ class Node(object):
         self.save_manager.container = self.container
         self.game = self.container.load_game(config.get("game", "game_id"))
         set_registry(self.game.item_registry)
+        self.start_script_listener()
 
 
     def init_controller(self, options):
@@ -251,3 +254,6 @@ class Node(object):
             self.master.send_message(from_actor_id=from_actor_id,
                 actor_id=actor_id, room_id=room_id, area_id=area_id,
                 message=message)
+
+    def start_script_listener(self):
+        gevent.spawn(_script_listener)

@@ -27,7 +27,7 @@ class RoomContainer(object):
 
     def __getitem__(self, room_id):
         if room_id not in self._rooms:
-            room = self.load_room(self._room_map[room_id])
+            room = self.load_room(self._room_map[room_id]['dbase_id'])
             self._rooms[room_id] = room
             self._rooms[room_id].area = self._area
             for actor in room.actors.values():
