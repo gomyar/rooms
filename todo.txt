@@ -1,4 +1,27 @@
 
+Player object per Game / Username
+
+user joins a game
+player object lookup keyed to username-game_id
+player object creation keyed to username-game_id
+
+client requests node info for username-game_id
+
+admin creates game:
+create_game script called
+game may be open - allowing players to connect later
+(game may specify players up front, but that's just a security measure / filter)
+
+player connects to game:
+if player doesn't exist
+    create_player script called with player selected options
+        creates a player (not a player_actor) on master
+        should return starting area/room information -> node info
+
+get player node info
+redirect to node
+
+
     - move controller class into node - done
     - script-created - single-directory (one conf file) game structure - done
     - all data in mongo

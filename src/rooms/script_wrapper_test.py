@@ -18,8 +18,8 @@ def second_command(actor, param1):
 
 class ScriptTest(unittest.TestCase):
     def setUp(self):
-        self.script = Script("rooms.script_wrapper_test")
         self.actor = Actor("actor1")
+        self.script = Script("rooms.script_wrapper_test")
         self.actor.script = self.script
         self.actor2 = Actor("actor2")
 

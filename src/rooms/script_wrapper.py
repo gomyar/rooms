@@ -19,10 +19,6 @@ def register_actor_script(script_name, actor):
         _actor_scripts[script_name] = []
     if actor is not _actor_scripts[script_name]:
         _actor_scripts[script_name].append(actor)
-    if script_name not in _scripts:
-        _scripts[script_name] = __import__(script_name,
-            fromlist=[script_name.rsplit(".", 1)])
-    return Script(script_name)
 
 def deregister_actor_script(script_name, actor):
     if _actor_scripts and script_name in _actor_scripts:
@@ -63,6 +59,11 @@ def _script_listener():
 class Script(object):
     def __init__(self, script_name):
         self.script_name = script_name
+        try:
+            _scripts[script_name] = __import__(script_name,
+                fromlist=[script_name.rsplit(".", 1)])
+        except:
+            log.exception("Script %s is corrupt - cannot load", script_name)
 
     def __repr__(self):
         return "<Script %s>" % (self.script_name,)

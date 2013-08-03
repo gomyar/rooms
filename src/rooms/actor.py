@@ -128,7 +128,8 @@ class Actor(object):
             return self.parent.actor_id
 
     def load_script(self, classname):
-        self.script = register_actor_script(classname, self)
+        self.script = Script(classname)
+        register_actor_script(classname, self)
 
     def __del__(self):
         if self.script and deregister_actor_script:

@@ -20,7 +20,8 @@ class RoomContainerTest(unittest.TestCase):
         self.mock_container = MockContainer()
         self.mock_container.save_room(Room("room1"))
         self.room_container = RoomContainer(Area(), self.mock_container)
-        self.room_container._room_map = {'room1':'room1', 'room2':'room2'}
+        self.room_container._room_map = {'room1':{'dbase_id':'room1'},
+            'room2':{'dbase_id':'room2'}}
 
     def testLoadARoom(self):
         room1 = self.room_container['room1']

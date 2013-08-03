@@ -84,12 +84,19 @@ class Container(object):
     def _load_filter(self, collection, **fields):
         enc_dict = self.dbase.filter_one(collection, **fields)
         if enc_dict:
-            db_id = enc_dict.pop('_id')
-            obj = self._dict_to_obj(enc_dict)
-            obj._id = str(db_id)
-            return obj
+            return self._decode_enc_dict(enc_dict)
         else:
             return None
+
+    def _decode_enc_dict(self, enc_dict):
+        db_id = enc_dict.pop('_id')
+        obj = self._dict_to_obj(enc_dict)
+        obj._id = str(db_id)
+        return obj
+
+    def _load_many(self, collection, **fields):
+        enc_dicts = self.dbase.filter(collection, **fields)
+        return [self._decode_enc_dict(obj) for obj in enc_dicts]
 
     def load_area(self, area_id):
         area = self._load_filter("areas", area_id=area_id)
@@ -500,6 +507,7 @@ class Container(object):
             item_registry = obj.item_registry,
             player_script_class = obj.player_script,
             area_map = area_map,
+            players = obj.players,
         )
         return data
 
@@ -511,6 +519,7 @@ class Container(object):
         game.item_registry = data['item_registry']
         game.player_script = data['player_script_class']
         game.area_map = data['area_map']
+        game.players = data['players']
         return game
 
 
@@ -549,3 +558,6 @@ class Container(object):
 
     def remove_limbos_for(self, area_id):
         self.dbase.remove("limbo", area_id=area_id)
+
+    def list_games(self):
+        return self._load_many("games")
