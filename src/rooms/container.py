@@ -561,3 +561,6 @@ class Container(object):
 
     def list_games(self):
         return self._load_many("games")
+
+    def list_players_for_user(self, username):
+        return self._load_many("players", username=username)

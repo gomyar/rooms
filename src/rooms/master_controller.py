@@ -64,16 +64,20 @@ class MasterController(object):
         self.wsgi_server.start()
 
     def register_node(self, host, port, external_host, external_port):
+        ''' Node registers on cluster, can immediately accept areas '''
         self.nodes[host, port] = RegisteredNode(host, port, external_host,
             external_port)
 
     def deregister_node(self, host, port):
+        ''' Node signals leaving the cluster - some cleanup needed '''
         self.nodes[host, port].active = False
 
     def shutdown_node(self, host, port):
+        ''' Node signals cleanup finished, remove permanently '''
         self.nodes.pop((host, port))
 
     def create_game(self, owner_username, options):
+        ''' User creates a Game '''
         game = Game()
         game.owner_id = owner_username
         game_script = Script(self.node.game_script)
@@ -82,6 +86,7 @@ class MasterController(object):
         return game
 
     def list_games(self):
+        ''' User request a list of all current Games '''
         games = self.container.list_games()
         return [self._game_info(g) for g in games]
 
@@ -91,6 +96,7 @@ class MasterController(object):
 
     def join_game(self, username, game_id, start_area_id, start_room_id,
             **state):
+        ''' User joins a running Game '''
         game = self.container.load_game(game_id)
         if username in game.players:
             raise Exception("User %s already joined game %s" % (username,
@@ -124,12 +130,15 @@ class MasterController(object):
     def _available_node(self):
         return self.nodes.values()[0]
 
-    def player_info(self):
-        pass
+    def player_info(self, username):
+        ''' Request info for player Games '''
+        players = self.container.list_players_for_user(username)
+        return [{'game_id': player.game_id, 'area_id': player.area_id} for \
+            player in players]
 
-    def node_info(self):
-        pass
-
+    def node_info(self, area_id):
+        node = self._lookup_node(area_id)
+        return dict(host=node.external_host, port=node.external_port)
 
     def player_moves_area(self):
         pass
