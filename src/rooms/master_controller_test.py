@@ -5,6 +5,7 @@ from rooms.master_controller import MasterController
 from rooms.container import Container
 from rooms.game import Game
 from rooms.player import Player
+from rooms.master_controller import RegisteredNode
 
 
 def create_game(game):
@@ -27,6 +28,7 @@ class MockClientNode(object):
         self.client = self
         self.managed_areas = []
         self.players = []
+        self.active = True
 
     def manage_area(self, area_id):
         self.managed_areas.append(area_id)
@@ -72,7 +74,7 @@ class MasterControllerTest(unittest.TestCase):
 
         self.master = MasterController(self.node, "local.com", 8081,
             self.container)
-        self.master.nodes[('node1.com', 8080)] = MockClientNode(
+        self.master.nodes[('10.10.10.1', 8080)] = MockClientNode(
             '10.10.10.1', 8080, 'node1.com', 8082)
 
     def testCreateGame(self):
@@ -92,7 +94,7 @@ class MasterControllerTest(unittest.TestCase):
         # First player creates area on client node
         self.assertEquals({'host': 'node1.com', 'port': 8082, 'token': 'TOKEN'},
             result)
-        client_node = self.master.nodes[('node1.com', 8080)]
+        client_node = self.master.nodes[('10.10.10.1', 8080)]
         self.assertEquals(['area1'], client_node.managed_areas)
         self.assertEquals(['bob'], client_node.players)
 
@@ -106,3 +108,16 @@ class MasterControllerTest(unittest.TestCase):
             raise
         except Exception, e:
             self.assertEquals("User bob already joined game 0", str(e))
+
+    def testClientNodeRegisters(self):
+        self.master.register_node("10.10.10.1", 8081, "node1.com", 8082)
+        self.assertEquals(RegisteredNode("10.10.10.1", 8081, "node1.com", 8082),
+            self.master.nodes["10.10.10.1", 8081])
+
+    def testClientNodeDeregisters(self):
+        self.assertTrue(self.master.nodes["10.10.10.1", 8080].active)
+        self.master.deregister_node("10.10.10.1", 8080)
+        self.assertFalse(self.master.nodes["10.10.10.1", 8080].active)
+
+        self.master.shutdown_node("10.10.10.1", 8080)
+        self.assertEquals({}, self.master.nodes)

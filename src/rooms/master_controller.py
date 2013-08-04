@@ -4,6 +4,25 @@ from rooms.config import config
 from rooms.game import Game
 from rooms.script_wrapper import Script
 from rooms.player import Player
+from rooms.wsgi_rpc import WSGIRPCClient
+
+
+class RegisteredNode(object):
+    def __init__(self, host, port, external_host, external_port):
+        self.client = WSGIRPCClient(host, port)
+        self.host = host
+        self.port = port
+        self.external_host = external_host
+        self.external_port = external_port
+        self.active = True
+
+    def __eq__(self, rhs):
+        return type(rhs) is RegisteredNode and self.host == rhs.host and \
+            self.port == rhs.port and self.external_host == rhs.external_host \
+            and self.external_port == self.external_port
+
+    def external(self):
+        return dict(host=self.external_host, port=self.external_port)
 
 
 class MasterController(object):
@@ -22,6 +41,7 @@ class MasterController(object):
             exposed_methods=dict(
                 register_node=self.register_node,
                 deregister_node=self.deregister_node,
+                shutdown_node=self.shutdown_node,
 
                 create_game=self.create_game,
                 list_games=self.list_games,
@@ -43,12 +63,15 @@ class MasterController(object):
     def start(self):
         self.wsgi_server.start()
 
-    def register_node(self):
-        pass
+    def register_node(self, host, port, external_host, external_port):
+        self.nodes[host, port] = RegisteredNode(host, port, external_host,
+            external_port)
 
-    def deregister_node(self):
-        pass
+    def deregister_node(self, host, port):
+        self.nodes[host, port].active = False
 
+    def shutdown_node(self, host, port):
+        self.nodes.pop((host, port))
 
     def create_game(self, owner_username, options):
         game = Game()
