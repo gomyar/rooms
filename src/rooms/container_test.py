@@ -85,7 +85,8 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals('bob', self.dbase.dbases['players'][None]['username'])
 
     def testGetOrCreatePlayer(self):
-        self.assertEquals(None, self.container.load_player("nonexistant"))
+        self.assertEquals(None, self.container.load_player("nonexistant",
+            "game1"))
 
         player = self.container.get_or_create_player("newplayer")
         self.assertEquals("newplayer", player.username)

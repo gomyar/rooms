@@ -110,7 +110,7 @@ class MasterController(object):
         game.players[player.username] = player._id
         self.container.save_game(game)
         node = self._lookup_node(start_area_id)
-        response = node.client.player_joins(username=username)
+        response = node.client.player_joins(username=username, game_id=game_id)
         return dict(host=node.external_host, port=node.external_port,
             token=response['token'])
 
@@ -121,7 +121,7 @@ class MasterController(object):
         else:
             node = self._available_node()
             node.client.manage_area(area_id=area_id)
-            area_info = dict(players=[],
+            area_info = dict(
                 node=(node.host, node.port),
                 area_id=area_id)
             self.areas[area_id] = area_info
@@ -140,8 +140,14 @@ class MasterController(object):
         node = self._lookup_node(area_id)
         return dict(host=node.external_host, port=node.external_port)
 
-    def player_moves_area(self):
-        pass
+    def player_moves_area(self, username, game_id):
+        ''' Node signals a player has moved area on different node '''
+        player = self.container.load_player(username=username, game_id=game_id)
+        node = self._lookup_node(player.area_id)
+        node.client.load_from_limbo(area_id=player.area_id)
+        response = node.client.player_joins(username=username, game_id=game_id)
+        return dict(host=node.external_host, port=node.external_port,
+            token=response['token'])
 
     def send_message(self):
         pass

@@ -119,8 +119,8 @@ class Container(object):
     def save_player(self, player):
         return self._save_object(player, "players")
 
-    def load_player(self, username):
-        return self._load_filter("players", username=username)
+    def load_player(self, username, game_id):
+        return self._load_filter("players", username=username, game_id=game_id)
 
     def get_or_create_player(self, username):
         if self.dbase.object_exists("players", username=username):

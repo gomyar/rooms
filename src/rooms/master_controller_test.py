@@ -33,9 +33,12 @@ class MockClientNode(object):
     def manage_area(self, area_id):
         self.managed_areas.append(area_id)
 
-    def player_joins(self, username):
+    def player_joins(self, username, game_id):
         self.players.append(username)
         return dict(token="TOKEN")
+
+    def load_from_limbo(self, area_id):
+        pass
 
 
 class MockDbase(object):
@@ -55,15 +58,14 @@ class MockDbase(object):
     def filter(self, dbase_name, **fields):
         return self.dbases.get(dbase_name, dict()).values()
 
+    def filter_one(self, dbase_name, **fields):
+        result = self.dbases.get(dbase_name, dict()).values()
+        return result[0] if result else None
+
 
 class MockContainer(Container):
     def __init__(self, dbase):
         super(MockContainer, self).__init__(dbase, None, None)
-
-    def create_player(self, username, game_id):
-        player = Player(username, game_id)
-        player.game_id = game_id
-        self._players.append(player)
 
 
 class MasterControllerTest(unittest.TestCase):
@@ -130,3 +132,27 @@ class MasterControllerTest(unittest.TestCase):
         game = self.master.create_game("owner", {})
         self.assertEquals({'host': 'node1.com', 'port': 8082},
             self.master.node_info('area1'))
+
+    def testPlayerMoves(self):
+        game = self.master.create_game("owner", {})
+        result = self.master.join_game("bob", "0", "area1", "room1")
+
+        self.master.nodes[('10.10.10.2', 8080)] = MockClientNode(
+            '10.10.10.2', 8080, 'node2.com', 8082)
+
+        self.master.areas = {
+            'area1': {'area_id': 'area1', 'node': ('10.10.10.1', 8080)},
+            'area2': {'area_id': 'area2', 'node': ('10.10.10.2', 8080)},
+        }
+        self.assertEquals('area1', self.dbase.dbases['players']['0']['area_id'])
+
+        self.assertEquals(['bob'],
+            self.master.nodes['10.10.10.1', 8080].players)
+        self.assertEquals([], self.master.nodes['10.10.10.2', 8080].players)
+
+        self.dbase.dbases['players']['0']['area_id'] = 'area2'
+
+        self.master.player_moves_area("bob", "game1")
+
+        self.assertEquals(['bob'],
+            self.master.nodes['10.10.10.2', 8080].players)
