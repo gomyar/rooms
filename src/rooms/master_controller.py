@@ -60,19 +60,46 @@ class MasterController(object):
 
     def list_games(self):
         games = self.container.list_games()
-        return [{'game_id': g._id, 'owner': g.owner_id} for g in games]
+        return [self._game_info(g) for g in games]
 
-    def join_game(self, username, game_id, **state):
+    def _game_info(self, game):
+        return {'game_id': game._id, 'owner': game.owner_id,
+            'start_areas': game.start_areas}
+
+    def join_game(self, username, game_id, start_area_id, start_room_id,
+            **state):
         game = self.container.load_game(game_id)
         if username in game.players:
             raise Exception("User %s already joined game %s" % (username,
                 game_id))
         player = Player(username)
         player.game_id = game_id
+        player.area_id = start_area_id
+        player.room_id = start_room_id
         player.state = state
         self.container.save_player(player)
         game.players[player.username] = player._id
         self.container.save_game(game)
+        node = self._lookup_node(start_area_id)
+        response = node.client.player_joins(username=username)
+        return dict(host=node.external_host, port=node.external_port,
+            token=response['token'])
+
+    def _lookup_node(self, area_id):
+        if area_id in self.areas:
+            area_info = self.areas[area_id]
+            return self.nodes[area_info['node']]
+        else:
+            node = self._available_node()
+            node.client.manage_area(area_id=area_id)
+            area_info = dict(players=[],
+                node=(node.host, node.port),
+                area_id=area_id)
+            self.areas[area_id] = area_info
+            return node
+
+    def _available_node(self):
+        return self.nodes.values()[0]
 
     def player_info(self):
         pass

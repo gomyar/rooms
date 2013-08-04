@@ -9,11 +9,31 @@ from rooms.player import Player
 
 def create_game(game):
     game.player_script = "player_script_1"
+    game.start_areas = [('area1', 'room1'), ('area2', 'room2')]
 
 
 class MockNode(object):
     def __init__(self):
         self.game_script = "rooms.master_controller_test"
+
+
+class MockClientNode(object):
+    def __init__(self, host, port, external_host, external_port):
+        self.host = host
+        self.port = port
+        self.external_host = external_host
+        self.external_port = external_port
+        # mock connection
+        self.client = self
+        self.managed_areas = []
+        self.players = []
+
+    def manage_area(self, area_id):
+        self.managed_areas.append(area_id)
+
+    def player_joins(self, username):
+        self.players.append(username)
+        return dict(token="TOKEN")
 
 
 class MockDbase(object):
@@ -52,18 +72,37 @@ class MasterControllerTest(unittest.TestCase):
 
         self.master = MasterController(self.node, "local.com", 8081,
             self.container)
+        self.master.nodes[('node1.com', 8080)] = MockClientNode(
+            '10.10.10.1', 8080, 'node1.com', 8082)
 
     def testCreateGame(self):
         game = self.master.create_game("owner", {})
         self.assertEquals("player_script_1", game.player_script)
-        self.assertEquals([{'game_id': '0', 'owner': 'owner'}],
+        self.assertEquals([{'game_id': '0', 'owner': 'owner',
+            'start_areas': [['area1', 'room1'], ['area2', 'room2']]}],
             self.master.list_games())
 
     def testPlayerJoins(self):
         game = self.master.create_game("owner", {})
-        result = self.master.join_game("bob", "0")
+        result = self.master.join_game("bob", "0", "area1", "room1")
 
         self.assertEquals("bob", self.dbase.dbases['players']['0']['username'])
         self.assertEquals("0", self.dbase.dbases['players']['0']['game_id'])
 
-        self.assertEquals({'host': 'node1.com', 'port': 8080}, result)
+        # First player creates area on client node
+        self.assertEquals({'host': 'node1.com', 'port': 8082, 'token': 'TOKEN'},
+            result)
+        client_node = self.master.nodes[('node1.com', 8080)]
+        self.assertEquals(['area1'], client_node.managed_areas)
+        self.assertEquals(['bob'], client_node.players)
+
+    def testPlayerAlreadyJoined(self):
+        game = self.master.create_game("owner", {})
+        result = self.master.join_game("bob", "0", "area1", "room1")
+        try:
+            result = self.master.join_game("bob", "0", "area1", "room1")
+            self.fail("Should have thrown")
+        except AssertionError, ae:
+            raise
+        except Exception, e:
+            self.assertEquals("User bob already joined game 0", str(e))
