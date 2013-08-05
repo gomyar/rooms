@@ -29,6 +29,7 @@ class MockClientNode(object):
         self.managed_areas = []
         self.players = []
         self.active = True
+        self.loaded_limbo = False
 
     def manage_area(self, area_id):
         self.managed_areas.append(area_id)
@@ -38,7 +39,7 @@ class MockClientNode(object):
         return dict(token="TOKEN")
 
     def load_from_limbo(self, area_id):
-        pass
+        self.loaded_limbo = area_id
 
 
 class MockDbase(object):
@@ -51,15 +52,17 @@ class MockDbase(object):
     def save_object(self, obj_dict, dbase_name, db_id):
         if dbase_name not in self.dbases:
             self.dbases[dbase_name] = dict()
-        db_id = db_id or str(len(self.dbases[dbase_name]))
+        db_id = db_id or dbase_name + "_" + str(len(self.dbases[dbase_name]))
         obj_dict['_id'] = db_id
         self.dbases[dbase_name][db_id] = obj_dict
+        return db_id
 
     def filter(self, dbase_name, **fields):
-        return self.dbases.get(dbase_name, dict()).values()
+        found = self.dbases.get(dbase_name, dict()).values()
+        return [o for o in found if all([i in o.items() for i in fields.items()])]
 
     def filter_one(self, dbase_name, **fields):
-        result = self.dbases.get(dbase_name, dict()).values()
+        result = self.filter(dbase_name, **fields)
         return result[0] if result else None
 
 
@@ -82,16 +85,16 @@ class MasterControllerTest(unittest.TestCase):
     def testCreateGame(self):
         game = self.master.create_game("owner", {})
         self.assertEquals("player_script_1", game.player_script)
-        self.assertEquals([{'game_id': '0', 'owner': 'owner',
+        self.assertEquals([{'game_id': 'games_0', 'owner': 'owner',
             'start_areas': [['area1', 'room1'], ['area2', 'room2']]}],
             self.master.list_games())
 
     def testPlayerJoins(self):
         game = self.master.create_game("owner", {})
-        result = self.master.join_game("bob", "0", "area1", "room1")
+        result = self.master.join_game("bob", "games_0", "area1", "room1")
 
-        self.assertEquals("bob", self.dbase.dbases['players']['0']['username'])
-        self.assertEquals("0", self.dbase.dbases['players']['0']['game_id'])
+        self.assertEquals("bob", self.dbase.dbases['players']['players_0']['username'])
+        self.assertEquals("games_0", self.dbase.dbases['players']['players_0']['game_id'])
 
         # First player creates area on client node
         self.assertEquals({'host': 'node1.com', 'port': 8082, 'token': 'TOKEN'},
@@ -101,19 +104,19 @@ class MasterControllerTest(unittest.TestCase):
         self.assertEquals(['bob'], client_node.players)
 
         # Check player info call
-        self.assertEquals([{'game_id': '0', 'area_id': 'area1'}],
+        self.assertEquals([{'game_id': 'games_0', 'area_id': 'area1'}],
             self.master.player_info('bob'))
 
     def testPlayerAlreadyJoined(self):
         game = self.master.create_game("owner", {})
-        result = self.master.join_game("bob", "0", "area1", "room1")
+        result = self.master.join_game("bob", "games_0", "area1", "room1")
         try:
-            result = self.master.join_game("bob", "0", "area1", "room1")
+            result = self.master.join_game("bob", "games_0", "area1", "room1")
             self.fail("Should have thrown")
         except AssertionError, ae:
             raise
         except Exception, e:
-            self.assertEquals("User bob already joined game 0", str(e))
+            self.assertEquals("User bob already joined game games_0", str(e))
 
     def testClientNodeRegisters(self):
         self.master.register_node("10.10.10.1", 8081, "node1.com", 8082)
@@ -135,7 +138,7 @@ class MasterControllerTest(unittest.TestCase):
 
     def testPlayerMoves(self):
         game = self.master.create_game("owner", {})
-        result = self.master.join_game("bob", "0", "area1", "room1")
+        result = self.master.join_game("bob", "games_0", "area1", "room1")
 
         self.master.nodes[('10.10.10.2', 8080)] = MockClientNode(
             '10.10.10.2', 8080, 'node2.com', 8082)
@@ -144,15 +147,17 @@ class MasterControllerTest(unittest.TestCase):
             'area1': {'area_id': 'area1', 'node': ('10.10.10.1', 8080)},
             'area2': {'area_id': 'area2', 'node': ('10.10.10.2', 8080)},
         }
-        self.assertEquals('area1', self.dbase.dbases['players']['0']['area_id'])
+        self.assertEquals('area1', self.dbase.dbases['players']['players_0']['area_id'])
 
         self.assertEquals(['bob'],
             self.master.nodes['10.10.10.1', 8080].players)
         self.assertEquals([], self.master.nodes['10.10.10.2', 8080].players)
 
-        self.dbase.dbases['players']['0']['area_id'] = 'area2'
+        self.dbase.dbases['players']['players_0']['area_id'] = 'area2'
 
-        self.master.player_moves_area("bob", "game1")
+        self.master.player_moves_area("bob", "games_0")
 
+        self.assertEquals('area2',
+            self.master.nodes['10.10.10.2', 8080].loaded_limbo)
         self.assertEquals(['bob'],
             self.master.nodes['10.10.10.2', 8080].players)
