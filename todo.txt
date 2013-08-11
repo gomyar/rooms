@@ -1,4 +1,6 @@
 
+Do we need a script interface to perform ATs and speed tests?
+
 Player object per Game / Username
 
 user joins a game

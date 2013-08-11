@@ -149,20 +149,31 @@ class MasterController(object):
         return dict(host=node.external_host, port=node.external_port,
             token=response['token'])
 
-    def send_message(self):
-        pass
+    def actor_moves_area(self, area_id):
+        node = self._lookup_node(area_id)
+        node.client.load_from_limbo(area_id=area_id)
 
+    def send_message(self, from_actor_id, actor_id, room_id, area_id, message):
+        node = self._lookup_node(area_id)
+        node.client.send_message(from_actor_id, actor_id=actor_id,
+            room_id=room_id, area_id=area_id, message=message)
 
     def admin_list_areas(self):
-        pass
+        return self.areas
 
     def admin_show_nodes(self):
-        pass
+        return sorted(self.nodes.keys())
 
-    def admin_show_area(self):
-        pass
+    def admin_show_area(self, area_id):
+        host, port = self.areas[area_id]['node']
+        rooms = self.nodes[host, port].client.admin_show_area(
+            area_id=area_id)
+        return rooms
 
-    def admin_connects(self):
-        pass
-
-
+    def admin_connects(self, username, area_id, room_id):
+        ''' An admin user connects '''
+        node = self._lookup_node(area_id)
+        response = node.client.admin_joins(
+            username=username, area_id=area_id, room_id=room_id)
+        return dict(host=node.external_host, port=node.external_port,
+            token=response['token'])
