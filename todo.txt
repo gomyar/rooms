@@ -1,5 +1,32 @@
 
 Do we need a script interface to perform ATs and speed tests?
+i.e.:
+
+start_node 10.10.10.1 8080 node1.com 80
+start_node 10.10.10.2 8080 node2.com 80
+
+create_game game1
+
+player_joins bob game1
+
+connect bob game1
+
+call walk_to_room foyer
+
+nah
+
+-------------
+
+conn = connect("bob", "game1")
+
+while conn.is_open():
+    if conn.room_id == "room1"
+        # do room1 stuff 
+        enemy = conn.nearest_enemy()
+
+        conn.call("attack", enemy.actor_id)
+
+------------
 
 Player object per Game / Username
 
