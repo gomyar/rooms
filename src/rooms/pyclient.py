@@ -1,12 +1,13 @@
 
 import time
-import threading
+import gevent
 
+import simplejson
 from rooms.wsgi_rpc import WSGIRPCClient
-from websocket import create_connection
+from ws4py.client.geventclient import WebSocketClient
 
 import logging
-logging.basicConfig(
+logging.basicConfig(level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 log = logging.getLogger("rooms.client")
 
@@ -21,7 +22,9 @@ class RoomsConnection(object):
         self.master_host = master_host
         self.master_port = master_port
         self.master = WSGIRPCClient(master_host, master_port)
-        self.node_socket = None
+        self.ws = None
+        self.connected = False
+        self.gthread = None
 
         # Game data
         self.server_time = None
@@ -56,26 +59,35 @@ class RoomsConnection(object):
         self._connect_to_node(**node)
 
     def _connect_to_node(self, host, port, token):
-        self.node_socket = create_connection("ws://%s:%s" % (host, port))
-        self.node_socket.send(token)
+        log.debug("Connecting to node ws://%s:%s/ with token %s", host, port,
+            token)
+        self.ws = WebSocketClient("ws://%s:%s/socket" % (host, port),
+            protocols=['http-only', 'chat'])
+        self.ws.connect()
+
+        self.ws.send(token)
 
         self._start_listen_thread()
+        self.connected = True
 
     def _start_listen_thread(self):
-        self._thread = threading.Thread(target=self.listen_to_events)
-        self._thread.daemon = True
-        self._thread.start()
+        self.gthread = gevent.spawn(self.listen_to_events)
 
     def listen_to_events(self):
-        while self.node_socket.connected:
+        while self.connected:
             try:
-                sock_msg = self.node_socket.recv()
+                sock_msg = self.ws.receive()
                 log.debug("Received :%s", sock_msg)
-                messages = simplejson.loads(sock_msg)
-                for message in messages:
-                    self.callbacks[message['command']](**message['kwargs'])
+                if sock_msg:
+                    messages = simplejson.loads(sock_msg)
+                    for message in messages:
+                        self.callbacks[message['command']](**message['kwargs'])
+                else:
+                    self.connected = False
             except:
                 log.exception("disconnected")
+                self.connected = False
+                self.ws = None
                 return
 
     def set_now(self, now):
