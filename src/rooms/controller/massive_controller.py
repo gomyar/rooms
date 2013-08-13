@@ -76,9 +76,9 @@ class MasterController(object):
         node.client.send_message(from_actor_id, actor_id=actor_id,
             room_id=room_id, area_id=area_id, message=message)
 
-    def player_info(self, username):
+    def player_info(self, username, game_id):
         ''' Player info straight from player object '''
-        player = self.container.get_or_create_player(username)
+        player = self.container.get_or_create_player(username, game_id)
         return dict(
             username=player.username,
             game_id=player.game_id,
@@ -99,10 +99,10 @@ class MasterController(object):
         node = self._lookup_node(area_id)
         node.client.load_from_limbo(area_id=area_id)
 
-    def player_joins(self, username, area_id, room_id, **state):
+    def player_joins(self, username, game_id, area_id, room_id, **state):
         ''' Player joins to an area running on a node '''
         log.debug("Player joins: %s", username)
-        player = self.container.load_player(username=username)
+        player = self.container.load_player(username=username, game_id=game_id)
         # need to double check if player already connected
         player.state.update(state)
         player.area_id = area_id

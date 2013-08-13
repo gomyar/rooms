@@ -95,14 +95,14 @@ class MasterControllerTest(unittest.TestCase):
             '10.10.10.1', 8080, 'node1.com', 8082)
 
     def testCreateGame(self):
-        game = self.master.create_game("owner", {})
+        game = self.master.create_game("owner")
         self.assertEquals("player_script_1", game.player_script)
         self.assertEquals([{'game_id': 'games_0', 'owner': 'owner',
             'start_areas': [['area1', 'room1'], ['area2', 'room2']]}],
             self.master.list_games())
 
     def testPlayerJoins(self):
-        game = self.master.create_game("owner", {})
+        game = self.master.create_game("owner")
         result = self.master.join_game("bob", "games_0", "area1", "room1")
 
         self.assertEquals("bob", self.dbase.dbases['players']['players_0']['username'])
@@ -120,7 +120,7 @@ class MasterControllerTest(unittest.TestCase):
             self.master.player_info('bob'))
 
     def testPlayerAlreadyJoined(self):
-        game = self.master.create_game("owner", {})
+        game = self.master.create_game("owner")
         result = self.master.join_game("bob", "games_0", "area1", "room1")
         try:
             result = self.master.join_game("bob", "games_0", "area1", "room1")
@@ -129,6 +129,12 @@ class MasterControllerTest(unittest.TestCase):
             raise
         except Exception, e:
             self.assertEquals("User bob already joined game games_0", str(e))
+
+    def testPlayerConnects(self):
+        game = self.master.create_game("owner")
+        result = self.master.join_game("bob", "games_0", "area1", "room1")
+        self.assertEquals({'host': 'node1.com', 'port': 8082, 'token': 'TOKEN'},
+            self.master.connect_to_game("bob", "games_0"))
 
     def testClientNodeRegisters(self):
         self.master.register_node("10.10.10.1", 8081, "node1.com", 8082)
@@ -144,12 +150,12 @@ class MasterControllerTest(unittest.TestCase):
         self.assertEquals({}, self.master.nodes)
 
     def testNodeInfo(self):
-        game = self.master.create_game("owner", {})
+        game = self.master.create_game("owner")
         self.assertEquals({'host': 'node1.com', 'port': 8082},
             self.master.node_info('area1'))
 
     def testPlayerMoves(self):
-        game = self.master.create_game("owner", {})
+        game = self.master.create_game("owner")
         result = self.master.join_game("bob", "games_0", "area1", "room1")
 
         self.master.nodes[('10.10.10.2', 8080)] = MockClientNode(
@@ -175,7 +181,7 @@ class MasterControllerTest(unittest.TestCase):
             self.master.nodes['10.10.10.2', 8080].players)
 
     def testActorMovesArea(self):
-        game = self.master.create_game("owner", {})
+        game = self.master.create_game("owner")
         result = self.master.join_game("bob", "games_0", "area1", "room1")
 
         self.master.actor_moves_area("area1")
@@ -188,7 +194,7 @@ class MasterControllerTest(unittest.TestCase):
             self.master.nodes[('10.10.10.1', 8080)].message_sent)
 
     def testAdminJoins(self):
-        game = self.master.create_game("owner", {})
+        game = self.master.create_game("owner")
         result = self.master.join_game("bob", "games_0", "area1", "room1")
 
         self.assertEquals(dict(token="ADMIN", host="node1.com", port=8082),
@@ -197,7 +203,7 @@ class MasterControllerTest(unittest.TestCase):
     def testAdminListAreas(self):
         self.assertEquals({}, self.master.admin_list_areas())
 
-        game = self.master.create_game("owner", {})
+        game = self.master.create_game("owner")
         result = self.master.join_game("bob", "games_0", "area1", "room1")
 
         self.assertEquals({'area1':
@@ -215,7 +221,7 @@ class MasterControllerTest(unittest.TestCase):
             self.master.admin_show_nodes())
 
     def testAdminShowArea(self):
-        game = self.master.create_game("owner", {})
+        game = self.master.create_game("owner")
         result = self.master.join_game("bob", "games_0", "area1", "room1")
 
         self.assertEquals({'area': 'area_id', 'mock': True},

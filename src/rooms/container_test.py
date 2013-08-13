@@ -88,7 +88,7 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals(None, self.container.load_player("nonexistant",
             "game1"))
 
-        player = self.container.get_or_create_player("newplayer")
+        player = self.container.get_or_create_player("newplayer", "game1")
         self.assertEquals("newplayer", player.username)
 
     def testJsonPickle(self):

@@ -122,11 +122,13 @@ class Container(object):
     def load_player(self, username, game_id):
         return self._load_filter("players", username=username, game_id=game_id)
 
-    def get_or_create_player(self, username):
-        if self.dbase.object_exists("players", username=username):
-            return self.load_player(username)
+    def get_or_create_player(self, username, game_id):
+        if self.dbase.object_exists("players", username=username,\
+                game_id=game_id):
+            return self.load_player(username, game_id)
         else:
             player = Player(username)
+            player.game_id = game_id
             self.save_player(player)
             return player
 
@@ -300,10 +302,11 @@ class Container(object):
     def _serialize_player_actor(self, obj):
         data = self._serialize_actor(obj)
         data['_player_id'] = obj.player.username
+        data['_player_game_id'] = obj.player.game_id
         return data
 
     def _create_player_actor(self, data):
-        player = self.load_player(data['_player_id'])
+        player = self.load_player(data['_player_id'], data['_player_game_id'])
         player_actor = PlayerActor(player, actor_id=data['actor_id'])
         self._deserialize_actor(player_actor, data)
         return player_actor
@@ -498,8 +501,9 @@ class Container(object):
     def _serialize_game(self, obj):
         area_map = dict()
         for area_id, area in obj.area_map.items():
-            self._save_object(area, "areas")
-            area_map[area_id] = area._id
+            if type(area) is Area:
+                self._save_object(area, "areas")
+                area_map[area_id] = area._id
         data = dict(
             owner_id = obj.owner_id,
             start_areas = obj.start_areas,

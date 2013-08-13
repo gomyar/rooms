@@ -5,6 +5,7 @@ from rooms.game import Game
 from rooms.script_wrapper import Script
 from rooms.player import Player
 from rooms.wsgi_rpc import WSGIRPCClient
+from rooms.wsgi_rpc import WSGIRPCServer
 
 
 class RegisteredNode(object):
@@ -49,6 +50,7 @@ class MasterController(object):
                 join_game=self.join_game,
                 player_info=self.player_info,
                 node_info=self.node_info,
+                connect_to_game=self.connect_to_game,
 
                 player_moves_area=self.player_moves_area,
                 send_message=self.send_message,
@@ -76,7 +78,7 @@ class MasterController(object):
         ''' Node signals cleanup finished, remove permanently '''
         self.nodes.pop((host, port))
 
-    def create_game(self, owner_username, options):
+    def create_game(self, owner_username, **options):
         ''' User creates a Game '''
         game = Game()
         game.owner_id = owner_username
@@ -114,6 +116,15 @@ class MasterController(object):
         return dict(host=node.external_host, port=node.external_port,
             token=response['token'])
 
+    def connect_to_game(self, username, game_id):
+        player = self.container.load_player(username, game_id)
+        if not player:
+            raise Exception("Player %s not in game %s" % (username, game_id))
+        node = self._lookup_node(player.area_id)
+        response = node.client.player_joins(username=username, game_id=game_id)
+        return dict(host=node.external_host, port=node.external_port,
+            token=response['token'])
+
     def _lookup_node(self, area_id):
         if area_id in self.areas:
             area_info = self.areas[area_id]
@@ -130,11 +141,11 @@ class MasterController(object):
     def _available_node(self):
         return self.nodes.values()[0]
 
-    def player_info(self, username):
+    def player_info(self, username, game_id=None):
         ''' Request info for player Games '''
         players = self.container.list_players_for_user(username)
         return [{'game_id': player.game_id, 'area_id': player.area_id} for \
-            player in players]
+            player in players if not game_id or game_id==player.game_id]
 
     def node_info(self, area_id):
         node = self._lookup_node(area_id)

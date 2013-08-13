@@ -11,6 +11,8 @@ import gevent
 import controller
 from controller import instanced_controller
 from controller import massive_controller
+from node_controller import NodeController
+from master_controller import MasterController
 
 from rooms.mongo.mongo_container import MongoContainer
 from rooms.container import Container
@@ -34,10 +36,10 @@ log = logging.getLogger("rooms.node")
 
 
 controller_types = {
-    'instanced_master': instanced_controller.MasterController,
-    'instanced_client': instanced_controller.ClientController,
-    'massive_master': massive_controller.MasterController,
-    'massive_client': massive_controller.ClientController,
+    'instanced_master': MasterController,
+    'instanced_client': NodeController,
+    'massive_master': MasterController,
+    'massive_client': NodeController,
 }
 
 geogs = {

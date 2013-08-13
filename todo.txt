@@ -1,5 +1,5 @@
 
-Do we need a script interface to perform ATs and speed tests?
+Do we need a script interface to run ATs and performance tests?
 i.e.:
 
 start_node 10.10.10.1 8080 node1.com 80

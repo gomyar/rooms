@@ -3,6 +3,9 @@ import urllib2
 import urllib
 import simplejson
 import urlparse
+import traceback
+import sys
+from urllib2 import URLError, HTTPError
 
 from gevent import pywsgi
 from geventwebsocket.handler import WebSocketHandler
@@ -21,10 +24,24 @@ class _MethodStub(object):
         if args:
             raise Exception("We don't support non-keyword args in "
                 "call to %s (%s), must have param=" % (self.rest_method, args))
-        response = urllib2.urlopen("http://%s:%s%s/%s" % (
-            self.client.host, self.client.port, self.rest_object,
-            self.rest_method), urllib.urlencode(kwargs)).read()
-        return simplejson.loads(response)
+        try:
+            response = urllib2.urlopen("http://%s:%s%s/%s" % (
+                self.client.host, self.client.port, self.rest_object,
+                self.rest_method), urllib.urlencode(kwargs)).read()
+            return simplejson.loads(response)
+        except HTTPError, he:
+            errorstr = "".join(he.readlines())
+            print str(he)
+            print errorstr
+            raise
+        except URLError, ue:
+            print str(ue)
+            raise
+        except Exception, e:
+            errorstr = "".join(e.readlines())
+            print str(e)
+            print errorstr
+            raise
 
 
 class WSGIRPCClient(object):
@@ -88,9 +105,28 @@ class WSGIRPCServer(object):
                 return _json_return(response, returned)
             else:
                 response('404 Not Found', [])
-                return "Not Found"
+                return "Path Not Found: %s" % (path,)
+        except URLError, ue:
+            returned = "Cannot connect to: %s" % (path,)
+            response('500', [
+                ('content-type', 'text/javascript'),
+                ('content-length', len(returned)),
+            ])
         except:
             log.exception("Exception calling %s", environ)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            trace = traceback.format_exception(exc_type, exc_value,
+                exc_traceback)
+            returned = "Server Error calling %s(%s):\n" % ("/".join(path),
+                ", ".join(["%s=%s" % (n, v) for n, v in params.items()]))
+            returned += "".join(trace)
+            response('500', [
+                ('content-type', 'text/javascript'),
+                ('content-length', len(returned)),
+            ])
+            return returned
+
+
 
 
 if __name__ == "__main__":
