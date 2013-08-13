@@ -56,7 +56,8 @@ class RoomsConnection(object):
         self._connect_to_node(**node)
 
     def _connect_to_node(self, host, port, token):
-        self.node_socket = create_connection("ws://%s:%s" % (host, port))
+        self.node_socket = create_connection("ws://%s:%s/socket" % (host, port),
+            header=['HTTP_COOKIE: sessionid=pyclient'])
         self.node_socket.send(token)
 
         self._start_listen_thread()
