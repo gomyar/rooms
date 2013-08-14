@@ -133,6 +133,7 @@ api_rooms.set_now = function(now_time)
 
 api_rooms.service_call = function(url, data, callback)
 {
+    data.token = api_rooms.token;
     $.ajax({
         'url': url,
         'data': data,
@@ -149,7 +150,7 @@ api_rooms.service_call = function(url, data, callback)
 
 api_rooms.load_room = function(callback)
 {
-    api_rooms.ajax_get('/room/', function(data) {
+    api_rooms.ajax_get('/room/?token='+api_rooms.token, function(data) {
         api_rooms.room = data;
         if (callback)
             callback(data);

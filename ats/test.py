@@ -11,4 +11,5 @@ if not info:
 else:
     conn.connect_to_game("bob", "735700000000000000000000")
 
-time.sleep(5)
+conn.gthread.join()
+#time.sleep(15)
