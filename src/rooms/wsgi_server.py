@@ -18,7 +18,6 @@ from rooms.area import Area
 from rooms.admin import Admin
 
 from utils import checked
-from utils import _read_cookies
 from utils import _get_param
 
 import logging
@@ -82,7 +81,6 @@ class WSGIServer(object):
     @checked
     def handle_socket(self, environ, response):
         ws = environ["wsgi.websocket"]
-        cookies = _read_cookies(environ)
         player_id = None
         queue = None
         try:
@@ -100,7 +98,7 @@ class WSGIServer(object):
                 return
 
             log.debug("Connected to queue")
-            self.sessions[cookies['sessionid']] = player_id
+            self.sessions[token] = player_id
             log.debug("Sending sync")
             if admin_name:
                 self.admin_sync(admin_name)
@@ -135,10 +133,9 @@ class WSGIServer(object):
         _, url, command = \
             environ['PATH_INFO'].split("/")
         log.debug("Game call %s, %s", url, command)
-        cookies = _read_cookies(environ)
         params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
-        returned = self.node.call(self.sessions[cookies['sessionid']], command,
-            dict(params))
+        token = params.pop('token')
+        returned = self.node.call(self.sessions[token], command, params)
         return _json_return(response, returned)
 
 
@@ -147,19 +144,20 @@ class WSGIServer(object):
         _, url, actor_id, command = \
             environ['PATH_INFO'].split("/")
         log.debug("Actor request call %s, %s", url, command)
-        cookies = _read_cookies(environ)
         params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
-        returned = self.node.actor_request(self.sessions[cookies['sessionid']],
-            actor_id, command, dict(params))
+        token = params.pop('token')
+        returned = self.node.actor_request(self.sessions[token],
+            actor_id, command, params)
         return _json_return(response, returned)
 
 
     @checked
     def room_handle(self, environ, response):
         _, url, area_map = environ['PATH_INFO'].split("/")
-        cookies = _read_cookies(environ)
-        player_actor = self.node.players[self.sessions[cookies['sessionid']]]\
-            ['player']
+        # Expecting GET
+        params = dict(urlparse.parse_qsl(environ['QUERY_STRING']))
+        token = params.pop('token')
+        player_actor = self.node.players[self.sessions[token]]['player']
         return _json_return(response, player_actor.room.external())
 
 
@@ -167,9 +165,9 @@ class WSGIServer(object):
     def admin_handle(self, environ, response):
         _, url, command = environ['PATH_INFO'].split("/")
         log.debug("Admin call: %s %s", url, command)
-        cookies = _read_cookies(environ)
         params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
-        assert(cookies['sessionid'] in self.sessions)
+        token = params.pop('token')
+        assert(token in self.sessions)
         admin = Admin(self.node.game_root)
         returned = getattr(admin, command)(**params)
         return _json_return(response, returned)

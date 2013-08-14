@@ -41,6 +41,7 @@ class RoomsConnection(object):
             "actor_update": self._command_actor_update,
             "remove_actor": self._command_remove_actor,
             "moved_node": self._command_moved_node,
+            "heartbeat": self._command_heartbeat,
         }
 
     def create_game(self, owner_id, **options):
@@ -79,9 +80,10 @@ class RoomsConnection(object):
                 sock_msg = self.ws.receive()
                 log.debug("Received :%s", sock_msg)
                 if sock_msg:
-                    messages = simplejson.loads(sock_msg)
+                    messages = simplejson.loads(str(sock_msg))
                     for message in messages:
-                        self.callbacks[message['command']](**message['kwargs'])
+                        self._commands[message['command']](
+                            message.get('kwargs'))
                 else:
                     self.connected = False
             except:
@@ -103,6 +105,9 @@ class RoomsConnection(object):
         self.actors = {}
         for actor in data['actors']:
             self.actors[actor['actor_id']] = Actor(actor)
+
+    def _command_heartbeat(self, data):
+        log.debug("Heartbeat")
 
     def _command_actor_update(self, data):
         log.debug("Actor updated: %s", data)
