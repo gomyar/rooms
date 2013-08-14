@@ -11,5 +11,17 @@ if not info:
 else:
     conn.connect_to_game("bob", "735700000000000000000000")
 
-conn.gthread.join()
+# move in a square
+while True:
+    conn.call("move_to", x=100, y=100)
+    time.sleep(1)
+    conn.call("move_to", x=300, y=100)
+    time.sleep(1)
+    conn.call("move_to", x=300, y=300)
+    time.sleep(1)
+    conn.call("move_to", x=100, y=300)
+    time.sleep(1)
+
+
+#conn.gthread.join()
 #time.sleep(15)

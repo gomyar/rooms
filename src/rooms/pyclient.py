@@ -16,6 +16,9 @@ class Actor(object):
     def __init__(self, data):
         self.__dict__.update(data)
 
+    def __repr__(self):
+        return "<%s %s>" % (self.actor_type, self.name,)
+
 
 class RoomsConnection(object):
     def __init__(self, master_host='localhost', master_port=8082):
@@ -29,6 +32,7 @@ class RoomsConnection(object):
         # Game data
         self.server_time = None
         self.local_time = None
+        self.node = None
         self.token = None
 
         self.room = dict(width=500, height=500, position=[0, 0], map_objects=[], visibility_grid=dict(width =0, height =0, gridsize=10))
@@ -68,6 +72,8 @@ class RoomsConnection(object):
 
         self.ws.send(token)
 
+        self.node = WSGIRPCClient(host, port, namespace="game")
+        self.token = token
         self._start_listen_thread()
         self.connected = True
 
@@ -91,6 +97,10 @@ class RoomsConnection(object):
                 self.connected = False
                 self.ws = None
                 return
+
+    def call(self, method, **kwargs):
+        kwargs['token'] = self.token
+        return getattr(self.node, method)(**kwargs)
 
     def set_now(self, now):
         self.server_time = now
