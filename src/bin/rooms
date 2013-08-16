@@ -30,7 +30,7 @@ if __name__ == "__main__":
             default="localhost:8081")
 
         parser.add_option("-a", "--address", dest="address",
-            default="localhost:8080", help="Address to serve node on")
+            default="localhost:8080", help="Public address to serve node on")
 
         parser.add_option("-d", "--dbaddr", dest="dbaddr",
             default="localhost:27017", help="Address of mongo server")
@@ -47,7 +47,7 @@ if __name__ == "__main__":
         (options, args) = parser.parse_args()
 
         if not os.path.exists(options.game):
-            print "No game file exists at %s" % (options.game,)
+            print "No game file exists at '%s'" % (options.game,)
             sys.exit(1)
 
         if os.path.exists("logging.conf"):

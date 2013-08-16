@@ -1,4 +1,7 @@
 
+ *** Line of sight is important. Include in pathfinding / util method
+
+
 Do we need a script interface to run ATs and performance tests?
 i.e.:
 

@@ -504,6 +504,8 @@ class Container(object):
             if type(area) is Area:
                 self._save_object(area, "areas")
                 area_map[area_id] = area._id
+            else:
+                area_map[area_id] = str(area)
         data = dict(
             owner_id = obj.owner_id,
             start_areas = obj.start_areas,

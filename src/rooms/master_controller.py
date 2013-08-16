@@ -32,6 +32,7 @@ class MasterController(object):
         self.host = host
         self.port = port
         self.nodes = dict()
+        self.games = dict()
         self.areas = dict()
         self.wsgi_server = None
         self.container = container
