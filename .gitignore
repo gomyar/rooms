@@ -2,3 +2,5 @@
 *.pyc
 web/data.db
 src/Rooms.egg-info
+build/
+dist/

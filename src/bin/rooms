@@ -60,7 +60,7 @@ if __name__ == "__main__":
         dbhost, dbport = options.dbaddr.split(":")
 
         node = Node(options.game, host, int(port))
-        node.load_game(dbhost, int(dbport))
+        node.init_container(dbhost, int(dbport))
         if options.join:
             node.join_cluster(options)
         else:

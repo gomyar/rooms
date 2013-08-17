@@ -48,8 +48,9 @@ class RoomsConnection(object):
             "heartbeat": self._command_heartbeat,
         }
 
-    def create_game(self, owner_id, **options):
-        pass
+    def create_game(self, owner_id, game_id=None, **options):
+        return self.master.create_game(owner_id=owner_id, game_id=game_id,
+            **options)
 
     def player_info(self, username, game_id):
         return self.master.player_info(username=username, game_id=game_id)

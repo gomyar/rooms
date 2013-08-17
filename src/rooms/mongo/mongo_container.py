@@ -101,3 +101,10 @@ class MongoContainer(object):
 
     def init_mongo(self):
         self._mongo_connection = Connection(self.host, self.port)
+
+    def drop_collection(self, collection_id):
+        self.db().drop_collection(collection_id)
+
+    def drop_database(self):
+        ''' Careful now '''
+        self._mongo_connection.drop_database(self.dbname)

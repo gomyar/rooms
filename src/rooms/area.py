@@ -21,6 +21,7 @@ class Area(object):
         self.point_map = dict()
         self.room_points = dict()
         self.game = None
+        self.game_id = None
         self.node = None
         self.icicle_map = dict()
 

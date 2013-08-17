@@ -19,7 +19,6 @@ from rooms.container import Container
 from rooms.player_actor import PlayerActor
 from rooms.save_manager import SaveManager
 from rooms.null import Null
-from rooms.inventory import set_registry
 from rooms.script_wrapper import _script_listener
 
 from geography.pointmap_geography import PointmapGeography
@@ -58,29 +57,34 @@ class Node(object):
         self.admin_controller = None
         self.container = None
         self.client = None
-        self.game = None
         self.server = Null()
 
         self.players = dict()
         self.admins = dict()
         self.areas = dict()
+        self.games = dict()
 
         self.save_manager = None
 
-    def load_game(self, dbhost, dbport):
+    def game_by_area(self, area_id):
+        area = self.areas[area_id]
+        if area.game_id not in self.games:
+            self.games[area.game_id] = self.container.load_game(area.game_id)
+        return self.games[area.game_id]
+
+    def init_container(self, dbhost, dbport):
         config.read(os.path.join(self.game_root, "game.conf"))
 
         sys.path.append(config.get("scripts", "root"))
 
-        mongo_container = MongoContainer(dbhost, dbport)
+        mongo_container = MongoContainer(dbhost, dbport,
+            config.get("game", "dbname"))
         mongo_container.init_mongo()
         # Wee bit circular
         self.save_manager = SaveManager(self, self.container)
         self.container = Container(mongo_container,
             geogs[config.get("game", "geography")](), self.save_manager)
         self.save_manager.container = self.container
-        self.game = self.container.load_game(config.get("game", "game_id"))
-        set_registry(self.game.item_registry)
         self.start_script_listener()
 
 
@@ -122,8 +126,8 @@ class Node(object):
 
     def manage_area(self, area_id):
         self.areas[area_id] = self.container.load_area(area_id)
-        self.areas[area_id].game = self.game
         self.areas[area_id].node = self
+        self.areas[area_id].game = self.game_by_area(area_id)
         # kickoff maybe
 
     def player_joins(self, area_id, player):
@@ -138,9 +142,10 @@ class Node(object):
             actor.server = self.server
             player.actor_id = actor.actor_id
             actor.name = player.username
+            game = self.game_by_area(player.area_id)
             self.container.save_player(player)
-            if self.game.player_script:
-                actor.load_script(self.game.player_script)
+            if game.player_script:
+                actor.load_script(game.player_script)
             self.players[player_id]['player'] = actor
             area = self.areas[player.area_id]
             area.rooms[player.room_id].put_actor(actor)

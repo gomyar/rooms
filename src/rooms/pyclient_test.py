@@ -5,7 +5,11 @@ from rooms.pyclient import RoomsConnection
 
 
 class MockMaster(object):
-    pass
+    def create_game(self, owner_id, **options):
+        pass
+
+    def join_game(self, username, game_id, start_area_id, start_room_id):
+        return dict(host="localhost", port=8080, token="TOKEN")
 
 
 class PyClientTest(unittest.TestCase):

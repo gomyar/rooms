@@ -79,6 +79,17 @@ class Container(object):
         return self._load_object(game_id, "games")
 
     def save_game(self, game):
+        # we are saving this twice for the wrong reasons
+        game_id = self._save_object(game, "games")
+        area_map = dict()
+        for area_id, area in game.area_map.items():
+            if type(area) is Area:
+                area.game_id = game_id
+                self._save_object(area, "areas")
+                area_map[area_id] = str(area._id)
+            else:
+                area_map[area_id] = str(area)
+        game.area_map = area_map
         return self._save_object(game, "games")
 
     def _load_filter(self, collection, **fields):
@@ -361,6 +372,7 @@ class Container(object):
             owner_id = obj.owner_id,
             room_map = room_map,
             entry_point_door_id = obj.entry_point_door_id,
+            game_id = obj.game_id
         )
 
     def _room_info(self, room):
@@ -378,6 +390,7 @@ class Container(object):
         area._room_map = data['room_map']
         area.owner_id = data['owner_id']
         area.entry_point_door_id = data['entry_point_door_id']
+        area.game_id = data['game_id']
         return area
 
     # Door
@@ -499,20 +512,13 @@ class Container(object):
 
     # Game
     def _serialize_game(self, obj):
-        area_map = dict()
-        for area_id, area in obj.area_map.items():
-            if type(area) is Area:
-                self._save_object(area, "areas")
-                area_map[area_id] = area._id
-            else:
-                area_map[area_id] = str(area)
         data = dict(
             owner_id = obj.owner_id,
             start_areas = obj.start_areas,
             open_game = obj.open_game,
             item_registry = obj.item_registry,
             player_script_class = obj.player_script,
-            area_map = area_map,
+            area_map = dict(),
             players = obj.players,
         )
         return data
