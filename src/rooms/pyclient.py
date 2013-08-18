@@ -48,9 +48,9 @@ class RoomsConnection(object):
             "heartbeat": self._command_heartbeat,
         }
 
-    def create_game(self, owner_id, game_id=None, **options):
-        return self.master.create_game(owner_id=owner_id, game_id=game_id,
-            **options)
+    def create_game(self, owner_username, game_id=None, **options):
+        return self.master.create_game(owner_username=owner_username,
+            game_id=game_id, **options)
 
     def player_info(self, username, game_id):
         return self.master.player_info(username=username, game_id=game_id)
@@ -106,6 +106,11 @@ class RoomsConnection(object):
     def set_now(self, now):
         self.server_time = now
         self.local_time = time.time()
+
+    def admin_connect(self, username, area_id, room_id):
+        node = self.master.admin_connects(username=username, area_id=area_id,
+            room_id=room_id)
+        self._connect_to_node(**node)
 
     def _command_sync(self, data):
         log.debug("Sync: %s", data)

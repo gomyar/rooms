@@ -79,14 +79,18 @@ class MasterController(object):
         ''' Node signals cleanup finished, remove permanently '''
         self.nodes.pop((host, port))
 
-    def create_game(self, owner_username, **options):
+    def create_game(self, owner_username, game_id=None, **options):
         ''' User creates a Game '''
         game = Game()
         game.owner_id = owner_username
         game_script = Script(self.node.game_script)
         game_script.create_game(game, **options)
+        # cant remember why I put this field here
+        game.player_script = config.get("scripts", "player_script")
+        if game_id:
+            game._id = game_id
         self.container.save_game(game)
-        return game
+        return str(game._id)
 
     def list_games(self):
         ''' User request a list of all current Games '''

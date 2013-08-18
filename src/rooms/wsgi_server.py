@@ -157,8 +157,16 @@ class WSGIServer(object):
         # Expecting GET
         params = dict(urlparse.parse_qsl(environ['QUERY_STRING']))
         token = params.pop('token')
-        player_actor = self.node.players[self.sessions[token]]['player']
-        return _json_return(response, player_actor.room.external())
+        username = self.sessions[token]
+        if username in self.node.admins and token == \
+            self.node.admins[username]['token']:
+            admin_info = self.node.admins[username]
+            room = self.node.areas[admin_info['area_id']].rooms[
+                admin_info['room_id']]
+            return _json_return(response, room.external())
+        else:
+            player_actor = self.node.players[self.sessions[token]]['player']
+            return _json_return(response, player_actor.room.external())
 
 
     @checked

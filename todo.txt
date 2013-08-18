@@ -1,4 +1,6 @@
 
+There's a problem with ws4py 0.3 beta, use 0.2.2
+
  *** Line of sight is important. Include in pathfinding / util method
 
 

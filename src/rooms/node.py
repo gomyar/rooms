@@ -63,6 +63,7 @@ class Node(object):
         self.admins = dict()
         self.areas = dict()
         self.games = dict()
+        self.game_script = None
 
         self.save_manager = None
 
@@ -76,6 +77,8 @@ class Node(object):
         config.read(os.path.join(self.game_root, "game.conf"))
 
         sys.path.append(config.get("scripts", "root"))
+
+        self.game_script = config.get("scripts", "game_script")
 
         mongo_container = MongoContainer(dbhost, dbport,
             config.get("game", "dbname"))
