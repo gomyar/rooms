@@ -13,11 +13,61 @@ log = logging.getLogger("rooms.client")
 
 
 class Actor(object):
-    def __init__(self, data):
+    def __init__(self, conn, data):
+        self.update(data)
+        self._conn = conn
+
+    def update(self, data):
         self.__dict__.update(data)
 
     def __repr__(self):
         return "<%s %s>" % (self.actor_type, self.name,)
+
+    def position(self):
+        return (0, 0)
+
+    def x(self):
+        now = self._conn.get_now()
+        path = list(self.path)
+        start = path[0]
+        while path and now > path[0][2]:
+            start = path.pop(0)
+        if not path:
+            return self.path[-1][0]
+        start_x, start_y, start_time = start
+        end_x, end_y, end_time = path[0]
+
+        if now > end_time:
+            return end_x
+        diff_x = end_x - start_x
+        diff_t = end_time - start_time
+        if diff_t <= 0:
+            return end_x
+        inc = (now - start_time) / diff_t
+        return start_x + diff_x * inc
+
+    def y(self):
+        now = self._conn.get_now()
+        path = list(self.path)
+        start = path[0]
+        while path and now > path[0][2]:
+            start = path.pop(0)
+        if not path:
+            return self.path[-1][1]
+        start_x, start_y, start_time = start
+        end_x, end_y, end_time = path[0]
+
+        if now > end_time:
+            return end_y
+        diff_y = end_y - start_y
+        diff_t = end_time - start_time
+        if diff_t <= 0:
+            return end_y
+        inc = (now - start_time) / diff_t
+        return start_y + diff_y * inc
+
+    def position(self):
+        return (self.x(), self.y())
 
 
 class RoomsConnection(object):
@@ -47,6 +97,11 @@ class RoomsConnection(object):
             "moved_node": self._command_moved_node,
             "heartbeat": self._command_heartbeat,
         }
+
+    def get_now(self):
+        local_now = time.time()
+        ticks = local_now - self.local_time
+        return ticks + self.server_time
 
     def create_game(self, owner_username, game_id=None, **options):
         return self.master.create_game(owner_username=owner_username,
@@ -116,7 +171,7 @@ class RoomsConnection(object):
         log.debug("Sync: %s", data)
         self.set_now(data['now'])
 
-        self.player_actor = Actor(data['player_actor'])
+        self.player_actor = Actor(self, data['player_actor'])
 
         self.actors = {}
         for actor in data['actors']:
@@ -126,11 +181,25 @@ class RoomsConnection(object):
         log.debug("Heartbeat")
 
     def _command_actor_update(self, data):
+        if data['actor_id'] == self.player_actor.actor_id:
+            self.player_actor.update(data)
+        elif data.get('docked_with') == self.player_actor.actor_id:
+            self.player_actor['docked_actors'][data['actor_type']]\
+                [data['actor_id']] = data
+        else:
+            if data['actor_id'] not in self.actors:
+                self.actors[data['actor_id']] = Actor(self, data)
+            else:
+                self.actors[data['actor_id']].update(data)
+
         log.debug("Actor updated: %s", data)
 
     def _command_remove_actor(self, data):
         log.debug("actor removed; %s", data)
+        if data['actor_id'] in self.actors:
+            self.actors.pop(data['actor_id'])
 
     def _command_moved_node(self, data):
         log.debug("moving node: %s", data)
+        raise Exception("Not implemented")
 

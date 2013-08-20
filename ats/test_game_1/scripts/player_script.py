@@ -11,4 +11,8 @@ def created(player_actor):
 @command
 def move_to(player, x, y):
     log.info("Moving to %s, %s", x, y)
-    player.move_to(x, y)
+    player.move_to(int(x), int(y))
+
+@command
+def set_position(player, x, y):
+    player.set_position((int(x), int(y)))

@@ -268,7 +268,8 @@ class Actor(object):
 
     def set_position(self, position):
         self.path.set_position(position)
-        self._update_actor_grid()
+        #self._update_actor_grid()
+        self.send_actor_update()
 
     def set_path(self, path):
         self.path = path
