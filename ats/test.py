@@ -30,6 +30,9 @@ def wait_for_position(actor, position, timeout=1):
 
 
 def test():
+    runner = RoomsTestRunner()
+    runner.start_nodes(2)
+
     conn = RoomsConnection("localhost", 8082)
 
     conn.create_game(owner_username="bob", game_id="735700000000000000000000")
