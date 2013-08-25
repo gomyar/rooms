@@ -4,49 +4,68 @@ import subprocess
 import time
 import logging
 
+from rooms.pyclient import RoomsConnection
+from test import test
+
+
 logging.basicConfig(level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 log = logging.getLogger("test")
 
 
-from rooms.pyclient import RoomsConnection
-from test import test
+class RoomsTestRunner(object):
+    def __init__(self, test_script_path, game_dir_path):
+        self.test_script_path = test_script_path
+        self.game_dir_path = game_dir_path
+        self.nodes = []
+        self.master = None
 
-# start master
-proc1 = subprocess.Popen(["/usr/local/bin/rooms", "-c", "localhost:8082",
-    "-i", "localhost:9991", "-a", "localhost:8080",
-    "-g", "/home/ray/projects/rooms/ats/test_game_1/"])
-print "Started master pid: %s" % (proc1.pid,)
+    def game_dir(self):
+        root_dir = os.path.realpath(os.path.dirname(self.test_script_path))
+        return os.path.join(root_dir, self.game_dir_path)
 
-time.sleep(1)
-print "Master started"
+    def _start_master(self):
+        self.master = subprocess.Popen(["/usr/local/bin/rooms",
+            "-c", "localhost:9000",
+            "-i", "localhost:9001",
+            "-a", "localhost:9002",
+            "-g", self.game_dir()])
 
-# start node, join cluster
-proc2 = subprocess.Popen(["/usr/local/bin/rooms" ,"-c", "localhost:8082",
-    "-i", "localhost:9992", "-a", "localhost:8081",
-    "-g", "/home/ray/projects/rooms/ats/test_game_1/", "-j"])
-print "Started node pid: %s" % (proc2.pid,)
+    def _start_node(self, offset):
+        self.nodes.append(subprocess.Popen(["/usr/local/bin/rooms",
+            "-c", "localhost:9000",
+            "-i", "localhost:7%03d" % (offset + 80,),
+            "-a", "localhost:8%03d" % (offset + 80,),
+            "-g", self.game_dir(),
+            "-j"]))
 
-time.sleep(1)
-print "Node started"
+    def start_nodes(self, count):
+        # start master
+        self._start_master()
 
-try:
-    test()
+        for i in range(count - 1):
+            self._start_node(i)
 
-except:
-    log.exception("Exception running test")
+        time.sleep(1)
 
-finally:
-    try:
-        proc2.kill()
-        print "Killed node"
-    except:
-        pass
+    def run_test(test_method):
+        self.start_nodes(2)
 
-    try:
-        proc1.kill()
-        print "Killed master"
-    except:
-        pass
+        try:
+            test_method()
+        except:
+            log.exception("Exception running test")
+        finally:
+            self.stop_nodes()
 
+    def stop_nodes(self):
+        for node in self.nodes:
+            try:
+                node.kill()
+            except:
+                pass
+
+
+if __name__ == "__main__":
+    run_test(test)
