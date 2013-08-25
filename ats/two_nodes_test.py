@@ -1,6 +1,6 @@
 
 import unittest
-from roomstestutils import *
+from rooms.testutils import *
 
 class TwoNodesTest(unittest.TestCase):
     def setUp(self):
