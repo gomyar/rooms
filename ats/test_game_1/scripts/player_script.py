@@ -16,3 +16,8 @@ def move_to(player, x, y):
 @command
 def set_position(player, x, y):
     player.set_position((int(x), int(y)))
+
+@command
+def add_item_to_inventory(player, item_type):
+    player.inventory.add_item(item_type)
+    player.inventory.find_items(item_type)
