@@ -9,7 +9,6 @@ from rooms.master_controller import RegisteredNode
 
 
 def create_game(game):
-    game.player_script = "player_script_1"
     game.start_areas = [('area1', 'room1'), ('area2', 'room2')]
 
 
@@ -96,7 +95,6 @@ class MasterControllerTest(unittest.TestCase):
 
     def testCreateGame(self):
         game = self.master.create_game("owner")
-        self.assertEquals("player_script_1", game.player_script)
         self.assertEquals([{'game_id': 'games_0', 'owner': 'owner',
             'start_areas': [['area1', 'room1'], ['area2', 'room2']]}],
             self.master.list_games())

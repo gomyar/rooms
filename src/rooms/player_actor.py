@@ -18,7 +18,7 @@ class PlayerActor(Actor):
         self.actor_type = "player"
 
     def __repr__(self):
-        return "<PlayerActor %s:%s>" % (self.player.username, self.actor_id)
+        return "<PlayerActor %s:%s>" % (self.player, self.actor_id)
 
     def exit(self, door_id):
         door = self.room.actors[door_id]

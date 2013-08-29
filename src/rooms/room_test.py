@@ -7,6 +7,7 @@ from actor import Actor
 from player_actor import PlayerActor
 from rooms.timing import _set_mock_time
 from rooms.timing import _fast_forward
+from rooms.player import Player
 
 
 class RoomTest(unittest.TestCase):
@@ -116,7 +117,7 @@ class RoomTest(unittest.TestCase):
     def testCanIcicle(self):
         self.assertFalse(self.room1.has_active_players())
 
-        self.player = PlayerActor(None, "player1")
+        self.player = PlayerActor(Player('bob'), "player1")
         self.room1.put_actor(self.player)
 
         self.assertTrue(self.room1.has_active_players())

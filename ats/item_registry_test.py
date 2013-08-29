@@ -26,3 +26,5 @@ class TwoNodesTest(unittest.TestCase):
         wait_for_sync(self.conn)
 
         self.conn.call("add_item_to_inventory", item_type="silver")
+
+        wait_for_state(self.conn.player_actor, "added", True)

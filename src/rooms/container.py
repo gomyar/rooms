@@ -13,7 +13,7 @@ from rooms.room import RoomObject
 from rooms.area import Area
 from rooms.door import Door
 from rooms.inventory import Inventory
-from rooms.inventory import Item
+from rooms.item_registry import Item
 from rooms.player import Player
 from rooms.game import Game
 from rooms.circles import Circles

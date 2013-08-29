@@ -218,6 +218,14 @@ class Actor(object):
             visible=self.visible)
         return external
 
+    def _item_lookup(self, item_type):
+        return self.game.item_registry.get_item(item_type)
+
+    def lookup_items(self, **kwargs):
+        return [(self._item_lookup(item), amount) for (item, amount) in \
+            self.inventory._items.items() if \
+            self._item_lookup(item).has_properties(kwargs)]
+
     def docked_actor_map(self):
         internal = dict()
         for a in self.docked.values():

@@ -86,7 +86,8 @@ class MasterController(object):
         game_script = Script(self.node.game_script)
         game_script.create_game(game, **options)
         # cant remember why I put this field here
-        game.player_script = config.get("scripts", "player_script")
+        if config.has_option("scripts", "player_script"):
+            game.player_script = config.get("scripts", "player_script")
         if game_id:
             game._id = game_id
         self.container.save_game(game)

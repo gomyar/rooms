@@ -20,4 +20,5 @@ def set_position(player, x, y):
 @command
 def add_item_to_inventory(player, item_type):
     player.inventory.add_item(item_type)
-    player.inventory.find_items(item_type)
+    player.lookup_items(category="commodity")
+    player.state.added = True
