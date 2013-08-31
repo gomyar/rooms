@@ -23,7 +23,7 @@ if __name__ == "__main__":
         parser = OptionParser()
 
         parser.add_option("-c", "--controller", dest="controller_address",
-            help="Address of controller node", default="localhost:8082")
+            help="Address of controller node", default="localhost:9000")
 
         parser.add_option("-i", "--controller-api", dest="controller_api",
             help="Address of controller xmlrpc api (client and controller)",

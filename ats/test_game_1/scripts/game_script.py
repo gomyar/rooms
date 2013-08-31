@@ -1,5 +1,5 @@
 
-from rooms.inventory import Item
+from rooms.item_registry import Item
 
 
 def create_game(game):
