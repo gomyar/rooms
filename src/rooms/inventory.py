@@ -33,10 +33,3 @@ class Inventory(object):
 
     def keys(self):
         return self._items.keys()
-
-    def get_item(self, item_type):
-        amount = self.get_amount(item_type)
-        if amount:
-            return lookup(item_type), amount
-        else:
-            raise Exception("No items of type %s" % item_type)
