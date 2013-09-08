@@ -8,9 +8,6 @@ from rooms.chat import call
 from rooms.chat import load_chat as load_chat_script
 from rooms.waypoint import get_now
 
-from scriptutils import create_npc
-from scriptutils import create_item
-
 import logging
 log = logging.getLogger('rooms.script')
 

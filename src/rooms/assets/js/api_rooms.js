@@ -178,6 +178,7 @@ api_rooms.ajax_get = function(url, callback)
 
 api_rooms.onopen = function()
 {
+    console.log("Sending token: "+api_rooms.token);
     api_rooms.socket.send(api_rooms.token);
 }
 

@@ -242,10 +242,10 @@ class Room(object):
 
     def create_actor(self, actor_type, actor_script, position=None,
             actor_id=None, name="", visible=True, visible_to_all=False,
-            parents=None, **state):
+            parents=None, model_type=None, **state):
         actor = Actor(actor_id)
         actor.actor_type = actor_type
-        actor.model_type = actor_type
+        actor.model_type = model_type or actor_type
         actor.name = name
         actor.state.update(state)
         actor.visible = visible

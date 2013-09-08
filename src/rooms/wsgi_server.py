@@ -94,7 +94,7 @@ class WSGIServer(object):
                 player_id = player_actor.player.username
                 queue = self.connect(player_id)
             else:
-                log.debug("No such player for token")
+                log.debug("No such player for token: %s", token)
                 return
 
             log.debug("Connected to queue")

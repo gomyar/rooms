@@ -325,7 +325,7 @@ gui.draw = function()
     gui.ctx.clearRect(0, 0, gui.canvas.width, gui.canvas.height);
 
     gui.ctx.strokeStyle = "rgb(255, 255, 255)";
-    gui.ctx.strokeRect(gui.canvas_x(0), gui.canvas_y(0), gui.canvas_x(api_rooms.room.width)-gui.canvas_x(0), gui.canvas_y(api_rooms.room.height)-gui.canvas_y(0))
+    gui.ctx.strokeRect(gui.canvas_x(api_rooms.room.position[0]), gui.canvas_y(api_rooms.room.position[1]), api_rooms.room.width / gui.zoom, api_rooms.room.height / gui.zoom)
 
     gui.draw_vision_grid();
 
