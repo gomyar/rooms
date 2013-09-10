@@ -8,7 +8,7 @@ from door import Door
 from rooms.config import get_config
 from rooms.geography.linearopen_geography import LinearOpenGeography
 from rooms.waypoint import distance as calc_distance
-from rooms.visibility_grid import VisibilityGrid
+from rooms.visibility_grid import create_vision_grid
 
 from actor import FACING_NORTH
 from actor import FACING_SOUTH
@@ -72,8 +72,8 @@ class Room(object):
         self.area = None
         self.geog = _default_geog
         self.save_manager = Null()
-        self.visibility_grid = VisibilityGrid(self.width, self.height,
-            visibility_grid_gridsize)
+        self.visibility_grid = create_vision_grid(visibility_grid_gridsize,
+            self.width, self.height)
 
     def __eq__(self, rhs):
         return rhs and self.room_id == rhs.room_id

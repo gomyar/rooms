@@ -5,6 +5,13 @@ import logging
 log = logging.getLogger("rooms.visibility")
 
 
+def create_vision_grid(gridsize, width, height):
+    if gridsize:
+        return VisibilityGrid(width, height, gridsize)
+    else:
+        return OpenVisibilityGrid()
+
+
 class VisibilityGrid(object):
     def __init__(self, width, height, gridsize=10):
         self.width = width
@@ -183,3 +190,48 @@ class VisibilityGrid(object):
             self.unregister_listener(actor)
         else:
             self._signal_registered_changed(actor, *actor.position())
+
+
+class OpenVisibilityGrid(object):
+    def __init__(self):
+        self.gridsize = 0
+        self.width = 0
+        self.height = 0
+        self.actors = dict()
+        self.registered = dict()
+
+    def visible_actors(self, actor):
+        return self.actors.values()
+
+    def unregister_listener(self, actor):
+        self.registered.pop(actor.actor_id)
+
+    def register_listener(self, actor):
+        self.registered[actor.actor_id] = actor
+
+    def add_actor(self, actor):
+        self.actors[actor.actor_id] = actor
+        for target in self.registered.values():
+            target.actor_added(actor)
+
+    def update_actor_position(self, actor):
+        pass
+
+    def send_update_event(self, actor, update_id, **kwargs):
+        for target in self.registered.values():
+            target._update(update_id, **kwargs)
+
+    def send_update_actor(self, actor):
+        for target in self.registered.values():
+            target.actor_updated(actor)
+
+    def remove_actor(self, actor):
+        self.actors.pop(actor.actor_id)
+        for target in self.registered.values():
+            target.actor_removed(actor)
+
+    def vision_distance_changed(self, actor):
+        pass
+
+    def external(self):
+        return dict()

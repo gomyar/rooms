@@ -201,17 +201,13 @@ class Container(object):
         )
 
     def _create_room(self, data):
-        room = Room()
-        room.room_id = data['room_id']
+        room = Room(data['room_id'], data['width'], data['height'],
+            data['description'], data['visibility_grid_gridsize'])
         room.position = data['position']
-        room.width = data['width']
-        room.height = data['height']
         room.visibility_grid.width = data['width']
         room.visibility_grid.height = data['height']
-        room.visibility_grid.gridsize = data['visibility_grid_gridsize']
         room.map_objects = data['map_objects']
         room.actors = data['actors']
-        room.description = data['description']
         for actor in room.actors.values():
             room.put_actor(actor, actor.position())
             if actor._docked_with_id:
