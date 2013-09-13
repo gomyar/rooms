@@ -175,7 +175,7 @@ class RoomsConnection(object):
 
         self.actors = {}
         for actor in data['actors']:
-            self.actors[actor['actor_id']] = Actor(actor)
+            self.actors[actor['actor_id']] = Actor(self, actor)
 
     def _command_heartbeat(self, data):
         log.debug("Heartbeat")

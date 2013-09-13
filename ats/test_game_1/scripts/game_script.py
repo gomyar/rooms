@@ -8,3 +8,5 @@ def create_game(game):
     room1 = area1.create_room("room1", (0, 0), 500, 500, "Test Room")
 
     game.item_registry.add_item(Item("silver", "commodity", 100))
+
+    room1.create_actor("misteractor", "misteractor_script")

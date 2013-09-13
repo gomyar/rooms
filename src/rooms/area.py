@@ -59,11 +59,15 @@ class Area(object):
             self.game_script.call_method('player_enters_room', room, actor)
 
     def create_room(self, room_id, position, width=50, height=50,
-            description=None, visibility_grid_gridsize=0):
+            description=None):
         room = Room(room_id, width, height, description,
-            visibility_grid_gridsize=visibility_grid_gridsize)
+            visibility_grid_gridsize=self.get_visibility_grid_gridsize())
         self.put_room(room, position)
         return room
+
+    def get_visibility_grid_gridsize(self):
+        return self.game.config.get("visibility_grid_size", 0) if \
+            self.game else 0
 
     def create_door(self, room1, room2, room1_position=None,
             room2_position=None, door1_visible_to_all=False,

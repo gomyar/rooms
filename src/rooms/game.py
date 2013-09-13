@@ -13,6 +13,7 @@ class Game(object):
         self.item_registry = ItemRegistry()
         self.player_script = None
         self.players = dict()
+        self.config = dict()
 
     @property
     def game_id(self):
