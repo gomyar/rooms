@@ -211,8 +211,9 @@ class WSGIServer(object):
 
     def send_to_admins(self, command, **kwargs):
         for admin_name in self.node.admins:
-            self.admin_queues[admin_name].put(dict(command=command,
-                kwargs=kwargs))
+            if admin_name in self.admin_queues:
+                self.admin_queues[admin_name].put(dict(command=command,
+                    kwargs=kwargs))
 
     def send_sync(self, player_id):
         self.player_queues[player_id].put(self._sync(player_id))

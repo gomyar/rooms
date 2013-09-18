@@ -82,7 +82,8 @@ class MasterController(object):
     def create_game(self, owner_username, game_id=None, **options):
         ''' User creates a Game '''
         game = Game()
-        game.config.update(dict(config.items("game")))
+        if "game" in config.sections():
+            game.config.update(dict(config.items("game")))
         game.owner_id = owner_username
         game_script = Script(self.node.game_script)
         game_script.create_game(game, **options)

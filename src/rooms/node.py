@@ -151,6 +151,7 @@ class Node(object):
                 actor.load_script(game.player_script)
             self.players[player_id]['player'] = actor
             area = self.areas[player.area_id]
+            log.debug(" *********** putting actor %s", actor)
             area.rooms[player.room_id].put_actor(actor)
             if "created" in actor.script:
                 actor.script.created(actor)

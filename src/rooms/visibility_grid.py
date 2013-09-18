@@ -40,19 +40,20 @@ class VisibilityGrid(object):
         return actors
 
     def register_listener(self, actor):
-        x, y = actor.position()
-        distance = actor.vision_distance
-        self.registered[actor] = distance
-        gridpoints = set(self._gridpoints(x, y, distance))
-        self.registered_gridpoints[actor] = gridpoints
-        existing = set()
-        for grid_point in gridpoints:
-            existing.update(self.sectors[grid_point])
-            self.registered_sectors[grid_point].add(actor)
-        existing.update(self.visible_to_all)
-        for target in existing:
-            if target != actor:
-                actor.actor_added(target)
+        if actor.vision_distance:
+            x, y = actor.position()
+            distance = actor.vision_distance
+            self.registered[actor] = distance
+            gridpoints = set(self._gridpoints(x, y, distance))
+            self.registered_gridpoints[actor] = gridpoints
+            existing = set()
+            for grid_point in gridpoints:
+                existing.update(self.sectors[grid_point])
+                self.registered_sectors[grid_point].add(actor)
+            existing.update(self.visible_to_all)
+            for target in existing:
+                if target != actor:
+                    actor.actor_added(target)
 
     def unregister_listener(self, actor):
         removing = set()
@@ -112,6 +113,7 @@ class VisibilityGrid(object):
                 listener._update(update_id, **kwargs)
 
     def send_update_actor(self, actor):
+        log.debug("   ---   visibility_grid.send_update_actor(%s)", actor)
         if actor.visible_to_all:
             for target in self.registered.keys():
                 target.actor_updated(actor)
@@ -205,9 +207,14 @@ class OpenVisibilityGrid(object):
 
     def unregister_listener(self, actor):
         self.registered.pop(actor.actor_id)
+        # do we do this?
+        for existing in self.actors.values():
+            actor.actor_removed(existing)
 
     def register_listener(self, actor):
         self.registered[actor.actor_id] = actor
+        for existing in self.actors.values():
+            actor.actor_added(existing)
 
     def add_actor(self, actor):
         self.actors[actor.actor_id] = actor
@@ -222,7 +229,10 @@ class OpenVisibilityGrid(object):
             target._update(update_id, **kwargs)
 
     def send_update_actor(self, actor):
+        log.debug("   ---   opengrid.send_update_actor(%s)", actor)
+        log.debug("      --- registered: %s", self.registered)
         for target in self.registered.values():
+            log.debug("         --- %s.actor_updated(%s)", target, actor)
             target.actor_updated(actor)
 
     def remove_actor(self, actor):

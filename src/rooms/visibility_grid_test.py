@@ -226,6 +226,7 @@ class VisibilityGridTest(unittest.TestCase):
 
     def testActorVisibleToAll(self):
         actor1 = MockActor("actor1", 35, 35)
+        actor1.vision_distance = 10
         actor2 = MockActor("actor2", 5, 5, 0, visible_to_all=True)
 
         self.visibility_grid.register_listener(actor1)

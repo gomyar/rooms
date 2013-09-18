@@ -245,6 +245,7 @@ class Actor(object):
     def send_actor_update(self):
         if self.docked_with:
             self.docked_with.docked_actor_update(self)
+        log.debug("   ---   Actor %s sending update", self)
         self.room._send_actor_update(self)
 
     def docked_actor_update(self, actor):
@@ -352,6 +353,7 @@ class Actor(object):
         try:
             end_time = path.path_end_time()
             speed = self.path.speed()
+            log.debug("Updating grid, %s", self.room.visibility_grid)
             interval = self.room.visibility_grid.gridsize / \
                 float(speed) if speed else 0
             duration = end_time - get_now()

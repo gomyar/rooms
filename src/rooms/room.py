@@ -74,6 +74,7 @@ class Room(object):
         self.save_manager = Null()
         self.visibility_grid = create_vision_grid(visibility_grid_gridsize,
             self.width, self.height)
+        log.debug("Created vision grid: %s", self.visibility_grid)
 
     def __eq__(self, rhs):
         return rhs and self.room_id == rhs.room_id
@@ -132,8 +133,7 @@ class Room(object):
         actor.room = self
         if actor.visible:
             self.visibility_grid.add_actor(actor)
-        if actor.vision_distance:
-            self.visibility_grid.register_listener(actor)
+        self.visibility_grid.register_listener(actor)
 
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)
