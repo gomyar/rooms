@@ -50,7 +50,6 @@ class MasterController(object):
 
                 join_game=self.join_game,
                 player_info=self.player_info,
-                node_info=self.node_info,
                 connect_to_game=self.connect_to_game,
 
                 player_moves_area=self.player_moves_area,
@@ -154,10 +153,6 @@ class MasterController(object):
         players = self.container.list_players_for_user(username)
         return [{'game_id': player.game_id, 'area_id': player.area_id} for \
             player in players if not game_id or game_id==player.game_id]
-
-    def node_info(self, area_id):
-        node = self._lookup_node(area_id)
-        return dict(host=node.external_host, port=node.external_port)
 
     def player_moves_area(self, username, game_id):
         ''' Node signals a player has moved area on different node '''
