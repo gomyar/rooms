@@ -481,8 +481,7 @@ class Container(object):
         return data
 
     def _create_player(self, data):
-        player = Player(data['username'])
-        player.game_id = data['game_id']
+        player = Player(data['username'], data['game_id'])
         player.area_id = data['area_id']
         player.actor_id = data['actor_id']
         player.room_id = data['room_id']
