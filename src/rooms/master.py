@@ -94,6 +94,12 @@ class Master(object):
         return dict(host=node.external_host, port=node.external_port,
             token=response['token'])
 
+    def player_info(self, username, game_id=None):
+        ''' Request info for player Games '''
+        players = self.container.list_players_for_user(username)
+        return [{'game_id': player.game_id, 'area_id': player.area_id} for \
+            player in players if not game_id or game_id==player.game_id]
+
     def register_node(self, host, port, external_host, external_port):
         self.nodes[host, port] = RegisteredNode(host, port, external_host,
             external_port)

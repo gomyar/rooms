@@ -140,7 +140,11 @@ class MasterTest(unittest.TestCase):
         # player join sent to node
         self.assertEquals("bob", self.mock_node.players[0])
         # node info sent back
-        pass
+
+        # Check player info call
+        self.assertEquals([{'game_id': 'games_0', 'area_id': 'area1'}],
+            self.master.player_info('bob'))
+
 
     def testNodeDeregisters(self):
         # node deregisters. node must send deregistering, then deregistered,
