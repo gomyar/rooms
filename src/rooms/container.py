@@ -26,10 +26,11 @@ log = logging.getLogger("rooms.container")
 
 
 class Container(object):
-    def __init__(self, dbase, geography, save_manager=None):
+    def __init__(self, dbase, geography, save_manager=None, game_config=None):
         self.dbase = dbase
         self.geography = geography
         self.save_manager = save_manager or Null()
+        self.game_config = game_config or dict()
 
         self.object_serializers = dict(
             Actor=self._serialize_actor,
@@ -511,21 +512,16 @@ class Container(object):
         data = dict(
             owner_id = obj.owner_id,
             start_areas = obj.start_areas,
-            open_game = obj.open_game,
             item_registry = obj.item_registry,
-            player_script_class = obj.player_script,
             area_map = dict(),
             players = obj.players,
         )
         return data
 
     def _create_game(self, data):
-        game = Game()
-        game.owner_id = data['owner_id']
+        game = Game(data['owner_id'], self.game_config)
         game.start_areas = data['start_areas']
-        game.open_game = data['open_game']
         game.item_registry = data['item_registry']
-        game.player_script = data['player_script_class']
         game.area_map = data['area_map']
         game.players = data['players']
         return game

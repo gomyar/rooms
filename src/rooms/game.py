@@ -4,16 +4,15 @@ from rooms.area import Area
 
 
 class Game(object):
-    def __init__(self):
+    def __init__(self, owner_id, config=None):
         self._id = None
-        self.area_map = dict()
-        self.owner_id = None
-        self.start_areas = []
-        self.open_game = True
-        self.item_registry = ItemRegistry()
-        self.player_script = None
+        self.owner_id = owner_id
+        self.config = config or dict()
+
         self.players = dict()
-        self.config = dict()
+        self.area_map = dict()
+        self.start_areas = []
+        self.item_registry = ItemRegistry()
 
     @property
     def game_id(self):
