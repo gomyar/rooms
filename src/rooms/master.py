@@ -94,6 +94,15 @@ class Master(object):
         return dict(host=node.external_host, port=node.external_port,
             token=response['token'])
 
+    def connect_to_game(self, username, game_id):
+        player = self.container.load_player(username, game_id)
+        if not player:
+            raise Exception("Player %s not in game %s" % (username, game_id))
+        node = self._request_node(game_id, player.area_id)
+        response = node.client.player_joins(username=username, game_id=game_id)
+        return dict(host=node.external_host, port=node.external_port,
+            token=response['token'])
+
     def player_info(self, username):
         ''' Request info for player Games '''
         players = self.container.list_players_for_user(username)

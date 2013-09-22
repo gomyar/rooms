@@ -145,6 +145,15 @@ class MasterTest(unittest.TestCase):
         self.assertEquals([{'game_id': 'games_0', 'area_id': 'area1'}],
             self.master.player_info('bob'))
 
+    def testPlayerConnects(self):
+        self.mock_node = MockNodeClient()
+        self.master.nodes[('localhost', 8000)] = self.mock_node
+
+        game = self.master.create_game("owner")
+        result = self.master.join_game("bob", "games_0")
+        self.assertEquals({'host': 'external.com', 'port': 80,
+            'token': 'TOKEN'},
+            self.master.connect_to_game("bob", "games_0"))
 
     def testNodeDeregisters(self):
         # node deregisters. node must send deregistering, then deregistered,
