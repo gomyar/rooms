@@ -147,11 +147,6 @@ class MasterControllerTest(unittest.TestCase):
         self.master.shutdown_node("10.10.10.1", 8080)
         self.assertEquals({}, self.master.nodes)
 
-    def testNodeInfo(self):
-        game = self.master.create_game("owner")
-        self.assertEquals({'host': 'node1.com', 'port': 8082},
-            self.master.node_info('area1'))
-
     def testPlayerMoves(self):
         game = self.master.create_game("owner")
         result = self.master.join_game("bob", "games_0", "area1", "room1")
