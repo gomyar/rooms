@@ -54,9 +54,9 @@ class Master(object):
                 player_moves_area=self.player_moves_area,
                 send_message=self.send_message,
 
-                admin_list_areas=self.admin.list_areas,
-                admin_show_nodes=self.admin.show_nodes,
-                admin_show_area=self.admin.show_area,
+                admin_list_areas=self.admin_list_areas,
+                admin_show_nodes=self.admin_show_nodes,
+                admin_show_area=self.admin_show_area,
                 admin_connects=self.admin_connects,
             )
         )
@@ -128,3 +128,39 @@ class Master(object):
 
     def _available_node(self):
         return self.nodes.values()[0]
+
+    def player_moves_area(self, username, game_id):
+        ''' Node signals a player has moved area on different node '''
+        player = self.container.load_player(username=username, game_id=game_id)
+        node = self._request_node(game_id, player.area_id)
+        node.client.load_from_limbo(game_id=game_id, area_id=player.area_id)
+        response = node.client.player_joins(username=username, game_id=game_id)
+        return dict(host=node.external_host, port=node.external_port,
+            token=response['token'])
+
+    def send_message(self, from_actor_id, actor_id, game_id, area_id, room_id,
+            message):
+        node = self._request_node(game_id, area_id)
+        node.client.send_message(from_actor_id=from_actor_id, actor_id=actor_id,
+            game_id=game_id, area_id=area_id, room_id=room_id, message=message)
+
+
+    def admin_list_areas(self):
+        return self.areas
+
+    def admin_show_nodes(self):
+        return sorted(self.nodes.keys())
+
+    def admin_show_area(self, game_id, area_id):
+        host, port = self.areas[game_id, area_id]['node']
+        rooms = self.nodes[host, port].client.admin_show_area(
+            game_id=game_id, area_id=area_id)
+        return rooms
+
+    def admin_connects(self, username, game_id, area_id, room_id):
+        ''' An admin user connects '''
+        node = self._request_node(game_id, area_id)
+        response = node.client.admin_joins(username=username, game_id=game_id,
+            area_id=area_id, room_id=room_id)
+        return dict(host=node.external_host, port=node.external_port,
+            token=response['token'])

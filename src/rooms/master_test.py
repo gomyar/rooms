@@ -54,6 +54,7 @@ class MockNodeClient(object):
     def __init__(self):
         self.managed_areas = []
         self.players = []
+        self.admins = []
         self.client = self
         self.host = "localhost"
         self.port = 8000
@@ -66,6 +67,21 @@ class MockNodeClient(object):
     def player_joins(self, username, game_id):
         self.players.append(username)
         return dict(token="TOKEN")
+
+    def load_from_limbo(self, game_id, area_id):
+        self.loaded_limbo = area_id
+
+    def send_message(self, from_actor_id, actor_id, game_id, area_id, room_id,
+            message):
+        self.message_sent = (from_actor_id, actor_id, game_id, area_id, room_id,
+            message)
+
+    def admin_show_area(self, game_id, area_id):
+        return {"game_id": game_id, "area_id": area_id, "mock": True}
+
+    def admin_joins(self, username, game_id, area_id, room_id):
+        self.admins.append(username)
+        return dict(token="ADMIN")
 
 
 class MasterTest(unittest.TestCase):
@@ -149,13 +165,89 @@ class MasterTest(unittest.TestCase):
         self.mock_node = MockNodeClient()
         self.master.nodes[('localhost', 8000)] = self.mock_node
 
-        game = self.master.create_game("owner")
+        self.master.create_game("owner")
         result = self.master.join_game("bob", "games_0")
         self.assertEquals({'host': 'external.com', 'port': 80,
             'token': 'TOKEN'},
             self.master.connect_to_game("bob", "games_0"))
 
+    def testPlayerMovesAreathroughLimbo(self):
+        self.mock_node = MockNodeClient()
+        self.master.nodes[('localhost', 8000)] = self.mock_node
+        self.master.create_game("owner")
+        self.master.join_game("bob", "games_0")
+
+        player = self.dbase.dbases['players']['players_0']
+        player['area_id'] = "area2"
+
+        self.master.player_moves_area("bob", "games_0")
+
+        self.assertEquals('area2', self.mock_node.loaded_limbo)
+        # bob joined node twice
+        self.assertEquals(['bob', 'bob'], self.mock_node.players)
+
+    def testSendMessage(self):
+        self.mock_node = MockNodeClient()
+        self.master.nodes[('localhost', 8000)] = self.mock_node
+        self.master.send_message("actor1", "actor2", "games_0", "area1",
+            "room1", "msg")
+        self.assertEquals(("actor1", "actor2", "games_0", "area1", "room1",
+            "msg"),
+            self.mock_node.message_sent)
+
     def testNodeDeregisters(self):
         # node deregisters. node must send deregistering, then deregistered,
         # in between, new join requests for any game areas are queued
         pass
+
+
+
+    def testAdminJoins(self):
+        self.mock_node = MockNodeClient()
+        self.master.nodes[('localhost', 8000)] = self.mock_node
+
+        game = self.master.create_game("owner")
+        result = self.master.join_game("bob", "games_0")
+
+        self.assertEquals(dict(token="ADMIN", host="external.com", port=80),
+            self.master.admin_connects("bob", "games_0", "area1", "room1"))
+
+    def testAdminListAreas(self):
+        self.mock_node = MockNodeClient()
+        self.master.nodes[('localhost', 8000)] = self.mock_node
+
+        self.assertEquals({}, self.master.admin_list_areas())
+
+        game = self.master.create_game("owner")
+        result = self.master.join_game("bob", "games_0")
+
+        self.assertEquals({("games_0", 'area1'):
+            {'area_id': 'area1', "game_id": "games_0",
+            'node': ('localhost', 8000)}},
+            self.master.admin_list_areas())
+
+    def testAdminShowNodes(self):
+        self.mock_node = MockNodeClient()
+        self.master.nodes[('localhost', 8000)] = self.mock_node
+
+        self.assertEquals([("localhost", 8000)],
+            self.master.admin_show_nodes())
+
+        new_mock_node = MockNodeClient()
+        new_mock_node.host = "10.10.10.2"
+        new_mock_node.port = 8080
+        self.master.nodes[('10.10.10.2', 8080)] = new_mock_node
+
+        self.assertEquals([("10.10.10.2", 8080), ("localhost", 8000)],
+            self.master.admin_show_nodes())
+
+    def testAdminShowArea(self):
+        self.mock_node = MockNodeClient()
+        self.master.nodes[('localhost', 8000)] = self.mock_node
+
+        game = self.master.create_game("owner")
+        result = self.master.join_game("bob", "games_0")
+
+        self.assertEquals({'game_id': 'games_0', 'area_id': 'area1',
+            "mock": True},
+            self.master.admin_show_area("games_0", "area1"))
