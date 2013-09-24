@@ -60,6 +60,7 @@ class MockNodeClient(object):
         self.port = 8000
         self.external_host = "external.com"
         self.external_port = 80
+        self.active = True
 
     def manage_area(self, game_id, area_id):
         self.managed_areas.append((game_id, area_id))
@@ -195,10 +196,18 @@ class MasterTest(unittest.TestCase):
             "msg"),
             self.mock_node.message_sent)
 
-    def testNodeDeregisters(self):
+    def testClientNodeDeregisters(self):
         # node deregisters. node must send deregistering, then deregistered,
         # in between, new join requests for any game areas are queued
-        pass
+        self.mock_node = MockNodeClient()
+        self.master.nodes[('localhost', 8000)] = self.mock_node
+
+        self.assertTrue(self.master.nodes["localhost", 8000].active)
+        self.master.deregister_node("localhost", 8000)
+        self.assertFalse(self.master.nodes["localhost", 8000].active)
+
+        self.master.shutdown_node("localhost", 8000)
+        self.assertEquals({}, self.master.nodes)
 
 
 

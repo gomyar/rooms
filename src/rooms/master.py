@@ -2,6 +2,7 @@
 from rooms.game import Game
 from rooms.wsgi_rpc import WSGIRPCClient
 from rooms.player import Player
+from rooms.wsgi_rpc import WSGIRPCServer
 
 
 class RegisteredNode(object):
@@ -112,6 +113,14 @@ class Master(object):
     def register_node(self, host, port, external_host, external_port):
         self.nodes[host, port] = RegisteredNode(host, port, external_host,
             external_port)
+
+    def deregister_node(self, host, port):
+        ''' Node signals leaving the cluster - some cleanup needed '''
+        self.nodes[host, port].active = False
+
+    def shutdown_node(self, host, port):
+        ''' Node signals cleanup finished, remove permanently '''
+        self.nodes.pop((host, port))
 
     def _request_node(self, game_id, area_id):
         if (game_id, area_id) in self.areas:
