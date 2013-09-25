@@ -498,13 +498,15 @@ class Container(object):
     # Limbo
     def _serialize_limbo(self, limbo):
         return dict(
+            game_id=limbo.game_id,
             area_id=limbo.area_id,
             room_id=limbo.room_id,
             actors=limbo.actors,
         )
 
     def _create_limbo(self, data):
-        return Limbo(data['area_id'], data['room_id'], data['actors'])
+        return Limbo(data['game_id'], data['area_id'], data['room_id'],
+            data['actors'])
 
     # Game
     def _serialize_game(self, obj):
@@ -545,12 +547,12 @@ class Container(object):
         return data
 
 
-    def save_actors_to_limbo(self, area_id, room_id, actors):
-        limbo = Limbo(area_id, room_id, actors)
+    def save_actors_to_limbo(self, game_id, area_id, room_id, actors):
+        limbo = Limbo(game_id, area_id, room_id, actors)
         self._save_object(limbo, "limbo")
 
-    def load_limbos_for(self, area_id):
-        limbos = self.dbase.filter("limbo", area_id=area_id)
+    def load_limbos_for(self, game_id, area_id):
+        limbos = self.dbase.filter("limbo", game_id=gmae_id, area_id=area_id)
         loaded = []
         for enc_dict in limbos:
             db_id = enc_dict.pop('_id')
@@ -559,8 +561,8 @@ class Container(object):
             loaded.append(obj)
         return loaded
 
-    def remove_limbos_for(self, area_id):
-        self.dbase.remove("limbo", area_id=area_id)
+    def remove_limbos_for(self, game_id, area_id):
+        self.dbase.remove("limbo", game_id=game_id, area_id=area_id)
 
     def list_games(self):
         return self._load_many("games")

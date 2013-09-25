@@ -41,9 +41,6 @@ if __name__ == "__main__":
         parser.add_option("-b", "--backdoor", dest="backdoor",
                 action="store_true", help="Open backdoor socket")
 
-        parser.add_option("-j", "--join", dest="join",
-            action="store_true", help="Join a cluster")
-
         (options, args) = parser.parse_args()
 
         if not os.path.exists(options.game):
@@ -61,10 +58,7 @@ if __name__ == "__main__":
 
         node = Node(options.game, host, int(port))
         node.init_container(dbhost, int(dbport))
-        if options.join:
-            node.join_cluster(options)
-        else:
-            node.init_controller(options)
+        node.join_cluster(options)
 
         if options.backdoor:
             server = gevent.backdoor.BackdoorServer(('127.0.0.1', 3000),

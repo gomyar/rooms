@@ -45,17 +45,17 @@ class NodeController(object):
     def load_from_limbo(self, area_id):
         self.node.load_from_limbo(area_id=area_id)
 
-    def manage_area(self, area_id):
+    def manage_area(self, game_id, area_id):
         log.debug("Managing area: %s", area_id)
-        self.node.manage_area(area_id)
+        self.node.manage_area(game_id, area_id)
 
     def player_joins(self, username, game_id):
         player = self.node.container.load_player(username=username,
             game_id=game_id)
-        return self.node.player_joins(player.area_id, player)
+        return self.node.player_joins(game_id, player.area_id, player)
 
-    def admin_joins(self, username, area_id, room_id):
-        return self.node.admin_joins(username, area_id, room_id)
+    def admin_joins(self, username, game_id, area_id, room_id):
+        return self.node.admin_joins(username, game_id, area_id, room_id)
 
     def _roominfo(self, room):
         info = room.external(False)
