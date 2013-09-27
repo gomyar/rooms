@@ -85,25 +85,26 @@ class WSGIServer(object):
         queue = None
         try:
             token = ws.receive()
-            admin_name = self.node.admin_by_token(token)
+            game_id, admin_name = self.node.admin_by_token(token)
             player_actor = self.node.player_by_token(token)
             if admin_name:
                 player_id = admin_name
-                queue = self.admin_connect(player_id)
+                queue = self.admin_connect(game_id, admin_name)
             elif player_actor:
                 player_id = player_actor.player.username
-                queue = self.connect(player_id)
+                game_id = player_actor.player.game_id
+                queue = self.connect(game_id, player_id)
             else:
                 log.debug("No such player for token: %s", token)
                 return
 
             log.debug("Connected to queue")
-            self.sessions[token] = player_id
+            self.sessions[token] = game_id, player_id
             log.debug("Sending sync")
             if admin_name:
-                self.admin_sync(admin_name)
+                self.admin_sync(game_id, admin_name)
             else:
-                self.send_sync(player_id)
+                self.send_sync(game_id, player_id)
             log.debug("Sync sent")
             connected = True
             while connected:
@@ -135,7 +136,8 @@ class WSGIServer(object):
         log.debug("Game call %s, %s", url, command)
         params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
         token = params.pop('token')
-        returned = self.node.call(self.sessions[token], command, params)
+        game_id, player_id = self.sessions[token]
+        returned = self.node.call(game_id, player_id, command, params)
         return _json_return(response, returned)
 
 
@@ -146,7 +148,8 @@ class WSGIServer(object):
         log.debug("Actor request call %s, %s", url, command)
         params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
         token = params.pop('token')
-        returned = self.node.actor_request(self.sessions[token],
+        game_id, player_id = self.sessions[token]
+        returned = self.node.actor_request(game_id, player_id,
             actor_id, command, params)
         return _json_return(response, returned)
 
@@ -157,11 +160,11 @@ class WSGIServer(object):
         # Expecting GET
         params = dict(urlparse.parse_qsl(environ['QUERY_STRING']))
         token = params.pop('token')
-        username = self.sessions[token]
-        if username in self.node.admins and token == \
-            self.node.admins[username]['token']:
-            admin_info = self.node.admins[username]
-            room = self.node.areas[admin_info['area_id']].rooms[
+        game_id, player_id = self.sessions[token]
+        if player_id in self.node.admins and token == \
+            self.node.admins[player_id]['token']:
+            admin_info = self.node.admins[player_id]
+            room = self.node.areas[admin_info['game_id'], admin_info['area_id']].rooms[
                 admin_info['room_id']]
             return _json_return(response, room.external())
         else:
@@ -200,14 +203,10 @@ class WSGIServer(object):
         response('301 Moved Permanently', [ ('location', path) ])
         return ""
 
-    def send_update(self, player_id, command, **kwargs):
-        if player_id in self.player_queues:
-            self.player_queues[player_id].put(dict(command=command,
+    def send_update(self, game_id, player_id, command, **kwargs):
+        if (game_id, player_id) in self.player_queues:
+            self.player_queues[game_id, player_id].put(dict(command=command,
                 kwargs=kwargs))
-
-    def send_to_players(self, player_ids, command, **kwargs):
-        for player_id in player_ids:
-            self.send_update(player_id, command, **kwargs)
 
     def send_to_admins(self, command, **kwargs):
         for admin_name in self.node.admins:
@@ -215,11 +214,11 @@ class WSGIServer(object):
                 self.admin_queues[admin_name].put(dict(command=command,
                     kwargs=kwargs))
 
-    def send_sync(self, player_id):
-        self.player_queues[player_id].put(self._sync(player_id))
+    def send_sync(self, game_id, player_id):
+        self.player_queues[game_id, player_id].put(self._sync(game_id, player_id))
 
-    def _sync(self, player_id):
-        player = self.node.players[player_id]['player']
+    def _sync(self, game_id, player_id):
+        player = self.node.players[game_id, player_id]['player']
         return {
             "command": "sync",
             "kwargs" : {
@@ -232,12 +231,13 @@ class WSGIServer(object):
             }
         }
 
-    def admin_sync(self, admin_name):
-        self.admin_queues[admin_name].put(self._admin_sync(admin_name))
+    def admin_sync(self, game_id, admin_name):
+        self.admin_queues[game_id, admin_name].put(
+            self._admin_sync(game_id, admin_name))
 
-    def _admin_sync(self, admin_name):
-        admin = self.node.admins[admin_name]
-        room = self.node.areas[admin['area_id']].rooms[admin['room_id']]
+    def _admin_sync(self, game_id, admin_name):
+        admin = self.node.admins[game_id, admin_name]
+        room = self.node.areas[game_id, admin['area_id']].rooms[admin['room_id']]
         return {
             "command": "sync",
             "kwargs" : {
@@ -249,31 +249,31 @@ class WSGIServer(object):
             }
         }
 
-    def connect(self, player_id):
+    def connect(self, game_id, player_id):
         log.debug("Connecting %s", player_id)
-        self.node.players[player_id]['connected'] = True
+        self.node.players[game_id, player_id]['connected'] = True
         if player_id in self.player_queues:
             log.debug("Disconnecting existing player %s", player_id)
-            self.disconnect(player_id)
+            self.disconnect(game_id, player_id)
         queue = gevent.queue.Queue()
-        self.player_queues[player_id] = queue
+        self.player_queues[game_id, player_id] = queue
         return queue
 
-    def admin_connect(self, admin_name):
-        log.debug("Connecting %s", admin_name)
-        self.node.admins[admin_name]['connected'] = True
+    def admin_connect(self, game_id, admin_name):
+        log.debug("Connecting %s: %s", game_id, admin_name)
+        self.node.admins[game_id, admin_name]['connected'] = True
         queue = gevent.queue.Queue()
-        self.admin_queues[admin_name] = queue
+        self.admin_queues[game_id, admin_name] = queue
         return queue
 
-    def disconnect(self, player_id):
-        log.debug("Disconnecting %s", player_id)
-        queue = self.player_queues.pop(player_id)
+    def disconnect(self, game_id, player_id):
+        log.debug("Disconnecting %s %s", game_id, player_id)
+        queue = self.player_queues.pop(game_id, player_id)
         queue.put(dict(command='disconnect'))
 
     def disconnect_queue(self, queue):
-        for player_id, q in self.player_queues.items():
+        for (game_id, player_id), q in self.player_queues.items():
             if q == queue:
-                self.player_queues.pop(player_id)
+                self.player_queues.pop(game_id, player_id)
         # disconnect admin
 

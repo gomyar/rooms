@@ -104,9 +104,9 @@ class Node(object):
         log.debug("Player joins: %s at %s", player, area_id)
         player_id = player.username
         player_actor = self.areas[game_id, area_id].rooms[player.room_id].actors.get(player.actor_id)
-        if player_id not in self.players and not player_actor:
-            self.players[player_id] = dict(connected=False,
-                token=self._create_token(player_id))
+        if (game_id, player_id) not in self.players and not player_actor:
+            self.players[game_id, player_id] = dict(connected=False,
+                token=self._create_token("%s_%s" % (game_id, player_id)))
 
             actor = PlayerActor(player)
             actor.server = self.server
@@ -115,7 +115,7 @@ class Node(object):
             game = self._get_game(game_id)
             self.container.save_player(player)
             actor.load_script(self.player_script)
-            self.players[player_id]['player'] = actor
+            self.players[game_id, player_id]['player'] = actor
             area = self.areas[game_id, player.area_id]
             log.debug(" *********** putting actor %s", actor)
             area.rooms[player.room_id].put_actor(actor)
@@ -126,33 +126,36 @@ class Node(object):
             log.info("Player joined: %s", player_id)
         elif player_actor:
             player_actor.server = self.server
-            self.players[player_id] = dict(connected=False,
-                token=self._create_token(player_id))
-            self.players[player_id]['player'] = player_actor
+            self.players[game_id, player_id] = dict(connected=False,
+                token=self._create_token("%s_%s" % (game_id, player_id)))
+            self.players[game_id, player_id]['player'] = player_actor
             log.debug("Player already in room: %s", player_id)
         else:
             log.debug("Player already here: %s", player_id)
-        return dict(token=self.players[player_id]['token'])
+        return dict(token=self.players[game_id, player_id]['token'])
 
     def admin_joins(self, username, game_id, area_id, room_id):
         log.debug("Admin joins: %s at %s / %s / %s", username, game_id, area_id,
             room_id)
         token=self._create_token(username + "ADMIN")
-        self.admins[username] = dict(connected=False, token=token,
+        self.admins[game_id, username] = dict(connected=False, token=token,
             game_id=game_id, area_id=area_id, room_id=room_id)
         return dict(token=token)
 
     def is_admin_token(self, token):
-        return token in self.admins
+        for admin in self.admins.values():
+            if token == admin['token']:
+                return True
+        return False
 
-    def _create_token(self, player_id):
-        return player_id
+    def _create_token(self, token_salt):
+        return token_salt
 
     def admin_by_token(self, token):
-        for key, admin in self.admins.items():
+        for (game_id, username), admin in self.admins.items():
             if admin['token'] == token:
-                return key
-        return None
+                return game_id, username
+        return None, None
 
     def player_by_token(self, token):
         for player in self.players.values():
@@ -160,11 +163,11 @@ class Node(object):
                 return player['player']
         return None
 
-    def deregister(self, player_id):
-        log.debug("Deregistering %s", player_id)
-        self.server.disconnect(player_id)
-        self.players.pop(player_id)
-        log.info("Player left: %s", player_id)
+    def deregister(self, game_id, player_id):
+        log.debug("Deregistering %s %s", game_id, player_id)
+        self.server.disconnect(game_id, player_id)
+        self.players.pop(game_id, player_id)
+        log.info("Player left: %s %s", game_id, player_id)
 
     def shutdown(self):
         if self.client:
@@ -172,15 +175,8 @@ class Node(object):
         if self.save_manager:
             self.save_manager.shutdown()
 
-    def find(self, player_id):
-        for area in self.area.values():
-            for room in area.rooms._rooms.values():
-                if player_id in room.actors:
-                    return room.actors[player_id]
-        return None
-
-    def call(self, player_id, command, kwargs):
-        actor = self.players[player_id]['player']
+    def call(self, game_id, player_id, command, kwargs):
+        actor = self.players[game_id, player_id]['player']
         if command == "api":
             return actor.api()
         else:
@@ -197,12 +193,13 @@ class Node(object):
     def kill_player(self, player_actor):
         actor_id = player_actor.actor_id
         player = player_actor.player
+        player.game_id = None
         player.room_id = None
         player.actor_id = None
         player.area_id = None
         self.container.save_player(player)
         self.server.send_update(player.username, 'kill')
-        self.deregister(player.username)
+        self.deregister(player.username, player.game_id)
 
     def move_actors_to_limbo(self, exit_area_id, exit_room_id, actors):
         self.container.save_actors_to_limbo(exit_area_id, exit_room_id, actors)

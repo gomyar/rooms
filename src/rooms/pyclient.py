@@ -103,9 +103,9 @@ class RoomsConnection(object):
         ticks = local_now - self.local_time
         return ticks + self.server_time
 
-    def create_game(self, owner_username, game_id=None, **options):
+    def create_game(self, owner_username, **options):
         return self.master.create_game(owner_username=owner_username,
-            game_id=game_id, **options)
+            **options)
 
     def end_game(self, owner_username, game_id=None):
         raise NotImplemented("")

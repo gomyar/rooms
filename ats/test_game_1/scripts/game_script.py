@@ -1,6 +1,10 @@
 
 from rooms.item_registry import Item
 
+def player_joins(game, player):
+    player.area_id = "area1"
+    player.room_id = "room1"
+
 
 def create_game(game):
     area1 = game.create_area("area1")

@@ -44,34 +44,30 @@ class PlayerActor(Actor):
         self.add_log(msg, *args)
 
     def send_update(self, update_id, **kwargs):
-        self.server.send_update(self.player.username, update_id, **kwargs)
+        self.server.send_update(self.player.game_id, self.player.username,
+            update_id, **kwargs)
 
     def _update(self, update_id, **kwargs):
         self.send_update(update_id, **kwargs)
 
     def docked_actor_update(self, actor):
-        self.server.send_update(self.player.username, "actor_update",
-            **actor.internal())
+        self.send_update("actor_update", **actor.internal())
 
     def actor_updated(self, actor):
         if actor.is_child(self):
-            self.server.send_update(self.player.username, "actor_update",
-                **actor.internal())
+            self.send_update("actor_update", **actor.internal())
         else:
-            self.server.send_update(self.player.username, "actor_update",
-                **actor.external())
+            self.send_update("actor_update", **actor.external())
 
     def actor_added(self, actor):
         self.actor_updated(actor)
 
     def send_actor_update(self):
         super(PlayerActor, self).send_actor_update()
-        self.server.send_update(self.player.username, "actor_update",
-            **self.internal())
+        self.send_update("actor_update", **self.internal())
 
     def actor_removed(self, actor):
-        self.server.send_update(self.player.username, "remove_actor",
-            actor_id=actor.actor_id)
+        self.send_update("remove_actor", actor_id=actor.actor_id)
 
     def actor_heard(self, actor, message):
         msg = "You say :" if self == actor else "%s says :" % (actor.actor_id,)

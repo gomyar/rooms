@@ -104,11 +104,13 @@ class Master(object):
         return dict(host=node.external_host, port=node.external_port,
             token=response['token'])
 
-    def player_info(self, username):
+    def player_info(self, username, game_id):
         ''' Request info for player Games '''
-        players = self.container.list_players_for_user(username)
-        return [{'game_id': player.game_id, 'area_id': player.area_id} for \
-            player in players]
+        player = self.container.load_player(username, game_id)
+        if player:
+            return {'game_id': player.game_id, 'area_id': player.area_id}
+        else:
+            return None
 
     def register_node(self, host, port, external_host, external_port):
         self.nodes[host, port] = RegisteredNode(host, port, external_host,
@@ -153,9 +155,8 @@ class Master(object):
         node.client.send_message(from_actor_id=from_actor_id, actor_id=actor_id,
             game_id=game_id, area_id=area_id, room_id=room_id, message=message)
 
-
     def admin_list_areas(self):
-        return self.areas
+        return dict([(str(k), v) for k, v in self.areas.items()])
 
     def admin_show_nodes(self):
         return sorted(self.nodes.keys())

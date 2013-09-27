@@ -44,12 +44,14 @@ class RoomsTestRunner(object):
         root_dir = os.path.realpath(os.path.dirname(self.test_script_path))
         return os.path.join(root_dir, self.game_dir_path)
 
+    def game_conf(self):
+        return os.path.join(self.game_dir(), "game.conf")
+
     def _start_master(self):
-        self.master = subprocess.Popen(["/usr/local/bin/rooms",
-            "-c", "localhost:9000",
-            "-i", "localhost:9001",
-            "-a", "localhost:9002",
-            "-g", self.game_dir()])
+        self.master = subprocess.Popen(["/usr/local/bin/rooms_master",
+            "-a", "localhost:9000",
+            "-g", self.game_conf()])
+        time.sleep(1)
 
     def _start_node(self, offset):
         self.nodes.append(subprocess.Popen(["/usr/local/bin/rooms",
@@ -57,7 +59,7 @@ class RoomsTestRunner(object):
             "-i", "localhost:7%03d" % (offset + 80,),
             "-a", "localhost:8%03d" % (offset + 80,),
             "-g", self.game_dir(),
-            "-j"]))
+            ]))
 
     def start_game(self, node_count=1):
         # start master

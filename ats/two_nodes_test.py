@@ -13,15 +13,14 @@ class TwoNodesTest(unittest.TestCase):
         self.game.stop_game()
 
     def testTwoNodes(self):
-        self.conn.create_game(owner_username="bob",
-            game_id="735700000000000000000000")
+        game_id = self.conn.create_game(owner_username="bob")
 
-        info = self.conn.player_info("bob", "735700000000000000000000")
+        info = self.conn.player_info("bob", game_id)
         if not info:
-            self.conn.join_game("bob", "735700000000000000000000", "area1",
+            self.conn.join_game("bob", game_id, "area1",
                 "room1", start_state="some value")
         else:
-            self.conn.connect_to_game("bob", "735700000000000000000000")
+            self.conn.connect_to_game("bob", game_id)
 
         wait_for_sync(self.conn)
 
