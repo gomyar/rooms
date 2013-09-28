@@ -130,7 +130,7 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals(2, len(self.dbase.dbases['areas']))
         self.assertEquals(3, len(self.dbase.dbases['rooms']))
 
-        self.container.delete_game(game.game_id)
+        self.container.remove_game(game.game_id)
         self.assertEquals(0, len(self.dbase.dbases['games']))
         self.assertEquals(0, len(self.dbase.dbases['areas']))
         self.assertEquals(0, len(self.dbase.dbases['rooms']))
