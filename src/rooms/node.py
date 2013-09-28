@@ -95,7 +95,8 @@ class Node(object):
         self.server.serve_forever()
 
     def manage_area(self, game_id, area_id):
-        self.areas[game_id, area_id] = self.container.load_area(area_id)
+        self.areas[game_id, area_id] = self.container.load_area(game_id,
+            area_id)
         self.areas[game_id, area_id].node = self
         self.areas[game_id, area_id].game = self._get_game(game_id)
         # kickoff maybe

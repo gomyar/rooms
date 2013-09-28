@@ -5,33 +5,7 @@ import unittest
 from rooms.master import Master
 from rooms.master import RegisteredNode
 from rooms.container import Container
-
-
-class MockDbase(object):
-    def __init__(self):
-        self.dbases = dict()
-
-    def load_object(self, obj_id, dbase_name):
-        return self.dbases.get(dbase_name, dict()).get(obj_id)
-
-    def save_object(self, obj_dict, dbase_name, db_id):
-        obj_dict = obj_dict.copy()
-        if dbase_name not in self.dbases:
-            self.dbases[dbase_name] = dict()
-        db_id = db_id or dbase_name + "_" + str(len(self.dbases[dbase_name]))
-        obj_dict['_id'] = db_id
-        self.dbases[dbase_name][db_id] = obj_dict
-        return db_id
-
-    def filter(self, dbase_name, **fields):
-        found = self.dbases.get(dbase_name, dict()).values()
-        found = [o for o in found if all([i in o.items() for i in fields.items()])]
-        found = [o.copy() for o in found]
-        return found
-
-    def filter_one(self, dbase_name, **fields):
-        result = self.filter(dbase_name, **fields)
-        return result[0] if result else None
+from rooms.container_test import MockDbase
 
 
 class MockGameScript(object):
@@ -83,6 +57,9 @@ class MockNodeClient(object):
     def admin_joins(self, username, game_id, area_id, room_id):
         self.admins.append(username)
         return dict(token="ADMIN")
+
+    def stop_game(self, game_id):
+        self.stop_called = game_id
 
 
 class MasterTest(unittest.TestCase):
@@ -230,7 +207,7 @@ class MasterTest(unittest.TestCase):
         game = self.master.create_game("owner")
         result = self.master.join_game("bob", "games_0")
 
-        self.assertEquals({("games_0", 'area1'):
+        self.assertEquals({"games_0:area1":
             {'area_id': 'area1', "game_id": "games_0",
             'node': ('localhost', 8000)}},
             self.master.admin_list_areas())
@@ -260,3 +237,16 @@ class MasterTest(unittest.TestCase):
         self.assertEquals({'game_id': 'games_0', 'area_id': 'area1',
             "mock": True},
             self.master.admin_show_area("games_0", "area1"))
+
+    def testEndGame(self):
+        self.mock_node = MockNodeClient()
+        self.master.nodes[('localhost', 8000)] = self.mock_node
+
+        game = self.master.create_game("owner")
+        result = self.master.join_game("bob", "games_0")
+
+        self.master.end_game("bob", "games_0")
+
+        self.assertEquals("games_0", self.mock_node.stop_called)
+        self.assertEquals({'areas': {}, 'games': {}, 'players': {},
+            'rooms': {}}, self.dbase.dbases)

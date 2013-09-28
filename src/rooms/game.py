@@ -8,6 +8,7 @@ class Game(object):
         self._id = None
         self.owner_id = owner_id
         self.config = config or dict()
+        self.running = True
 
         self.players = dict()
         self.area_map = dict()

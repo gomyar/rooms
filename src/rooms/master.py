@@ -70,6 +70,19 @@ class Master(object):
         self.container.save_game(game)
         return str(game._id)
 
+    def end_game(self, owner_username, game_id):
+        game = self.container.load_game(game_id)
+        game.running = False
+        self.container.save_game(game)
+        game_nodes = self._nodes_for_game(game_id)
+        for node in game_nodes:
+            self.nodes[node['node']].client.stop_game(game_id)
+        self.container.remove_game(game_id)
+
+    def _nodes_for_game(self, game_id):
+        return [node for ((g_id, a_id), node) in self.areas.items() if \
+            game_id == g_id]
+
     def list_games(self):
         ''' User request a list of all current Games '''
         games = self.container.list_games()
@@ -80,7 +93,7 @@ class Master(object):
             'start_areas': game.start_areas}
 
     def join_game(self, username, game_id, **state):
-        game = self.container.load_game(game_id)
+        game = self._load_game(game_id)
         if username in game.players:
             raise Exception("User %s already joined game %s" % (username,
                 game_id))
@@ -95,7 +108,18 @@ class Master(object):
         return dict(host=node.external_host, port=node.external_port,
             token=response['token'])
 
+    def _load_game(self, game_id):
+        game = self.container.load_game(game_id)
+        if not game.running:
+            raise Exception("Game %s no longer running" % (game_id,))
+        else:
+            return game
+
     def connect_to_game(self, username, game_id):
+        game = self._load_game(game_id)
+        if username not in game.players:
+            raise Exception("User has not joined game %s" % (username,
+                game_id))
         player = self.container.load_player(username, game_id)
         if not player:
             raise Exception("Player %s not in game %s" % (username, game_id))
@@ -154,7 +178,7 @@ class Master(object):
             game_id=game_id, area_id=area_id, room_id=room_id, message=message)
 
     def admin_list_areas(self):
-        return dict([(str(k), v) for k, v in self.areas.items()])
+        return dict([("%s:%s" % k, v) for k, v in self.areas.items()])
 
     def admin_show_nodes(self):
         return sorted(self.nodes.keys())

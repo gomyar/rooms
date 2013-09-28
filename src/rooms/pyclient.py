@@ -107,10 +107,7 @@ class RoomsConnection(object):
         return self.master.create_game(owner_username=owner_username,
             **options)
 
-    def end_game(self, owner_username, game_id=None):
-        raise NotImplemented("")
-
-    def delete_game(self, owner_username, game_id):
+    def end_game(self, owner_username, game_id):
         raise NotImplemented("")
 
     def list_games(self, owner_username):

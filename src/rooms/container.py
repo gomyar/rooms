@@ -93,6 +93,17 @@ class Container(object):
         game.area_map = area_map
         return self._save_object(game, "games")
 
+    def remove_game(self, game_id):
+        game = self.load_game(game_id)
+        for username, player_id in game.players.items():
+            self.dbase.remove("players", username=username, game_id=game_id)
+        for area_id in game.area_map:
+            area = self.load_area(game_id, area_id)
+            for room_info in area._room_map.values():
+                self.dbase.remove("rooms", _id=room_info['dbase_id'])
+            self.dbase.remove("areas", game_id=game_id, area_id=area_id)
+        self.dbase.remove("games", _id=game._id)
+
     def _load_filter(self, collection, **fields):
         enc_dict = self.dbase.filter_one(collection, **fields)
         if enc_dict:
@@ -110,8 +121,8 @@ class Container(object):
         enc_dicts = self.dbase.filter(collection, **fields)
         return [self._decode_enc_dict(obj) for obj in enc_dicts]
 
-    def load_area(self, area_id):
-        area = self._load_filter("areas", area_id=area_id)
+    def load_area(self, game_id, area_id):
+        area = self._load_filter("areas", game_id=game_id, area_id=area_id)
         area.rooms = RoomContainer(area, self)
         area.rooms._room_map = area._room_map
         return area
@@ -139,8 +150,7 @@ class Container(object):
                 game_id=game_id):
             return self.load_player(username, game_id)
         else:
-            player = Player(username)
-            player.game_id = game_id
+            player = Player(username, game_id)
             self.save_player(player)
             return player
 
@@ -158,7 +168,7 @@ class Container(object):
             room_id=room_id)
 
     def remove_actor(self, room, actor):
-        self.dbase.remove_object(room, "rooms", "actors.%s" % (
+        self.dbase.remove(room, "rooms", "actors.%s" % (
             actor.actor_id,))
 
     def _save_object(self, saved_object, dbase_name):
@@ -510,12 +520,20 @@ class Container(object):
 
     # Game
     def _serialize_game(self, obj):
+        area_map = dict()
+        for area_id, area in obj.area_map.items():
+            if type(area) is Area and hasattr(area, "_id"):
+                area_map[area_id] = str(area._id)
+            else:
+                area_map[area_id] = str(area)
+
         data = dict(
             owner_id = obj.owner_id,
             start_areas = obj.start_areas,
             item_registry = obj.item_registry,
-            area_map = dict(),
+            area_map = area_map,
             players = obj.players,
+            running = obj.running,
         )
         return data
 
@@ -525,6 +543,7 @@ class Container(object):
         game.item_registry = data['item_registry']
         game.area_map = data['area_map']
         game.players = data['players']
+        game.running = data['running']
         return game
 
 
