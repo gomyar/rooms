@@ -116,8 +116,8 @@ class RoomsConnection(object):
     def list_games(self, owner_username):
         raise NotImplemented("")
 
-    def player_info(self, username, game_id):
-        return self.master.player_info(username=username, game_id=game_id)
+    def player_info(self, username):
+        return self.master.player_info(username=username)
 
     def join_game(self, username, game_id, area_id, room_id, **state):
         node = self.master.join_game(username=username, game_id=game_id,
