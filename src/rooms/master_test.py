@@ -242,7 +242,7 @@ class MasterTest(unittest.TestCase):
         self.mock_node = MockNodeClient()
         self.master.nodes[('localhost', 8000)] = self.mock_node
 
-        game = self.master.create_game("owner")
+        game = self.master.create_game("bob")
         result = self.master.join_game("bob", "games_0")
 
         self.master.end_game("bob", "games_0")

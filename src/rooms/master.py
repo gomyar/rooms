@@ -72,6 +72,8 @@ class Master(object):
 
     def end_game(self, owner_username, game_id):
         game = self.container.load_game(game_id)
+        if owner_username != game.owner_id:
+            raise Exception("Not the owner of the game, cannot end")
         game.running = False
         self.container.save_game(game)
         game_nodes = self._nodes_for_game(game_id)

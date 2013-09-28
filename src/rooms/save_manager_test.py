@@ -65,7 +65,7 @@ class SaveManagerTest(unittest.TestCase):
 
 
     def testSaveWithPlayer(self):
-        player = Player("bob")
+        player = Player("bob", "games_0")
         player_actor = PlayerActor(player)
         self.room1.put_actor(player_actor)
 
@@ -80,7 +80,7 @@ class SaveManagerTest(unittest.TestCase):
         self.assertEquals([player_actor], self.container.updated)
 
     def testShutdown(self):
-        player = Player("bob")
+        player = Player("bob", "games_0")
         player_actor = PlayerActor(player)
         self.room1.put_actor(player_actor)
 
@@ -88,7 +88,7 @@ class SaveManagerTest(unittest.TestCase):
         self.area.rooms['room2'] = self.room2
         self.room2.area = self.area
 
-        player2 = Player("bob")
+        player2 = Player("bob", "games_0")
         player_actor2 = PlayerActor(player2)
         self.room2.put_actor(player_actor2)
 

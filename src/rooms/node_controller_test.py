@@ -44,21 +44,21 @@ class MockNode(object):
     def load_from_limbo(self, area_id):
         self.limbo_loaded = area_id
 
-    def manage_area(self, area_id):
+    def manage_area(self, game_id, area_id):
         self.managed_area = area_id
 
-    def player_joins(self, area_id, player):
+    def player_joins(self, game_id, area_id, player):
         self.players[player.username] = player
 
-    def admin_joins(self, username, area_id, room_id):
-        self.admin = (username, area_id, room_id)
+    def admin_joins(self, username, game_id, area_id, room_id):
+        self.admin = (username, game_id, area_id, room_id)
 
 
 class NodeControllerTest(unittest.TestCase):
     def setUp(self):
         self.master = MockMaster()
         self.container = MockContainer()
-        self.player = Player("bob")
+        self.player = Player("bob", "games_0")
         self.player.area_id = "area1"
         self.container.players["bob", "game1"] = self.player
         self.node = MockNode("node1.com", 80, self.container)
@@ -90,7 +90,7 @@ class NodeControllerTest(unittest.TestCase):
         self.assertEquals("area1", self.node.limbo_loaded)
 
     def testManageArea(self):
-        self.controller.manage_area("area1")
+        self.controller.manage_area("games_0", "area1")
 
         self.assertEquals("area1", self.node.managed_area)
 
@@ -100,9 +100,9 @@ class NodeControllerTest(unittest.TestCase):
         self.assertEquals(dict(bob=self.player), self.node.players)
 
     def testAdminJoins(self):
-        self.controller.admin_joins("bob", "area1", "room1")
+        self.controller.admin_joins("bob", "games_0", "area1", "room1")
 
-        self.assertEquals(("bob", "area1", "room1"), self.node.admin)
+        self.assertEquals(("bob", "games_0", "area1", "room1"), self.node.admin)
 
     def testAdminShowArea(self):
         area = Area()

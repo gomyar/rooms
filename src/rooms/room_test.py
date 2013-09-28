@@ -117,7 +117,7 @@ class RoomTest(unittest.TestCase):
     def testCanIcicle(self):
         self.assertFalse(self.room1.has_active_players())
 
-        self.player = PlayerActor(Player('bob'), "player1")
+        self.player = PlayerActor(Player('bob', 'games_0'), "player1")
         self.room1.put_actor(self.player)
 
         self.assertTrue(self.room1.has_active_players())
