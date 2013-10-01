@@ -152,7 +152,7 @@ class Room(object):
 
     def send_to_admins(self, update_id, **kwargs):
         if self.area and self.area.node:
-            self.area.node.server.send_to_admins(update_id,
+            self.area.node.server.send_to_admins(self.area, update_id,
                 **kwargs)
 
     def _send_update(self, actor, update_id, **kwargs):

@@ -208,10 +208,13 @@ class WSGIServer(object):
             self.player_queues[game_id, player_id].put(dict(command=command,
                 kwargs=kwargs))
 
-    def send_to_admins(self, command, **kwargs):
-        for admin_name in self.node.admins:
-            if admin_name in self.admin_queues:
-                self.admin_queues[admin_name].put(dict(command=command,
+    def send_to_admins(self, area, command, **kwargs):
+        log.debug("Sending admin command: %s area:%s game:%s", command, area.area_id, area.game_id)
+        for game_id, username in self.node.admins:
+            if (game_id, username) in self.admin_queues and \
+                    game_id == area.game_id:
+                log.debug("Sending admin command %s to %s:%s", command, game_id, username)
+                self.admin_queues[game_id, username].put(dict(command=command,
                     kwargs=kwargs))
 
     def send_sync(self, game_id, player_id):
