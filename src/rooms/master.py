@@ -4,6 +4,9 @@ from rooms.wsgi_rpc import WSGIRPCClient
 from rooms.player import Player
 from rooms.wsgi_rpc import WSGIRPCServer
 
+import logging
+log = logging.getLogger("rooms.master")
+
 
 class RegisteredNode(object):
     def __init__(self, host, port, external_host, external_port):
@@ -181,7 +184,7 @@ class Master(object):
             game_id=game_id, area_id=area_id, room_id=room_id, message=message)
 
     def admin_list_areas(self):
-        return dict([("%s:%s" % k, v) for k, v in self.areas.items()])
+        return self.areas.values()
 
     def admin_show_nodes(self):
         return sorted(self.nodes.keys())

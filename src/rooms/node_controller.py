@@ -64,11 +64,11 @@ class NodeController(object):
             p['connected'] and p['player'].room.room_id == room.room_id])
         return info
 
-    def admin_show_area(self, area_id):
-        area = self.node.areas[area_id]
+    def admin_show_area(self, game_id, area_id):
+        area = self.node.areas[game_id, area_id]
         rooms = dict([(room.room_id, self._roominfo(room)) for room in \
             area.rooms.values()])
-        return dict(active_rooms=rooms, area_id=area_id,
+        return dict(active_rooms=rooms, area_id=area_id, game_id=game_id,
             node_addr=self.node.host, node_port=self.node.port)
 
     def stop_game(self, game_id):
