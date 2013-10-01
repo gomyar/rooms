@@ -147,8 +147,6 @@ class Room(object):
 
     def _send_actor_update(self, actor):
         if actor.visible:
-            log.debug("  ++++++++++++ %s updating", actor)
-            log.debug("  is %s", actor.path)
             self.visibility_grid.send_update_actor(actor)
         self.send_to_admins("actor_update", **actor.internal())
 

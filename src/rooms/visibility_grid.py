@@ -113,7 +113,6 @@ class VisibilityGrid(object):
                 listener._update(update_id, **kwargs)
 
     def send_update_actor(self, actor):
-        log.debug("   ---   visibility_grid.send_update_actor(%s)", actor)
         if actor.visible_to_all:
             for target in self.registered.keys():
                 target.actor_updated(actor)
@@ -229,10 +228,7 @@ class OpenVisibilityGrid(object):
             target._update(update_id, **kwargs)
 
     def send_update_actor(self, actor):
-        log.debug("   ---   opengrid.send_update_actor(%s)", actor)
-        log.debug("      --- registered: %s", self.registered)
         for target in self.registered.values():
-            log.debug("         --- %s.actor_updated(%s)", target, actor)
             target.actor_updated(actor)
 
     def remove_actor(self, actor):

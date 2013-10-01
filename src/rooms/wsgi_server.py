@@ -268,7 +268,7 @@ class WSGIServer(object):
 
     def disconnect(self, game_id, player_id):
         log.debug("Disconnecting %s %s", game_id, player_id)
-        queue = self.player_queues.pop(game_id, player_id)
+        queue = self.player_queues.pop((game_id, player_id))
         queue.put(dict(command='disconnect'))
 
     def disconnect_queue(self, queue):
@@ -277,3 +277,7 @@ class WSGIServer(object):
                 self.player_queues.pop(game_id, player_id)
         # disconnect admin
 
+    def disconnect_game(self, game_id):
+        for (g_id, player_id), q in self.player_queues.items():
+            if g_id == game_id:
+                self.disconnect(g_id, player_id)

@@ -118,7 +118,6 @@ class Node(object):
             actor.load_script(self.player_script)
             self.players[game_id, player_id]['player'] = actor
             area = self.areas[game_id, player.area_id]
-            log.debug(" *********** putting actor %s", actor)
             area.rooms[player.room_id].put_actor(actor)
             if "created" in actor.script:
                 actor.script.created(actor)
@@ -232,3 +231,15 @@ class Node(object):
 
     def start_script_listener(self):
         gevent.spawn(_script_listener)
+
+    def stop_game_gthreads(self, game_id):
+        for (g_id, a_id), area in self.areas.items():
+            for room_id, room in area.rooms._rooms.items():
+                for actor_id, actor in room.actors.items():
+                    actor.kill_gthread()
+                    actor._kill_move_gthread()
+
+    def remove_areas(self, game_id):
+        for g_id, a_id in self.areas.keys():
+            if g_id == game_id:
+                self.areas.pop((g_id, a_id))

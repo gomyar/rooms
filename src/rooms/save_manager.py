@@ -1,5 +1,6 @@
 
 import gevent
+from gevent.event import Event
 
 import logging
 log = logging.getLogger("rooms.savemanager")
@@ -15,9 +16,13 @@ class SaveManager(object):
 
     def run_save(self):
         while self.queue and self.running:
-            actor = self.queue.pop(0)
-            if actor.room:
-                self.container.update_actor(actor)
+            item = self.queue.pop(0)
+            if type(item) is Event:
+                item.set()
+            else:
+                actor = item
+                if actor.room:
+                    self.container.update_actor(actor)
             gevent.sleep(0.1)
             self.check_invalid_rooms()
         gevent.sleep(0.1)
@@ -81,3 +86,8 @@ class SaveManager(object):
                 area.rooms.pop(room.room_id)
             self.container.save_area(area)
         log.debug("Save manager shut down")
+
+    def wait_for_mark(self):
+        event = Event()
+        self.queue.append(event)
+        event.wait()

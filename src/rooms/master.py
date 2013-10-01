@@ -20,7 +20,7 @@ class RegisteredNode(object):
             and self.external_port == self.external_port
 
     def __repr__(self):
-        return "<TegisteredNode %s:%s %s %s>" % (self.host, self.port,
+        return "<RegisteredNode %s:%s %s %s>" % (self.host, self.port,
             self.external_host, self.external_port)
 
     def external(self):
@@ -47,6 +47,7 @@ class Master(object):
 
                 create_game=self.create_game,
                 list_games=self.list_games,
+                end_game=self.end_game,
 
                 join_game=self.join_game,
                 player_info=self.player_info,
@@ -78,7 +79,7 @@ class Master(object):
         self.container.save_game(game)
         game_nodes = self._nodes_for_game(game_id)
         for node in game_nodes:
-            self.nodes[node['node']].client.stop_game(game_id)
+            self.nodes[node['node']].client.stop_game(game_id=game_id)
         self.container.remove_game(game_id)
 
     def _nodes_for_game(self, game_id):

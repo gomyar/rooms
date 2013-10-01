@@ -33,6 +33,7 @@ class NodeController(object):
                 admin_show_area=self.admin_show_area,
                 load_from_limbo=self.load_from_limbo,
                 send_message=self.send_message,
+                stop_game=self.stop_game,
                 ))
 
     def start(self):
@@ -69,3 +70,16 @@ class NodeController(object):
             area.rooms.values()])
         return dict(active_rooms=rooms, area_id=area_id,
             node_addr=self.node.host, node_port=self.node.port)
+
+    def stop_game(self, game_id):
+        # disconnect all queues for game
+        self.node.server.disconnect_game(game_id)
+
+        # stop all gthreads
+        self.node.stop_game_gthreads(game_id)
+
+        # remove all areas / rooms
+        self.node.remove_areas(game_id)
+
+        # wait for rooms to finish serializing
+        self.node.save_manager.wait_for_mark()

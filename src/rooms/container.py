@@ -100,9 +100,9 @@ class Container(object):
         for area_id in game.area_map:
             area = self.load_area(game_id, area_id)
             for room_info in area._room_map.values():
-                self.dbase.remove("rooms", _id=room_info['dbase_id'])
+                self.dbase.remove_by_id("rooms", room_info['dbase_id'])
             self.dbase.remove("areas", game_id=game_id, area_id=area_id)
-        self.dbase.remove("games", _id=game._id)
+        self.dbase.remove_by_id("games", game._id)
 
     def _load_filter(self, collection, **fields):
         enc_dict = self.dbase.filter_one(collection, **fields)

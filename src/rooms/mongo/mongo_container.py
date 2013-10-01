@@ -42,6 +42,9 @@ class MongoContainer(object):
     def remove(self, collection_name, **kwargs):
         self._collection(collection_name).remove(kwargs)
 
+    def remove_by_id(self, collection_name, object_id):
+        self._collection(collection_name).remove(bson.ObjectId(object_id))
+
     def object_exists(self, dbase_name, **search_fields):
         return bool(self.filter_one(dbase_name, **search_fields))
 

@@ -62,6 +62,10 @@ class MockDbase(object):
                 keep[k] = v
         self.dbases[dbase_name] = keep
 
+    def remove_by_id(self, dbase_name, object_id):
+        dbase = self.dbases.get(dbase_name, dict())
+        dbase.pop(object_id)
+
 
 class ContainerTest(unittest.TestCase):
     def setUp(self):

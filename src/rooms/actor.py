@@ -245,7 +245,6 @@ class Actor(object):
     def send_actor_update(self):
         if self.docked_with:
             self.docked_with.docked_actor_update(self)
-        log.debug("   ---   Actor %s sending update", self)
         self.room._send_actor_update(self)
 
     def docked_actor_update(self, actor):
@@ -327,7 +326,6 @@ class Actor(object):
         self.sleep(self.path.path_end_time() - get_now())
 
     def intercept(self, actor, irange=0.0):
-        log.debug("%s Intercepting %s at range %s", self, actor, irange)
         if self.following:
             self.following.followers.remove(self)
             self.following = None
@@ -339,7 +337,6 @@ class Actor(object):
             self.following_range = irange
 
     def update_grid(self):
-        log.debug("update_grid %s", self)
         self._kill_move_gthread()
         self.move_gthread = gevent.spawn(self._update_grid, self.path)
 
@@ -353,7 +350,6 @@ class Actor(object):
         try:
             end_time = path.path_end_time()
             speed = self.path.speed()
-            log.debug("Updating grid, %s", self.room.visibility_grid)
             interval = self.room.visibility_grid.gridsize / \
                 float(speed) if speed else 0
             duration = end_time - get_now()
@@ -411,8 +407,6 @@ class Actor(object):
         if not path:
             raise Exception("No path from room %s to %s" % (self.room.room_id,
                 room_id))
-        log.debug("Actor %s moving to room %s along path %s", self, room_id,
-            path)
         for room_id in path:
             self._move_to_adjacent_room(room_id)
 
