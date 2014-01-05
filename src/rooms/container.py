@@ -168,7 +168,7 @@ class Container(object):
             room_id=room_id)
 
     def remove_actor(self, room, actor):
-        self.dbase.remove(room, "rooms", "actors.%s" % (
+        self.dbase.remove_object(room, "rooms", "actors.%s" % (
             actor.actor_id,))
 
     def _save_object(self, saved_object, dbase_name):

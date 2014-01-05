@@ -193,13 +193,12 @@ class Node(object):
     def kill_player(self, player_actor):
         actor_id = player_actor.actor_id
         player = player_actor.player
-        player.game_id = None
         player.room_id = None
         player.actor_id = None
         player.area_id = None
         self.container.save_player(player)
-        self.server.send_update(player.username, 'kill')
-        self.deregister(player.username, player.game_id)
+        self.server.send_update(player.game_id, player.username, 'kill')
+        self.deregister(player.game_id, player.username)
 
     def move_actors_to_limbo(self, exit_area_id, exit_room_id, actors):
         self.container.save_actors_to_limbo(exit_area_id, exit_room_id, actors)
