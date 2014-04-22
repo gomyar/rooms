@@ -1,0 +1,20 @@
+
+ - domain objects
+  - node
+   - player connects / disconnects
+  - room
+  - actor
+  - player
+  - game
+
+ - wsgi / websocket node
+
+ - master
+  - node attaches
+  - node detaches
+
+  - user connects to game
+    - redirect to node
+  - user disconnects
+
+ - proxy

@@ -1,0 +1,34 @@
+
+game
+ players -> _id
+ rooms
+ actors
+ maps
+
+proxy
+ master
+ node
+ node
+ ...
+
+
+node
+ - init - attach to master
+ - shutdown - detach from master
+ - wsgi_server
+   - handle requests
+   - handle websocket
+
+   - handle admin request
+   - handle admin websocket
+
+ - load room on master request
+ - unload room on master request
+
+master
+ - keep track of nodes (heartbeat)
+ - keep track of games
+ - keep track of rooms on nodes
+ - keep track of connected players
+
+ - if len(players in room) == 0 deactivate room
