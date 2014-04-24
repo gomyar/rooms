@@ -5,7 +5,9 @@ import json
 import urlparse
 import traceback
 import sys
+import inspect
 from urllib2 import URLError, HTTPError
+from functools import wraps
 
 from gevent import pywsgi
 from geventwebsocket.handler import WebSocketHandler
@@ -76,6 +78,15 @@ def _json_return(response, returned):
     return returned
 
 
+def request(func):
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        return func(*args, **kwargs)
+    wrapped.is_request = True
+    wrapped.args = inspect.getargspec(func).args
+    return wrapped
+
+
 class WSGIRPCServer(object):
     def __init__(self, host, port, exposed_methods=None,
             exposed_sockets=None):
@@ -83,6 +94,19 @@ class WSGIRPCServer(object):
         self.port = port
         self.exposed_methods = exposed_methods or dict()
         self.exposed_sockets = exposed_sockets or dict()
+        self.controllers = dict()
+
+    def add_controller(self, name, controller):
+        self.controllers[name] = controller
+
+    def controller_methods(self, name):
+        controller = self.controllers[name]
+        methods = {}
+        for field in dir(controller):
+            func = getattr(controller, field)
+            if getattr(func, "is_request", False):
+                methods[field] = {'args': func.args[1:]}
+        return methods
 
     def start(self):
         self.wsgi_server = pywsgi.WSGIServer((self.host, int(self.port)),
@@ -99,18 +123,18 @@ class WSGIRPCServer(object):
 
             log.debug("Calling %s: %s", path, params)
 
-            if path[0] in self.exposed_sockets:
-                rest_call = self.exposed_sockets[path[0]]
-                ws = environ["wsgi.websocket"]
-                returned = rest_call(ws, **params)
-                return _json_return(response, returned)
-            elif path[0] in self.exposed_methods:
-                rest_call = self.exposed_methods[path[0]]
-                returned = rest_call(**params)
-                return _json_return(response, returned)
-            else:
-                response('404 Not Found', [])
-                return "Path Not Found: %s" % (path,)
+            if path[0] in self.controllers:
+                controller = self.controllers[path[0]]
+                func = getattr(controller, path[1], None)
+                if func and  getattr(func, "is_request", False):
+                    returned = func(**params)
+                    return _json_return(response, returned)
+                if func and getattr(func, "is_websocket", False):
+                    ws = environ["wsgi.websocket"]
+                    returned = func(ws, **params)
+                    return _json_return(response, returned)
+            response('404 Not Found', [])
+            return "Path Not Found: %s" % (path,)
         except URLError, ue:
             returned = "Cannot connect to: %s" % (path,)
             response('500', [
