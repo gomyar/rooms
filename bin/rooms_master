@@ -1,0 +1,72 @@
+#!/usr/bin/env python
+
+import os
+import sys
+
+from gevent import monkey
+monkey.patch_socket()
+
+from optparse import OptionParser
+from ConfigParser import ConfigParser
+
+from rooms.master import Master
+from rooms.container import Container
+from rooms.script import Script
+from rooms.rpc import WSGIRPCServer
+
+import logging
+import logging.config
+log = logging.getLogger("rooms.master")
+
+
+if __name__ == "__main__":
+    master = None
+    try:
+        log.info("Starting server")
+        parser = OptionParser()
+
+        parser.add_option("-a", "--address", dest="address",
+            help="Address of master", default="localhost:9000")
+
+        parser.add_option("-g", "--game", dest="gameconf",
+                help="Path to game config file", default="./game.conf")
+
+        (options, args) = parser.parse_args()
+
+#        if not os.path.exists(options.gameconf):
+#            print "No game file exists at '%s'" % (options.gameconf,)
+#            sys.exit(1)
+
+#        config = ConfigParser()
+#        config.read(options.gameconf)
+
+#        sys.path.append(config.get("scripts", "root"))
+
+        if os.path.exists("logging.conf"):
+            logging.config.fileConfig("logging.conf")
+        else:
+            logging.basicConfig(level=logging.DEBUG,
+                format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+        host, port = options.address.split(":")
+        master = Master(Container(), Script())
+        server = WSGIRPCServer(host, port,
+            exposed_methods=dict(
+                register_node=master.register_node,
+                create_game=master.create_game,
+                join_game=master.join_game,
+                players_in_game=master.players_in_game,
+                is_player_in_game=master.is_player_in_game,
+                get_node=master.get_node,
+            ),
+            exposed_sockets=dict(
+                game_status=master.game_status,
+            )
+        )
+        log.info("Starting Rooms")
+        server.start()
+        server.serve_forever()
+    except:
+        log.exception("Exception starting server")
+    finally:
+        log.info("Server stopped")

@@ -9,5 +9,6 @@ setup(
     packages=find_packages("src"),
     include_package_data=True,
     package_dir= { '': 'src'},
-    install_requires=['gevent'],
+    install_requires=['gevent', 'gevent-websocket', 'ws4py'],
+    scripts=['bin/rooms_node', 'bin/rooms_master'],
 )
