@@ -87,6 +87,15 @@ def request(func):
     return wrapped
 
 
+def websocket(func):
+    @wraps(func)
+    def wrapped(ws, *args, **kwargs):
+        return func(ws, *args, **kwargs)
+    wrapped.is_websocket = True
+    wrapped.args = inspect.getargspec(func).args[1:]
+    return wrapped
+
+
 class WSGIRPCServer(object):
     def __init__(self, host, port, exposed_methods=None,
             exposed_sockets=None):
@@ -104,7 +113,8 @@ class WSGIRPCServer(object):
         methods = {}
         for field in dir(controller):
             func = getattr(controller, field)
-            if getattr(func, "is_request", False):
+            if getattr(func, "is_request", False) or \
+                getattr(func, "is_websocket", False):
                 methods[field] = {'args': func.args[1:]}
         return methods
 

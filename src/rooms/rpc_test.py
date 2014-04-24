@@ -5,11 +5,13 @@ from StringIO import StringIO
 from rpc import WSGIRPCClient
 from rpc import WSGIRPCServer
 from rpc import request
+from rpc import websocket
 
 
 class MockController(object):
     def __init__(self):
         self.called = None
+        self.ws = None
 
     @request
     def index(self, arg1):
@@ -18,6 +20,12 @@ class MockController(object):
 
     def notexposed(self, arg1):
         raise Exception("Should never be called")
+
+    @websocket
+    def websock(self, ws, arg1):
+        self.called = arg1
+        self.ws = ws
+        return "OK"
 
 
 class RPCTest(unittest.TestCase):
@@ -60,7 +68,8 @@ class RPCTest(unittest.TestCase):
         self.rpc_server = WSGIRPCServer("10.10.10.1", 8888)
         self.rpc_server.add_controller("controller1", self.mock_controller)
 
-        self.assertEquals({'index': {'args': ['arg1']}},
+        self.assertEquals({'index': {'args': ['arg1']},
+            'websock': {'args': ['arg1']}},
             self.rpc_server.controller_methods("controller1"))
 
         result = self.rpc_server.handle({'PATH_INFO': '/controller1/index',
@@ -116,4 +125,25 @@ class RPCTest(unittest.TestCase):
 
         self.assertEquals('404 Not Found', self._server_code)
 
+    def testWebsocket(self):
+        self.mock_controller = MockController()
+
+        self.rpc_server = WSGIRPCServer("10.10.10.1", 8888)
+        self.rpc_server.add_controller("controller1", self.mock_controller)
+
+        self.assertEquals({'index': {'args': ['arg1']},
+            'websock': {'args': ['arg1']}},
+            self.rpc_server.controller_methods("controller1"))
+
+        result = self.rpc_server.handle({'PATH_INFO': '/controller1/websock',
+            'wsgi.input': StringIO("arg1=howdy"), 'wsgi.websocket': 'WSOBJ'},
+            self._server_response)
+
+        self.assertEquals('200 OK', self._server_code)
+        self.assertEquals([('content-type', 'text/javascript'),
+            ('content-length', 4)], self._server_lines)
+        self.assertEquals('"OK"', result)
+
+        self.assertEquals("howdy", self.mock_controller.called)
+        self.assertEquals("WSOBJ", self.mock_controller.ws)
 
