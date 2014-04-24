@@ -3,6 +3,8 @@ from rooms.game import Game
 from rooms.player import Player
 from rooms.exception import RPCException
 from rooms.rpc import WSGIRPCServer
+from rooms.rpc import request
+from rooms.rpc import websocket
 
 
 class RegisteredNode(object):
@@ -40,6 +42,7 @@ class Master(object):
         self.container = container
         self.game_script = game_script
 
+    @request
     def register_node(self, host, port, external_host, external_port):
         self.nodes[host, port] = RegisteredNode(host, port, external_host,
             external_port, self._create_rpc_conn(host, port))
@@ -47,12 +50,14 @@ class Master(object):
     def _create_rpc_conn(self, host, port):
         return WSGIRPCServer(host, port)
 
+    @request
     def create_game(self, owner_id):
         game = Game(owner_id)
         self.container.save_game(game)
         self.games[game.game_id] = game
         return game.game_id
 
+    @request
     def join_game(self, username, game_id):
         if (username, game_id) in self.players:
             raise RPCException("Player already joined %s %s" % (username,
@@ -70,14 +75,18 @@ class Master(object):
     def _select_available_node(self):
         return min(self.nodes.values(), key=RegisteredNode.load)
 
+    @request
     def players_in_game(self, game_id):
         return self.players.values()
 
+    @request
     def is_player_in_game(self, username, game_id):
         return (username, game_id) in self.players
 
+    @request
     def get_node(self, username, game_id):
         return self.nodes[self.player_map[username, game_id]]
 
+    @websocket
     def game_status(self, ws, game_id):
         return ""

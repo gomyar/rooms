@@ -50,19 +50,8 @@ if __name__ == "__main__":
 
         host, port = options.address.split(":")
         master = Master(Container(), Script())
-        server = WSGIRPCServer(host, port,
-            exposed_methods=dict(
-                register_node=master.register_node,
-                create_game=master.create_game,
-                join_game=master.join_game,
-                players_in_game=master.players_in_game,
-                is_player_in_game=master.is_player_in_game,
-                get_node=master.get_node,
-            ),
-            exposed_sockets=dict(
-                game_status=master.game_status,
-            )
-        )
+        server = WSGIRPCServer(host, port)
+        server.add_controller("master", master)
         log.info("Starting Rooms")
         server.start()
         server.serve_forever()

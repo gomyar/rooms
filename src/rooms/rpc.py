@@ -97,12 +97,9 @@ def websocket(func):
 
 
 class WSGIRPCServer(object):
-    def __init__(self, host, port, exposed_methods=None,
-            exposed_sockets=None):
+    def __init__(self, host, port):
         self.host = host
         self.port = port
-        self.exposed_methods = exposed_methods or dict()
-        self.exposed_sockets = exposed_sockets or dict()
         self.controllers = dict()
 
     def add_controller(self, name, controller):
