@@ -1,4 +1,6 @@
 
+import gevent
+
 from rooms.game import Game
 from rooms.player import Player
 from rooms.exception import RPCException
@@ -80,6 +82,7 @@ class Master(object):
         ''' List all the games '''
         return [{"game_id": game.game_id, "owner_id": game.owner_id} for game\
             in self.games.values()]
+
     @request
     def players_in_game(self, game_id):
         return self.players.values()
@@ -94,4 +97,7 @@ class Master(object):
 
     @websocket
     def game_status(self, ws, game_id):
-        return ""
+        for i in range(25):
+            gevent.sleep(1)
+            ws.send("Sending %s" % i)
+        return "Done"

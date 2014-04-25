@@ -113,7 +113,9 @@ class WSGIRPCServer(object):
             if getattr(func, "is_request", False) or \
                 getattr(func, "is_websocket", False):
                 methods[field] = {'args': func.args[1:],
-                    'doc': func.__doc__ or ""}
+                    'doc': func.__doc__ or "",
+                    'type': 'request' if \
+                        getattr(func, "is_request", False) else "websocket"}
         return methods
 
     def start(self):
@@ -127,10 +129,6 @@ class WSGIRPCServer(object):
     def handle(self, environ, response):
         try:
             path = environ['PATH_INFO'].strip('/').split('/')
-            params = dict(urlparse.parse_qsl(environ['wsgi.input'].read()))
-
-            log.debug("Calling %s: %s", path, params)
-
             if path[0] == "_list_methods":
                 methods = {}
                 for name, controller in self.controllers.items():
@@ -140,10 +138,13 @@ class WSGIRPCServer(object):
                 controller = self.controllers[path[0]]
                 func = getattr(controller, path[1], None)
                 if func and  getattr(func, "is_request", False):
+                    params = dict(urlparse.parse_qsl(
+                        environ['wsgi.input'].read()))
                     returned = func(**params)
                     return _json_return(response, returned)
                 if func and getattr(func, "is_websocket", False):
                     ws = environ["wsgi.websocket"]
+                    params = dict(urlparse.parse_qsl(environ['QUERY_STRING']))
                     returned = func(ws, **params)
                     return _json_return(response, returned)
             response('404 Not Found', [])

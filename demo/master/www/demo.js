@@ -1,5 +1,6 @@
 
 var methods = {};
+var websocket = null;
 
 
 function show_games(data)
@@ -32,9 +33,19 @@ function show_methods(data)
                 params_div.append($("<input>", {'class': "arg", 'id': method.args[a]}));
             }
 
+            if (method.type == "request")
+            {
+                var call_input = $("<div>", {'class': 'call', 'text': "Call >>"});
+                call_input.bind("click", {"controller": c, "method": m}, perform_call);
+            }
+            else if (method.type == "websocket")
+            {
+                var call_input = $("<div>", {'class': 'callsocket', 'text': 'Connect >>'});
+                call_input.bind("click", {"controller": c, "method": m}, connect_websocket);
+            }
             method_div.append(
                 $("<div>", {'class': 'name', 'text': m}).append(
-                    $("<div>", {'class': 'call', 'text': "Call >>"}).bind("click", {"controller": c, "method": m}, perform_call)
+                    call_input
                 )
             );
             if (method.doc)
@@ -64,6 +75,48 @@ function perform_call(e)
     perform_post("/" + controller + "/" + method, args, show_call_results, show_call_error);
 }
 
+function connect_websocket(e)
+{
+    var controller = e.data.controller;
+    var method = e.data.method;
+
+    var args = "";
+
+    for (var a in methods[controller][method].args)
+    {
+        var arg = methods[controller][method].args[a];
+        var arg_input = $("#methods .controller#" + controller + " .method#" + method + " .params input#"+arg);
+        args = args + arg + "=" + arg_input.val() + "&";
+    }
+   
+    if (websocket)
+        websocket.close();
+
+    websocket = new WebSocket("ws://"+window.location.hostname+":"+window.location.port+"/" + controller + "/" + method + "?" + args);
+    websocket.onmessage = websocket_callback;
+    websocket.onopen = websocket_onopen;
+    websocket.onclose = websocket_onclose;
+    websocket.onerror = websocket_onclose;
+
+    $("#websocket").remove();
+    $("body").append($("<div>", {"id": "websocket"}));
+}
+
+function websocket_callback(msg)
+{
+    $("#websocket").append($("<div>", {"class": "msg", "text": msg.data}));
+}
+
+function websocket_onopen()
+{
+    $("#websocket").append($("<div>", {"class": "msgctrl", "text": "Connection opened"}));
+}
+
+function websocket_onclose()
+{
+    $("#websocket").append($("<div>", {"class": "msgctrl", "text": "Connection closed"}));
+}
+
 function show_call_results(data)
 {
     var text = JSON.stringify(data, null, 4);
@@ -72,7 +125,7 @@ function show_call_results(data)
     text = text.replace(/\t/, "&nbsp");
     $("#result").remove();
     $("body").append(
-        $("<div>", {"id": "result"}).html(text)
+        $("<div>", {"id": "result"}).html(text).fadeIn()
     );
 }
 
@@ -84,7 +137,7 @@ function show_call_error(error, jqxhr)
     text = text.replace(/\t/, "&nbsp");
     $("#result").remove();
     $("body").append(
-        $("<div>", {"id": "result", "class": "error"}).html(text)
+        $("<div>", {"id": "result", "class": "error"}).html(text).fadeIn()
     );
 
 }
