@@ -96,7 +96,7 @@ function connect_websocket(e)
     websocket.onmessage = websocket_callback;
     websocket.onopen = websocket_onopen;
     websocket.onclose = websocket_onclose;
-    websocket.onerror = websocket_onclose;
+    websocket.onerror = websocket_onerror;
 
     $("#websocket").remove();
     $("body").append($("<div>", {"id": "websocket"}));
@@ -115,6 +115,12 @@ function websocket_onopen()
 function websocket_onclose()
 {
     $("#websocket").append($("<div>", {"class": "msgctrl", "text": "Connection closed"}));
+}
+
+function websocket_onerror(e)
+{
+    console.log(e);
+    $("#websocket").append($("<div>", {"class": "msgerr", "text": "Connection error"}));
 }
 
 function show_call_results(data)
