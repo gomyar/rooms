@@ -72,7 +72,7 @@ def _json_return(response, returned):
     else:
         returned = "[]"
     response('200 OK', [
-        ('content-type', 'text/javascript'),
+        ('content-type', 'application/json'),
         ('content-length', len(returned)),
     ])
     return returned
@@ -112,7 +112,8 @@ class WSGIRPCServer(object):
             func = getattr(controller, field)
             if getattr(func, "is_request", False) or \
                 getattr(func, "is_websocket", False):
-                methods[field] = {'args': func.args[1:]}
+                methods[field] = {'args': func.args[1:],
+                    'doc': func.__doc__ or ""}
         return methods
 
     def start(self):
@@ -130,6 +131,11 @@ class WSGIRPCServer(object):
 
             log.debug("Calling %s: %s", path, params)
 
+            if path[0] == "_list_methods":
+                methods = {}
+                for name, controller in self.controllers.items():
+                    methods[name] = self.controller_methods(name)
+                return _json_return(response, methods)
             if path[0] in self.controllers:
                 controller = self.controllers[path[0]]
                 func = getattr(controller, path[1], None)

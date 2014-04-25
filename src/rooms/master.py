@@ -76,6 +76,11 @@ class Master(object):
         return min(self.nodes.values(), key=RegisteredNode.load)
 
     @request
+    def all_games(self):
+        ''' List all the games '''
+        return [{"game_id": game.game_id, "owner_id": game.owner_id} for game\
+            in self.games.values()]
+    @request
     def players_in_game(self, game_id):
         return self.players.values()
 

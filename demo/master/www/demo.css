@@ -1,0 +1,75 @@
+
+body
+{
+    font-size : 1em;
+}
+
+div#methods
+{
+    width : 45%;
+    background-color : lightblue;
+    border : 1px solid black;
+    padding : 1em;
+}
+
+div#methods div.controller
+{
+    font-weight : bold;
+    margin : 0.5em;
+}
+
+div#methods div.method
+{
+    font-weight : bold;
+    margin : 0.1em;
+    margin-left : 1.5em;
+    margin-bottom : 1.1em;
+    width : 90%;
+    border-bottom : 1px solid black;
+}
+
+div#methods div.method div.params
+{
+    font-weight : normal;
+    margin : 0.1em;
+    margin-left : 2.5em;
+}
+
+div#methods div.method input
+{
+    background-color : lightblue;
+}
+
+div#methods div.method div.doc
+{
+    font-size : 0.7em;
+    font-style : italic;
+    font-weight : normal;
+    margin-left : 0.5em;
+}
+
+div#methods div.method div.call
+{
+    width : 4em;
+    height : 1.1em;
+    background-color : lightgreen;
+    border : 1px solid black;
+    cursor : pointer;
+    float : right;
+}
+
+div#result
+{
+    width : 45%;
+    background-color : lightgreen;
+    position : absolute;
+    top : 0.5em;
+    right : 1.5em;
+    border : 1px solid black;
+    padding : 1em;
+}
+
+div#result.error
+{
+    background-color : #dd5050;
+}
