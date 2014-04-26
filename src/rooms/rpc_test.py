@@ -15,6 +15,7 @@ class MockController(object):
 
     @request
     def index(self, arg1):
+        '''docstr'''
         self.called = arg1
         return {'result': 1}
 
@@ -23,9 +24,15 @@ class MockController(object):
 
     @websocket
     def websock(self, ws, arg1):
+        '''docstr'''
         self.called = arg1
         self.ws = ws
         return "OK"
+
+class MockControllerException(object):
+    @request
+    def callme(self):
+        raise Exception("Test exception")
 
 
 class RPCTest(unittest.TestCase):
@@ -68,8 +75,10 @@ class RPCTest(unittest.TestCase):
         self.rpc_server = WSGIRPCServer("10.10.10.1", 8888)
         self.rpc_server.add_controller("controller1", self.mock_controller)
 
-        self.assertEquals({'index': {'args': ['arg1']},
-            'websock': {'args': ['arg1']}},
+        self.assertEquals({'index': {'args': ['arg1'], 'doc': 'docstr',
+            'type': 'request'},
+            'websock': {'args': ['arg1'], 'doc': 'docstr',
+            'type': 'websocket'}},
             self.rpc_server.controller_methods("controller1"))
 
         result = self.rpc_server.handle({'PATH_INFO': '/controller1/index',
@@ -77,7 +86,7 @@ class RPCTest(unittest.TestCase):
             self._server_response)
 
         self.assertEquals('200 OK', self._server_code)
-        self.assertEquals([('content-type', 'text/javascript'),
+        self.assertEquals([('content-type', 'application/json'),
             ('content-length', 13)], self._server_lines)
         self.assertEquals('{"result": 1}', result)
 
@@ -131,19 +140,36 @@ class RPCTest(unittest.TestCase):
         self.rpc_server = WSGIRPCServer("10.10.10.1", 8888)
         self.rpc_server.add_controller("controller1", self.mock_controller)
 
-        self.assertEquals({'index': {'args': ['arg1']},
-            'websock': {'args': ['arg1']}},
+        self.assertEquals({'index': {'args': ['arg1'], 'doc': 'docstr',
+            'type': 'request'},
+            'websock': {'args': ['arg1'], 'doc': 'docstr',
+            'type': 'websocket'}},
             self.rpc_server.controller_methods("controller1"))
 
         result = self.rpc_server.handle({'PATH_INFO': '/controller1/websock',
-            'wsgi.input': StringIO("arg1=howdy"), 'wsgi.websocket': 'WSOBJ'},
+            'QUERY_STRING': 'arg1=howdy', 'wsgi.websocket': 'WSOBJ'},
             self._server_response)
 
         self.assertEquals('200 OK', self._server_code)
-        self.assertEquals([('content-type', 'text/javascript'),
+        self.assertEquals([('content-type', 'application/json'),
             ('content-length', 4)], self._server_lines)
         self.assertEquals('"OK"', result)
 
         self.assertEquals("howdy", self.mock_controller.called)
         self.assertEquals("WSOBJ", self.mock_controller.ws)
 
+    def testRequestException(self):
+        self.mock_controller = MockControllerException()
+
+        self.rpc_server = WSGIRPCServer("10.10.10.1", 8888)
+        self.rpc_server.add_controller("controller1", self.mock_controller)
+
+        result = self.rpc_server.handle({'PATH_INFO': '/controller1/callme',
+            'wsgi.input': StringIO("")},
+            self._server_response)
+
+        self.assertEquals('500', self._server_code)
+        self.assertEquals([('content-type', 'text/javascript'),
+            ('content-length', 419)], self._server_lines)
+        self.assertTrue(
+            'Server Error calling controller1/callme():\nTraceback' in result)

@@ -61,6 +61,15 @@ class MasterTest(unittest.TestCase):
             self.container.game)
         self.assertEquals("game1", game_id)
 
+    def testCantRegisterNodeTwice(self):
+        self.master.register_node("10.10.10.1", 8000, "rooms.com", 80)
+        self.assertRaises(RPCException, self.master.register_node,
+            "10.10.10.1", 8000, "rooms.com", 80)
+
+        # can register different one though
+        self.master.register_node("10.10.10.2", 8000, "rooms.com", 80)
+        self.assertEquals(2, len(self.master.nodes))
+
     def testJoinGame(self):
         self.master.register_node("10.10.10.1", 8000, "rooms.com", 80)
         self.master.create_game("bob")

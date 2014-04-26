@@ -127,6 +127,7 @@ class WSGIRPCServer(object):
         self.wsgi_server.serve_forever()
 
     def handle(self, environ, response):
+        params = {}
         try:
             path = environ['PATH_INFO'].strip('/').split('/')
             if path[0] == "_list_methods":

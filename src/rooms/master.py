@@ -5,6 +5,7 @@ from rooms.game import Game
 from rooms.player import Player
 from rooms.exception import RPCException
 from rooms.rpc import WSGIRPCServer
+from rooms.rpc import WSGIRPCClient
 from rooms.rpc import request
 from rooms.rpc import websocket
 
@@ -45,12 +46,21 @@ class Master(object):
         self.game_script = game_script
 
     @request
+    def all_players(self):
+        return dict(
+            (p.username, {"game_id": p.game_id, "room_id": p.room_id}) for \
+            p in self.players.items())
+
+    @request
     def register_node(self, host, port, external_host, external_port):
+        ''' Node calls this to register with cluster '''
+        if (host, port) in self.nodes:
+            raise RPCException("Node already registered %s:%s" % (host, port))
         self.nodes[host, port] = RegisteredNode(host, port, external_host,
             external_port, self._create_rpc_conn(host, port))
 
     def _create_rpc_conn(self, host, port):
-        return WSGIRPCServer(host, port)
+        return WSGIRPCClient(host, port)
 
     @request
     def create_game(self, owner_id):
@@ -67,7 +77,7 @@ class Master(object):
         if game_id not in self.games:
             raise RPCException("No such game %s" % (game_id))
         node = self._select_available_node()
-        node.rpc_conn.join_game(username, game_id)
+        node.rpc_conn.join_game(username=username, game_id=game_id)
         player = Player(username, game_id)
         self.players[username, game_id] = player
         self.player_map[username, game_id] = (node.host, node.port)
@@ -79,7 +89,7 @@ class Master(object):
 
     @request
     def all_games(self):
-        ''' List all the games '''
+        ''' List all currently active games '''
         return [{"game_id": game.game_id, "owner_id": game.owner_id} for game\
             in self.games.values()]
 
@@ -98,6 +108,8 @@ class Master(object):
     @websocket
     def game_status(self, ws, game_id):
         for i in range(25):
+            gevent.sleep(1)
+            ws.send("")
             gevent.sleep(1)
             ws.send("Sending %s" % i)
         return "Done"

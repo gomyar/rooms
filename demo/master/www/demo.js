@@ -104,7 +104,8 @@ function connect_websocket(e)
 
 function websocket_callback(msg)
 {
-    $("#websocket").append($("<div>", {"class": "msg", "text": msg.data}));
+    if (msg.data)
+        $("#websocket").append($("<div>", {"class": "msg", "text": msg.data}));
 }
 
 function websocket_onopen()
