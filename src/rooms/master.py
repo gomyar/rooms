@@ -11,23 +11,18 @@ from rooms.rpc import websocket
 
 
 class RegisteredNode(object):
-    def __init__(self, host, port, external_host, external_port, rpc_conn):
+    def __init__(self, host, port, rpc_conn):
         self.host = host
         self.port = port
-        self.external_host = external_host
-        self.external_port = external_port
         self.rpc_conn = rpc_conn
         self.rooms = []
 
     def __repr__(self):
-        return "<RegisteredNode %s:%s %s:%s>" % (self.host, self.port,
-            self.external_host, self.external_port)
+        return "<RegisteredNode %s:%s>" % (self.host, self.port)
 
     def __eq__(self, rhs):
         return rhs and type(rhs) is RegisteredNode and \
-            self.host == rhs.host and self.port == rhs.port and \
-            self.external_host == rhs.external_host and \
-            self.external_port == rhs.external_port
+            self.host == rhs.host and self.port == rhs.port
 
     def player_joins(self, username, game_id):
         self.rpc_conn.player_joins(username, game_id)
@@ -52,15 +47,20 @@ class Master(object):
             p in self.players.items())
 
     @request
-    def register_node(self, host, port, external_host, external_port):
+    def register_node(self, host, port):
         ''' Node calls this to register with cluster '''
         if (host, port) in self.nodes:
             raise RPCException("Node already registered %s:%s" % (host, port))
-        self.nodes[host, port] = RegisteredNode(host, port, external_host,
-            external_port, self._create_rpc_conn(host, port))
+        self.nodes[host, port] = RegisteredNode(host, port,
+            self._create_rpc_conn(host, port))
 
     def _create_rpc_conn(self, host, port):
         return WSGIRPCClient(host, port)
+
+    @request
+    def all_nodes(self):
+        return [{'host': node.host, 'port': node.port} for node in \
+            self.nodes.values()]
 
     @request
     def create_game(self, owner_id):

@@ -42,17 +42,15 @@ class MasterTest(unittest.TestCase):
         self.master._create_rpc_conn = lambda h, p: self.rpc_conn
 
     def testNodeAttach(self):
-        self.master.register_node("10.10.10.1", 8000, "rooms.com", 80)
+        self.master.register_node("10.10.10.1", 8000)
         self.assertEquals(1, len(self.master.nodes))
 
         node = self.master.nodes.values()[0]
         self.assertEquals("10.10.10.1", node.host)
         self.assertEquals(8000, node.port)
-        self.assertEquals("rooms.com", node.external_host)
-        self.assertEquals(80, node.external_port)
 
     def testCreateGame(self):
-        self.master.register_node("10.10.10.1", 8000, "rooms.com", 80)
+        self.master.register_node("10.10.10.1", 8000)
 
         game_id = self.master.create_game("bob")
         self.assertEquals(1, len(self.master.games))
@@ -62,16 +60,16 @@ class MasterTest(unittest.TestCase):
         self.assertEquals("game1", game_id)
 
     def testCantRegisterNodeTwice(self):
-        self.master.register_node("10.10.10.1", 8000, "rooms.com", 80)
+        self.master.register_node("10.10.10.1", 8000)
         self.assertRaises(RPCException, self.master.register_node,
-            "10.10.10.1", 8000, "rooms.com", 80)
+            "10.10.10.1", 8000)
 
         # can register different one though
-        self.master.register_node("10.10.10.2", 8000, "rooms.com", 80)
+        self.master.register_node("10.10.10.2", 8000)
         self.assertEquals(2, len(self.master.nodes))
 
     def testJoinGame(self):
-        self.master.register_node("10.10.10.1", 8000, "rooms.com", 80)
+        self.master.register_node("10.10.10.1", 8000)
         self.master.create_game("bob")
         self.master.nodes['10.10.10.1', 8000].client = self.rpc_conn
 
@@ -89,14 +87,14 @@ class MasterTest(unittest.TestCase):
         self.assertEquals(('join_game', 'bob', 'game1'),
             self.rpc_conn.called[0])
 
-        self.assertEquals(RegisteredNode("10.10.10.1", 8000, "rooms.com", 80,
-            self.rpc_conn), self.master.get_node('bob', 'game1'))
+        self.assertEquals(RegisteredNode("10.10.10.1", 8000, self.rpc_conn),
+            self.master.get_node('bob', 'game1'))
 
     def testJoinGameNoSuchGame(self):
         self.assertRaises(RPCException, self.master.join_game, "bob", "game1")
 
     def testJoinGamePlayerAlreadyJoined(self):
-        self.master.register_node("10.10.10.1", 8000, "rooms.com", 80)
+        self.master.register_node("10.10.10.1", 8000)
         self.master.create_game("bob")
         self.master.nodes['10.10.10.1', 8000].client = self.rpc_conn
 
@@ -105,13 +103,16 @@ class MasterTest(unittest.TestCase):
         self.assertRaises(RPCException, self.master.join_game, "bob", "game1")
 
     def testJoinGameTwoGamesTwoNodes(self):
-        self.master.register_node("10.10.10.1", 8000, "rooms.com", 80)
+        self.master.register_node("10.10.10.1", 8000)
         game_1 = self.master.create_game("bob")
         node1 = self.master.join_game("bob", "game1")
 
-        self.master.register_node("10.10.10.2", 8000, "rooms.com", 80)
+        self.master.register_node("10.10.10.2", 8000)
         game_2 = self.master.create_game("bob")
         node2 = self.master.join_game("bob", "game2")
 
         self.assertEquals(("10.10.10.1", 8000), (node1.host, node1.port))
         self.assertEquals(("10.10.10.2", 8000), (node2.host, node2.port))
+
+        self.assertEquals([{'host': '10.10.10.2', 'port': 8000},
+            {'host': '10.10.10.1', 'port': 8000}], self.master.all_nodes())
