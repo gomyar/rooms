@@ -26,26 +26,20 @@ class MockNodeRpcClient(object):
     def __init__(self):
         self.called = []
 
-    def connect_player(self, username, game_id, room_id):
-        self.called.append(('connect_player', username, game_id, room_id))
+    def player_joined(self, username, game_id, room_id):
+        self.called.append(('player_joined', username, game_id, room_id))
+        return "TOKEN"
 
     def manage_room(self, game_id, room_id):
         self.called.append(('manage_room', game_id, room_id))
-
-
-class MockGameScript(object):
-    def player_joins(self, game, player):
-        player.room_id = "room1"
-        #player.create_actor("player_script")
 
 
 class MasterTest(unittest.TestCase):
     def setUp(self):
         self.container = MockContainer()
         self.rpc_conn = MockNodeRpcClient()
-        self.game_script = MockGameScript()
 
-        self.master = Master(self.container, self.game_script)
+        self.master = Master(self.container)
         self.master._create_rpc_conn = lambda h, p: self.rpc_conn
 
     def testNodeAttach(self):
@@ -81,8 +75,9 @@ class MasterTest(unittest.TestCase):
         self.master.nodes['10.10.10.1', 8000].client = self.rpc_conn
 
         self.assertFalse(self.master.is_player_in_game("bob", "game1"))
-        node = self.master.join_game("bob", "game1")
-        self.assertEquals(("10.10.10.1", 8000), node)
+        node = self.master.join_game("bob", "game1", "room1")
+        self.assertEquals({'node': ("10.10.10.1", 8000), 'token': 'TOKEN'},
+            node)
         self.assertEquals('room1', self.master.players['bob', 'game1'].room_id)
 
         self.assertEquals([Player("bob", "game1", room_id="room1")],
@@ -95,7 +90,7 @@ class MasterTest(unittest.TestCase):
         self.assertEquals(('manage_room', 'game1', 'room1'),
             self.rpc_conn.called[0])
         # player must be added to room
-        self.assertEquals(('connect_player', 'bob', 'game1', 'room1'),
+        self.assertEquals(('player_joined', 'bob', 'game1', 'room1'),
             self.rpc_conn.called[1])
 
         self.assertEquals(("10.10.10.1", 8000),
@@ -129,28 +124,32 @@ class MasterTest(unittest.TestCase):
         pass
 
     def testJoinGameNoSuchGame(self):
-        self.assertRaises(RPCException, self.master.join_game, "bob", "game1")
+        self.assertRaises(RPCException, self.master.join_game, "bob", "game1",
+            "room1")
 
     def testJoinGamePlayerAlreadyJoined(self):
         self.master.register_node("10.10.10.1", 8000)
         self.master.create_game("bob")
         self.master.nodes['10.10.10.1', 8000].client = self.rpc_conn
 
-        self.master.join_game("bob", "game1")
+        self.master.join_game("bob", "game1", "room1")
 
-        self.assertRaises(RPCException, self.master.join_game, "bob", "game1")
+        self.assertRaises(RPCException, self.master.join_game, "bob", "game1",
+            "room1")
 
     def testJoinGameTwoGamesTwoNodes(self):
         self.master.register_node("10.10.10.1", 8000)
         game_1 = self.master.create_game("bob")
-        node1 = self.master.join_game("bob", "game1")
+        node1 = self.master.join_game("bob", "game1", "room1")
 
         self.master.register_node("10.10.10.2", 8000)
         game_2 = self.master.create_game("bob")
-        node2 = self.master.join_game("bob", "game2")
+        node2 = self.master.join_game("bob", "game2", "room1")
 
-        self.assertEquals(("10.10.10.1", 8000), node1)
-        self.assertEquals(("10.10.10.2", 8000), node2)
+        self.assertEquals({'node': ("10.10.10.1", 8000), 'token': 'TOKEN'},
+            node1)
+        self.assertEquals({'node': ("10.10.10.2", 8000), 'token': 'TOKEN'},
+            node2)
 
         self.assertEquals([{'host': '10.10.10.2', 'port': 8000},
             {'host': '10.10.10.1', 'port': 8000}], self.master.all_nodes())

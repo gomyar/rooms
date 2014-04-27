@@ -49,7 +49,7 @@ if __name__ == "__main__":
                 format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
         host, port = options.address.split(":")
-        master = Master(Container(), Script())
+        master = Master(Container())
         server = WSGIRPCServer(host, port)
         server.add_controller("master", master)
         log.info("Starting Rooms")

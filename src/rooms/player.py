@@ -1,6 +1,6 @@
 
 class Player(object):
-    def __init__(self, username, game_id, room_id=None):
+    def __init__(self, username, game_id, room_id):
         self.username = username
         self.game_id = game_id
         self.room_id = room_id

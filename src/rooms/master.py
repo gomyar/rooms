@@ -24,8 +24,8 @@ class RegisteredNode(object):
         return rhs and type(rhs) is RegisteredNode and \
             self.host == rhs.host and self.port == rhs.port
 
-    def connect_player(self, username, game_id, room_id):
-        self.rpc_conn.connect_player(username, game_id, room_id)
+    def player_joined(self, username, game_id, room_id):
+        return self.rpc_conn.player_joined(username, game_id, room_id)
 
     def manage_room(self, game_id, room_id):
         self.rpc_conn.manage_room(game_id=game_id, room_id=room_id)
@@ -35,14 +35,13 @@ class RegisteredNode(object):
 
 
 class Master(object):
-    def __init__(self, container, game_script):
+    def __init__(self, container):
         self.nodes = dict()
         self.players = dict()
         self.player_map = dict()
         self.games = dict()
         self.rooms = dict()
         self.container = container
-        self.game_script = game_script
 
     @request
     def all_players(self):
@@ -74,19 +73,19 @@ class Master(object):
         return game.game_id
 
     @request
-    def join_game(self, username, game_id):
+    def join_game(self, username, game_id, room_id):
         ''' Player joins a game - player object created.
-            game script player_joined() is called.'''
+            script player_joined() is called on node.'''
         self._check_can_join(username, game_id)
 
-        player = self._create_player(username, game_id)
+        player = self._create_player(username, game_id, room_id)
 
         host, port = self._get_node_for_room(game_id, player.room_id)
         node = self.nodes[host, port]
         self.player_map[username, game_id] = (host, port)
 
-        node.connect_player(username, game_id, player.room_id)
-        return (node.host, node.port)
+        token = node.player_joined(username, game_id, room_id)
+        return {"token": token, "node": (node.host, node.port)}
 
     def _check_can_join(self, username, game_id):
         if (username, game_id) in self.players:
@@ -95,12 +94,9 @@ class Master(object):
         if game_id not in self.games:
             raise RPCException("No such game %s" % (game_id))
 
-    def _create_player(self, username, game_id):
-        player = Player(username, game_id)
+    def _create_player(self, username, game_id, room_id):
         game = self.games[game_id]
-        self.game_script.player_joins(game, player)
-        if not player.room_id:
-            raise RPCException("Game script must set room_id on player join")
+        player = Player(username, game_id, room_id)
         self.players[username, game_id] = player
         self.container.save_player(player)
         return player
