@@ -1,0 +1,18 @@
+
+ - node
+   - player objects are conected to 1 room at a time
+     - player may interact with actors in that room
+     - PlayerActor is only actor the player directly controls / follows through doors
+
+   - if no nodes registered, players wait on queue for a room to be created
+
+ - basic demo
+   - open to all
+   - players join a game, etc, redirect to a node, 
+
+ - remove room when bored
+
+ - master server
+   - implement room creation / remove as queue on single gthread
+   - queue player connects behind room queue
+     - waiting list

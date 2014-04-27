@@ -24,8 +24,11 @@ class RegisteredNode(object):
         return rhs and type(rhs) is RegisteredNode and \
             self.host == rhs.host and self.port == rhs.port
 
-    def player_joins(self, username, game_id):
-        self.rpc_conn.player_joins(username, game_id)
+    def connect_player(self, username, game_id, room_id):
+        self.rpc_conn.connect_player(username, game_id, room_id)
+
+    def manage_room(self, game_id, room_id):
+        self.rpc_conn.manage_room(game_id=game_id, room_id=room_id)
 
     def load(self):
         return len(self.rooms)
@@ -37,6 +40,7 @@ class Master(object):
         self.players = dict()
         self.player_map = dict()
         self.games = dict()
+        self.rooms = dict()
         self.container = container
         self.game_script = game_script
 
@@ -71,18 +75,43 @@ class Master(object):
 
     @request
     def join_game(self, username, game_id):
+        ''' Player joins a game - player object created.
+            game script player_joined() is called.'''
+        self._check_can_join(username, game_id)
+
+        player = self._create_player(username, game_id)
+
+        host, port = self._get_node_for_room(game_id, player.room_id)
+        node = self.nodes[host, port]
+        self.player_map[username, game_id] = (host, port)
+
+        node.connect_player(username, game_id, player.room_id)
+        return (node.host, node.port)
+
+    def _check_can_join(self, username, game_id):
         if (username, game_id) in self.players:
             raise RPCException("Player already joined %s %s" % (username,
                 game_id))
         if game_id not in self.games:
             raise RPCException("No such game %s" % (game_id))
-        node = self._select_available_node()
-        node.rpc_conn.join_game(username=username, game_id=game_id)
+
+    def _create_player(self, username, game_id):
         player = Player(username, game_id)
+        game = self.games[game_id]
+        self.game_script.player_joins(game, player)
+        if not player.room_id:
+            raise RPCException("Game script must set room_id on player join")
         self.players[username, game_id] = player
-        self.player_map[username, game_id] = (node.host, node.port)
-        self.game_script.player_joins(self.games[game_id], player)
-        return node
+        self.container.save_player(player)
+        return player
+
+    def _get_node_for_room(self, game_id, room_id):
+        if room_id not in self.rooms:
+            node = self._select_available_node()
+            node.manage_room(game_id, room_id)
+            self.rooms[game_id, room_id] = (node.host, node.port)
+
+        return self.rooms[game_id, room_id]
 
     def _select_available_node(self):
         return min(self.nodes.values(), key=RegisteredNode.load)
@@ -103,7 +132,20 @@ class Master(object):
 
     @request
     def get_node(self, username, game_id):
-        return self.nodes[self.player_map[username, game_id]]
+        node = self.nodes[self.player_map[username, game_id]]
+        return (node.host, node.port)
+
+    @request
+    def manage_room(self, node_host, node_port, game_id, room_id):
+        ''' Debug only - used to force management of a room on a node '''
+        if (game_id, room_id) in self.rooms:
+            host, port = self.rooms[game_id, room_id]
+            raise RPCException("Room %s:%s already managed on node %s:%s" % (
+                game_id, room_id, host, port))
+        node = self.nodes[node_host, node_port]
+        self.rooms[game_id, room_id] = [node_host, node_port]
+        # off to a queue with you
+        node.manage_room(game_id, room_id)
 
     @websocket
     def game_status(self, ws, game_id):
