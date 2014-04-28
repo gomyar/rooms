@@ -26,8 +26,8 @@ class MockNodeRpcClient(object):
     def __init__(self):
         self.called = []
 
-    def player_joined(self, username, game_id, room_id):
-        self.called.append(('player_joined', username, game_id, room_id))
+    def player_joins(self, username, game_id, room_id):
+        self.called.append(('player_joins', username, game_id, room_id))
         return "TOKEN"
 
     def manage_room(self, game_id, room_id):
@@ -90,7 +90,7 @@ class MasterTest(unittest.TestCase):
         self.assertEquals(('manage_room', 'game1', 'room1'),
             self.rpc_conn.called[0])
         # player must be added to room
-        self.assertEquals(('player_joined', 'bob', 'game1', 'room1'),
+        self.assertEquals(('player_joins', 'bob', 'game1', 'room1'),
             self.rpc_conn.called[1])
 
         self.assertEquals(("10.10.10.1", 8000),

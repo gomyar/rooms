@@ -4,6 +4,7 @@ class Player(object):
         self.username = username
         self.game_id = game_id
         self.room_id = room_id
+        self.token = None
 
     def __repr__(self):
         return "<Player %s in game %s room %s>" % (self.username,

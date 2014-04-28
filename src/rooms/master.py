@@ -24,8 +24,8 @@ class RegisteredNode(object):
         return rhs and type(rhs) is RegisteredNode and \
             self.host == rhs.host and self.port == rhs.port
 
-    def player_joined(self, username, game_id, room_id):
-        return self.rpc_conn.player_joined(username, game_id, room_id)
+    def player_joins(self, username, game_id, room_id):
+        return self.rpc_conn.player_joins(username, game_id, room_id)
 
     def manage_room(self, game_id, room_id):
         self.rpc_conn.manage_room(game_id=game_id, room_id=room_id)
@@ -75,16 +75,16 @@ class Master(object):
     @request
     def join_game(self, username, game_id, room_id):
         ''' Player joins a game - player object created.
-            script player_joined() is called on node.'''
+            script player_joins() is called on node.'''
         self._check_can_join(username, game_id)
 
         player = self._create_player(username, game_id, room_id)
 
-        host, port = self._get_node_for_room(game_id, player.room_id)
+        host, port = self._get_node_for_room(game_id, room_id)
         node = self.nodes[host, port]
         self.player_map[username, game_id] = (host, port)
 
-        token = node.player_joined(username, game_id, room_id)
+        token = node.player_joins(username, game_id, room_id)
         return {"token": token, "node": (node.host, node.port)}
 
     def _check_can_join(self, username, game_id):
