@@ -1,3 +1,4 @@
 
 class Room(object):
-    pass
+    def kick(self):
+        pass

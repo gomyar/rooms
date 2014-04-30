@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+
+import os
+import sys
+
+from gevent import monkey
+monkey.patch_socket()
+
+from optparse import OptionParser
+from ConfigParser import ConfigParser
+
+from rooms.node import Node
+from rooms.container import Container
+from rooms.rpc import WSGIRPCServer
+
+import logging
+import logging.config
+log = logging.getLogger("rooms.node")
+
+
+if __name__ == "__main__":
+    master = None
+    try:
+        log.info("Starting Node")
+        parser = OptionParser()
+
+        parser.add_option("-a", "--address", dest="address",
+            help="Address of node", default="localhost:8000")
+
+        parser.add_option("-m", "--master", dest="master",
+            help="Address of master", default="localhost:9000")
+
+        parser.add_option("-g", "--game", dest="gameconf",
+                help="Path to game config file", default="./game.conf")
+
+        (options, args) = parser.parse_args()
+
+#        if not os.path.exists(options.gameconf):
+#            print "No game file exists at '%s'" % (options.gameconf,)
+#            sys.exit(1)
+
+#        config = ConfigParser()
+#        config.read(options.gameconf)
+
+#        sys.path.append(config.get("scripts", "root"))
+
+        if os.path.exists("logging.conf"):
+            logging.config.fileConfig("logging.conf")
+        else:
+            logging.basicConfig(level=logging.DEBUG,
+                format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+        host, port = options.address.split(":")
+        master_host, master_port = options.master.split(":")
+        node = Node(host, port, master_host, master_port, Container())
+        server = WSGIRPCServer(host, port)
+        server.add_controller("node", node)
+        log.info("Starting Rooms")
+        server.start()
+        node.connect_to_master()
+        server.serve_forever()
+    except:
+        log.exception("Exception starting Node")
+    finally:
+        log.info("Server stopped")

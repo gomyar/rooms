@@ -5,7 +5,7 @@ server {
     error_log /var/log/nginx/rooms_master.error.log;
 
     location / {
-        root /data/www;
+        root /data/www/master;
     }
 
     location /master {

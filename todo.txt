@@ -1,4 +1,8 @@
 
+ - proxy
+   - on player connect, query master for node to connect to, bounce to node
+   - on player join, same
+
  - node
    - player objects are conected to 1 room at a time
      - player may interact with actors in that room

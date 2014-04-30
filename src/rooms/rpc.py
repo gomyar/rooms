@@ -40,7 +40,7 @@ class _MethodStub(object):
             print str(ue)
             raise
         except Exception, e:
-            errorstr = "".join(e.readlines())
+            errorstr = "".join(str(e))
             print str(e)
             print errorstr
             raise
@@ -62,8 +62,8 @@ class WSGIRPCClient(object):
         return type(rhs) is WSGIRPCClient and self.host == rhs.host and \
             self.port == rhs.port and self.namespace == rhs.namespace
 
-    def http_connect(self, url):
-        return urllib2.urlopen(url)
+    def http_connect(self, url, params):
+        return urllib2.urlopen(url, params)
 
 
 def _json_return(response, returned):
