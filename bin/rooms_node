@@ -59,8 +59,10 @@ if __name__ == "__main__":
         server.start()
         node.connect_to_master()
         server.serve_forever()
+    except KeyboardInterrupt, ke:
+        log.debug("Node stopped")
     except:
         log.exception("Exception starting Node")
     finally:
         node.deregister()
-        log.info("Server stopped")
+        log.info("Node deregistered")
