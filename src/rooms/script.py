@@ -11,7 +11,7 @@ class Script(object):
             fromlist=[script_module.rsplit(".", 1)])
 
     def call(self, method, *args, **kwargs):
-        if self._script_module:
+        if self._script_module and hasattr(self._script_module, method):
             return getattr(self._script_module, method)(*args, **kwargs)
         else:
             return None
