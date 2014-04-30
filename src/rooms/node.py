@@ -5,6 +5,7 @@ from rooms.player import Player
 from rooms.rpc import WSGIRPCClient
 from rooms.rpc import request
 from rooms.room import Room
+from rooms.script import Script
 
 
 class Node(object):
@@ -17,8 +18,8 @@ class Node(object):
         self.rooms = dict()
         self.players = dict()
         self.master_conn = WSGIRPCClient(master_host, master_port, 'master')
-        self.player_script = None
-        self.game_script = None
+        self.player_script = Script()
+        self.game_script = Script()
 
     def connect_to_master(self):
         self.master_conn.register_node(host=self.host, port=self.port)

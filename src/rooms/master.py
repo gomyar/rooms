@@ -25,7 +25,8 @@ class RegisteredNode(object):
             self.host == rhs.host and self.port == rhs.port
 
     def player_joins(self, username, game_id, room_id):
-        return self.rpc_conn.player_joins(username, game_id, room_id)
+        return self.rpc_conn.player_joins(username=username, game_id=game_id,
+            room_id=room_id)
 
     def manage_room(self, game_id, room_id):
         self.rpc_conn.manage_room(game_id=game_id, room_id=room_id)
@@ -124,6 +125,10 @@ class Master(object):
         ''' List all currently active games '''
         return [{"game_id": game.game_id, "owner_id": game.owner_id} for game\
             in self.games.values()]
+
+    @request
+    def all_rooms(self):
+        return self.rooms
 
     @request
     def players_in_game(self, game_id):
