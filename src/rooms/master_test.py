@@ -50,6 +50,19 @@ class MasterTest(unittest.TestCase):
         self.assertEquals("10.10.10.1", node.host)
         self.assertEquals(8000, node.port)
 
+    def testNodeDeregister(self):
+        self.master.register_node("10.10.10.1", 8000)
+        self.assertEquals(1, len(self.master.nodes))
+        self.master.deregister_node("10.10.10.1", 8000)
+        self.assertEquals(0, len(self.master.nodes))
+
+    def testCreateRPCNodeConn(self):
+        self.master = Master(self.container)
+        conn = self.master._create_rpc_conn("10.10.10.1", 8000)
+        self.assertEquals("node", conn.namespace)
+        self.assertEquals("10.10.10.1", conn.host)
+        self.assertEquals(8000, conn.port)
+
     def testCreateGame(self):
         self.master.register_node("10.10.10.1", 8000)
 

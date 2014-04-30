@@ -57,8 +57,15 @@ class Master(object):
         self.nodes[host, port] = RegisteredNode(host, port,
             self._create_rpc_conn(host, port))
 
+    @request
+    def deregister_node(self, host, port):
+        ''' Node calls this upon deregistering from cluster '''
+        if (host, port) not in self.nodes:
+            raise RPCException("Node not registered %s:%s" % (host, port))
+        self.nodes.pop((host, port))
+
     def _create_rpc_conn(self, host, port):
-        return WSGIRPCClient(host, port)
+        return WSGIRPCClient(host, port, 'node')
 
     @request
     def all_nodes(self):

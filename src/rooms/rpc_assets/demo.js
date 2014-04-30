@@ -3,12 +3,6 @@ var methods = {};
 var websocket = null;
 
 
-function show_games(data)
-{
-    console.log("Show games");
-    console.log(data);
-}
-
 function show_methods(data)
 {
     console.log("Show methods");
@@ -152,7 +146,6 @@ function show_call_error(error, jqxhr)
 function init()
 {
     console.log("init");
-    perform_post("/master/all_games", {}, show_games);
     perform_post("/_list_methods", {}, show_methods);
 }
 

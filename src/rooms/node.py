@@ -3,6 +3,8 @@ import uuid
 
 from rooms.player import Player
 from rooms.rpc import WSGIRPCClient
+from rooms.rpc import request
+from rooms.room import Room
 
 
 class Node(object):
@@ -15,16 +17,27 @@ class Node(object):
         self.rooms = dict()
         self.players = dict()
         self.master_conn = WSGIRPCClient(master_host, master_port, 'master')
+        self.player_script = None
+        self.game_script = None
 
     def connect_to_master(self):
-        self.master_conn.register_node(host=self.master_host,
-            port=self.master_port)
+        self.master_conn.register_node(host=self.host, port=self.port)
 
+    def deregister(self):
+        self.master_conn.deregister_node(host=self.host, port=self.port)
+
+    @request
     def manage_room(self, game_id, room_id):
-        room = self.container.load_room(game_id, room_id)
+        if self.container.room_exists(game_id, room_id):
+            room = self.container.load_room(game_id, room_id)
+        else:
+            room = Room(game_id, room_id)
+            self.container.save_room(room)
+            self.game_script.room_created(room)
         self.rooms[game_id, room_id] = room
         room.kick()
 
+    @request
     def player_joins(self, username, game_id, room_id):
         room = self.rooms[game_id, room_id]
         player = Player(username, game_id, room_id)

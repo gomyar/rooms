@@ -116,13 +116,7 @@ class RPCTest(unittest.TestCase):
 
         self.assertEquals('404 Not Found', self._server_code)
 
-        result = self.rpc_server.handle({'PATH_INFO': '/',
-            'wsgi.input': StringIO("arg1=howdy")},
-            self._server_response)
-
-        self.assertEquals('404 Not Found', self._server_code)
-
-        result = self.rpc_server.handle({'PATH_INFO': '',
+        result = self.rpc_server.handle({'PATH_INFO': '/nonexistant',
             'wsgi.input': StringIO("arg1=howdy")},
             self._server_response)
 
@@ -173,3 +167,26 @@ class RPCTest(unittest.TestCase):
             ('content-length', 419)], self._server_lines)
         self.assertTrue(
             'Server Error calling controller1/callme():\nTraceback' in result)
+
+    def testRPCFileIndexRedirect(self):
+        self.rpc_server = WSGIRPCServer("10.10.10.1", 8888)
+
+        result = self.rpc_server.handle({'PATH_INFO': '/',
+            'wsgi.input': StringIO("")},
+            self._server_response)
+
+        self.assertEquals('302 Found', self._server_code)
+        self.assertEquals([('location', '/_rpc/index.html')],
+            self._server_lines)
+
+    def testRPCFiles(self):
+        self.rpc_server = WSGIRPCServer("10.10.10.1", 8888)
+
+        result = self.rpc_server.handle({'PATH_INFO': '/_rpc/index.html',
+            'wsgi.input': StringIO("")},
+            self._server_response)
+
+        self.assertEquals('200 OK', self._server_code)
+        self.assertEquals([('content-type', ('text/html', None))],
+            self._server_lines)
+

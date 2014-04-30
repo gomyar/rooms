@@ -62,4 +62,5 @@ if __name__ == "__main__":
     except:
         log.exception("Exception starting Node")
     finally:
+        node.deregister()
         log.info("Server stopped")

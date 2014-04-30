@@ -1,4 +1,5 @@
 
+import os
 import urllib2
 import urllib
 import json
@@ -8,6 +9,7 @@ import sys
 import inspect
 from urllib2 import URLError, HTTPError
 from functools import wraps
+from mimetypes import guess_type
 
 from gevent import pywsgi
 from geventwebsocket.handler import WebSocketHandler
@@ -108,7 +110,8 @@ class WSGIRPCServer(object):
     def controller_methods(self, name):
         controller = self.controllers[name]
         methods = {}
-        for field in dir(controller):
+        for field, method in inspect.getmembers(controller, \
+                predicate=inspect.ismethod):
             func = getattr(controller, field)
             if getattr(func, "is_request", False) or \
                 getattr(func, "is_websocket", False):
@@ -148,6 +151,13 @@ class WSGIRPCServer(object):
                     params = dict(urlparse.parse_qsl(environ['QUERY_STRING']))
                     returned = func(ws, **params)
                     return _json_return(response, returned)
+            if path == ['']:
+                response('302 Found', [
+                    ('location', '/_rpc/index.html'),
+                ])
+                return ""
+            if path[0] == "_rpc":
+                return self.www_file(path[1:], response)
             response('404 Not Found', [])
             return "Path Not Found: %s" % (path,)
         except URLError, ue:
@@ -169,3 +179,13 @@ class WSGIRPCServer(object):
                 ('content-length', len(returned)),
             ])
             return returned
+
+    def www_file(self, path, response):
+        filepath = os.path.join(os.path.dirname(__file__), "rpc_assets", *path)
+        if os.path.exists(filepath):
+            response('200 OK', [('content-type', guess_type(filepath))])
+            return [open(filepath).read()]
+        else:
+            response('404 Not Found', [])
+            return "File Not Found: %s" % ("/".join(path),)
+

@@ -22,6 +22,12 @@ class MockContainer(object):
     def load_room(self, game_id, room_id):
         return self.rooms[game_id, room_id]
 
+    def save_room(self, room):
+        self.rooms[room.game_id, room.room_id] = room
+
+    def room_exists(self, game_id, room_id):
+        return (game_id, room_id) in self.rooms
+
     def load_player(self, player_id):
         return self.players[player_id]
 
@@ -36,18 +42,33 @@ class MockPlayerScript(object):
         self.room = room
 
 
+class MockGameScript(object):
+    def __init__(self):
+        self.room = None
+
+    def room_created(self, room):
+        self.room = room
+
+
 class MockRpcClient(object):
     def __init__(self):
         self.registered_host = None
         self.registered_port = None
+        self.registered = False
 
     def register_node(self, host, port):
         self.registered_host, self.registered_port = host, port
+        self.registered = True
+
+    def deregister_node(self, host, port):
+        self.registered_host, self.registered_port = host, port
+        self.registered = False
 
 
 class NodeTest(unittest.TestCase):
     def setUp(self):
         self.player_script = MockPlayerScript()
+        self.game_script = MockGameScript()
         self.mock_rpc = MockRpcClient()
         self.room1 = MockRoom()
         self.player1 = Player("bob", "game1", "room1")
@@ -56,6 +77,7 @@ class NodeTest(unittest.TestCase):
         self.node = Node("10.10.10.1", 8000, "master", 9000, self.container)
         self.node._create_token = lambda: "TOKEN1"
         self.node.player_script = self.player_script
+        self.node.game_script = self.game_script
         self.node.master_conn = self.mock_rpc
 
     def testManageRoom(self):
@@ -73,8 +95,23 @@ class NodeTest(unittest.TestCase):
         self.assertEquals(self.player1, self.player_script.player)
         self.assertEquals(self.room1, self.player_script.room)
 
+    def testManageNonExistantRoom(self):
+        self.node.manage_room("game1", "room2")
+        self.assertEquals(2, len(self.container.rooms))
+        self.assertEquals(self.container.rooms['game1', 'room2'],
+            self.game_script.room)
+
     def testConnectToMaster(self):
         self.node.connect_to_master()
 
-        self.assertEquals("master", self.mock_rpc.registered_host)
-        self.assertEquals(9000, self.mock_rpc.registered_port)
+        self.assertEquals("10.10.10.1", self.mock_rpc.registered_host)
+        self.assertEquals(8000, self.mock_rpc.registered_port)
+
+    def testDeregister(self):
+        self.mock_rpc.registered = True
+
+        self.node.deregister()
+
+        self.assertFalse(self.mock_rpc.registered)
+        self.assertEquals("10.10.10.1", self.mock_rpc.registered_host)
+        self.assertEquals(8000, self.mock_rpc.registered_port)
