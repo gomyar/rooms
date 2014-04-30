@@ -32,6 +32,14 @@ class MockContainer(object):
         return self.players[player_id]
 
 
+class MockScript(object):
+    def __init__(self):
+        self.called = []
+
+    def call(self, method, *args, **kwargs):
+        self.called.append((method, args, kwargs))
+
+
 class MockPlayerScript(object):
     def __init__(self):
         self.room = None
@@ -67,8 +75,8 @@ class MockRpcClient(object):
 
 class NodeTest(unittest.TestCase):
     def setUp(self):
-        self.player_script = MockPlayerScript()
-        self.game_script = MockGameScript()
+        self.player_script = MockScript()
+        self.game_script = MockScript()
         self.mock_rpc = MockRpcClient()
         self.room1 = MockRoom()
         self.player1 = Player("bob", "game1", "room1")
@@ -92,14 +100,16 @@ class NodeTest(unittest.TestCase):
         self.assertEquals("TOKEN1", token)
 
         self.assertEquals(1, len(self.node.players))
-        self.assertEquals(self.player1, self.player_script.player)
-        self.assertEquals(self.room1, self.player_script.room)
+        self.assertEquals([
+            ("player_joins", (self.player1, self.room1), {})
+        ], self.player_script.called)
 
     def testManageNonExistantRoom(self):
         self.node.manage_room("game1", "room2")
         self.assertEquals(2, len(self.container.rooms))
-        self.assertEquals(self.container.rooms['game1', 'room2'],
-            self.game_script.room)
+        self.assertEquals([("room_created",
+            (self.container.rooms['game1', 'room2'],), {})],
+            self.game_script.called)
 
     def testConnectToMaster(self):
         self.node.connect_to_master()

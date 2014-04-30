@@ -33,7 +33,7 @@ class Node(object):
         else:
             room = Room(game_id, room_id)
             self.container.save_room(room)
-            self.game_script.room_created(room)
+            self.game_script.call("room_created", room)
         self.rooms[game_id, room_id] = room
         room.kick()
 
@@ -43,7 +43,7 @@ class Node(object):
         player = Player(username, game_id, room_id)
         self.players[username, game_id] = player
         player.token = self._create_token()
-        self.player_script.player_joins(player, room)
+        self.player_script.call("player_joins", player, room)
         return player.token
 
     def _create_token(self):
