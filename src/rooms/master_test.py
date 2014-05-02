@@ -4,7 +4,8 @@ import unittest
 from rooms.master import Master
 from rooms.master import RegisteredNode
 from rooms.player import Player
-from rooms.exception import RPCException
+from rooms.rpc import RPCException
+from rooms.rpc import RPCWaitException
 
 
 class MockContainer(object):
@@ -52,9 +53,12 @@ class MasterTest(unittest.TestCase):
 
     def testNodeDeregister(self):
         self.master.register_node("10.10.10.1", 8000)
+        self.master.manage_room('10.10.10.1', 8000, "game1", "room1")
         self.assertEquals(1, len(self.master.nodes))
+        self.assertEquals(1, len(self.master.rooms))
         self.master.deregister_node("10.10.10.1", 8000)
         self.assertEquals(0, len(self.master.nodes))
+        self.assertEquals(0, len(self.master.rooms))
 
     def testCreateRPCNodeConn(self):
         self.master = Master(self.container)
@@ -116,7 +120,7 @@ class MasterTest(unittest.TestCase):
 
         self.master.manage_room('10.10.10.1', 8000, "game1", "room1")
 
-        self.assertEquals({('game1', 'room1'): ['10.10.10.1', 8000]},
+        self.assertEquals({('game1', 'room1'): ('10.10.10.1', 8000)},
             self.master.rooms)
         self.assertEquals(('manage_room', 'game1', 'room1'),
             self.rpc_conn.called[0])
@@ -132,9 +136,14 @@ class MasterTest(unittest.TestCase):
 
     def testJoinGameRoomAlreadyManaged(self):
         # room managed, so don't call manage_room
+        self.master.register_node("10.10.10.1", 8000)
+        self.master.create_game("bob")
+        self.master.nodes['10.10.10.1', 8000].client = self.rpc_conn
+        self.master.rooms['game1', 'room1'] = ("10.10.10.1", 8000)
 
-        # still call add_player
-        pass
+        self.assertEquals({('game1', 'room1'): ('10.10.10.1', 8000)},
+            self.master.rooms)
+        self.assertEquals([], self.rpc_conn.called)
 
     def testJoinGameNoSuchGame(self):
         self.assertRaises(RPCException, self.master.join_game, "bob", "game1",
@@ -164,5 +173,37 @@ class MasterTest(unittest.TestCase):
         self.assertEquals({'node': ("10.10.10.2", 8000), 'token': 'TOKEN'},
             node2)
 
-        self.assertEquals([{'host': '10.10.10.2', 'port': 8000},
-            {'host': '10.10.10.1', 'port': 8000}], self.master.all_nodes())
+        self.assertEquals([{'host': '10.10.10.2', 'port': 8000, 'online': True},
+            {'host': '10.10.10.1', 'port': 8000, 'online': True}],
+            self.master.all_nodes())
+
+    def testNodeOffliningQueueRoomRequests(self):
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+        self.master.register_node("20.20.20.2", 8000)
+
+        self.master.manage_room('10.10.10.1', 8000, "game1", "room1")
+        self.master.manage_room('20.20.20.2', 8000, "game1", "room2")
+
+        # receive offline signal
+        self.master.offline_node("10.10.10.1", 8000)
+
+        # receieve room request - send wait response
+        self.assertRaises(RPCWaitException, self.master.join_game,
+            "bob", "game1", "room1")
+
+        # wait until room becomes available (from node)
+        self.master.deregister_node("10.10.10.1", 8000)
+        self.assertEquals({('game1', 'room2'): ('20.20.20.2', 8000)},
+            self.master.rooms)
+
+        # receive room request - normal room manage
+        self.master.join_game("bob", "game1", "room1")
+
+        self.assertEquals({('game1', 'room1'): ('20.20.20.2', 8000),
+            ('game1', 'room2'): ('20.20.20.2', 8000)}, self.master.rooms)
+
+    def testOfflineNonexistant(self):
+        self.assertRaises(RPCException,
+            self.master.offline_node,"10.10.10.1", 8000)

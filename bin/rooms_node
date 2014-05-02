@@ -55,7 +55,7 @@ if __name__ == "__main__":
         node = Node(host, port, master_host, master_port, Container())
         server = WSGIRPCServer(host, port)
         server.add_controller("node", node)
-        log.info("Starting Rooms")
+        log.info("Starting Rooms Node")
         server.start()
         node.connect_to_master()
         server.serve_forever()

@@ -18,6 +18,15 @@ import logging
 log = logging.getLogger("rooms.wsgirpc")
 
 
+class RPCException(Exception):
+    pass
+
+
+class RPCWaitException(Exception):
+    def __init__(self, message):
+        super(RPCWaitException, self).__init__(message)
+
+
 class _MethodStub(object):
     def __init__(self, rest_object, rest_method, client):
         self.rest_object = rest_object

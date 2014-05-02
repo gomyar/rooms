@@ -1,4 +1,0 @@
-
-
-class RPCException(Exception):
-    pass

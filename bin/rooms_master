@@ -51,10 +51,10 @@ if __name__ == "__main__":
         master = Master(Container())
         server = WSGIRPCServer(host, port)
         server.add_controller("master", master)
-        log.info("Starting Rooms")
+        log.info("Starting Rooms Master")
         server.start()
         server.serve_forever()
+    except KeyboardInterrupt, ke:
+        log.debug("Master stopped")
     except:
         log.exception("Exception starting server")
-    finally:
-        log.info("Server stopped")

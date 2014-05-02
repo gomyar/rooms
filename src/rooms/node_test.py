@@ -7,8 +7,10 @@ from rooms.player import Player
 
 
 class MockRoom(object):
-    def __init__(self):
+    def __init__(self, game_id, room_id):
         self._kicked_off = False
+        self.room_id = room_id
+        self.game_id = game_id
 
     def kick(self):
         self._kicked_off = True
@@ -63,6 +65,7 @@ class MockRpcClient(object):
         self.registered_host = None
         self.registered_port = None
         self.registered = False
+        self.online = True
 
     def register_node(self, host, port):
         self.registered_host, self.registered_port = host, port
@@ -72,13 +75,16 @@ class MockRpcClient(object):
         self.registered_host, self.registered_port = host, port
         self.registered = False
 
+    def offline_node(self, host, port):
+        self.online = False
+
 
 class NodeTest(unittest.TestCase):
     def setUp(self):
         self.player_script = MockScript()
         self.game_script = MockScript()
         self.mock_rpc = MockRpcClient()
-        self.room1 = MockRoom()
+        self.room1 = MockRoom("game1", "room1")
         self.player1 = Player("bob", "game1", "room1")
         self.container = MockContainer(rooms={("game1", "room1"): self.room1},
             players={"bob1": self.player1})
@@ -119,9 +125,44 @@ class NodeTest(unittest.TestCase):
 
     def testDeregister(self):
         self.mock_rpc.registered = True
+        mockroom1 = MockRoom('game1', 'room1')
+        mockroom2 = MockRoom('game1', 'room2')
+        self.node.rooms['game1', 'room1'] = mockroom1
+        self.node.rooms['game1', 'room2'] = mockroom2
 
         self.node.deregister()
 
         self.assertFalse(self.mock_rpc.registered)
         self.assertEquals("10.10.10.1", self.mock_rpc.registered_host)
         self.assertEquals(8000, self.mock_rpc.registered_port)
+        self.assertFalse(self.mock_rpc.online)
+        self.assertEquals({('game1', 'room1'): mockroom1,
+            ('game1', 'room2'): mockroom2}, self.container.rooms)
+
+    def testOfflineBouncesAllConnectedToMaster(self):
+        pass
+
+    def testSerializeQueue(self):
+        pass
+
+    def testOfflineWaitsForSerializeQueue(self):
+        pass
+
+    def testAllPlayers(self):
+        self.node.manage_room("game1", "room1")
+        token = self.node.player_joins("bob", "game1", "room1")
+        self.assertEquals([{'username': 'bob', 'game_id': 'game1',
+            'token': 'TOKEN1', 'room_id': 'room1'}], self.node.all_players())
+
+    def testAllRooms(self):
+        self.node.manage_room("game1", "room1")
+        self.assertEquals([{'game_id': 'game1', 'room_id': 'room1'}],
+            self.node.all_rooms())
+
+    def testShutdown(self):
+        pass
+        # send offline signal
+
+        # remove / serialize rooms
+
+        # send deregister signal

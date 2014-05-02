@@ -25,7 +25,21 @@ class Node(object):
         self.master_conn.register_node(host=self.host, port=self.port)
 
     def deregister(self):
+        self.master_conn.offline_node(host=self.host, port=self.port)
+        for (game_id, room_id), room in self.rooms.items():
+            self.container.save_room(room)
         self.master_conn.deregister_node(host=self.host, port=self.port)
+
+    @request
+    def all_rooms(self):
+        return [{"game_id": room.game_id, "room_id": room.room_id} for \
+            room in self.rooms.values()]
+
+    @request
+    def all_players(self):
+        return [{"username": player.username, "game_id": player.game_id,
+            "room_id": player.room_id, "token": player.token} for player in \
+            self.players.values()]
 
     @request
     def manage_room(self, game_id, room_id):
