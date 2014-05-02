@@ -31,17 +31,20 @@ class RegisteredNode(object):
             game_id=game_id, room_id=room_id)
 
     def manage_room(self, game_id, room_id):
-        self.rpc_conn.call("manage_room", game_id=game_id, room_id=room_id)
+        return self.rpc_conn.call("manage_room", game_id=game_id,
+            room_id=room_id)
 
-    def load(self):
+    def player_connects(self, username, game_id):
+        return self.rpc_conn.call("player_connects", username=username,
+            game_id=game_id)
+
+    def server_load(self):
         return len(self.rooms)
 
 
 class Master(object):
     def __init__(self, container):
         self.nodes = dict()
-        self.players = dict()
-        self.player_map = dict()
         self.games = dict()
         self.rooms = dict()
         self.container = container
@@ -103,28 +106,26 @@ class Master(object):
 
         host, port = self._get_node_for_room(game_id, room_id)
         node = self.nodes[host, port]
-        self.player_map[username, game_id] = (host, port)
-
         token = node.player_joins(username, game_id, room_id)
         return {"token": token, "node": (node.host, node.port)}
 
     @request
     def player_connects(self, username, game_id):
-        if (username, game_id) in self.players:
-            player = self.players[username, game_id]
-        else:
-            player = self._load_player(username, game_id)
+        if not self.container.player_exists(username, game_id):
+            raise RPCException("No such player %s, %s" % (username, game_id))
 
+        player = self._load_player(username, game_id)
+        host, port = self._get_node_for_room(game_id, player.room_id)
         node = self.nodes[host, port]
         token = node.player_connects(username, game_id)
         return {"token": token, "node": (node.host, node.port)}
 
     def _check_can_join(self, username, game_id):
-        if (username, game_id) in self.players:
-            raise RPCException("Player already joined %s %s" % (username,
-                game_id))
         if game_id not in self.games:
             raise RPCException("No such game %s" % (game_id))
+        if self.container.player_exists(username, game_id):
+            raise RPCException("Player already joined %s %s" % (username,
+                game_id))
 
     def _check_node_offline(self, game_id, room_id):
         if (game_id, room_id) in self.rooms:
@@ -134,9 +135,10 @@ class Master(object):
                 raise RPCWaitException("Room in transit")
 
     def _create_player(self, username, game_id, room_id):
-        player = self.container.create_player(username, game_id, room_id)
-        self.players[username, game_id] = player
-        return player
+        return self.container.create_player(username, game_id, room_id)
+
+    def _load_player(self, username, game_id):
+        return self.container.load_player(username, game_id)
 
     def _get_node_for_room(self, game_id, room_id):
         # game_id,
@@ -148,7 +150,7 @@ class Master(object):
         return self.rooms[game_id, room_id]
 
     def _select_available_node(self):
-        return min(self.nodes.values(), key=RegisteredNode.load)
+        return min(self.nodes.values(), key=RegisteredNode.server_load)
 
     @request
     def all_games(self):
@@ -167,11 +169,6 @@ class Master(object):
     @request
     def is_player_in_game(self, username, game_id):
         return (username, game_id) in self.players
-
-    @request
-    def get_node(self, username, game_id):
-        node = self.nodes[self.player_map[username, game_id]]
-        return (node.host, node.port)
 
     @request
     def manage_room(self, node_host, node_port, game_id, room_id):

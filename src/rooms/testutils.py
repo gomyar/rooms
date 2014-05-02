@@ -24,6 +24,9 @@ class MockContainer(object):
     def save_player(self, player):
         self.players[player.username, player.game_id] = player
 
+    def player_exists(self, username, game_id):
+        return (username, game_id) in self.players
+
     def load_game(self, game_id):
         return self.games[game_id]
 
