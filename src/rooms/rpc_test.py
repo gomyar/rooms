@@ -6,6 +6,7 @@ from rpc import WSGIRPCClient
 from rpc import WSGIRPCServer
 from rpc import request
 from rpc import websocket
+from rpc import RPCWaitException
 
 
 class MockController(object):
@@ -28,6 +29,11 @@ class MockController(object):
         self.called = arg1
         self.ws = ws
         return "OK"
+
+    @request
+    def bounce(self):
+        raise RPCWaitException("unavailable")
+
 
 class MockControllerException(object):
     @request
@@ -77,6 +83,7 @@ class RPCTest(unittest.TestCase):
 
         self.assertEquals({'index': {'args': ['arg1'], 'doc': 'docstr',
             'type': 'request'},
+            'bounce': {'args': [], 'doc': '', 'type': 'request'},
             'websock': {'args': ['arg1'], 'doc': 'docstr',
             'type': 'websocket'}},
             self.rpc_server.controller_methods("controller1"))
@@ -136,6 +143,7 @@ class RPCTest(unittest.TestCase):
 
         self.assertEquals({'index': {'args': ['arg1'], 'doc': 'docstr',
             'type': 'request'},
+            'bounce': {'args': [], 'doc': '', 'type': 'request'},
             'websock': {'args': ['arg1'], 'doc': 'docstr',
             'type': 'websocket'}},
             self.rpc_server.controller_methods("controller1"))
@@ -190,3 +198,15 @@ class RPCTest(unittest.TestCase):
         self.assertEquals([('content-type', ('text/html', None))],
             self._server_lines)
 
+    def testWaitExceptionTemporarilyUnavailable(self):
+        self.mock_controller = MockController()
+
+        self.rpc_server = WSGIRPCServer("10.10.10.1", 8888)
+        self.rpc_server.add_controller("controller1", self.mock_controller)
+
+        result = self.rpc_server.handle({'PATH_INFO': '/controller1/bounce',
+            'wsgi.input': StringIO("")},
+            self._server_response)
+
+        self.assertEquals('503 Service Unavailable', self._server_code)
+        self.assertEquals([('retry-after', '3')], self._server_lines)

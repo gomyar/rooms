@@ -169,6 +169,10 @@ class WSGIRPCServer(object):
                 return self.www_file(path[1:], response)
             response('404 Not Found', [])
             return "Path Not Found: %s" % (path,)
+        except RPCWaitException, we:
+            response('503 Service Unavailable', [
+                ('retry-after', '3'),
+            ])
         except URLError, ue:
             returned = "Cannot connect to: %s" % (path,)
             response('500', [
