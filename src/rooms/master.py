@@ -31,8 +31,9 @@ class RegisteredNode(object):
             game_id=game_id, room_id=room_id)
 
     def manage_room(self, game_id, room_id):
-        return self.rpc_conn.call("manage_room", game_id=game_id,
+        self.rpc_conn.call("manage_room", game_id=game_id,
             room_id=room_id)
+        self.rooms.append((game_id, room_id))
 
     def player_connects(self, username, game_id):
         return self.rpc_conn.call("player_connects", username=username,
@@ -104,8 +105,7 @@ class Master(object):
 
         player = self._create_player(username, game_id, room_id)
 
-        host, port = self._get_node_for_room(game_id, room_id)
-        node = self.nodes[host, port]
+        node = self._get_node_for_room(game_id, room_id)
         token = node.player_joins(username, game_id, room_id)
         return {"token": token, "node": (node.host, node.port)}
 
@@ -115,8 +115,7 @@ class Master(object):
             raise RPCException("No such player %s, %s" % (username, game_id))
 
         player = self._load_player(username, game_id)
-        host, port = self._get_node_for_room(game_id, player.room_id)
-        node = self.nodes[host, port]
+        node = self._get_node_for_room(game_id, player.room_id)
         token = node.player_connects(username, game_id)
         return {"token": token, "node": (node.host, node.port)}
 
@@ -147,7 +146,8 @@ class Master(object):
             node.manage_room(game_id, room_id)
             self.rooms[game_id, room_id] = (node.host, node.port)
 
-        return self.rooms[game_id, room_id]
+        host, port = self.rooms[game_id, room_id]
+        return self.nodes[host, port]
 
     def _select_available_node(self):
         return min(self.nodes.values(), key=RegisteredNode.server_load)
@@ -171,16 +171,12 @@ class Master(object):
         return (username, game_id) in self.players
 
     @request
-    def manage_room(self, node_host, node_port, game_id, room_id):
-        ''' Debug only - used to force management of a room on a node '''
+    def request_room(self, game_id, room_id):
+        ''' Node calls this to request management of a new room '''
         if (game_id, room_id) in self.rooms:
-            host, port = self.rooms[game_id, room_id]
-            raise RPCException("Room %s:%s already managed on node %s:%s" % (
-                game_id, room_id, host, port))
-        node = self.nodes[node_host, node_port]
-        self.rooms[game_id, room_id] = (node_host, node_port)
-        # off to a queue with you
-        node.manage_room(game_id, room_id)
+            return self.rooms[game_id, room_id]
+        node = self._get_node_for_room(game_id, room_id)
+        return (node.host, node.port)
 
     @websocket
     def game_status(self, ws, game_id):

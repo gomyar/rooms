@@ -43,7 +43,7 @@ class MasterTest(unittest.TestCase):
 
     def testNodeDeregister(self):
         self.master.register_node("10.10.10.1", 8000)
-        self.master.manage_room('10.10.10.1', 8000, "game1", "room1")
+        self.master.request_room("game1", "room1")
         self.assertEquals(1, len(self.master.nodes))
         self.assertEquals(1, len(self.master.rooms))
         self.master.deregister_node("10.10.10.1", 8000)
@@ -102,7 +102,7 @@ class MasterTest(unittest.TestCase):
         self.master.create_game("bob")
         self.master.nodes['10.10.10.1', 8000].client = self.rpc_conn
 
-        self.master.manage_room('10.10.10.1', 8000, "game1", "room1")
+        self.master.request_room("game1", "room1")
 
         self.assertEquals({('game1', 'room1'): ('10.10.10.1', 8000)},
             self.master.rooms)
@@ -115,9 +115,11 @@ class MasterTest(unittest.TestCase):
         self.master.create_game("bob")
         self.master.nodes['10.10.10.1', 8000].client = self.rpc_conn
 
-        self.master.manage_room('10.10.10.1', 8000, "game1", "room1")
-        self.assertRaises(RPCException, self.master.manage_room,
-            '10.10.10.1', 8000, "game1", "room1")
+        self.master.rooms = {('game1', 'room1'): ('10.10.10.1', 8000)}
+
+        self.assertEquals(("10.10.10.1", 8000),
+            self.master.request_room("game1", "room1"))
+        self.assertEquals([], self.rpc_conn.called)
 
     def testJoinGameRoomAlreadyManaged(self):
         # room managed, so don't call manage_room
@@ -168,8 +170,8 @@ class MasterTest(unittest.TestCase):
         self.master.register_node("10.10.10.1", 8000)
         self.master.register_node("20.20.20.2", 8000)
 
-        self.master.manage_room('10.10.10.1', 8000, "game1", "room1")
-        self.master.manage_room('20.20.20.2', 8000, "game1", "room2")
+        self.master.request_room("game1", "room1")
+        self.master.request_room("game1", "room2")
 
         # receive offline signal
         self.master.offline_node("10.10.10.1", 8000)
