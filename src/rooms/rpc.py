@@ -27,47 +27,11 @@ class RPCWaitException(Exception):
         super(RPCWaitException, self).__init__(message)
 
 
-class _MethodStub(object):
-    def __init__(self, rest_object, rest_method, client):
-        self.rest_object = rest_object
-        self.rest_method = rest_method
-        self.client = client
-
-    def __call__(self, *args, **kwargs):
-        if args:
-            raise Exception("We don't support non-keyword args in "
-                "call to %s (%s), must have param=" % (self.rest_method, args))
-        try:
-            response = self.client.http_connect("http://%s:%s%s/%s" % (
-                self.client.host, self.client.port, self.rest_object,
-                self.rest_method), urllib.urlencode(kwargs)).read()
-            return json.loads(response)
-        except HTTPError, he:
-            errorstr = "".join(he.readlines())
-            print str(he)
-            print errorstr
-            raise
-        except URLError, ue:
-            print str(ue)
-            raise
-        except Exception, e:
-            errorstr = "".join(str(e))
-            print str(e)
-            print errorstr
-            raise
-
-
 class WSGIRPCClient(object):
     def __init__(self, host, port, namespace=None):
         self.host = host
         self.port = port
-        self.namespace = namespace
-
-    def __getattr__(self, name):
-        if self.namespace:
-            return _MethodStub("/%s" % self.namespace, name, self)
-        else:
-            return _MethodStub("", name, self)
+        self.namespace = namespace or ""
 
     def __eq__(self, rhs):
         return type(rhs) is WSGIRPCClient and self.host == rhs.host and \
@@ -75,6 +39,21 @@ class WSGIRPCClient(object):
 
     def http_connect(self, url, params):
         return urllib2.urlopen(url, params)
+
+    def call(self, method, **kwargs):
+        try:
+            url = "http://%s:%s/%s" % (self.host, self.port,
+                os.path.join(self.namespace, method))
+            response = self.http_connect(url, urllib.urlencode(kwargs)).read()
+            return json.loads(response)
+        except HTTPError, he:
+            errorstr = "".join(he.readlines())
+            raise
+        except URLError, ue:
+            raise
+        except Exception, e:
+            errorstr = "".join(str(e))
+            raise
 
 
 def _json_return(response, returned):

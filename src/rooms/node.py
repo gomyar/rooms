@@ -22,13 +22,14 @@ class Node(object):
         self.game_script = Script()
 
     def connect_to_master(self):
-        self.master_conn.register_node(host=self.host, port=self.port)
+        self.master_conn.call("register_node", host=self.host, port=self.port)
 
     def deregister(self):
-        self.master_conn.offline_node(host=self.host, port=self.port)
+        self.master_conn.call("offline_node", host=self.host, port=self.port)
         for (game_id, room_id), room in self.rooms.items():
             self.container.save_room(room)
-        self.master_conn.deregister_node(host=self.host, port=self.port)
+        self.master_conn.call("deregister_node", host=self.host,
+            port=self.port)
 
     @request
     def all_rooms(self):

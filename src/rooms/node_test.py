@@ -4,79 +4,10 @@ import unittest
 from rooms.node import Node
 from rooms.room import Room
 from rooms.player import Player
-
-
-class MockRoom(object):
-    def __init__(self, game_id, room_id):
-        self._kicked_off = False
-        self.room_id = room_id
-        self.game_id = game_id
-
-    def kick(self):
-        self._kicked_off = True
-
-
-class MockContainer(object):
-    def __init__(self, rooms=None, players=None):
-        self.rooms = rooms or {}
-        self.players = players or {}
-
-    def load_room(self, game_id, room_id):
-        return self.rooms[game_id, room_id]
-
-    def save_room(self, room):
-        self.rooms[room.game_id, room.room_id] = room
-
-    def room_exists(self, game_id, room_id):
-        return (game_id, room_id) in self.rooms
-
-    def load_player(self, player_id):
-        return self.players[player_id]
-
-
-class MockScript(object):
-    def __init__(self):
-        self.called = []
-
-    def call(self, method, *args, **kwargs):
-        self.called.append((method, args, kwargs))
-
-
-class MockPlayerScript(object):
-    def __init__(self):
-        self.room = None
-        self.player = None
-
-    def player_joins(self, player, room):
-        self.player = player
-        self.room = room
-
-
-class MockGameScript(object):
-    def __init__(self):
-        self.room = None
-
-    def room_created(self, room):
-        self.room = room
-
-
-class MockRpcClient(object):
-    def __init__(self):
-        self.registered_host = None
-        self.registered_port = None
-        self.registered = False
-        self.online = True
-
-    def register_node(self, host, port):
-        self.registered_host, self.registered_port = host, port
-        self.registered = True
-
-    def deregister_node(self, host, port):
-        self.registered_host, self.registered_port = host, port
-        self.registered = False
-
-    def offline_node(self, host, port):
-        self.online = False
+from rooms.testutils import MockContainer
+from rooms.testutils import MockRpcClient
+from rooms.testutils import MockScript
+from rooms.testutils import MockRoom
 
 
 class NodeTest(unittest.TestCase):
@@ -120,11 +51,11 @@ class NodeTest(unittest.TestCase):
     def testConnectToMaster(self):
         self.node.connect_to_master()
 
-        self.assertEquals("10.10.10.1", self.mock_rpc.registered_host)
-        self.assertEquals(8000, self.mock_rpc.registered_port)
+        self.assertEquals([
+            ('register_node', {'host': '10.10.10.1', 'port': 8000})],
+            self.mock_rpc.called)
 
     def testDeregister(self):
-        self.mock_rpc.registered = True
         mockroom1 = MockRoom('game1', 'room1')
         mockroom2 = MockRoom('game1', 'room2')
         self.node.rooms['game1', 'room1'] = mockroom1
@@ -132,10 +63,11 @@ class NodeTest(unittest.TestCase):
 
         self.node.deregister()
 
-        self.assertFalse(self.mock_rpc.registered)
-        self.assertEquals("10.10.10.1", self.mock_rpc.registered_host)
-        self.assertEquals(8000, self.mock_rpc.registered_port)
-        self.assertFalse(self.mock_rpc.online)
+        self.assertEquals([
+            ('offline_node', {'host': '10.10.10.1', 'port': 8000}),
+            ('deregister_node', {'host': '10.10.10.1', 'port': 8000})],
+            self.mock_rpc.called)
+
         self.assertEquals({('game1', 'room1'): mockroom1,
             ('game1', 'room2'): mockroom2}, self.container.rooms)
 

@@ -27,11 +27,11 @@ class RegisteredNode(object):
             self.host == rhs.host and self.port == rhs.port
 
     def player_joins(self, username, game_id, room_id):
-        return self.rpc_conn.player_joins(username=username, game_id=game_id,
-            room_id=room_id)
+        return self.rpc_conn.call("player_joins", username=username,
+            game_id=game_id, room_id=room_id)
 
     def manage_room(self, game_id, room_id):
-        self.rpc_conn.manage_room(game_id=game_id, room_id=room_id)
+        self.rpc_conn.call("manage_room", game_id=game_id, room_id=room_id)
 
     def load(self):
         return len(self.rooms)
@@ -88,8 +88,7 @@ class Master(object):
 
     @request
     def create_game(self, owner_id):
-        game = Game(owner_id)
-        self.container.save_game(game)
+        game = self.container.create_game(owner_id)
         self.games[game.game_id] = game
         return game.game_id
 
@@ -109,6 +108,17 @@ class Master(object):
         token = node.player_joins(username, game_id, room_id)
         return {"token": token, "node": (node.host, node.port)}
 
+    @request
+    def player_connects(self, username, game_id):
+        if (username, game_id) in self.players:
+            player = self.players[username, game_id]
+        else:
+            player = self._load_player(username, game_id)
+
+        node = self.nodes[host, port]
+        token = node.player_connects(username, game_id)
+        return {"token": token, "node": (node.host, node.port)}
+
     def _check_can_join(self, username, game_id):
         if (username, game_id) in self.players:
             raise RPCException("Player already joined %s %s" % (username,
@@ -124,10 +134,8 @@ class Master(object):
                 raise RPCWaitException("Room in transit")
 
     def _create_player(self, username, game_id, room_id):
-        game = self.games[game_id]
-        player = Player(username, game_id, room_id)
+        player = self.container.create_player(username, game_id, room_id)
         self.players[username, game_id] = player
-        self.container.save_player(player)
         return player
 
     def _get_node_for_room(self, game_id, room_id):
