@@ -97,6 +97,8 @@ class MasterTest(unittest.TestCase):
         ],
             self.rpc_conn.called)
 
+        self.assertEquals([], self.master.players_in_game("game1"))
+
     def testManageRoom(self):
         self.master.register_node("10.10.10.1", 8000)
         self.master.create_game("bob")

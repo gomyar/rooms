@@ -164,7 +164,9 @@ class Master(object):
 
     @request
     def players_in_game(self, game_id):
-        return self.players.values()
+        return [{'username': player.username, 'game_id': player.game_id,
+            'room_id': player.room_id} for player in \
+            self.container.players_in_game(game_id)]
 
     @request
     def is_player_in_game(self, username, game_id):

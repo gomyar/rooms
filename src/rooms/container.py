@@ -43,6 +43,11 @@ class Container(object):
         return self.dbase.object_exists("players", username=username,
             game_id=game_id)
 
+    def players_in_game(self, game_id):
+        player_dicts = self.dbase.filter("players", game_id=game_id)
+        players = [self._decode_enc_dict(enc_dict) for enc_dict in player_dicts]
+        return players
+
     def load_game(self, game_id):
         return self._load_object(game_id, "games")
 

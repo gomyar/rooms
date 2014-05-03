@@ -11,6 +11,7 @@ from ConfigParser import ConfigParser
 
 from rooms.master import Master
 from rooms.container import Container
+from rooms.dbase.mongo_dbase import MongoDBase
 from rooms.rpc import WSGIRPCServer
 
 import logging
@@ -48,7 +49,9 @@ if __name__ == "__main__":
                 format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
         host, port = options.address.split(":")
-        master = Master(Container())
+        dbase = MongoDBase()
+        dbase.init_mongo()
+        master = Master(Container(dbase))
         server = WSGIRPCServer(host, port)
         server.add_controller("master", master)
         log.info("Starting Rooms Master")
