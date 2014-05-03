@@ -1,21 +1,144 @@
 
+import json
+
+from rooms.game import Game
+from rooms.player import Player
+from rooms.room import Room
+
 import logging
 log = logging.getLogger("rooms.container")
 
 
 class Container(object):
-    def save_game(self, game):
-        log.debug("Saving game %s", game)
-        game.game_id = "1"
-
-    def save_player(self, player):
-        log.debug("Saving player %s", player)
+    def __init__(self, dbase):
+        self.dbase = dbase
+        self.serializers = dict(
+            Game=self._serialize_game,
+            Player=self._serialize_player,
+            Room=self._serialize_room,
+        )
+        self.builders = dict(
+            Game=self._create_game,
+            Player=self._create_player,
+            Room=self._create_room,
+        )
 
     def load_room(self, game_id, room_id):
-        return None
+        return self._load_filter("rooms", game_id=game_id, room_id=room_id)
 
     def save_room(self, room):
-        pass
+        self._save_object(room, "rooms")
 
     def room_exists(self, game_id, room_id):
-        return False
+        return self.dbase.object_exists("rooms", game_id=game_id,
+            room_id=room_id)
+
+    def load_player(self, username, game_id):
+        return self._load_filter("players", username=username, game_id=game_id)
+
+    def save_player(self, player):
+        self._save_object(player, "players")
+
+    def player_exists(self, username, game_id):
+        return self.dbase.object_exists("players", username=username,
+            game_id=game_id)
+
+    def load_game(self, game_id):
+        return self._load_object(game_id, "games")
+
+    def save_game(self, game):
+        self._save_object(game, "games")
+
+    def create_game(self, owner_id):
+        game = Game(owner_id)
+        self.save_game(game)
+        return game
+
+    def create_player(self, username, game_id, room_id):
+        player = Player(username, game_id, room_id)
+        self.save_player(player)
+        return player
+
+    ## ---- Encoding method
+
+    def _save_object(self, saved_object, dbase_name):
+        if getattr(saved_object, '_id', None):
+            db_id = saved_object._id
+            saved_object._id = None
+        else:
+            db_id = None
+        object_dict = self._obj_to_dict(saved_object)
+        db_id = self.dbase.save_object(object_dict, dbase_name, db_id)
+        saved_object._id = str(db_id)
+        return str(db_id)
+
+    def _load_object(self, object_id, dbase_name):
+        enc_dict = self.dbase.load_object(object_id, dbase_name)
+        db_id = enc_dict.pop('_id')
+        obj = self._dict_to_obj(enc_dict)
+        obj._id = str(db_id)
+        return obj
+
+    def _obj_to_dict(self, pyobject):
+        encoded_str = json.dumps(pyobject, default=self._encode, indent=4)
+        return json.loads(encoded_str)
+
+    def _dict_to_obj(self, obj_dict):
+        obj_str = json.dumps(obj_dict)
+        return json.loads(obj_str, object_hook=self._decode)
+
+    def _encode(self, obj):
+        obj_name =  type(obj).__name__
+        if obj_name in self.serializers:
+            data = self.serializers[obj_name](obj)
+            data['__type__'] = obj_name
+            return data
+        raise TypeError("Cannot serialize object %s" % obj_name)
+
+    def _decode(self, data):
+        if "__type__" in data:
+            obj_type = data.pop('__type__')
+            if obj_type in self.builders:
+                return self.builders[obj_type](data)
+            else:
+                raise TypeError("No such type:%s" % obj_type)
+        return data
+
+    def _load_filter(self, collection, **fields):
+        enc_dict = self.dbase.filter_one(collection, **fields)
+        if enc_dict:
+            return self._decode_enc_dict(enc_dict)
+        else:
+            raise Exception("No such object in collection %s: %s" % (
+                collection, fields))
+
+    def _decode_enc_dict(self, enc_dict):
+        db_id = enc_dict.pop('_id')
+        obj = self._dict_to_obj(enc_dict)
+        obj._id = str(db_id)
+        return obj
+
+    ## -- encoding / decoding methods
+
+    # Game
+    def _serialize_game(self, game):
+        return dict(owner_id=game.owner_id)
+
+    def _create_game(self, data):
+        return Game(data['game_id'], data['owner_id'])
+
+    # Player
+    def _serialize_player(self, player):
+        return dict(username=player.username,
+            game_id=player.game_id,
+            room_id=player.room_id)
+
+    def _create_player(self, data):
+        return Player(data['username'], data['game_id'], data['room_id'])
+
+    # Room
+    def _serialize_room(self, room):
+        return dict(game_id=room.game_id, room_id=room.room_id)
+
+    def _create_room(self, data):
+        return Room(data['game_id'], data['room_id'])
