@@ -18,9 +18,9 @@ class Container(object):
             Room=self._serialize_room,
         )
         self.builders = dict(
-            Game=self._create_game,
-            Player=self._create_player,
-            Room=self._create_room,
+            Game=self._build_game,
+            Player=self._build_player,
+            Room=self._build_room,
         )
 
     def load_room(self, game_id, room_id):
@@ -28,6 +28,11 @@ class Container(object):
 
     def save_room(self, room):
         self._save_object(room, "rooms")
+
+    def create_room(self, game_id, room_id):
+        room = Room(game_id, room_id)
+        self.save_room(room)
+        return room
 
     def room_exists(self, game_id, room_id):
         return self.dbase.object_exists("rooms", game_id=game_id,
@@ -129,7 +134,7 @@ class Container(object):
     def _serialize_game(self, game):
         return dict(owner_id=game.owner_id)
 
-    def _create_game(self, data):
+    def _build_game(self, data):
         return Game(data['game_id'], data['owner_id'])
 
     # Player
@@ -138,12 +143,12 @@ class Container(object):
             game_id=player.game_id,
             room_id=player.room_id)
 
-    def _create_player(self, data):
+    def _build_player(self, data):
         return Player(data['username'], data['game_id'], data['room_id'])
 
     # Room
     def _serialize_room(self, room):
         return dict(game_id=room.game_id, room_id=room.room_id)
 
-    def _create_room(self, data):
+    def _build_room(self, data):
         return Room(data['game_id'], data['room_id'])

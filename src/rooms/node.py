@@ -4,6 +4,7 @@ import uuid
 from rooms.player import Player
 from rooms.rpc import WSGIRPCClient
 from rooms.rpc import request
+from rooms.rpc import RPCException
 from rooms.room import Room
 from rooms.script import Script
 
@@ -47,8 +48,7 @@ class Node(object):
         if self.container.room_exists(game_id, room_id):
             room = self.container.load_room(game_id, room_id)
         else:
-            room = Room(game_id, room_id)
-            self.container.save_room(room)
+            room = self.container.create_room(game_id, room_id)
             self.game_script.call("room_created", room)
         self.rooms[game_id, room_id] = room
         room.kick()
@@ -61,6 +61,26 @@ class Node(object):
         player.token = self._create_token()
         self.player_script.call("player_joins", player, room)
         return player.token
+
+    @request
+    def request_token(self, username, game_id):
+        if (username, game_id) not in self.players:
+            if not self.container.player_exists(username, game_id):
+                raise RPCException("No such player %s, %s" % (username,
+                    game_id))
+            player = self.container.load_player(username, game_id)
+            self.players[username, game_id] = player
+        else:
+            player = self.players[username, game_id]
+        if player.token:
+            return player.token
+        else:
+            if (game_id, player.room_id) in self.rooms:
+                player.token = self._create_token()
+                return player.token
+            else:
+                raise RPCException("Invalid player for node (no such room) %s" %
+                    (player,))
 
     def _create_token(self):
         return str(uuid.uuid1())

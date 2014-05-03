@@ -28,7 +28,7 @@ class MasterTest(unittest.TestCase):
     def setUp(self):
         self.container = MockContainer()
         self.rpc_conn = MockRpcClient(expect={"player_joins": "TOKEN",
-            "player_connects": "TOKEN"})
+            "request_token": "TOKEN"})
 
         self.master = Master(self.container)
         self.master._create_rpc_conn = lambda h, p: self.rpc_conn
@@ -97,7 +97,8 @@ class MasterTest(unittest.TestCase):
         ],
             self.rpc_conn.called)
 
-        self.assertEquals([], self.master.players_in_game("game1"))
+        self.assertEquals([{'game_id': 'game1', 'room_id': 'room1',
+            'username': 'bob'}], self.master.players_in_game("game1"))
 
     def testManageRoom(self):
         self.master.register_node("10.10.10.1", 8000)

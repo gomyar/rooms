@@ -35,8 +35,8 @@ class RegisteredNode(object):
             room_id=room_id)
         self.rooms.append((game_id, room_id))
 
-    def player_connects(self, username, game_id):
-        return self.rpc_conn.call("player_connects", username=username,
+    def request_token(self, username, game_id):
+        return self.rpc_conn.call("request_token", username=username,
             game_id=game_id)
 
     def server_load(self):
@@ -116,7 +116,7 @@ class Master(object):
 
         player = self._load_player(username, game_id)
         node = self._get_node_for_room(game_id, player.room_id)
-        token = node.player_connects(username, game_id)
+        token = node.request_token(username, game_id)
         return {"token": token, "node": (node.host, node.port)}
 
     def _check_can_join(self, username, game_id):

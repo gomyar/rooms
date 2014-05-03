@@ -48,11 +48,16 @@ class WSGIRPCClient(object):
             return json.loads(response)
         except HTTPError, he:
             errorstr = "".join(he.readlines())
+            log.exception("HTTPError calling %s(%s), %s", method, kwargs,
+                errorstr)
             raise
         except URLError, ue:
+            log.exception("URLError calling %s(%s), %s", method, kwargs,
+                str(ue))
             raise
         except Exception, e:
-            errorstr = "".join(str(e))
+            log.exception("Exception calling %s(%s), %s", method, kwargs,
+                str(e))
             raise
 
 

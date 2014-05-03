@@ -1,5 +1,6 @@
 
 from rooms.player import Player
+from rooms.room import Room
 
 
 class MockContainer(object):
@@ -33,6 +34,11 @@ class MockContainer(object):
     def save_game(self, game):
         self.games[game.game_id] = game
 
+    def create_room(self, game_id, room_id):
+        room = Room(game_id, room_id)
+        self.rooms[game_id, room_id] = room
+        return room
+
     def create_game(self, owner_id):
         game = MockGame(owner_id, "game%s" % (self.gameids))
         self.gameids += 1
@@ -43,6 +49,10 @@ class MockContainer(object):
         player = Player(username, game_id, room_id)
         self.save_player(player)
         return player
+
+    def players_in_game(self, game_id):
+        return [p for p in self.players.values() if p.game_id == game_id]
+
 
 class MockRoom(object):
     def __init__(self, game_id, room_id):

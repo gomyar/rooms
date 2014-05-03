@@ -8,6 +8,7 @@ from rooms.testutils import MockContainer
 from rooms.testutils import MockRpcClient
 from rooms.testutils import MockScript
 from rooms.testutils import MockRoom
+from rooms.rpc import RPCException
 
 
 class NodeTest(unittest.TestCase):
@@ -90,6 +91,22 @@ class NodeTest(unittest.TestCase):
         self.node.manage_room("game1", "room1")
         self.assertEquals([{'game_id': 'game1', 'room_id': 'room1'}],
             self.node.all_rooms())
+
+    def testRequestToken(self):
+        self.node.manage_room("game1", "room1")
+        self.container.players['bob', 'game1'] = Player("bob", "game1", "room1")
+        token = self.node.request_token("bob", "game1")
+        self.assertEquals("TOKEN1", token)
+
+    def testRequestTokenInvalidPlayer(self):
+        self.node.manage_room("game1", "room_other")
+        self.container.players['bob', 'game1'] = Player("bob", "game1", "room1")
+        self.assertRaises(RPCException, self.node.request_token, "bob", "game1")
+
+    def testRequestTokenNoSuchPlayer(self):
+        self.node.manage_room("game1", "room_other")
+        self.container.players['bob', 'game1'] = Player("bob", "game1", "room1")
+        self.assertRaises(RPCException, self.node.request_token, "no", "game1")
 
     def testShutdown(self):
         pass
