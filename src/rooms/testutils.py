@@ -39,6 +39,12 @@ class MockContainer(object):
         self.rooms[game_id, room_id] = room
         return room
 
+    def all_games(self):
+        return self.games.values()
+
+    def all_active_games(self):
+        return self.games.values()
+
     def create_game(self, owner_id):
         game = MockGame(owner_id, "game%s" % (self.gameids))
         self.gameids += 1

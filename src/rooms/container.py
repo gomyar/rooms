@@ -64,6 +64,11 @@ class Container(object):
         self.save_game(game)
         return game
 
+    def all_games(self):
+        game_dicts = self.dbase.filter("games")
+        games = [self._decode_enc_dict(enc_dict) for enc_dict in game_dicts]
+        return games
+
     def create_player(self, username, game_id, room_id):
         player = Player(username, game_id, room_id)
         self.save_player(player)
@@ -135,7 +140,7 @@ class Container(object):
         return dict(owner_id=game.owner_id)
 
     def _build_game(self, data):
-        return Game(data['game_id'], data['owner_id'])
+        return Game(data['owner_id'])
 
     # Player
     def _serialize_player(self, player):

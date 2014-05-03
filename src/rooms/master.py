@@ -46,7 +46,6 @@ class RegisteredNode(object):
 class Master(object):
     def __init__(self, container):
         self.nodes = dict()
-        self.games = dict()
         self.rooms = dict()
         self.container = container
 
@@ -92,9 +91,7 @@ class Master(object):
 
     @request
     def create_game(self, owner_id):
-        game = self.container.create_game(owner_id)
-        self.games[game.game_id] = game
-        return game.game_id
+        return self.container.create_game(owner_id).game_id
 
     @request
     def join_game(self, username, game_id, room_id):
@@ -102,6 +99,7 @@ class Master(object):
             script player_joins() is called on node.'''
         self._check_can_join(username, game_id)
         self._check_node_offline(game_id, room_id)
+        self._check_nodes_available()
 
         player = self._create_player(username, game_id, room_id)
 
@@ -109,10 +107,15 @@ class Master(object):
         token = node.player_joins(username, game_id, room_id)
         return {"token": token, "node": (node.host, node.port)}
 
+    def _check_nodes_available(self):
+        if not self.nodes:
+            raise RPCWaitException("System offline")
+
     @request
     def player_connects(self, username, game_id):
         if not self.container.player_exists(username, game_id):
             raise RPCException("No such player %s, %s" % (username, game_id))
+        self._check_nodes_available()
 
         player = self._load_player(username, game_id)
         node = self._get_node_for_room(game_id, player.room_id)
@@ -120,8 +123,6 @@ class Master(object):
         return {"token": token, "node": (node.host, node.port)}
 
     def _check_can_join(self, username, game_id):
-        if game_id not in self.games:
-            raise RPCException("No such game %s" % (game_id))
         if self.container.player_exists(username, game_id):
             raise RPCException("Player already joined %s %s" % (username,
                 game_id))
@@ -154,9 +155,8 @@ class Master(object):
 
     @request
     def all_games(self):
-        ''' List all currently active games '''
         return [{"game_id": game.game_id, "owner_id": game.owner_id} for game\
-            in self.games.values()]
+            in self.container.all_games()]
 
     @request
     def all_rooms(self):

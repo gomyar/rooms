@@ -107,11 +107,3 @@ class NodeTest(unittest.TestCase):
         self.node.manage_room("game1", "room_other")
         self.container.players['bob', 'game1'] = Player("bob", "game1", "room1")
         self.assertRaises(RPCException, self.node.request_token, "no", "game1")
-
-    def testShutdown(self):
-        pass
-        # send offline signal
-
-        # remove / serialize rooms
-
-        # send deregister signal

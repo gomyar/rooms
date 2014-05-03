@@ -61,8 +61,10 @@ class MasterTest(unittest.TestCase):
         self.master.register_node("10.10.10.1", 8000)
 
         game_id = self.master.create_game("bob")
-        self.assertEquals(1, len(self.master.games))
         self.assertEquals("bob", self.container.games['game1'].owner_id)
+
+        self.assertEquals([{'game_id': 'game1', 'owner_id': 'bob'}],
+            self.master.all_games())
 
     def testCantRegisterNodeTwice(self):
         self.master.register_node("10.10.10.1", 8000)
@@ -94,8 +96,7 @@ class MasterTest(unittest.TestCase):
             ('manage_room', {'game_id': 'game1', 'room_id': 'room1'}),
             ('player_joins', {'game_id': 'game1', 'room_id': 'room1',
                 'username': 'bob'})
-        ],
-            self.rpc_conn.called)
+        ], self.rpc_conn.called)
 
         self.assertEquals([{'game_id': 'game1', 'room_id': 'room1',
             'username': 'bob'}], self.master.players_in_game("game1"))
@@ -135,9 +136,9 @@ class MasterTest(unittest.TestCase):
             self.master.rooms)
         self.assertEquals([], self.rpc_conn.called)
 
-    def testJoinGameNoSuchGame(self):
-        self.assertRaises(RPCException, self.master.join_game, "bob", "game1",
-            "room1")
+    def testJoinGameNoNodes(self):
+        self.assertRaises(RPCWaitException, self.master.join_game, "bob",
+            "game1", "room1")
 
     def testJoinGamePlayerAlreadyJoined(self):
         self.master.register_node("10.10.10.1", 8000)
