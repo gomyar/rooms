@@ -64,23 +64,26 @@ class Node(object):
 
     @request
     def request_token(self, username, game_id):
+        player = self._get_or_load_player(username, game_id)
+        self._check_player_valid(player)
+        if not player.token:
+            player.token = self._create_token()
+        return player.token
+
+    def _check_player_valid(self, player):
+        if (player.game_id, player.room_id) not in self.rooms:
+            raise RPCException("Invalid player for node (no such room) %s" %
+                (player,))
+
+    def _get_or_load_player(self, username, game_id):
         if (username, game_id) not in self.players:
             if not self.container.player_exists(username, game_id):
                 raise RPCException("No such player %s, %s" % (username,
                     game_id))
-            player = self.container.load_player(username, game_id)
-            self.players[username, game_id] = player
-        else:
-            player = self.players[username, game_id]
-        if player.token:
-            return player.token
-        else:
-            if (game_id, player.room_id) in self.rooms:
-                player.token = self._create_token()
-                return player.token
-            else:
-                raise RPCException("Invalid player for node (no such room) %s" %
-                    (player,))
+            self.players[username, game_id] = self.container.load_player(
+                username, game_id)
+        return self.players[username, game_id]
+
 
     def _create_token(self):
         return str(uuid.uuid1())
