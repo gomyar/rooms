@@ -52,9 +52,9 @@ class Master(object):
     @request
     def all_players(self):
         return sorted([
-            ((p.username, p.game_id),
-            {"game_id": p.game_id, "room_id": p.room_id, "token": p.token}) for \
-            p in self.players.values()])
+            {"username": p.username, "game_id": p.game_id,
+            "room_id": p.room_id} for \
+            p in self.container.all_players()])
 
     @request
     def register_node(self, host, port):
@@ -141,8 +141,7 @@ class Master(object):
         return self.container.load_player(username, game_id)
 
     def _get_node_for_room(self, game_id, room_id):
-        # game_id,
-        if room_id not in self.rooms:
+        if (game_id, room_id) not in self.rooms:
             node = self._select_available_node()
             node.manage_room(game_id, room_id)
             self.rooms[game_id, room_id] = (node.host, node.port)
@@ -160,7 +159,8 @@ class Master(object):
 
     @request
     def all_rooms(self):
-        return self.rooms
+        return [{"game_id": room.game_id, "room_id": room.room_id} for room \
+            in self.rooms.values()]
 
     @request
     def players_in_game(self, game_id):
@@ -170,7 +170,7 @@ class Master(object):
 
     @request
     def is_player_in_game(self, username, game_id):
-        return (username, game_id) in self.players
+        return self.container.player_exists(username, game_id)
 
     @request
     def request_room(self, game_id, room_id):

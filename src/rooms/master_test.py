@@ -209,3 +209,39 @@ class MasterTest(unittest.TestCase):
             self.master.player_connects("bob", "game1"))
         self.assertEquals({('game1', 'room1'): ('10.10.10.1', 8000)},
             self.master.rooms)
+
+    def testManageRoomOnlyOnce(self):
+        self.master.create_game("bob")
+        self.master.register_node("10.10.10.1", 8000)
+        self.master.register_node("10.10.10.2", 8000)
+
+        self.master.join_game("bob", "game1", "room1")
+
+        self.assertEquals([
+            ('manage_room', {'game_id': 'game1', 'room_id': 'room1'}),
+            ('player_joins', {'game_id': 'game1', 'room_id': 'room1',
+                'username': 'bob'})], self.rpc_conn.called)
+
+        self.master.request_room("game1", "room1")
+
+        self.assertEquals([
+            ('manage_room', {'game_id': 'game1', 'room_id': 'room1'}),
+            ('player_joins', {'game_id': 'game1', 'room_id': 'room1',
+                'username': 'bob'})], self.rpc_conn.called)
+
+    def testAllRooms(self):
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+        self.master.register_node("10.10.10.2", 8000)
+
+        self.master.join_game("bob", "game1", "room1")
+        self.master.join_game("ned", "game1", "room1")
+
+        self.assertEquals({('game1', 'room1'): ('10.10.10.2', 8000)},
+            self.master.rooms)
+        self.assertEquals([
+            ('manage_room', {'game_id': 'game1', 'room_id': 'room1'}),
+            ('player_joins', {'game_id': 'game1', 'room_id': 'room1', 'username': 'bob'}),
+            ('player_joins', {'game_id': 'game1', 'room_id': 'room1', 'username': 'ned'}),
+        ], self.rpc_conn.called)
