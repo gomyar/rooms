@@ -3,7 +3,7 @@ import unittest
 
 from rooms.actor import Actor
 from rooms.position import Position
-from rooms.path import Path
+from rooms.waypoint import Path
 from rooms.testutils import MockRoom
 
 

@@ -6,6 +6,7 @@ from rooms.game import Game
 from rooms.player import Player
 from rooms.room import Room
 from rooms.position import Position
+from rooms.testutils import MockGeog
 
 
 class MockDbase(object):
@@ -51,7 +52,8 @@ class MockDbase(object):
 class ContainerTest(unittest.TestCase):
     def setUp(self):
         self.dbase = MockDbase()
-        self.container = Container(self.dbase)
+        self.geography = MockGeog()
+        self.container = Container(self.dbase, self.geography)
 
     def testSaveGame(self):
         self.game = Game("bob")
@@ -98,7 +100,17 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals("games_0", player.game_id)
         self.assertEquals("rooms_1", player.room_id)
 
+    def testLoadRoom(self):
+        self.dbase.dbases['rooms'] = {}
+        self.dbase.dbases['rooms']['rooms_0'] = { "_id": "rooms_0",
+            "__type__": "Room", "room_id": "room1", "game_id": "games_0",
+            "topleft": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "bottomright": {"__type__": "Position", "x": 10, "y": 10, "z": 0},}
+        room = self.container.load_room("games_0", "room1")
+        self.assertEquals(self.geography, room.geography)
+        self.assertEquals(room, self.geography.room)
+
     def testOkWeveGotTheIdea(self):
         self.container.save_room(Room("games_0", "rooms_0", Position(0, 0),
-            Position(50, 50), None))
+            Position(50, 50)))
         self.assertTrue(self.dbase.dbases['rooms'])

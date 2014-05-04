@@ -3,7 +3,7 @@ import unittest
 
 from rooms.room import Room
 from rooms.position import Position
-from rooms.path import Path
+from rooms.waypoint import Path
 from rooms.testutils import MockGeog
 
 
@@ -13,8 +13,9 @@ def created(actor):
 
 class RoomTest(unittest.TestCase):
     def setUp(self):
-        self.room = Room("game1", "room1", Position(0, 0), Position(50, 50),
-            MockGeog())
+        self.room = Room("game1", "room1", Position(0, 0), Position(50, 50))
+        self.geography = MockGeog()
+        self.room.geography = self.geography
 
     def testInitialSetup(self):
         self.assertEquals(50, self.room.width)

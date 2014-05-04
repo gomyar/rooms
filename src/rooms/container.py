@@ -4,14 +4,16 @@ import json
 from rooms.game import Game
 from rooms.player import Player
 from rooms.room import Room
+from rooms.position import Position
 
 import logging
 log = logging.getLogger("rooms.container")
 
 
 class Container(object):
-    def __init__(self, dbase):
+    def __init__(self, dbase, geography):
         self.dbase = dbase
+        self.geography = geography
         self.serializers = dict(
             Game=self._serialize_game,
             Player=self._serialize_player,
@@ -172,4 +174,8 @@ class Container(object):
             topleft=room.topleft, bottomright=room.bottomright)
 
     def _build_room(self, data):
-        return Room(data['game_id'], data['room_id'])
+        room = Room(data['game_id'], data['room_id'], data['topleft'],
+            data['bottomright'])
+        room.geography = self.geography
+        self.geography.setup(room)
+        return room

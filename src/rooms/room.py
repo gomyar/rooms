@@ -19,12 +19,12 @@ class State(dict):
 
 
 class Room(object):
-    def __init__(self, game_id, room_id, topleft, bottomright, geog):
+    def __init__(self, game_id, room_id, topleft, bottomright):
         self.game_id = game_id
         self.room_id = room_id
         self.topleft = topleft
         self.bottomright = bottomright
-        self.geog = geog
+        self.geography = None
 
     @property
     def width(self):
@@ -54,4 +54,4 @@ class Room(object):
         return actor
 
     def find_path(self, from_pos, to_pos):
-        return self.geog.find_path(from_pos, to_pos)
+        return self.geography.find_path(from_pos, to_pos)

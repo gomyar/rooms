@@ -55,7 +55,9 @@ if __name__ == "__main__":
         master_host, master_port = options.master.split(":")
         dbase = MongoDBase()
         dbase.init_mongo()
-        node = Node(host, port, master_host, master_port, Container(dbase))
+        geography = LinearOpenGeography()
+        node = Node(host, port, master_host, master_port, Container(dbase,
+            geography))
         server = WSGIRPCServer(host, port)
         server.add_controller("node", node)
         log.info("Starting Rooms Node")
