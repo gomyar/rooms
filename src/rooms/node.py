@@ -55,20 +55,22 @@ class Node(object):
 
     @request
     def player_joins(self, username, game_id, room_id):
+        player = self._request_player_connection(username, game_id)
         room = self.rooms[game_id, room_id]
-        player = Player(username, game_id, room_id)
-        self.players[username, game_id] = player
-        player.token = self._create_token()
         self.player_script.call("player_joins", player, room)
         return player.token
 
     @request
     def request_token(self, username, game_id):
+        player = self._request_player_connection(username, game_id)
+        return player.token
+
+    def _request_player_connection(self, username, game_id):
         player = self._get_or_load_player(username, game_id)
         self._check_player_valid(player)
         if not player.token:
             player.token = self._create_token()
-        return player.token
+        return player
 
     def _check_player_valid(self, player):
         if (player.game_id, player.room_id) not in self.rooms:

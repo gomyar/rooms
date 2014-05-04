@@ -34,6 +34,7 @@ class NodeTest(unittest.TestCase):
 
     def testPlayerJoins(self):
         self.node.manage_room("game1", "room1")
+        self.container.players['bob', 'game1'] = Player('bob', 'game1', 'room1')
         token = self.node.player_joins("bob", "game1", "room1")
         self.assertEquals("TOKEN1", token)
 
@@ -83,6 +84,8 @@ class NodeTest(unittest.TestCase):
 
     def testAllPlayers(self):
         self.node.manage_room("game1", "room1")
+        # expects player to exist in dbase
+        self.container.players['bob', 'game1'] = Player('bob', 'game1', 'room1')
         token = self.node.player_joins("bob", "game1", "room1")
         self.assertEquals([{'username': 'bob', 'game_id': 'game1',
             'token': 'TOKEN1', 'room_id': 'room1'}], self.node.all_players())
