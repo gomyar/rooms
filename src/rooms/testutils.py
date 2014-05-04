@@ -2,6 +2,7 @@
 from rooms.player import Player
 from rooms.room import Room
 from rooms.position import Position
+from rooms.path import Path
 
 
 class MockContainer(object):
@@ -36,7 +37,8 @@ class MockContainer(object):
         self.games[game.game_id] = game
 
     def create_room(self, game_id, room_id):
-        room = Room(game_id, room_id, Position(0, 0), Position(50, 50))
+        room = Room(game_id, room_id, Position(0, 0), Position(50, 50),
+            MockGeog())
         self.rooms[game_id, room_id] = room
         return room
 
@@ -70,6 +72,9 @@ class MockRoom(object):
     def kick(self):
         self._kicked_off = True
 
+    def find_path(self, from_pos, to_pos):
+        return Path([(from_pos, 0), (to_pos, 1)])
+
 
 class MockGame(object):
     def __init__(self, owner_id, game_id):
@@ -93,3 +98,8 @@ class MockRpcClient(object):
     def call(self, method, **kwargs):
         self.called.append((method, kwargs))
         return self.expect.get(method)
+
+
+class MockGeog(object):
+    def find_path(self, from_pos, to_pos):
+        return Path([(from_pos, 0), (to_pos, 1)])

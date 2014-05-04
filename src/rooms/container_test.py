@@ -100,5 +100,5 @@ class ContainerTest(unittest.TestCase):
 
     def testOkWeveGotTheIdea(self):
         self.container.save_room(Room("games_0", "rooms_0", Position(0, 0),
-            Position(50, 50)))
+            Position(50, 50), None))
         self.assertTrue(self.dbase.dbases['rooms'])

@@ -3,6 +3,8 @@ import unittest
 
 from rooms.room import Room
 from rooms.position import Position
+from rooms.path import Path
+from rooms.testutils import MockGeog
 
 
 def created(actor):
@@ -11,7 +13,8 @@ def created(actor):
 
 class RoomTest(unittest.TestCase):
     def setUp(self):
-        self.room = Room("game1", "room1", Position(0, 0), Position(50, 50))
+        self.room = Room("game1", "room1", Position(0, 0), Position(50, 50),
+            MockGeog())
 
     def testInitialSetup(self):
         self.assertEquals(50, self.room.width)
@@ -26,3 +29,10 @@ class RoomTest(unittest.TestCase):
         self.assertFalse(actor._gthread is None)
         self.assertEquals(created, actor.script._script_module.created)
         self.assertEquals(self.room, actor.room)
+
+    def testFindPath(self):
+        path = self.room.find_path(Position(1, 2), Position(3, 4))
+        self.assertEquals(Path([
+            (Position(1, 2), 0), (Position(3, 4), 1)
+        ]), path)
+
