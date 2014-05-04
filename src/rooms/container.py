@@ -16,11 +16,13 @@ class Container(object):
             Game=self._serialize_game,
             Player=self._serialize_player,
             Room=self._serialize_room,
+            Position=self._serialize_position,
         )
         self.builders = dict(
             Game=self._build_game,
             Player=self._build_player,
             Room=self._build_room,
+            Position=self._build_position,
         )
 
     def load_room(self, game_id, room_id):
@@ -148,6 +150,13 @@ class Container(object):
     def _build_game(self, data):
         return Game(data['owner_id'])
 
+    # Position
+    def _serialize_position(self, position):
+        return dict(x=position.x, y=position.y, z=position.z)
+
+    def _build_position(self, data):
+        return Position(data['x'], data['y'], data['y'])
+
     # Player
     def _serialize_player(self, player):
         return dict(username=player.username,
@@ -159,7 +168,8 @@ class Container(object):
 
     # Room
     def _serialize_room(self, room):
-        return dict(game_id=room.game_id, room_id=room.room_id)
+        return dict(game_id=room.game_id, room_id=room.room_id,
+            topleft=room.topleft, bottomright=room.bottomright)
 
     def _build_room(self, data):
         return Room(data['game_id'], data['room_id'])

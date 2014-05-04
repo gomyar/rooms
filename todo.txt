@@ -1,8 +1,4 @@
 
- - load_room or create_room through script on player_join
-
- - node deregister
-
  - proxy
    - on player connect, query master for node to connect to, bounce to node
    - on player join, same

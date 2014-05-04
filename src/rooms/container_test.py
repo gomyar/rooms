@@ -5,6 +5,7 @@ from rooms.container import Container
 from rooms.game import Game
 from rooms.player import Player
 from rooms.room import Room
+from rooms.position import Position
 
 
 class MockDbase(object):
@@ -98,5 +99,6 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals("rooms_1", player.room_id)
 
     def testOkWeveGotTheIdea(self):
-        self.container.save_room(Room("games_0", "rooms_0"))
+        self.container.save_room(Room("games_0", "rooms_0", Position(0, 0),
+            Position(50, 50)))
         self.assertTrue(self.dbase.dbases['rooms'])

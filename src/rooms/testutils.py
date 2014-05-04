@@ -1,6 +1,7 @@
 
 from rooms.player import Player
 from rooms.room import Room
+from rooms.position import Position
 
 
 class MockContainer(object):
@@ -35,7 +36,7 @@ class MockContainer(object):
         self.games[game.game_id] = game
 
     def create_room(self, game_id, room_id):
-        room = Room(game_id, room_id)
+        room = Room(game_id, room_id, Position(0, 0), Position(50, 50))
         self.rooms[game_id, room_id] = room
         return room
 
