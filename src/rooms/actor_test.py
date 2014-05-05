@@ -3,7 +3,6 @@ import unittest
 
 from rooms.actor import Actor
 from rooms.position import Position
-from rooms.waypoint import Path
 from rooms.testutils import MockRoom
 
 
@@ -29,7 +28,7 @@ class ActorTest(unittest.TestCase):
 
         self.actor.move_to(Position(10, 0))
 
-        self.assertEquals(Path([
-            (Position(0, 0), 0),
-            (Position(10, 0), 1),
-        ]), self.actor.path)
+        self.assertEquals([
+            Position(0, 0),
+            Position(10, 0),
+        ], self.actor.path)

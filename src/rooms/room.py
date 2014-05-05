@@ -1,8 +1,6 @@
 
 from rooms.position import Position
 from rooms.actor import Actor
-from rooms.waypoint import Path
-from rooms.waypoint import path_from_waypoints
 
 
 class State(dict):

@@ -2,7 +2,6 @@
 from rooms.player import Player
 from rooms.room import Room
 from rooms.position import Position
-from rooms.waypoint import Path
 
 
 class MockContainer(object):
@@ -73,7 +72,7 @@ class MockRoom(object):
         self._kicked_off = True
 
     def find_path(self, from_pos, to_pos):
-        return Path([(from_pos, 0), (to_pos, 1)])
+        return [from_pos, to_pos]
 
 
 class MockGame(object):

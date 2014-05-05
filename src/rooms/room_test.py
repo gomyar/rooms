@@ -3,7 +3,6 @@ import unittest
 
 from rooms.room import Room
 from rooms.position import Position
-from rooms.waypoint import Path
 from rooms.testutils import MockGeog
 from rooms.geography.basic_geography import BasicGeography
 

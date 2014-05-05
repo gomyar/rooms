@@ -3,7 +3,6 @@ import gevent
 
 from rooms.script import Script
 from rooms.position import Position
-from rooms.waypoint import Path
 
 
 class State(dict):
