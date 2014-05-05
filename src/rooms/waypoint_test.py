@@ -3,11 +3,12 @@ import unittest
 
 import rooms.waypoint
 from rooms.waypoint import Path
+from rooms.position import Position as P
 
 
 class PathVectorTest(unittest.TestCase):
     def setUp(self):
-        self.path = Path([(10, 10)])
+        self.path = Path([P(10, 10)])
         rooms.waypoint.get_now = self._mock_get_now
         self._mock_now = 0.0
 
@@ -27,8 +28,8 @@ class PathVectorTest(unittest.TestCase):
 #            self.path2.basic_path_list())
 
     def testXFromPath(self):
-        self.path = Path([ (0.0, 0.0, 0.0), (1.0, 0.0, 1.0),
-            (2.0, 0.0, 2.0), (3.0, 0.0, 3.0), (4.0, 0.0, 4.0) ])
+        self.path = Path([ (P(0.0, 0.0), 0.0), (P(1.0, 0.0), 1.0),
+            (P(2.0, 0.0), 2.0), (P(3.0, 0.0), 3.0), (P(4.0, 0.0), 4.0) ])
 
         self.assertEquals(0.0, self.path.x())
 
@@ -45,8 +46,8 @@ class PathVectorTest(unittest.TestCase):
         self.assertEquals(4.0, self.path.x())
 
     def testYFromPath(self):
-        self.path = Path([ (0.0, 0.0, 0.0), (0.0, 1.0, 1.0),
-            (0.0, 2.0, 2.0), (0.0, 3.0, 3.0), (0.0, 4.0, 4.0) ])
+        self.path = Path([ (P(0.0, 0.0), 0.0), (P(0.0, 1.0), 1.0),
+            (P(0.0, 2.0), 2.0), (P(0.0, 3.0), 3.0), (P(0.0, 4.0), 4.0) ])
 
         self.assertEquals(0.0, self.path.y())
 
@@ -63,11 +64,12 @@ class PathVectorTest(unittest.TestCase):
         self.assertEquals(4.0, self.path.y())
 
     def testSpeedFromPath(self):
-        self.path = Path([(0, 0, 0), (100, 0, 100)])
+        self.path = Path([(P(0, 0), 0), (P(100, 0), 100)])
 
         self.assertEquals(1, self.path.speed())
 
-        self.path = Path([(0, 0, 0), (10, 0, 10), (30, 0, 20), (60, 0, 30)])
+        self.path = Path([(P(0, 0), 0), (P(10, 0), 10), (P(30, 0), 20),
+            (P(60, 0), 30)])
 
         self.assertEquals(1, self.path.speed())
 

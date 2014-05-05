@@ -13,6 +13,7 @@ from rooms.node import Node
 from rooms.container import Container
 from rooms.dbase.mongo_dbase import MongoDBase
 from rooms.rpc import WSGIRPCServer
+from rooms.geography.basic_geography import BasicGeography
 
 import logging
 import logging.config
@@ -55,7 +56,7 @@ if __name__ == "__main__":
         master_host, master_port = options.master.split(":")
         dbase = MongoDBase()
         dbase.init_mongo()
-        geography = LinearOpenGeography()
+        geography = BasicGeography()
         node = Node(host, port, master_host, master_port, Container(dbase,
             geography))
         server = WSGIRPCServer(host, port)

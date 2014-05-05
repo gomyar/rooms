@@ -24,7 +24,8 @@ class Actor(object):
         self.state = State(self)
         self.room = None
         self._gthread = None
-        self.path = Path()
+        self._move_gthread = None
+        self.path = []
 
     def kick(self):
         self._run_on_gthread(self.script.call, "kickoff", self)

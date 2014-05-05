@@ -12,5 +12,8 @@ class LinearOpenGeography(object):
             min(max(0, end[1]), room.height))
         return [start, end]
 
-    def intercept(self, path, point, speed, irange=0.0):
+    def intercept(self, room, path, point, speed, irange=0.0):
         return match_path_from(path, point, speed, irange)
+
+    def setup(self, room):
+        pass

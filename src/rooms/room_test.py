@@ -5,6 +5,7 @@ from rooms.room import Room
 from rooms.position import Position
 from rooms.waypoint import Path
 from rooms.testutils import MockGeog
+from rooms.geography.basic_geography import BasicGeography
 
 
 def created(actor):
@@ -33,7 +34,15 @@ class RoomTest(unittest.TestCase):
 
     def testFindPath(self):
         path = self.room.find_path(Position(1, 2), Position(3, 4))
-        self.assertEquals(Path([
-            (Position(1, 2), 0), (Position(3, 4), 1)
-        ]), path)
+        self.assertEquals([
+            Position(1, 2), Position(3, 4),
+        ], path)
 
+    def testBasicGeography(self):
+        geography = BasicGeography()
+        self.room.geography = geography
+        geography.setup(self.room)
+
+        self.assertEquals(
+            [Position(10, 20), Position(30, 40)],
+            self.room.find_path(Position(10, 20), Position(30, 40)))

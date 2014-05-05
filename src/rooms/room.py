@@ -1,6 +1,8 @@
 
 from rooms.position import Position
 from rooms.actor import Actor
+from rooms.waypoint import Path
+from rooms.waypoint import path_from_waypoints
 
 
 class State(dict):
@@ -13,9 +15,6 @@ class State(dict):
 
     def __setattr__(self, name, value):
         self[name] = value
-        # might need to check the value has actually changed before update
-        # actually, we had a diff/cache idea for that didn't we?
-        self.actor.send_actor_update()
 
 
 class Room(object):
@@ -54,4 +53,4 @@ class Room(object):
         return actor
 
     def find_path(self, from_pos, to_pos):
-        return self.geography.find_path(from_pos, to_pos)
+        return self.geography.find_path(self, from_pos, to_pos)

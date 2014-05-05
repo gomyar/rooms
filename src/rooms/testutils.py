@@ -107,5 +107,5 @@ class MockGeog(object):
     def setup(self, room):
         self.room = room
 
-    def find_path(self, from_pos, to_pos):
-        return Path([(from_pos, 0), (to_pos, 1)])
+    def find_path(self, room, from_pos, to_pos):
+        return [from_pos, to_pos]
