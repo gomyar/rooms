@@ -22,6 +22,7 @@ class Room(object):
         self.topleft = topleft
         self.bottomright = bottomright
         self.geography = None
+        self.actors = dict()
 
     @property
     def width(self):
@@ -43,11 +44,11 @@ class Room(object):
         pass
 
     def create_actor(self, script_name):
-        actor = Actor()
-        actor.room = self
+        actor = Actor(self)
         actor.script.load_script(script_name)
         actor.script.call("created", actor)
         actor.kick()
+        self.actors[actor.actor_id] = actor
         return actor
 
     def find_path(self, from_pos, to_pos):

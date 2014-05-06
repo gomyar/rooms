@@ -105,10 +105,22 @@ class ContainerTest(unittest.TestCase):
         self.dbase.dbases['rooms']['rooms_0'] = { "_id": "rooms_0",
             "__type__": "Room", "room_id": "room1", "game_id": "games_0",
             "topleft": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
-            "bottomright": {"__type__": "Position", "x": 10, "y": 10, "z": 0},}
+            "bottomright": {"__type__": "Position", "x": 10, "y": 10, "z": 0},
+            "actors": {"actor1": {"__type__": "Actor", "actor_id": "actor1",
+                "state": {}, "path": [], "vector": {}, "script": {}}}
+            }
         room = self.container.load_room("games_0", "room1")
         self.assertEquals(self.geography, room.geography)
         self.assertEquals(room, self.geography.room)
+        self.assertEquals(1, len(room.actors))
+
+    def testSaveRoom(self):
+        room = Room("game1", "room1", Position(0, 0), Position(10, 10))
+        room.create_actor("rooms.room_test")
+        self.container.save_room(room)
+        room_dict = self.dbase.dbases['rooms']['rooms_0']
+        self.assertEquals('room1', room_dict['room_id'])
+        self.assertEquals(1, len(room_dict['actors']))
 
     def testOkWeveGotTheIdea(self):
         self.container.save_room(Room("games_0", "rooms_0", Position(0, 0),

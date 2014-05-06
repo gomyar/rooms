@@ -19,7 +19,7 @@ def kickoff(actor):
 
 class ActorTest(unittest.TestCase):
     def setUp(self):
-        self.actor = Actor()
+        self.actor = Actor(MockRoom("game1", "room1"))
         self.actor.script.load_script("rooms.actor_test")
         self.actor.state.log = []
         self.actor.room = MockRoom("game1", "room1")

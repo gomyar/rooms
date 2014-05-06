@@ -1,9 +1,14 @@
 
 import gevent
+import uuid
 
 from rooms.script import Script
 from rooms.position import Position
 from rooms.vector import Vector
+
+
+def _create_actor_id():
+    return str(uuid.uuid1())
 
 
 class State(dict):
@@ -19,13 +24,16 @@ class State(dict):
 
 
 class Actor(object):
-    def __init__(self):
-        self.script = Script()
+    def __init__(self, room):
+        self.room = room
+        self.actor_id = _create_actor_id()
         self.state = State(self)
-        self.room = None
+        self.path = []
+        self.vector = Vector(Position(0, 0), 0, Position(0, 0), 0)
+        self.script = Script()
+
         self._gthread = None
         self._move_gthread = None
-        self.path = []
 
     def kick(self):
         self._run_on_gthread(self.script.call, "kickoff", self)

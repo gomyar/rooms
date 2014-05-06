@@ -5,6 +5,7 @@ from rooms.game import Game
 from rooms.player import Player
 from rooms.room import Room
 from rooms.position import Position
+from rooms.actor import Actor
 
 import logging
 log = logging.getLogger("rooms.container")
@@ -19,12 +20,18 @@ class Container(object):
             Player=self._serialize_player,
             Room=self._serialize_room,
             Position=self._serialize_position,
+            Actor=self._serialize_actor,
+            Script=self._serialize_script,
+            Vector=self._serialize_vector,
         )
         self.builders = dict(
             Game=self._build_game,
             Player=self._build_player,
             Room=self._build_room,
             Position=self._build_position,
+            Actor=self._build_actor,
+            Script=self._build_script,
+            Vector=self._build_vector,
         )
 
     def load_room(self, game_id, room_id):
@@ -171,11 +178,44 @@ class Container(object):
     # Room
     def _serialize_room(self, room):
         return dict(game_id=room.game_id, room_id=room.room_id,
-            topleft=room.topleft, bottomright=room.bottomright)
+            topleft=room.topleft, bottomright=room.bottomright,
+            actors=room.actors)
 
     def _build_room(self, data):
         room = Room(data['game_id'], data['room_id'], data['topleft'],
             data['bottomright'])
+        room.actors = data['actors']
         room.geography = self.geography
         self.geography.setup(room)
         return room
+
+    # Actor
+    def _serialize_actor(self, actor):
+        return dict(actor_id=actor.actor_id, state=actor.state,
+            path=actor.path, vector=actor.vector, script=actor.script)
+
+    def _build_actor(self, data):
+        actor = Actor(None)
+        actor.state = data['state']
+        actor.path = data['path']
+        actor.vector = data['vector']
+        actor.script = data['script']
+        return actor
+
+    # Script
+    def _serialize_script(self, script):
+        return dict(script_module=script._script_module.__name__)
+
+    def _build_script(self, data):
+        script = Script()
+        script.load_script(data['script_module'])
+        return script
+
+    # Vector
+    def _serialize_vector(self, vector):
+        return dict(start_pos=vector.start_pos, start_time=vector.start_time,
+            end_pos=vector.end_pos, end_time=vector.end_time)
+
+    def _build_vector(self, data):
+        return Vector(data['start_pos'], data['start_time'], data['end_pos'],
+            data['end_time'])

@@ -71,12 +71,16 @@ class MockRoom(object):
         self._kicked_off = False
         self.room_id = room_id
         self.game_id = game_id
+        self._updates = []
 
     def kick(self):
         self._kicked_off = True
 
     def find_path(self, from_pos, to_pos):
         return [from_pos, to_pos]
+
+    def actor_update(self, actor, update):
+        self._updates.append((actor, update))
 
 
 class MockGame(object):

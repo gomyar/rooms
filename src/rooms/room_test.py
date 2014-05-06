@@ -5,6 +5,7 @@ from rooms.room import Room
 from rooms.position import Position
 from rooms.testutils import MockGeog
 from rooms.geography.basic_geography import BasicGeography
+from rooms import actor
 
 
 def created(actor):
@@ -16,6 +17,10 @@ class RoomTest(unittest.TestCase):
         self.room = Room("game1", "room1", Position(0, 0), Position(50, 50))
         self.geography = MockGeog()
         self.room.geography = self.geography
+        actor._create_actor_id = lambda: "actor1"
+
+    def tearDown(self):
+        reload(actor)
 
     def testInitialSetup(self):
         self.assertEquals(50, self.room.width)
@@ -30,6 +35,7 @@ class RoomTest(unittest.TestCase):
         self.assertFalse(actor._gthread is None)
         self.assertEquals(created, actor.script._script_module.created)
         self.assertEquals(self.room, actor.room)
+        self.assertEquals(actor, self.room.actors['actor1'])
 
     def testFindPath(self):
         path = self.room.find_path(Position(1, 2), Position(3, 4))
