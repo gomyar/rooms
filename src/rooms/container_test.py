@@ -113,6 +113,7 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals(self.geography, room.geography)
         self.assertEquals(room, self.geography.room)
         self.assertEquals(1, len(room.actors))
+        self.assertEquals(room, room.actors.values()[0].room)
 
     def testSaveRoom(self):
         room = Room("game1", "room1", Position(0, 0), Position(10, 10))

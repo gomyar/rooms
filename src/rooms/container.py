@@ -185,6 +185,8 @@ class Container(object):
         room = Room(data['game_id'], data['room_id'], data['topleft'],
             data['bottomright'])
         room.actors = data['actors']
+        for actor in room.actors.values():
+            actor.room = room
         room.geography = self.geography
         self.geography.setup(room)
         return room
