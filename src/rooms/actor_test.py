@@ -19,19 +19,15 @@ def kickoff(actor):
 
 class ActorTest(unittest.TestCase):
     def setUp(self):
+        self.mock_room = MockRoom("game1", "room1")
         self.actor = Actor(MockRoom("game1", "room1"))
         self.actor.script.load_script("rooms.actor_test")
         self.actor.state.log = []
-        self.actor.room = MockRoom("game1", "room1")
-        self.actor._send_update = self._actor_update
-        self._updates = []
+        self.actor.room = self.mock_room
         MockTimer.setup_mock()
 
     def tearDown(self):
         MockTimer.teardown_mock()
-
-    def _actor_update(self, update):
-        self._updates.append(update)
 
     def testKickoff(self):
         self.actor.kick()
@@ -59,5 +55,5 @@ class ActorTest(unittest.TestCase):
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals([{'vector': Vector(Position(0, 0), 0,
-            Position(10, 0), 1)}], self._updates)
+        self.assertEquals([(self.actor, {'vector': Vector(Position(0, 0), 0,
+            Position(10, 0), 1)})], self.mock_room._updates)

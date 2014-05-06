@@ -7,6 +7,7 @@ from rooms.player import Player
 from rooms.room import Room
 from rooms.position import Position
 from rooms.testutils import MockGeog
+from rooms.testutils import MockNode
 
 
 class MockDbase(object):
@@ -53,7 +54,8 @@ class ContainerTest(unittest.TestCase):
     def setUp(self):
         self.dbase = MockDbase()
         self.geography = MockGeog()
-        self.container = Container(self.dbase, self.geography)
+        self.node = MockNode()
+        self.container = Container(self.dbase, self.geography, self.node)
 
     def testSaveGame(self):
         self.game = Game("bob")
@@ -114,9 +116,11 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals(room, self.geography.room)
         self.assertEquals(1, len(room.actors))
         self.assertEquals(room, room.actors.values()[0].room)
+        self.assertEquals(self.node, room.node)
 
     def testSaveRoom(self):
-        room = Room("game1", "room1", Position(0, 0), Position(10, 10))
+        room = Room("game1", "room1", Position(0, 0), Position(10, 10),
+            self.node)
         room.create_actor("rooms.room_test")
         self.container.save_room(room)
         room_dict = self.dbase.dbases['rooms']['rooms_0']
@@ -125,5 +129,5 @@ class ContainerTest(unittest.TestCase):
 
     def testOkWeveGotTheIdea(self):
         self.container.save_room(Room("games_0", "rooms_0", Position(0, 0),
-            Position(50, 50)))
+            Position(50, 50), self.node))
         self.assertTrue(self.dbase.dbases['rooms'])

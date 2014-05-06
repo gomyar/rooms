@@ -4,6 +4,7 @@ import unittest
 from rooms.room import Room
 from rooms.position import Position
 from rooms.testutils import MockGeog
+from rooms.testutils import MockNode
 from rooms.geography.basic_geography import BasicGeography
 from rooms import actor
 
@@ -14,7 +15,9 @@ def created(actor):
 
 class RoomTest(unittest.TestCase):
     def setUp(self):
-        self.room = Room("game1", "room1", Position(0, 0), Position(50, 50))
+        self.node = MockNode()
+        self.room = Room("game1", "room1", Position(0, 0), Position(50, 50),
+            self.node)
         self.geography = MockGeog()
         self.room.geography = self.geography
         actor._create_actor_id = lambda: "actor1"

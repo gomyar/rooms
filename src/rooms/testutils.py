@@ -14,6 +14,7 @@ class MockContainer(object):
         self.players = players or {}
         self.games = games or {}
         self.gameids = 1
+        self.node = MockNode()
 
     def load_room(self, game_id, room_id):
         return self.rooms[game_id, room_id]
@@ -40,7 +41,8 @@ class MockContainer(object):
         self.games[game.game_id] = game
 
     def create_room(self, game_id, room_id):
-        room = Room(game_id, room_id, Position(0, 0), Position(50, 50))
+        room = Room(game_id, room_id, Position(0, 0), Position(50, 50),
+            self.node)
         room.geography = MockGeog()
         self.rooms[game_id, room_id] = room
         return room
@@ -81,6 +83,10 @@ class MockRoom(object):
 
     def actor_update(self, actor, update):
         self._updates.append((actor, update))
+
+
+class MockNode(object):
+    pass
 
 
 class MockGame(object):

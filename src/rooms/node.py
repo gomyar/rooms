@@ -10,17 +10,17 @@ from rooms.script import Script
 
 
 class Node(object):
-    def __init__(self, host, port, master_host, master_port, container):
+    def __init__(self, host, port, master_host, master_port):
         self.host = host
         self.port = port
         self.master_host = master_host
         self.master_port = master_port
-        self.container = container
         self.rooms = dict()
         self.players = dict()
         self.master_conn = WSGIRPCClient(master_host, master_port, 'master')
         self.player_script = Script()
         self.game_script = Script()
+        self.container = None
 
     def connect_to_master(self):
         self.master_conn.call("register_node", host=self.host, port=self.port)

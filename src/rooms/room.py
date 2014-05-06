@@ -16,13 +16,14 @@ class State(dict):
 
 
 class Room(object):
-    def __init__(self, game_id, room_id, topleft, bottomright):
+    def __init__(self, game_id, room_id, topleft, bottomright, node):
         self.game_id = game_id
         self.room_id = room_id
         self.topleft = topleft
         self.bottomright = bottomright
         self.geography = None
         self.actors = dict()
+        self.node = node
 
     @property
     def width(self):
@@ -53,3 +54,6 @@ class Room(object):
 
     def find_path(self, from_pos, to_pos):
         return self.geography.find_path(self, from_pos, to_pos)
+
+    def actor_update(self, actor, update):
+        pass

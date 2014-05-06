@@ -20,7 +20,8 @@ class NodeTest(unittest.TestCase):
         self.player1 = Player("bob", "game1", "room1")
         self.container = MockContainer(rooms={("game1", "room1"): self.room1},
             players={"bob1": self.player1})
-        self.node = Node("10.10.10.1", 8000, "master", 9000, self.container)
+        self.node = Node("10.10.10.1", 8000, "master", 9000)
+        self.node.container = self.container
         self.node._create_token = lambda: "TOKEN1"
         self.node.player_script = self.player_script
         self.node.game_script = self.game_script

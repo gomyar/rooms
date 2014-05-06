@@ -12,9 +12,10 @@ log = logging.getLogger("rooms.container")
 
 
 class Container(object):
-    def __init__(self, dbase, geography):
+    def __init__(self, dbase, geography, node):
         self.dbase = dbase
         self.geography = geography
+        self.node = node
         self.serializers = dict(
             Game=self._serialize_game,
             Player=self._serialize_player,
@@ -183,7 +184,7 @@ class Container(object):
 
     def _build_room(self, data):
         room = Room(data['game_id'], data['room_id'], data['topleft'],
-            data['bottomright'])
+            data['bottomright'], self.node)
         room.actors = data['actors']
         for actor in room.actors.values():
             actor.room = room

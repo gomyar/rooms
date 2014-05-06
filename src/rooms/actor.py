@@ -53,7 +53,7 @@ class Actor(object):
             from_point = to_point
 
     def _send_update(self, update):
-        pass
+        self.room.actor_update(self, update)
 
     @property
     def position(self):
