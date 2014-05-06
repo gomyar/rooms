@@ -34,6 +34,12 @@ class Actor(object):
 
     def move_to(self, position):
         self.path = self.room.find_path(self.position, position)
+        self._move_gthread = gevent.spawn(self._move_update)
+
+    def _move_update(self):
+        for point in self.path:
+            self.vector = [self.position(), point]
+            self.send_update()
 
     @property
     def position(self):

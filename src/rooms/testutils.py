@@ -1,7 +1,11 @@
 
+import gevent
+from gevent.event import Event
+
 from rooms.player import Player
 from rooms.room import Room
 from rooms.position import Position
+from rooms.timer import Timer
 
 
 class MockContainer(object):
@@ -108,3 +112,50 @@ class MockGeog(object):
 
     def find_path(self, room, from_pos, to_pos):
         return [from_pos, to_pos]
+
+
+class MockTimer(Timer):
+    @staticmethod
+    def setup_mock():
+        reload(gevent)
+        mock_timer = MockTimer()
+        mock_timer._old_sleep = gevent.sleep
+        mock_timer._mock_now = 0
+        mock_timer._sleeping_gthreads = []
+        gevent.sleep = mock_timer._mock_sleep
+        Timer._instance = mock_timer
+
+    @staticmethod
+    def teardown_mock():
+        Timer._instance = None
+        reload(gevent)
+
+    def _sleep(self, seconds):
+        self._mock_sleep(seconds)
+
+    def _now(self):
+        return self._mock_now
+
+    def _mock_sleep(self, seconds):
+        # wait for fast_forward
+        event = Event()
+        self._sleeping_gthreads.append((seconds + self._mock_now, event))
+        self._sleeping_gthreads.sort()
+        event.wait(1)
+
+    @staticmethod
+    def fast_forward(seconds):
+        Timer._instance._fast_forward(seconds)
+
+    def _fast_forward(self, seconds):
+        # ping waiting gthreads
+        self._old_sleep(0)
+        end_time = self._mock_now + seconds
+        for wake_time, event in list(self._sleeping_gthreads):
+            if end_time >= wake_time:
+                self._mock_now = wake_time
+                event.set()
+                self._sleeping_gthreads.remove((wake_time, event))
+                self._old_sleep(0)
+        self._mock_now = end_time
+
