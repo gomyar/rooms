@@ -5,6 +5,7 @@ from rooms.room import Room
 from rooms.position import Position
 from rooms.testutils import MockGeog
 from rooms.testutils import MockNode
+from rooms.testutils import MockActor
 from rooms.geography.basic_geography import BasicGeography
 from rooms import actor
 
@@ -54,3 +55,9 @@ class RoomTest(unittest.TestCase):
         self.assertEquals(
             [Position(10, 20), Position(30, 40)],
             self.room.find_path(Position(10, 20), Position(30, 40)))
+
+    def testActorUpdate(self):
+        self.actor = MockActor()
+        self.room.actor_update(self.actor, {"path": []})
+
+        self.assertEquals([(self.actor, {"path": []})], self.node._updates)

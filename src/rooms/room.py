@@ -56,4 +56,4 @@ class Room(object):
         return self.geography.find_path(self, from_pos, to_pos)
 
     def actor_update(self, actor, update):
-        pass
+        self.node.actor_update(actor, update)

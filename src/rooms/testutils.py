@@ -86,7 +86,11 @@ class MockRoom(object):
 
 
 class MockNode(object):
-    pass
+    def __init__(self):
+        self._updates = []
+
+    def actor_update(self, actor, update):
+        self._updates.append((actor, update))
 
 
 class MockGame(object):
@@ -170,3 +174,6 @@ class MockTimer(Timer):
                 self._old_sleep(0)
         self._mock_now = end_time
 
+
+class MockActor(object):
+    pass
