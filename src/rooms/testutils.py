@@ -139,7 +139,8 @@ class MockTimer(Timer):
     def _mock_sleep(self, seconds):
         # wait for fast_forward
         event = Event()
-        self._sleeping_gthreads.append((seconds + self._mock_now, event))
+        self._sleeping_gthreads.append((gevent.getcurrent(),
+            seconds + self._mock_now, event))
         self._sleeping_gthreads.sort()
         event.wait(1)
 
@@ -151,11 +152,11 @@ class MockTimer(Timer):
         # ping waiting gthreads
         self._old_sleep(0)
         end_time = self._mock_now + seconds
-        for wake_time, event in list(self._sleeping_gthreads):
+        for gthread, wake_time, event in list(self._sleeping_gthreads):
             if end_time >= wake_time:
                 self._mock_now = wake_time
                 event.set()
-                self._sleeping_gthreads.remove((wake_time, event))
+                self._sleeping_gthreads.remove((gthread, wake_time, event))
                 self._old_sleep(0)
         self._mock_now = end_time
 

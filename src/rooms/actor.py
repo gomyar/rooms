@@ -3,6 +3,7 @@ import gevent
 
 from rooms.script import Script
 from rooms.position import Position
+from rooms.vector import Vector
 
 
 class State(dict):
@@ -37,9 +38,14 @@ class Actor(object):
         self._move_gthread = gevent.spawn(self._move_update)
 
     def _move_update(self):
-        for point in self.path:
-            self.vector = [self.position(), point]
-            self.send_update()
+        from_point = self.path[0]
+        for to_point in self.path[1:]:
+            self.vector = Vector(from_point, 0, to_point, 1)
+            self._send_update({'vector': self.vector})
+            from_point = to_point
+
+    def _send_update(self, update):
+        pass
 
     @property
     def position(self):
