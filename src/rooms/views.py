@@ -12,6 +12,8 @@ class JsonView(object):
         self.views = dict(
             Actor=self.view_actor,
             State=self.view_state,
+            Vector=self.view_vector,
+            Position=self.view_position,
         )
 
     @staticmethod
@@ -33,7 +35,15 @@ class JsonView(object):
         return dict(
             actor_id=actor.actor_id,
             state=actor.state,
+            vector=actor.vector,
         )
 
     def view_state(self, state):
         return dict(state)
+
+    def view_vector(self, vector):
+        return dict(start_pos=vector.start_pos, start_time=vector.start_time,
+            end_pos=vector.end_pos, end_time=vector.end_time)
+
+    def view_position(self, position):
+        return [position.x, position.y, position.z]

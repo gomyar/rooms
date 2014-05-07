@@ -1,6 +1,7 @@
 
 import gevent
 from gevent.event import Event
+import json
 
 from rooms.player import Player
 from rooms.room import Room
@@ -191,4 +192,4 @@ class MockWebsocket(object):
         self.updates = []
 
     def send(self, msg):
-        self.updates.append(msg)
+        self.updates.append(json.loads(msg))

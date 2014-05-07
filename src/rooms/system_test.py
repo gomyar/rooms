@@ -55,11 +55,29 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(0)
 
-        self.assertEquals([
-            '{\n    "state": {}, \n    "actor_id": "actor2"\n}',
-            '{\n    "state": {}, \n    "actor_id": "actor1"\n}'
-        ], player1_ws.updates)
-        self.assertEquals([
-            '{\n    "state": {}, \n    "actor_id": "actor2"\n}',
-            '{\n    "state": {}, \n    "actor_id": "actor1"\n}'
-        ], player2_ws.updates)
+        self.assertEquals([{u'actor_id': u'actor2',
+            u'state': {},
+            u'vector': {u'end_pos': [0, 0, 0],
+                u'end_time': 0,
+                u'start_pos': [0, 0, 0],
+                u'start_time': 0}},
+            {u'actor_id': u'actor1',
+            u'state': {},
+            u'vector': {u'end_pos': [0, 0, 0],
+                u'end_time': 0,
+                u'start_pos': [0, 0, 0],
+                u'start_time': 0}}]
+            , player1_ws.updates)
+        self.assertEquals([{u'actor_id': u'actor2',
+            u'state': {},
+            u'vector': {u'end_pos': [0, 0, 0],
+                u'end_time': 0,
+                u'start_pos': [0, 0, 0],
+                u'start_time': 0}},
+            {u'actor_id': u'actor1',
+            u'state': {},
+            u'vector': {u'end_pos': [0, 0, 0],
+                u'end_time': 0,
+                u'start_pos': [0, 0, 0],
+                u'start_time': 0}}]
+            , player2_ws.updates)
