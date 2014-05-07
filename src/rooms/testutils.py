@@ -166,14 +166,29 @@ class MockTimer(Timer):
         # ping waiting gthreads
         self._old_sleep(0)
         end_time = self._mock_now + seconds
+        while self._processed(end_time):
+            pass
+        self._mock_now = end_time
+
+    def _processed(self, end_time):
         for gthread, wake_time, event in list(self._sleeping_gthreads):
             if end_time >= wake_time:
                 self._mock_now = wake_time
                 event.set()
                 self._sleeping_gthreads.remove((gthread, wake_time, event))
                 self._old_sleep(0)
-        self._mock_now = end_time
+                return True
+        return False
 
 
 class MockActor(object):
     pass
+
+
+
+class MockWebsocket(object):
+    def __init__(self):
+        self.updates = []
+
+    def send(self, msg):
+        self.updates.append(msg)

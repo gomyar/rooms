@@ -1,12 +1,16 @@
 
 import uuid
+import gevent
+from gevent.queue import Queue
 
 from rooms.player import Player
 from rooms.rpc import WSGIRPCClient
 from rooms.rpc import request
+from rooms.rpc import websocket
 from rooms.rpc import RPCException
 from rooms.room import Room
 from rooms.script import Script
+from rooms.views import jsonview
 
 
 class Node(object):
@@ -17,6 +21,7 @@ class Node(object):
         self.master_port = master_port
         self.rooms = dict()
         self.players = dict()
+        self.player_queues = dict()
         self.master_conn = WSGIRPCClient(master_host, master_port, 'master')
         self.player_script = Script()
         self.game_script = Script()
@@ -65,6 +70,21 @@ class Node(object):
         player = self._request_player_connection(username, game_id)
         return player.token
 
+    @websocket
+    def ping(self, ws):
+        for i in range(10):
+            ws.send(str(i))
+            gevent.sleep(1)
+
+    @websocket
+    def player_connects(self, ws, game_id, username, token):
+        queue = Queue()
+        player = self.players[username, game_id]
+        self.player_queues[game_id, username] = queue
+        room = self.rooms[game_id, player.room_id]
+        for actor in room.actors.values():
+            ws.send(jsonview(actor))
+
     def _request_player_connection(self, username, game_id):
         player = self._get_or_load_player(username, game_id)
         self._check_player_valid(player)
@@ -85,7 +105,6 @@ class Node(object):
             self.players[username, game_id] = self.container.load_player(
                 username, game_id)
         return self.players[username, game_id]
-
 
     def _create_token(self):
         return str(uuid.uuid1())

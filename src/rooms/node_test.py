@@ -1,5 +1,6 @@
 
 import unittest
+import gevent
 
 from rooms.node import Node
 from rooms.room import Room
@@ -8,7 +9,10 @@ from rooms.testutils import MockContainer
 from rooms.testutils import MockRpcClient
 from rooms.testutils import MockScript
 from rooms.testutils import MockRoom
+from rooms.testutils import MockTimer
+from rooms.testutils import MockWebsocket
 from rooms.rpc import RPCException
+from rooms.position import Position
 
 
 class NodeTest(unittest.TestCase):
@@ -26,6 +30,10 @@ class NodeTest(unittest.TestCase):
         self.node.player_script = self.player_script
         self.node.game_script = self.game_script
         self.node.master_conn = self.mock_rpc
+        MockTimer.setup_mock()
+
+    def tearDown(self):
+        MockTimer.teardown_mock()
 
     def testManageRoom(self):
         self.node.manage_room("game1", "room1")
@@ -111,3 +119,20 @@ class NodeTest(unittest.TestCase):
         self.node.manage_room("game1", "room_other")
         self.container.players['bob', 'game1'] = Player("bob", "game1", "room1")
         self.assertRaises(RPCException, self.node.request_token, "no", "game1")
+
+    def testPlayerConnects(self):
+        ws = MockWebsocket()
+        gevent.spawn(self.node.ping, ws)
+
+        MockTimer.fast_forward(0)
+        self.assertEquals(['0'], ws.updates)
+
+        MockTimer.fast_forward(1)
+        self.assertEquals(['0', '1'], ws.updates)
+
+        MockTimer.fast_forward(1)
+        self.assertEquals(['0', '1', '2'], ws.updates)
+
+        MockTimer.fast_forward(3)
+        self.assertEquals(['0', '1', '2', '3', '4', '5'], ws.updates)
+

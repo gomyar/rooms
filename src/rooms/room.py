@@ -25,6 +25,13 @@ class Room(object):
         self.actors = dict()
         self.node = node
 
+    def __repr__(self):
+        return "<Room %s %s>" % (self.game_id, self.room_id)
+
+    def __eq__(self, rhs):
+        return rhs and type(rhs) is Room and self.game_id == rhs.game_id and \
+            self.room_id == rhs.room_id
+
     @property
     def width(self):
         return self.bottomright.x - self.topleft.x
