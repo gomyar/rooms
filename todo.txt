@@ -1,4 +1,6 @@
 
+ - automatic websocket keep alive
+
  - proxy
    - on player connect, query master for node to connect to, bounce to node
    - on player join, same

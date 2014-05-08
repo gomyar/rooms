@@ -2,6 +2,7 @@
 import uuid
 import gevent
 from gevent.queue import Queue
+import json
 
 from rooms.player import Player
 from rooms.rpc import WSGIRPCClient
@@ -39,7 +40,8 @@ class Node(object):
 
     @request
     def all_rooms(self):
-        return [{"game_id": room.game_id, "room_id": room.room_id} for \
+        return [{"game_id": room.game_id, "room_id": room.room_id,
+            "actors": [(key, jsonview(a)) for (key, a) in room.actors.items()]} for \
             room in self.rooms.values()]
 
     @request
@@ -91,11 +93,12 @@ class Node(object):
             ws.send(jsonview(message))
 
     @request
-    def actor_call(self, game_id, username, actor_id, method, *args, **kwargs):
+    def actor_call(self, game_id, username, actor_id, method, arglist):
         player = self.players[username, game_id]
         room = self.rooms[game_id, player.room_id]
         actor = room.actors[actor_id]
-        return actor.script.call(method, actor, *args, **kwargs)
+        args = json.loads(arglist)
+        return actor.script.call(method, actor, *args)
 
     def actor_update(self, actor, update):
         for queue in self.player_queues.values():

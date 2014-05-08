@@ -102,7 +102,8 @@ class NodeTest(unittest.TestCase):
 
     def testAllRooms(self):
         self.node.manage_room("game1", "room1")
-        self.assertEquals([{'game_id': 'game1', 'room_id': 'room1'}],
+        self.assertEquals([
+            {'actors': [], 'game_id': 'game1', 'room_id': 'room1'}],
             self.node.all_rooms())
 
     def testRequestToken(self):
@@ -144,6 +145,6 @@ class NodeTest(unittest.TestCase):
         actor = MockActor()
         self.room1.actors['actor1'] = actor
 
-        self.node.actor_call("game1", "bob", "actor1", "do_something")
+        self.node.actor_call("game1", "bob", "actor1", "do_something", "[]")
 
         self.assertEquals([('do_something', (actor,), {})], actor.script.called)

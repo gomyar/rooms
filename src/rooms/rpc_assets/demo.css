@@ -113,7 +113,6 @@ div#websocket
 div#websocket div.msg
 {
     width : 100%;
-    height : 1em;
 }
 
 div#websocket div.msgctrl

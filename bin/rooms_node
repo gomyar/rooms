@@ -32,8 +32,8 @@ if __name__ == "__main__":
         parser.add_option("-m", "--master", dest="master",
             help="Address of master", default="localhost:9000")
 
-        parser.add_option("-g", "--game", dest="gameconf",
-                help="Path to game config file", default="./game.conf")
+        parser.add_option("-g", "--game", dest="game",
+            help="Path to game dir", default=".")
 
         (options, args) = parser.parse_args()
 
@@ -52,12 +52,19 @@ if __name__ == "__main__":
             logging.basicConfig(level=logging.DEBUG,
                 format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
+        if not os.path.exists(options.game):
+            print "Game directory does not exist'%s'" % (options.game,)
+            sys.exit(1)
+        else:
+            sys.path.append(os.path.join(options.game, "scripts"))
+
         host, port = options.address.split(":")
         master_host, master_port = options.master.split(":")
         dbase = MongoDBase()
         dbase.init_mongo()
         geography = BasicGeography()
         node = Node(host, port, master_host, master_port)
+        node.player_script.load_script("player_script")
         container = Container(dbase, geography, node)
         node.container = container
         server = WSGIRPCServer(host, port)

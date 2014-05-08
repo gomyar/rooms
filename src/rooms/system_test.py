@@ -85,7 +85,7 @@ class SystemTest(unittest.TestCase):
                 u'start_time': 0}}]
             , player2_ws.updates)
 
-        self.node.actor_call("game1", "bob", "actor1", "move_to", 10, 10)
+        self.node.actor_call("game1", "bob", "actor1", "move_to", "[10, 10]")
 
         MockTimer.fast_forward(0)
 

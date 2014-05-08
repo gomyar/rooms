@@ -6,6 +6,8 @@ from rooms.player import Player
 from rooms.room import Room
 from rooms.position import Position
 from rooms.actor import Actor
+from rooms.script import Script
+from rooms.vector import Vector
 
 import logging
 log = logging.getLogger("rooms.container")
@@ -42,7 +44,8 @@ class Container(object):
         self._save_object(room, "rooms")
 
     def create_room(self, game_id, room_id):
-        room = Room(game_id, room_id)
+        room = Room(game_id, room_id, Position(0, 0), Position(10, 10),
+            self.node)
         self.save_room(room)
         return room
 
