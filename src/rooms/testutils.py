@@ -75,6 +75,7 @@ class MockRoom(object):
         self.room_id = room_id
         self.game_id = game_id
         self._updates = []
+        self.actors = dict()
 
     def kick(self):
         self._kicked_off = True
@@ -183,7 +184,8 @@ class MockTimer(Timer):
 
 
 class MockActor(object):
-    pass
+    def __init__(self):
+        self.script = MockScript()
 
 
 

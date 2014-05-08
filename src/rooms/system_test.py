@@ -10,6 +10,7 @@ from rooms.player import Player
 from rooms.position import Position
 from rooms.testutils import MockTimer
 from rooms.testutils import MockWebsocket
+from rooms.testutils import MockGeog
 from rooms.actor import Actor
 import rooms.actor
 
@@ -38,8 +39,10 @@ class SystemTest(unittest.TestCase):
     def testPlayerReceviesUpdatesFromRoom(self):
         self.container.players['bob', 'game1'] = Player("bob", "game1", "room1")
         self.container.players['ned', 'game1'] = Player("ned", "game1", "room1")
-        self.container.rooms['game1', 'room1'] = Room("game1", "room1",
+        self.room1 = Room("game1", "room1",
             Position(0, 0), Position(50, 50), self.node)
+        self.room1.geography = MockGeog()
+        self.container.rooms['game1', 'room1'] = self.room1
 
         self.node.manage_room("game1", "room1")
 
@@ -81,3 +84,16 @@ class SystemTest(unittest.TestCase):
                 u'start_pos': [0, 0, 0],
                 u'start_time': 0}}]
             , player2_ws.updates)
+
+        self.node.actor_call("game1", "bob", "actor1", "move_to", 10, 10)
+
+        MockTimer.fast_forward(0)
+
+        self.assertEquals({'vector': {u'end_pos': [0, 0, 0],
+                u'end_time': 0,
+                u'start_pos': [0, 0, 0],
+                u'start_time': 0}}, player1_ws.updates[2])
+        self.assertEquals({'vector': {u'end_pos': [0, 0, 0],
+                u'end_time': 0,
+                u'start_pos': [0, 0, 0],
+                u'start_time': 0}}, player2_ws.updates[2])

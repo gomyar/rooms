@@ -11,6 +11,7 @@ from rooms.testutils import MockScript
 from rooms.testutils import MockRoom
 from rooms.testutils import MockTimer
 from rooms.testutils import MockWebsocket
+from rooms.testutils import MockActor
 from rooms.rpc import RPCException
 from rooms.position import Position
 
@@ -125,14 +126,24 @@ class NodeTest(unittest.TestCase):
         gevent.spawn(self.node.ping, ws)
 
         MockTimer.fast_forward(0)
-        self.assertEquals(['0'], ws.updates)
+        self.assertEquals([0], ws.updates)
 
         MockTimer.fast_forward(1)
-        self.assertEquals(['0', '1'], ws.updates)
+        self.assertEquals([0, 1], ws.updates)
 
         MockTimer.fast_forward(1)
-        self.assertEquals(['0', '1', '2'], ws.updates)
+        self.assertEquals([0, 1, 2], ws.updates)
 
         MockTimer.fast_forward(3)
-        self.assertEquals(['0', '1', '2', '3', '4', '5'], ws.updates)
+        self.assertEquals([0, 1, 2, 3, 4, 5], ws.updates)
 
+    def testActorCall(self):
+        self.node.manage_room("game1", "room1")
+        self.container.players['bob', 'game1'] = Player('bob', 'game1', 'room1')
+        self.node.player_joins("bob", "game1", "room1")
+        actor = MockActor()
+        self.room1.actors['actor1'] = actor
+
+        self.node.actor_call("game1", "bob", "actor1", "do_something")
+
+        self.assertEquals([('do_something', (actor,), {})], actor.script.called)

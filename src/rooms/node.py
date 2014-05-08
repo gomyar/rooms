@@ -84,6 +84,23 @@ class Node(object):
         room = self.rooms[game_id, player.room_id]
         for actor in room.actors.values():
             ws.send(jsonview(actor))
+        while True:
+            print "Waiting"
+            message = queue.get()
+            print "Sending"
+            ws.send(jsonview(message))
+
+    @request
+    def actor_call(self, game_id, username, actor_id, method, *args, **kwargs):
+        player = self.players[username, game_id]
+        room = self.rooms[game_id, player.room_id]
+        actor = room.actors[actor_id]
+        return actor.script.call(method, actor, *args, **kwargs)
+
+    def actor_update(self, actor, update):
+        for queue in self.player_queues.values():
+            print "Adding %s" % (update,)
+            queue.put(update)
 
     def _request_player_connection(self, username, game_id):
         player = self._get_or_load_player(username, game_id)
