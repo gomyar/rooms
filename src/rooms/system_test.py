@@ -94,11 +94,11 @@ class SystemTest(unittest.TestCase):
         #MockTimer.sleep(0)
 
         print "hang on"
-        self.assertEquals({'vector': {u'end_pos': [0, 0, 0],
-            u'end_time': 0,
+        self.assertEquals({'vector': {u'end_pos': [10, 10, 0],
+            u'end_time': 1,
             u'start_pos': [0, 0, 0],
             u'start_time': 0}}, player1_ws.updates[2])
-        self.assertEquals({'vector': {u'end_pos': [0, 0, 0],
-            u'end_time': 0,
+        self.assertEquals({'vector': {u'end_pos': [10, 10, 0],
+            u'end_time': 1,
             u'start_pos': [0, 0, 0],
             u'start_time': 0}}, player2_ws.updates[2])
