@@ -110,6 +110,8 @@ class MasterTest(unittest.TestCase):
 
         self.assertEquals({('game1', 'room1'): ('10.10.10.1', 8000)},
             self.master.rooms)
+        self.assertEquals(self.master.rooms.items(),
+            self.master.managed_rooms())
         self.assertEquals([
             ('manage_room', {'game_id': 'game1', 'room_id': 'room1'}),
             ], self.rpc_conn.called)

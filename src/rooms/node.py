@@ -104,6 +104,7 @@ class Node(object):
         for queue in self.player_queues.values():
             print "Adding %s" % (update,)
             queue.put(update)
+            print "Queue is now %s" % (queue,)
 
     def _request_player_connection(self, username, game_id):
         player = self._get_or_load_player(username, game_id)

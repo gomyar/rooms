@@ -188,7 +188,6 @@ class MockActor(object):
         self.script = MockScript()
 
 
-
 class MockWebsocket(object):
     def __init__(self):
         self.updates = []

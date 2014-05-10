@@ -51,10 +51,10 @@ class SystemTest(unittest.TestCase):
 
         player1_ws = MockWebsocket()
         player2_ws = MockWebsocket()
-        gevent.spawn(self.node.player_connects, player1_ws, "game1", "bob",
-            "TOKEN1")
-        gevent.spawn(self.node.player_connects, player2_ws, "game1", "ned",
-            "TOKEN1")
+        player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
+            "game1", "bob", "TOKEN1")
+        player2_gthread = gevent.spawn(self.node.player_connects, player2_ws,
+            "game1", "ned", "TOKEN1")
 
         MockTimer.fast_forward(0)
 
@@ -89,11 +89,16 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(0)
 
+        #player1_gthread.join()
+        #player2_gthread.join()
+        #MockTimer.sleep(0)
+
+        print "hang on"
         self.assertEquals({'vector': {u'end_pos': [0, 0, 0],
-                u'end_time': 0,
-                u'start_pos': [0, 0, 0],
-                u'start_time': 0}}, player1_ws.updates[2])
+            u'end_time': 0,
+            u'start_pos': [0, 0, 0],
+            u'start_time': 0}}, player1_ws.updates[2])
         self.assertEquals({'vector': {u'end_pos': [0, 0, 0],
-                u'end_time': 0,
-                u'start_pos': [0, 0, 0],
-                u'start_time': 0}}, player2_ws.updates[2])
+            u'end_time': 0,
+            u'start_pos': [0, 0, 0],
+            u'start_time': 0}}, player2_ws.updates[2])

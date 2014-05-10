@@ -158,9 +158,8 @@ class Master(object):
             in self.container.all_games()]
 
     @request
-    def all_rooms(self):
-        return [{"game_id": room.game_id, "room_id": room.room_id} for room \
-            in self.rooms.values()]
+    def managed_rooms(self):
+        return self.rooms.items()
 
     @request
     def players_in_game(self, game_id):
