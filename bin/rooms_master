@@ -10,6 +10,8 @@ from optparse import OptionParser
 from ConfigParser import ConfigParser
 
 from rooms.master import Master
+from rooms.master import MasterController
+from rooms.master import PlayerController
 from rooms.container import Container
 from rooms.dbase.mongo_dbase import MongoDBase
 from rooms.rpc import WSGIRPCServer
@@ -53,7 +55,8 @@ if __name__ == "__main__":
         dbase.init_mongo()
         master = Master(Container(dbase, None, None))
         server = WSGIRPCServer(host, port)
-        server.add_controller("master", master)
+        server.add_controller("master", MasterController(master))
+        server.add_controller("player", PlayerController(master))
         log.info("Starting Rooms Master")
         server.start()
         server.serve_forever()

@@ -7,15 +7,15 @@ body
 div#methods
 {
     width : 45%;
-    background-color : lightblue;
-    border : 1px solid black;
-    padding : 5px;
 }
 
 div#methods div.controller
 {
     font-weight : bold;
     margin : 5px;
+    border : 1px solid black;
+    padding : 5px;
+    background-color : lightblue;
 }
 
 div#methods div.method

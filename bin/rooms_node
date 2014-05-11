@@ -10,6 +10,8 @@ from optparse import OptionParser
 from ConfigParser import ConfigParser
 
 from rooms.node import Node
+from rooms.node import GameController
+from rooms.node import NodeController
 from rooms.container import Container
 from rooms.dbase.mongo_dbase import MongoDBase
 from rooms.rpc import WSGIRPCServer
@@ -69,7 +71,8 @@ if __name__ == "__main__":
         container = Container(dbase, geography, node)
         node.container = container
         server = WSGIRPCServer(host, port)
-        server.add_controller("node", node)
+        server.add_controller("node", NodeController(node))
+        server.add_controller("game", GameController(node))
         log.info("Starting Rooms Node")
         server.start()
         node.connect_to_master()

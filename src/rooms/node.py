@@ -14,6 +14,49 @@ from rooms.script import Script
 from rooms.views import jsonview
 
 
+class GameController(object):
+    def __init__(self, node):
+        self.node = node
+
+    @websocket
+    def player_connects(self, ws, game_id, username, token):
+        return self.node.player_connects(ws, game_id, username, token)
+
+    @request
+    def actor_call(self, game_id, username, actor_id, method, arglist):
+        return self.node.actor_call(game_id, username, actor_id, method,
+            arglist)
+
+
+class NodeController(object):
+    def __init__(self, node):
+        self.node = node
+
+    @request
+    def all_rooms(self):
+        return self.node.all_rooms()
+
+    @request
+    def all_players(self):
+        return self.node.all_players()
+
+    @request
+    def manage_room(self, game_id, room_id):
+        return self.node.manage_room(game_id, room_id)
+
+    @request
+    def player_joins(self, username, game_id, room_id):
+        return self.node.player_joins(username, game_id, room_id)
+
+    @request
+    def request_token(self, username, game_id):
+        return self.node.request_token(username, game_id)
+
+    @websocket
+    def ping(self, ws):
+        return self.node.ping(ws)
+
+
 class Node(object):
     def __init__(self, host, port, master_host, master_port):
         self.host = host
@@ -38,19 +81,16 @@ class Node(object):
         self.master_conn.call("deregister_node", host=self.host,
             port=self.port)
 
-    @request
     def all_rooms(self):
         return [{"game_id": room.game_id, "room_id": room.room_id,
             "actors": [(key, jsonview(a)) for (key, a) in room.actors.items()]} for \
             room in self.rooms.values()]
 
-    @request
     def all_players(self):
         return [{"username": player.username, "game_id": player.game_id,
             "room_id": player.room_id, "token": player.token} for player in \
             self.players.values()]
 
-    @request
     def manage_room(self, game_id, room_id):
         if self.container.room_exists(game_id, room_id):
             room = self.container.load_room(game_id, room_id)
@@ -60,25 +100,21 @@ class Node(object):
         self.rooms[game_id, room_id] = room
         room.kick()
 
-    @request
     def player_joins(self, username, game_id, room_id):
         player = self._request_player_connection(username, game_id)
         room = self.rooms[game_id, room_id]
         self.player_script.call("player_joins", player, room)
         return player.token
 
-    @request
     def request_token(self, username, game_id):
         player = self._request_player_connection(username, game_id)
         return player.token
 
-    @websocket
     def ping(self, ws):
         for i in range(10):
             ws.send(str(i))
             gevent.sleep(1)
 
-    @websocket
     def player_connects(self, ws, game_id, username, token):
         queue = Queue()
         player = self.players[username, game_id]
@@ -92,7 +128,6 @@ class Node(object):
             print "Sending"
             ws.send(jsonview(message))
 
-    @request
     def actor_call(self, game_id, username, actor_id, method, arglist):
         player = self.players[username, game_id]
         room = self.rooms[game_id, player.room_id]
