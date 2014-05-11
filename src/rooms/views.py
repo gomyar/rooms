@@ -12,7 +12,7 @@ class JsonView(object):
         self.views = dict(
             Actor=self.view_actor,
             State=self.view_state,
-            Vector=self.view_vector,
+            _Vector=self.view_vector,
             Position=self.view_position,
         )
 

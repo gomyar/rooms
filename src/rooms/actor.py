@@ -4,7 +4,8 @@ import uuid
 
 from rooms.script import Script
 from rooms.position import Position
-from rooms.vector import Vector
+from rooms.vector import Vector, _Vector
+from rooms.vector import time_to_position
 from rooms.timer import Timer
 
 
@@ -32,6 +33,7 @@ class Actor(object):
         self.path = []
         self.vector = Vector(Position(0, 0), Position(0, 0))
         self.script = Script()
+        self.speed = 1.0
 
         self._gthread = None
         self._move_gthread = None
@@ -54,11 +56,15 @@ class Actor(object):
 
     def _move_update(self):
         from_point = self.path[0]
+        from_time = Timer.now()
         for to_point in self.path[1:]:
-            self.vector = Vector(from_point, to_point)
+            end_time = from_time + \
+                time_to_position(from_point, to_point, self.speed)
+            self.vector = _Vector(from_point, from_time, to_point, end_time)
             self._send_update({'vector': self.vector})
             from_point = to_point
-            Timer.sleep_until(self.vector.end_time)
+            from_time = end_time
+            Timer.sleep_until(end_time)
 
     def _send_update(self, update):
         self.room.actor_update(self, update)
