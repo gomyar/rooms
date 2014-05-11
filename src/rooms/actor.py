@@ -30,7 +30,7 @@ class Actor(object):
         self.actor_id = _create_actor_id()
         self.state = State(self)
         self.path = []
-        self.vector = Vector(Position(0, 0), 0, Position(0, 0), 0)
+        self.vector = Vector(Position(0, 0), Position(0, 0))
         self.script = Script()
 
         self._gthread = None
@@ -42,8 +42,8 @@ class Actor(object):
     def _run_on_gthread(self, method, *args, **kwargs):
         self._gthread = gevent.spawn(method, *args, **kwargs)
 
-    def move_to(self, position):
-        self.path = self.room.find_path(self.position, position)
+    def move_to(self, position, path=None):
+        self.path = path or self.room.find_path(self.position, position)
         self._move_gthread = gevent.spawn(self._move_update)
 
     def sleep(self, seconds):
@@ -55,9 +55,10 @@ class Actor(object):
     def _move_update(self):
         from_point = self.path[0]
         for to_point in self.path[1:]:
-            self.vector = Vector(from_point, 0, to_point, 1)
+            self.vector = Vector(from_point, to_point)
             self._send_update({'vector': self.vector})
             from_point = to_point
+            Timer.sleep_until(self.vector.end_time)
 
     def _send_update(self, update):
         self.room.actor_update(self, update)

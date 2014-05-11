@@ -20,6 +20,10 @@ class Timer(object):
     def sleep(seconds):
         Timer._get_instance()._sleep(seconds)
 
+    @staticmethod
+    def sleep_until(end_time):
+        Timer.sleep(end_time - Timer.now())
+
     def _sleep(self):
         gevent.sleep(seconds)
 

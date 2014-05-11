@@ -55,5 +55,27 @@ class ActorTest(unittest.TestCase):
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals([(self.actor, {'vector': Vector(Position(0, 0), 0,
-            Position(10, 0), 1)})], self.mock_room._updates)
+        self.assertEquals([(self.actor, {'vector': Vector(Position(0, 0),
+            Position(10, 0))})], self.mock_room._updates)
+
+    def testMoveToSpecifyPath(self):
+        self.assertEquals(Position(0, 0), self.actor.position)
+
+        self.actor.move_to(Position(10, 0), [Position(0, 0), Position(5, 0),
+            Position(10, 0)])
+
+        self.assertEquals([
+            Position(0, 0),
+            Position(5, 0),
+            Position(10, 0),
+        ], self.actor.path)
+
+        MockTimer.fast_forward(1)
+
+        self.assertEquals((self.actor, {'vector': Vector(Position(0, 0),
+            Position(5, 0))}), self.mock_room._updates[0])
+
+        MockTimer.fast_forward(5)
+
+        self.assertEquals((self.actor, {'vector': Vector(Position(5, 0),
+            Position(10, 0))}), self.mock_room._updates[1])

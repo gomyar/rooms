@@ -7,7 +7,7 @@ from rooms.room import Room
 from rooms.position import Position
 from rooms.actor import Actor
 from rooms.script import Script
-from rooms.vector import Vector
+from rooms.vector import _Vector
 
 import logging
 log = logging.getLogger("rooms.container")
@@ -25,7 +25,7 @@ class Container(object):
             Position=self._serialize_position,
             Actor=self._serialize_actor,
             Script=self._serialize_script,
-            Vector=self._serialize_vector,
+            _Vector=self._serialize_vector,
         )
         self.builders = dict(
             Game=self._build_game,
@@ -34,7 +34,7 @@ class Container(object):
             Position=self._build_position,
             Actor=self._build_actor,
             Script=self._build_script,
-            Vector=self._build_vector,
+            _Vector=self._build_vector,
         )
 
     def load_room(self, game_id, room_id):
@@ -223,5 +223,5 @@ class Container(object):
             end_pos=vector.end_pos, end_time=vector.end_time)
 
     def _build_vector(self, data):
-        return Vector(data['start_pos'], data['start_time'], data['end_pos'],
+        return _Vector(data['start_pos'], data['start_time'], data['end_pos'],
             data['end_time'])

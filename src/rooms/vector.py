@@ -1,6 +1,14 @@
 
+from rooms.timer import Timer
 
-class Vector(object):
+
+def Vector(start_pos, end_pos, speed=1):
+    start_time = Timer.now()
+    end_time = start_pos.distance_to(end_pos) / speed
+    return _Vector(start_pos, start_time, end_pos, end_time)
+
+
+class _Vector(object):
     def __init__(self, start_pos, start_time, end_pos, end_time):
         self.start_pos = start_pos
         self.start_time = start_time
