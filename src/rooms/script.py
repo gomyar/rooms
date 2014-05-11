@@ -11,7 +11,10 @@ class Script(object):
             fromlist=[script_module.rsplit(".", 1)])
 
     def call(self, method, *args, **kwargs):
-        if self._script_module and hasattr(self._script_module, method):
+        if self.has_method(method):
             return getattr(self._script_module, method)(*args, **kwargs)
         else:
             return None
+
+    def has_method(self, method):
+        return self._script_module and hasattr(self._script_module, method)

@@ -108,6 +108,9 @@ class MockScript(object):
     def call(self, method, *args, **kwargs):
         self.called.append((method, args, kwargs))
 
+    def has_method(self, method):
+        return True
+
 
 class MockRpcClient(object):
     def __init__(self, expect=None):
@@ -186,6 +189,9 @@ class MockTimer(Timer):
 class MockActor(object):
     def __init__(self):
         self.script = MockScript()
+
+    def script_call(self, method, *args):
+        self.script.call(method, *args)
 
 
 class MockWebsocket(object):

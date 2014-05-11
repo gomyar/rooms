@@ -98,7 +98,10 @@ class Node(object):
         room = self.rooms[game_id, player.room_id]
         actor = room.actors[actor_id]
         args = json.loads(arglist)
-        return actor.script.call(method, actor, *args)
+        if actor.script.has_method(method):
+            actor.script_call(method, actor, *args)
+        else:
+            raise Exception("No suche method %s" % (method,))
 
     def actor_update(self, actor, update):
         for queue in self.player_queues.values():

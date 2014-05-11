@@ -1,4 +1,6 @@
 
+ - tests involving sleeps and queues fail on gevent v 1.0 bu pass on 0.13.8
+
  - domain objects
   - node
    - player connects / disconnects

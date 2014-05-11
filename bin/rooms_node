@@ -22,6 +22,7 @@ log = logging.getLogger("rooms.node")
 
 if __name__ == "__main__":
     master = None
+    node = None
     try:
         log.info("Starting Node")
         parser = OptionParser()
@@ -60,11 +61,11 @@ if __name__ == "__main__":
 
         host, port = options.address.split(":")
         master_host, master_port = options.master.split(":")
+        node = Node(host, port, master_host, master_port)
+        node.player_script.load_script("player_script")
         dbase = MongoDBase()
         dbase.init_mongo()
         geography = BasicGeography()
-        node = Node(host, port, master_host, master_port)
-        node.player_script.load_script("player_script")
         container = Container(dbase, geography, node)
         node.container = container
         server = WSGIRPCServer(host, port)

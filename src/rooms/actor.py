@@ -5,6 +5,7 @@ import uuid
 from rooms.script import Script
 from rooms.position import Position
 from rooms.vector import Vector
+from rooms.timer import Timer
 
 
 def _create_actor_id():
@@ -44,6 +45,12 @@ class Actor(object):
     def move_to(self, position):
         self.path = self.room.find_path(self.position, position)
         self._move_gthread = gevent.spawn(self._move_update)
+
+    def sleep(self, seconds):
+        Timer.sleep(seconds)
+
+    def script_call(self, method, *args):
+        self._script_gthread = gevent.spawn(self.script.call, method, *args)
 
     def _move_update(self):
         from_point = self.path[0]
