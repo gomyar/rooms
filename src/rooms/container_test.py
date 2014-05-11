@@ -109,7 +109,7 @@ class ContainerTest(unittest.TestCase):
             "topleft": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
             "bottomright": {"__type__": "Position", "x": 10, "y": 10, "z": 0},
             "actors": {"actor1": {"__type__": "Actor", "actor_id": "actor1",
-                "state": {}, "path": [], "vector": {"__type__": "_Vector",
+                "state": {}, "path": [], "vector": {"__type__": "Vector",
                 "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
                 "start_time": 0,
                 "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},

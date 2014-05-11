@@ -6,7 +6,7 @@ from rooms.position import Position
 from rooms.testutils import MockRoom
 from rooms.testutils import MockTimer
 from rooms.timer import Timer
-from rooms.vector import Vector, _Vector
+from rooms.vector import Vector
 
 
 def kickoff(actor):
@@ -55,7 +55,7 @@ class ActorTest(unittest.TestCase):
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals([(self.actor, {'vector': _Vector(Position(0, 0), 0,
+        self.assertEquals([(self.actor, {'vector': Vector(Position(0, 0), 0,
             Position(10, 0), 10.0)})], self.mock_room._updates)
 
     def testMoveToSpecifyPath(self):
@@ -72,12 +72,12 @@ class ActorTest(unittest.TestCase):
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals((self.actor, {'vector': _Vector(Position(0, 0), 0,
+        self.assertEquals((self.actor, {'vector': Vector(Position(0, 0), 0,
             Position(5, 0), 5.0)}), self.mock_room._updates[0])
 
         MockTimer.fast_forward(5)
 
-        self.assertEquals((self.actor, {'vector': _Vector(Position(5, 0), 5.0,
+        self.assertEquals((self.actor, {'vector': Vector(Position(5, 0), 5.0,
             Position(10, 0), 10.0)}), self.mock_room._updates[1])
 
     def testSpeed(self):
@@ -94,5 +94,5 @@ class ActorTest(unittest.TestCase):
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals((self.actor, {'vector': _Vector(Position(0, 0), 0,
+        self.assertEquals((self.actor, {'vector': Vector(Position(0, 0), 0,
             Position(5, 0), 2.5)}), self.mock_room._updates[0])

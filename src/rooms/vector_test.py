@@ -2,7 +2,7 @@
 import unittest
 
 from testutils import MockTimer
-from rooms.vector import Vector
+from rooms.vector import create_vector
 from rooms.position import Position
 
 
@@ -14,7 +14,7 @@ class VectorTest(unittest.TestCase):
         MockTimer.teardown_mock()
 
     def testCreation(self):
-        self.vector = Vector(Position(0, 0), Position(10, 0), 2)
+        self.vector = create_vector(Position(0, 0), Position(10, 0), 2)
         self.assertEquals(Position(0, 0), self.vector.start_pos)
         self.assertEquals(Position(10, 0), self.vector.end_pos)
         self.assertEquals(0, self.vector.start_time)

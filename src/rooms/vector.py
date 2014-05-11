@@ -2,17 +2,17 @@
 from rooms.timer import Timer
 
 
-def Vector(start_pos, end_pos, speed=1):
+def create_vector(start_pos, end_pos, speed=1):
     start_time = Timer.now()
     end_time = time_to_position(start_pos, end_pos, speed)
-    return _Vector(start_pos, start_time, end_pos, end_time)
+    return Vector(start_pos, start_time, end_pos, end_time)
 
 
 def time_to_position(start_pos, end_pos, speed):
     return start_pos.distance_to(end_pos) / speed
 
 
-class _Vector(object):
+class Vector(object):
     def __init__(self, start_pos, start_time, end_pos, end_time):
         self.start_pos = start_pos
         self.start_time = start_time
@@ -24,7 +24,7 @@ class _Vector(object):
             self.start_time, self.end_pos, self.end_time)
 
     def __eq__(self, rhs):
-        return rhs and type(rhs) is _Vector and \
+        return rhs and type(rhs) is Vector and \
             self.start_pos == rhs.start_pos and \
             self.end_pos == rhs.end_pos and \
             self.start_time == rhs.start_time and \
