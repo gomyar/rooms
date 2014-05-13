@@ -96,9 +96,13 @@ class WSGIRPCServer(object):
         self.host = host
         self.port = port
         self.controllers = dict()
+        self.file_roots = dict()
 
     def add_controller(self, name, controller):
         self.controllers[name] = controller
+
+    def add_file_root(self, name, file_path):
+        self.file_roots[name.strip('/')] = file_path
 
     def controller_methods(self, name):
         controller = self.controllers[name]
@@ -144,13 +148,17 @@ class WSGIRPCServer(object):
                     params = dict(urlparse.parse_qsl(environ['QUERY_STRING']))
                     returned = func(ws, **params)
                     return _json_return(response, returned)
+            if path[0] in self.file_roots:
+                return self.www_file(self.file_roots[path[0]], path[1:],
+                    response)
             if path == ['']:
                 response('302 Found', [
                     ('location', '/_rpc/index.html'),
                 ])
                 return ""
             if path[0] == "_rpc":
-                return self.www_file(path[1:], response)
+                return self.www_file(os.path.join(os.path.dirname(__file__),
+                    "rpc_assets"), path[1:], response)
             response('404 Not Found', [])
             return "Path Not Found: %s" % (path,)
         except RPCWaitException, we:
@@ -177,8 +185,8 @@ class WSGIRPCServer(object):
             ])
             return returned
 
-    def www_file(self, path, response):
-        filepath = os.path.join(os.path.dirname(__file__), "rpc_assets", *path)
+    def www_file(self, root, path, response):
+        filepath = os.path.join(root, *path)
         if os.path.exists(filepath):
             response('200 OK', [('content-type', guess_type(filepath))])
             return [open(filepath).read()]

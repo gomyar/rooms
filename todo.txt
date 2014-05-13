@@ -1,4 +1,6 @@
 
+ - add demo client
+
  - automatic websocket keep alive
 
  - proxy

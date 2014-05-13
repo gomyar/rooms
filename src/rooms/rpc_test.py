@@ -1,5 +1,7 @@
 
 import unittest
+import os
+
 from StringIO import StringIO
 
 from rpc import WSGIRPCClient
@@ -212,3 +214,20 @@ class RPCTest(unittest.TestCase):
 
         self.assertEquals('503 Service Unavailable', self._server_code)
         self.assertEquals([('retry-after', '3')], self._server_lines)
+
+    def testFileRootController(self):
+        self.rpc_server = WSGIRPCServer("10.10.10.1", 8888)
+        self.rpc_server.add_file_root("/assets", os.path.join(
+            os.path.dirname(__file__), "test_assets/assets1"))
+        self.rpc_server.add_file_root("/", os.path.join(
+            os.path.dirname(__file__), "test_assets/root"))
+
+        result = self.rpc_server.handle({'PATH_INFO': '/assets/test.html',
+            'wsgi.input': StringIO("")},
+            self._server_response)
+
+        self.assertEquals('200 OK', self._server_code)
+        self.assertEquals([('content-type', ('text/html', None))],
+            self._server_lines)
+        self.assertEquals(["<html>test</html>\n"], result)
+
