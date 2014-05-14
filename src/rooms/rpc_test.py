@@ -218,9 +218,9 @@ class RPCTest(unittest.TestCase):
     def testFileRootController(self):
         self.rpc_server = WSGIRPCServer("10.10.10.1", 8888)
         self.rpc_server.add_file_root("/assets", os.path.join(
-            os.path.dirname(__file__), "test_assets/assets1"))
+            os.path.dirname(__file__), "assets/test/assets1"))
         self.rpc_server.add_file_root("/", os.path.join(
-            os.path.dirname(__file__), "test_assets/root"))
+            os.path.dirname(__file__), "assets/test/root"))
 
         result = self.rpc_server.handle({'PATH_INFO': '/assets/test.html',
             'wsgi.input': StringIO("")},

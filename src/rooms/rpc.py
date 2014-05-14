@@ -158,7 +158,7 @@ class WSGIRPCServer(object):
                 return ""
             if path[0] == "_rpc":
                 return self.www_file(os.path.join(os.path.dirname(__file__),
-                    "rpc_assets"), path[1:], response)
+                    "assets/rpc"), path[1:], response)
             response('404 Not Found', [])
             return "Path Not Found: %s" % (path,)
         except RPCWaitException, we:

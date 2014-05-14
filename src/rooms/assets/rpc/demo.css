@@ -1,0 +1,130 @@
+
+body
+{
+    font-size : 1em;
+}
+
+div#methods
+{
+    width : 45%;
+}
+
+div#methods div.controller
+{
+    font-weight : bold;
+    margin : 5px;
+    border : 1px solid black;
+    padding : 5px;
+    background-color : lightblue;
+}
+
+div#methods div.method
+{
+    font-weight : bold;
+    margin : 5px;
+    margin-left : 15px;
+    margin-bottom : 5px;
+    width : 90%;
+    border-bottom : 1px solid black;
+}
+
+div#methods div.method div.params
+{
+    font-weight : normal;
+    margin : 5px;
+    margin-left : 25px;
+}
+
+div#methods div.method input
+{
+    background-color : lightblue;
+}
+
+div#methods div.method div.doc
+{
+    font-size : 0.7em;
+    font-style : italic;
+    font-weight : normal;
+    margin-left : 25px;
+}
+
+div#methods div.method div.call
+{
+    width : 4em;
+    height : 1.1em;
+    background-color : lightgreen;
+    border : 1px solid black;
+    cursor : pointer;
+    float : right;
+}
+
+div#methods div.method div.call:hover
+{
+    background-color : green;
+}
+
+div#methods div.method div.callsocket
+{
+    width : 6em;
+    height : 1.1em;
+    background-color : lightgreen;
+    border : 1px solid black;
+    cursor : pointer;
+    float : right;
+}
+
+div#methods div.method div.callsocket:hover
+{
+    background-color : green;
+}
+
+div#result
+{
+    width : 45%;
+    height : 45%;
+    background-color : lightgreen;
+    position : absolute;
+    top : 5px;
+    right : 5px;
+    border : 1px solid black;
+    padding : 5px;
+    overflow : auto;
+}
+
+div#result.error
+{
+    background-color : #dd5050;
+}
+
+div#websocket
+{
+    background-color : lightgreen;
+    border : 1px solid black;
+    position : absolute;
+    bottom : 5px;
+    right : 5px;
+    width : 45%;
+    height : 45%;
+    z-index : 1;
+    padding : 5px;
+    overflow : auto;
+}
+
+div#websocket div.msg
+{
+    width : 100%;
+}
+
+div#websocket div.msgctrl
+{
+    width : 100%;
+    height : 1em;
+    color : blue;
+}
+
+div#websocket div.msgerr
+{
+    width : 100%;
+    height : 1em;
+    color : red;
+}
