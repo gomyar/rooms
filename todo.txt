@@ -1,5 +1,6 @@
 
  - add demo client
+   - client reconnects smoothly (darkens screen etc)
 
  - automatic websocket keep alive
 

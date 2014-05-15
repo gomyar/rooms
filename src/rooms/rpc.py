@@ -96,7 +96,11 @@ class WSGIRPCServer(object):
         self.host = host
         self.port = port
         self.controllers = dict()
-        self.file_roots = dict()
+        self.file_roots = {
+            "rpc": os.path.join(os.path.dirname(__file__), "assets/rpc"),
+            "jsclient": os.path.join(os.path.dirname(__file__),
+                "assets/jsclient"),
+        }
 
     def add_controller(self, name, controller):
         self.controllers[name] = controller
@@ -151,14 +155,6 @@ class WSGIRPCServer(object):
             if path[0] in self.file_roots:
                 return self.www_file(self.file_roots[path[0]], path[1:],
                     response)
-            if path == ['']:
-                response('302 Found', [
-                    ('location', '/_rpc/index.html'),
-                ])
-                return ""
-            if path[0] == "_rpc":
-                return self.www_file(os.path.join(os.path.dirname(__file__),
-                    "assets/rpc"), path[1:], response)
             response('404 Not Found', [])
             return "Path Not Found: %s" % (path,)
         except RPCWaitException, we:
