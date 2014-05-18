@@ -139,24 +139,13 @@ api_rooms.service_call = function(url, data, callback)
         'data': data,
         'success': function(data) {
             if (callback != null)
-                callback(jQuery.parseJSON(data));
+                callback(data);
         },
         'error': function(jqXHR, errorText) {
             console.log("Error calling "+url+" : "+errorText);
         },
         'type': 'POST'
     });
-}
-
-api_rooms.load_room = function(callback)
-{
-    api_rooms.ajax_get('/room/?token='+api_rooms.token, function(data) {
-        api_rooms.room = data;
-        if (callback)
-            callback(data);
-        gui.requestRedraw();
-    });
-
 }
 
 api_rooms.ajax_get = function(url, callback)
@@ -187,7 +176,7 @@ api_rooms.onclose = function()
     console.log("Connection lost");
 }
 
-api_rooms.connect = function(deprecated_callback)
+api_rooms.connect = function(custom_callback)
 {
     api_rooms.socket = new WebSocket("ws://"+window.location.hostname+":"+window.location.port+"/socket");
     api_rooms.socket.onmessage = api_rooms.message_callback;
@@ -195,7 +184,7 @@ api_rooms.connect = function(deprecated_callback)
     api_rooms.socket.onclose = api_rooms.onclose;
     api_rooms.socket.onerror = api_rooms.onclose;
 
-    api_rooms.deprecated_callback = deprecated_callback;
+    api_rooms.custom_callback = custom_callback;
 }
 
 api_rooms.command_sync = function(data)
@@ -241,9 +230,8 @@ api_rooms.commands = {
     "moved_node": api_rooms.command_moved_node
 };
 
-api_rooms.message_callback = function(msg)
+api_rooms.message_callback = function(messages)
 {
-    var messages = jQuery.parseJSON(msg.data);
     for (var i in messages)
     {
         var message = messages[i];
@@ -252,7 +240,8 @@ api_rooms.message_callback = function(msg)
             api_rooms.commands[message.command](message.kwargs);
         }
     }
-    api_rooms.deprecated_callback(msg);
+    if (api_rooms.custom_callback)
+        api_rooms.custom_callback(messages);
 }
 
 

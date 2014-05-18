@@ -180,6 +180,17 @@ class RPCTest(unittest.TestCase):
         self.assertTrue(
             'Server Error calling controller1/callme():\nTraceback' in result)
 
+    def testRPCFileIndexRedirect(self):
+        self.rpc_server = WSGIRPCServer("10.10.10.1", 8888)
+
+        result = self.rpc_server.handle({'PATH_INFO': '/',
+            'wsgi.input': StringIO("")},
+            self._server_response)
+
+        self.assertEquals('302 Found', self._server_code)
+        self.assertEquals([('location', '/rpc/index.html')],
+            self._server_lines)
+
     def testRPCFiles(self):
         self.rpc_server = WSGIRPCServer("10.10.10.1", 8888)
 

@@ -1,5 +1,6 @@
 
 from rooms.timer import Timer
+from rooms.position import Position
 
 
 def create_vector(start_pos, end_pos, speed=1):
@@ -29,3 +30,29 @@ class Vector(object):
             self.end_pos == rhs.end_pos and \
             self.start_time == rhs.start_time and \
             self.end_time == rhs.end_time
+
+    def _calc_d(self, start_d, end_d):
+        now = Timer.now()
+        if now > self.end_time:
+            return end_d
+        diff_x = end_d - start_d
+        diff_t = self.end_time - self.start_time
+        if diff_t <= 0:
+            return end_d
+        inc = (now - self.start_time) / diff_t
+        return start_d + diff_x * inc
+
+    @property
+    def x(self):
+        return self._calc_d(self.start_pos.x, self.end_pos.x)
+
+    @property
+    def y(self):
+        return self._calc_d(self.start_pos.y, self.end_pos.y)
+
+    @property
+    def z(self):
+        return self._calc_d(self.start_pos.z, self.end_pos.z)
+
+    def position(self):
+        return Position(self.x, self.y, self.z)

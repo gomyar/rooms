@@ -155,6 +155,11 @@ class WSGIRPCServer(object):
             if path[0] in self.file_roots:
                 return self.www_file(self.file_roots[path[0]], path[1:],
                     response)
+            if path == ['']:
+                response('302 Found', [
+                    ('location', '/rpc/index.html'),
+                ])
+                return ""
             response('404 Not Found', [])
             return "Path Not Found: %s" % (path,)
         except RPCWaitException, we:

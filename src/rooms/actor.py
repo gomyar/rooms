@@ -71,4 +71,4 @@ class Actor(object):
 
     @property
     def position(self):
-        return Position(0, 0)
+        return self.vector.position()

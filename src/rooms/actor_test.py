@@ -58,6 +58,8 @@ class ActorTest(unittest.TestCase):
         self.assertEquals([(self.actor, {'vector': Vector(Position(0, 0), 0,
             Position(10, 0), 10.0)})], self.mock_room._updates)
 
+        self.assertEquals(Position(1.0, 0), self.actor.position)
+
     def testMoveToSpecifyPath(self):
         self.assertEquals(Position(0, 0), self.actor.position)
 
