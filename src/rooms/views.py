@@ -23,7 +23,7 @@ class JsonView(object):
         return JsonView._instance
 
     def view(self, obj):
-        return json.dumps(obj, default=self._encode, indent=4)
+        return json.loads(json.dumps(obj, default=self._encode))
 
     def _encode(self, obj):
         obj_name =  type(obj).__name__
@@ -36,6 +36,8 @@ class JsonView(object):
             actor_id=actor.actor_id,
             state=actor.state,
             vector=actor.vector,
+            actor_type=actor.actor_type,
+            model_type=actor.model_type,
         )
 
     def view_state(self, state):

@@ -29,6 +29,8 @@ class Actor(object):
     def __init__(self, room):
         self.room = room
         self.actor_id = _create_actor_id()
+        self.actor_type = ""
+        self.model_type = ""
         self.state = State(self)
         self.path = []
         self.vector = create_vector(Position(0, 0), Position(0, 0))

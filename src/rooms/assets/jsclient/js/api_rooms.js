@@ -8,15 +8,7 @@ api_rooms.token = "";
 api_rooms.room = { width: 500, height: 500, position: [0, 0], map_objects: [], visibility_grid: { width : 0, height : 0, gridsize: 10 } };
 
 api_rooms.actors = {};
-api_rooms.player_actor = null;
 api_rooms.socket = null;
-
-api_rooms.facing_directions = {
-    'north': Math.PI / 2,
-    'south': Math.PI + Math.PI / 2,
-    'east': Math.PI,
-    'west': 0
-};
 
 
 api_rooms.Actor = function(actor)
@@ -25,71 +17,32 @@ api_rooms.Actor = function(actor)
         this[key] = actor[key];
 }
 
-api_rooms.Actor.prototype.end_time = function()
+api_rooms.Actor.prototype._calc_d = function(start_d, end_d)
 {
-    try
-    {
-        return this.path[this.path.length-1][2] * 1000;
-    }
-    catch(e)
-    {
-        console.log("exception "+e);
-        console.log(this);
-    }
+    var now = api_rooms.get_now();
+    if (now > this.vector.end_time)
+        return end_d;
+    var diff_x = end_d - start_d;
+    var diff_t = this.vector.end_time - this.vector.start_time;
+    if (diff_t <= 0)
+        return end_d;
+    var inc = (now - this.vector.start_time) / diff_t;
+    return start_d + diff_x * inc;
 }
 
 api_rooms.Actor.prototype.x = function()
 {
-    now = api_rooms.get_now();
-    if (now > this.end_time())
-        return this.path[this.path.length-1][0];
-    index = 0;
-    while (index < this.path.length - 2 && this.path[index + 1][2] * 1000 < now)
-        index += 1;
-
-    start_x = this.path[index][0];
-    start_y = this.path[index][1];
-    start_time = this.path[index][2] * 1000;
-    end_x = this.path[index + 1][0];
-    end_y = this.path[index + 1][1];
-    end_time = this.path[index + 1][2]* 1000;
-
-    now = api_rooms.get_now();
-    if (now > end_time)
-        return end_x;
-    diff_x = end_x - start_x;
-    diff_t = end_time - start_time;
-    if (diff_t <= 0)
-        return end_x;
-    inc = (now - start_time) / diff_t;
-    return start_x + diff_x * inc;
+    return this._calc_d(this.vector.start_pos.x, this.vector.end_pos.x)
 }
 
 api_rooms.Actor.prototype.y = function()
 {
-    now = api_rooms.get_now();
-    if (now > this.end_time())
-        return this.path[this.path.length-1][1];
-    index = 0;
-    while (index < this.path.length - 2 && this.path[index + 1][2] * 1000 < now)
-        index += 1;
+    return this._calc_d(this.vector.start_pos.y, this.vector.end_pos.y)
+}
 
-    start_x = this.path[index][0];
-    start_y = this.path[index][1];
-    start_time = this.path[index][2] * 1000;
-    end_x = this.path[index + 1][0];
-    end_y = this.path[index + 1][1];
-    end_time = this.path[index + 1][2]* 1000;
-
-    now = api_rooms.get_now();
-    if (now > end_time)
-        return end_y;
-    diff_y = end_y - start_y;
-    diff_t = end_time - start_time;
-    if (diff_t <= 0)
-        return end_y;
-    inc = (now - start_time) / diff_t;
-    return start_y + diff_y * inc;
+api_rooms.Actor.prototype.z = function()
+{
+    return this._calc_d(this.vector.start_pos.z, this.vector.end_pos.z)
 }
 
 api_rooms.Actor.prototype.parent_actor = function()
@@ -105,21 +58,6 @@ api_rooms.get_now = function()
     var local_now = new Date().getTime();
     var ticks = local_now - api_rooms.local_time;
     return ticks + api_rooms.server_time;
-}
-
-api_rooms.player_connection_to = function(actor)
-{
-    if (actor.circle_id == api_rooms.player_actor.circle_id)
-        return "ally";
-    if (actor.circle_id in api_rooms.player_actor.circles)
-    {
-        var friendship = api_rooms.player_actor.circles[actor.circle_id];
-        if (friendship > 0)
-            return "friend";
-        else if (friendship < 0)
-            return "enemy";
-    }
-    return "neutral";
 }
 
 api_rooms.set_now = function(now_time)
@@ -148,23 +86,6 @@ api_rooms.service_call = function(url, data, callback)
     });
 }
 
-api_rooms.ajax_get = function(url, callback)
-{
-     $.ajax({
-        'url': url,
-        'complete': function (xhr, status) {
-            if (status === 'error' || !xhr.responseText) {
-                alert("Error loading "+url);
-            }
-            else {
-                var data = xhr.responseText;
-                callback(jQuery.parseJSON(data));
-            }
-        },
-        'type': 'GET'
-    });
-}
-
 api_rooms.onopen = function()
 {
     console.log("Sending token: "+api_rooms.token);
@@ -176,9 +97,13 @@ api_rooms.onclose = function()
     console.log("Connection lost");
 }
 
-api_rooms.connect = function(custom_callback)
+api_rooms.connect = function(game_id, username, token, custom_callback)
 {
-    api_rooms.socket = new WebSocket("ws://"+window.location.hostname+":"+window.location.port+"/socket");
+    api_rooms.game_id = game_id;
+    api_rooms.username = username;
+    api_rooms.token = token;
+
+    api_rooms.socket = new WebSocket("ws://"+window.location.hostname+":"+window.location.port+"/game/player_connects?game_id=" + game_id + "&username=" + username + "&token=" + token);
     api_rooms.socket.onmessage = api_rooms.message_callback;
     api_rooms.socket.onopen = api_rooms.onopen;
     api_rooms.socket.onclose = api_rooms.onclose;
@@ -191,8 +116,6 @@ api_rooms.command_sync = function(data)
 {
     api_rooms.set_now(data.now);
 
-    api_rooms.player_actor = new api_rooms.Actor(data.player_actor);
-
     api_rooms.actors = {};
     for (var i in data.actors)
     {
@@ -203,19 +126,12 @@ api_rooms.command_sync = function(data)
 
 api_rooms.command_actor_update = function(data)
 {
-    if (data.actor_id == api_rooms.player_actor.actor_id)
-        api_rooms.player_actor = new api_rooms.Actor(data);
-    else if ("docked_with" in data && data.docked_with && data.docked_with == api_rooms.player_actor.actor_id)
-        api_rooms.player_actor.docked_actors[data.actor_type][data.actor_id] = data;
-    else
-        api_rooms.actors[data.actor_id] = new api_rooms.Actor(data);
+    api_rooms.actors[data.actor_id] = new api_rooms.Actor(data);
 }
 
 api_rooms.command_remove_actor = function(data)
 {
-    console.log(" --- removing actor "+data.actor_id);
-    if (data.actor_id != api_rooms.player_actor.actor_id)
-        delete api_rooms.actors[data.actor_id];
+    delete api_rooms.actors[data.actor_id];
 }
 
 api_rooms.command_moved_node = function(data)
@@ -230,18 +146,13 @@ api_rooms.commands = {
     "moved_node": api_rooms.command_moved_node
 };
 
-api_rooms.message_callback = function(messages)
+api_rooms.message_callback = function(msgevent)
 {
-    for (var i in messages)
-    {
-        var message = messages[i];
-        if (message.command in api_rooms.commands)
-        {
-            api_rooms.commands[message.command](message.kwargs);
-        }
-    }
+    var message = jQuery.parseJSON(msgevent.data);
+    if (message.command in api_rooms.commands)
+        api_rooms.commands[message.command](message.data);
     if (api_rooms.custom_callback)
-        api_rooms.custom_callback(messages);
+        api_rooms.custom_callback(message);
 }
 
 

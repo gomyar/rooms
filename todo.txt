@@ -2,6 +2,8 @@
  - add demo client
    - client reconnects smoothly (darkens screen etc)
 
+ - add admin client
+
  - automatic websocket keep alive
 
  - proxy
@@ -14,6 +16,8 @@
      - PlayerActor is only actor the player directly controls / follows through doors
 
    - if no nodes registered, players wait on queue for a room to be created
+
+ - saves - save data to mongo on events etc
 
  - basic demo
    - open to all

@@ -121,7 +121,8 @@ class Node(object):
         self.player_queues[game_id, username] = queue
         room = self.rooms[game_id, player.room_id]
         for actor in room.actors.values():
-            ws.send(jsonview(actor))
+            ws.send(json.dumps(
+                {"command": "actor_update", "data": jsonview(actor)}))
         while True:
             print "Waiting"
             message = queue.get()
