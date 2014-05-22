@@ -38,7 +38,7 @@ class Actor(object):
         self.speed = 1.0
         self.width = 1.0
         self.height = 1.0
-        self.player = None
+        self.player_username = None
 
         self._gthread = None
         self._move_gthread = None

@@ -46,6 +46,7 @@ class Container(object):
     def create_room(self, game_id, room_id):
         room = Room(game_id, room_id, Position(0, 0), Position(10, 10),
             self.node)
+        room.geography = self.geography
         self.save_room(room)
         return room
 
@@ -198,7 +199,9 @@ class Container(object):
     # Actor
     def _serialize_actor(self, actor):
         return dict(actor_id=actor.actor_id, state=actor.state,
-            path=actor.path, vector=actor.vector, script=actor.script)
+            path=actor.path, vector=actor.vector, script=actor.script,
+            actor_type=actor.actor_type, model_type=actor.model_type,
+            player_username=actor.player_username)
 
     def _build_actor(self, data):
         actor = Actor(None)
@@ -206,6 +209,9 @@ class Container(object):
         actor.path = data['path']
         actor.vector = data['vector']
         actor.script = data['script']
+        actor.actor_type = data['actor_type']
+        actor.model_type = data['model_type']
+        actor.player_username = data['player_username']
         return actor
 
     # Script

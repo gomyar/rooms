@@ -53,7 +53,7 @@ class Room(object):
 
     def create_actor(self, script_name, player=None):
         actor = Actor(self)
-        actor.player = player
+        actor.player_username = player.username if player else None
         actor.script.load_script(script_name)
         actor.script.call("created", actor)
         actor.kick()

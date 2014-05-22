@@ -109,6 +109,8 @@ class ContainerTest(unittest.TestCase):
             "topleft": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
             "bottomright": {"__type__": "Position", "x": 10, "y": 10, "z": 0},
             "actors": {"actor1": {"__type__": "Actor", "actor_id": "actor1",
+                "actor_type": "test", "model_type": "model",
+                "player_username": "ned",
                 "state": {}, "path": [], "vector": {"__type__": "Vector",
                 "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
                 "start_time": 0,
@@ -129,6 +131,7 @@ class ContainerTest(unittest.TestCase):
         room_dict = self.dbase.dbases['rooms']['rooms_0']
         self.assertEquals('room1', room_dict['room_id'])
         self.assertEquals(self.node, room.node)
+        self.assertEquals(self.geography, room.geography)
 
     def testSaveRoom(self):
         room = Room("game1", "room1", Position(0, 0), Position(10, 10),
