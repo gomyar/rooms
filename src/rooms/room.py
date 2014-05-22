@@ -51,8 +51,9 @@ class Room(object):
     def kick(self):
         pass
 
-    def create_actor(self, script_name):
+    def create_actor(self, script_name, player=None):
         actor = Actor(self)
+        actor.player = player
         actor.script.load_script(script_name)
         actor.script.call("created", actor)
         actor.kick()

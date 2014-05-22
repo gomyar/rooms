@@ -36,6 +36,9 @@ class Actor(object):
         self.vector = create_vector(Position(0, 0), Position(0, 0))
         self.script = Script()
         self.speed = 1.0
+        self.width = 1.0
+        self.height = 1.0
+        self.player = None
 
         self._gthread = None
         self._move_gthread = None
@@ -53,8 +56,9 @@ class Actor(object):
     def sleep(self, seconds):
         Timer.sleep(seconds)
 
-    def script_call(self, method, *args):
-        self._script_gthread = gevent.spawn(self.script.call, method, *args)
+    def script_call(self, method, *args, **kwargs):
+        self._script_gthread = gevent.spawn(self.script.call, method, *args,
+            **kwargs)
 
     def _move_update(self):
         from_point = self.path[0]

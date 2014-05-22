@@ -58,34 +58,51 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(0)
 
-        self.assertEquals([{u'actor_id': u'actor2',
-            u'state': {},
-            u'vector': {u'end_pos': [0, 0, 0],
-                u'end_time': 0,
-                u'start_pos': [0, 0, 0],
-                u'start_time': 0}},
-            {u'actor_id': u'actor1',
-            u'state': {},
-            u'vector': {u'end_pos': [0, 0, 0],
-                u'end_time': 0,
-                u'start_pos': [0, 0, 0],
-                u'start_time': 0}}]
-            , player1_ws.updates)
-        self.assertEquals([{u'actor_id': u'actor2',
-            u'state': {},
-            u'vector': {u'end_pos': [0, 0, 0],
-                u'end_time': 0,
-                u'start_pos': [0, 0, 0],
-                u'start_time': 0}},
-            {u'actor_id': u'actor1',
-            u'state': {},
-            u'vector': {u'end_pos': [0, 0, 0],
-                u'end_time': 0,
-                u'start_pos': [0, 0, 0],
-                u'start_time': 0}}]
-            , player2_ws.updates)
+        self.assertEquals([{u'command': u'actor_update',
+            u'data': {u'actor_id': u'actor2',
+                        u'actor_type': u'',
+                        u'model_type': u'',
+                        u'state': {},
+                        u'username': None,
+                        u'vector': {u'end_pos': [0, 0, 0],
+                                    u'end_time': 0.0,
+                                    u'start_pos': [0, 0, 0],
+                                    u'start_time': 0}}},
+            {u'command': u'actor_update',
+            u'data': {u'actor_id': u'actor1',
+                        u'actor_type': u'',
+                        u'model_type': u'',
+                        u'state': {},
+                        u'username': None,
+                        u'vector': {u'end_pos': [0, 0, 0],
+                                    u'end_time': 0.0,
+                                    u'start_pos': [0, 0, 0],
+                                    u'start_time': 0}}}],
+            player1_ws.updates)
+        self.assertEquals([{u'command': u'actor_update',
+            u'data': {u'actor_id': u'actor2',
+                        u'actor_type': u'',
+                        u'model_type': u'',
+                        u'state': {},
+                        u'username': None,
+                        u'vector': {u'end_pos': [0, 0, 0],
+                                    u'end_time': 0.0,
+                                    u'start_pos': [0, 0, 0],
+                                    u'start_time': 0}}},
+            {u'command': u'actor_update',
+            u'data': {u'actor_id': u'actor1',
+                        u'actor_type': u'',
+                        u'model_type': u'',
+                        u'state': {},
+                        u'username': None,
+                        u'vector': {u'end_pos': [0, 0, 0],
+                                    u'end_time': 0.0,
+                                    u'start_pos': [0, 0, 0],
+                                    u'start_time': 0}}}],
+            player2_ws.updates)
 
-        self.node.actor_call("game1", "bob", "actor1", "move_to", "[10, 10]")
+        self.node.actor_call("game1", "bob", "actor1", "move_to", x=10, y=10,
+            token="TOKEN1")
 
         MockTimer.fast_forward(0)
 
@@ -113,12 +130,30 @@ class SystemTest(unittest.TestCase):
         player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
             "game1", "bob", "TOKEN1")
 
-        self.node.actor_call("game1", "bob", "actor1", "ping", "[]")
+        self.node.actor_call("game1", "bob", "actor1", "ping", token="TOKEN1")
 
         MockTimer.fast_forward(1)
 
         self.assertEquals({'count': 0}, player1_ws.updates[1])
         self.assertEquals({'count': 1}, player1_ws.updates[2])
+
+    def testInvalidToken(self):
+        self.container.players['bob', 'game1'] = Player("bob", "game1", "room1")
+        self.room1 = Room("game1", "room1",
+            Position(0, 0), Position(50, 50), self.node)
+        self.room1.geography = MockGeog()
+        self.container.rooms['game1', 'room1'] = self.room1
+
+        self.node.manage_room("game1", "room1")
+
+        self.node.player_joins("bob", "game1", "room1")
+
+        player1_ws = MockWebsocket()
+        player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
+            "game1", "bob", "TOKEN1")
+
+        self.assertRaises(Exception, self.node.actor_call, "game1", "bob",
+            "actor1", "ping", token="TOKEN2")
 
     def testExceptionIfNoSuchMethod(self):
         self.container.players['bob', 'game1'] = Player("bob", "game1", "room1")
@@ -132,7 +167,7 @@ class SystemTest(unittest.TestCase):
         self.node.player_joins("bob", "game1", "room1")
 
         self.assertRaises(Exception, self.node.actor_call, "game1", "bob",
-            "actor1", "nonexistant", "[]")
+            "actor1", "nonexistant")
 
     def testMultiPath(self):
         self.container.players['bob', 'game1'] = Player("bob", "game1", "room1")
@@ -151,7 +186,8 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(0)
 
-        self.node.actor_call("game1", "bob", "actor1", "move_to", "[10, 10]")
+        self.node.actor_call("game1", "bob", "actor1", "move_to", x=10, y=10,
+            token="TOKEN1")
 
         MockTimer.fast_forward(0)
 

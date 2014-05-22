@@ -22,6 +22,11 @@ class MockController(object):
         self.called = arg1
         return {'result': 1}
 
+    @request
+    def urlbased(self, urlparam1, urlparam2, kwarg1=None, kwarg2=None):
+        self.called = (urlparam1, urlparam2, kwarg1, kwarg2)
+        return {'result': 1}
+
     def notexposed(self, arg1):
         raise Exception("Should never be called")
 
@@ -86,10 +91,14 @@ class RPCTest(unittest.TestCase):
         self.rpc_server.add_controller("controller1", self.mock_controller)
 
         self.assertEquals({'index': {'args': ['arg1'], 'doc': 'docstr',
-            'type': 'request'},
+                'type': 'request'},
             'bounce': {'args': [], 'doc': '', 'type': 'request'},
             'websock': {'args': ['arg1'], 'doc': 'docstr',
-            'type': 'websocket'}},
+                'type': 'websocket'},
+            'urlbased': {'args': ['urlparam1', 'urlparam2', 'kwarg1', 'kwarg2'],
+                'doc': '',
+                'type': 'request'},
+            },
             self.rpc_server.controller_methods("controller1"))
 
         result = self.rpc_server.handle({'PATH_INFO': '/controller1/index',
@@ -149,7 +158,10 @@ class RPCTest(unittest.TestCase):
             'type': 'request'},
             'bounce': {'args': [], 'doc': '', 'type': 'request'},
             'websock': {'args': ['arg1'], 'doc': 'docstr',
-            'type': 'websocket'}},
+                'type': 'websocket'},
+            'urlbased': {'args': ['urlparam1', 'urlparam2', 'kwarg1', 'kwarg2'],
+                'doc': '', 'type': 'request'},
+            },
             self.rpc_server.controller_methods("controller1"))
 
         result = self.rpc_server.handle({'PATH_INFO': '/controller1/websock',
@@ -176,7 +188,7 @@ class RPCTest(unittest.TestCase):
 
         self.assertEquals('500', self._server_code)
         self.assertEquals([('content-type', 'text/javascript'),
-            ('content-length', 419)], self._server_lines)
+            ('content-length', 432)], self._server_lines)
         self.assertTrue(
             'Server Error calling controller1/callme():\nTraceback' in result)
 
@@ -230,4 +242,24 @@ class RPCTest(unittest.TestCase):
         self.assertEquals([('content-type', ('text/html', None))],
             self._server_lines)
         self.assertEquals(["<html>test</html>\n"], result)
+
+    def testUrlParams(self):
+        self.mock_controller = MockController()
+
+        self.rpc_server = WSGIRPCServer("10.10.10.1", 8888)
+        self.rpc_server.add_controller("controller1", self.mock_controller)
+
+        result = self.rpc_server.handle({'PATH_INFO':
+                '/controller1/urlbased/value1/value2',
+            'wsgi.input': StringIO("kwarg1=howdy&kwarg2=there")},
+            self._server_response)
+
+        self.assertEquals('200 OK', self._server_code)
+        self.assertEquals([('content-type', 'application/json'),
+            ('content-length', 13)], self._server_lines)
+        self.assertEquals('{"result": 1}', result)
+
+        self.assertEquals(("value1", "value2", "howdy", "there"),
+            self.mock_controller.called)
+
 

@@ -8,6 +8,7 @@ from rooms.testutils import MockNode
 from rooms.testutils import MockActor
 from rooms.geography.basic_geography import BasicGeography
 from rooms import actor
+from rooms.player import Player
 
 
 def created(actor):
@@ -40,6 +41,11 @@ class RoomTest(unittest.TestCase):
         self.assertEquals(created, actor.script._script_module.created)
         self.assertEquals(self.room, actor.room)
         self.assertEquals(actor, self.room.actors['actor1'])
+        self.assertEquals(None, actor.player)
+
+        self.player = Player("bob", "game1", "room1")
+        actor2 = self.room.create_actor("rooms.room_test", self.player)
+        self.assertEquals(self.player, actor2.player)
 
     def testFindPath(self):
         path = self.room.find_path(Position(1, 2), Position(3, 4))

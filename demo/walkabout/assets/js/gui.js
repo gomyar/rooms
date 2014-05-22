@@ -96,8 +96,6 @@ gui.draw = function()
 
 gui.draw_room = function()
 {
-//    gui.ctx.drawImage(guiassets.images['mansion_map'], gui.canvas_x(0), gui.canvas_y(0));
-
     gui.ctx.strokeStyle = "rgb(255, 255, 255)";
     gui.ctx.strokeRect(gui.canvas_x(api_rooms.room.position[0]), gui.canvas_y(api_rooms.room.position[1]), api_rooms.room.width / gui.zoom, api_rooms.room.height / gui.zoom)
 

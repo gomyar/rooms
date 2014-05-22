@@ -53,6 +53,16 @@ api_rooms.Actor.prototype.parent_actor = function()
         return null;
 }
 
+api_rooms.Actor.prototype.atPosition = function(x, y)
+{
+    x1 = this.x() - this.width / 2;
+    y1 = this.y() - this.height / 2;
+    x2 = x1 + this.width;
+    y2 = y1 + this.height;
+    return x > x1 && x < x2 && y > y1 && y < y2;
+}
+
+
 api_rooms.get_now = function()
 {
     var local_now = new Date().getTime();
@@ -157,9 +167,9 @@ api_rooms.message_callback = function(msgevent)
 
 
 // *** API Calls
-api_rooms.call_command = function(command, args, callback)
+api_rooms.call_command = function(actor_id, command, args, callback)
 {
-    api_rooms.service_call("/game/"+command, args, callback)
+    api_rooms.service_call("/game/actor_call/" + api_rooms.game_id + "/" + api_rooms.username + "/" + actor_id + "/" + command, args, callback);
 }
 
 api_rooms.actor_request = function(actor_id, command, args, callback)
@@ -176,6 +186,18 @@ api_rooms.actors_by_type = function()
         if (!(actor.actor_type in actors))
             actors[actor.actor_type] = {};
         actors[actor.actor_type][actor.name + ": "+actor.actor_id] = actor;
+    }
+    return actors;
+}
+
+api_rooms.player_actors = function()
+{
+    var actors = [];
+    for (var i in api_rooms.actors)
+    {
+        var actor = api_rooms.actors[i];
+        if (actor.username == api_rooms.username)
+            actors[actors.length] = actor;
     }
     return actors;
 }

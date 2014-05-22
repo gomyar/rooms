@@ -145,12 +145,12 @@ class WSGIRPCServer(object):
                 if func and  getattr(func, "is_request", False):
                     params = dict(urlparse.parse_qsl(
                         environ['wsgi.input'].read()))
-                    returned = func(**params)
+                    returned = func(*(path[2:]), **params)
                     return _json_return(response, returned)
                 if func and getattr(func, "is_websocket", False):
                     ws = environ["wsgi.websocket"]
                     params = dict(urlparse.parse_qsl(environ['QUERY_STRING']))
-                    returned = func(ws, **params)
+                    returned = func(ws, *(path[2:]), **params)
                     return _json_return(response, returned)
             if path[0] in self.file_roots:
                 return self.www_file(self.file_roots[path[0]], path[1:],

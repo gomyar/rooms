@@ -23,9 +23,9 @@ class GameController(object):
         return self.node.player_connects(ws, game_id, username, token)
 
     @request
-    def actor_call(self, game_id, username, actor_id, method, arglist):
+    def actor_call(self, game_id, username, actor_id, method, **kwargs):
         return self.node.actor_call(game_id, username, actor_id, method,
-            arglist)
+            **kwargs)
 
 
 class NodeController(object):
@@ -127,15 +127,17 @@ class Node(object):
             print "Waiting"
             message = queue.get()
             print "Sending"
-            ws.send(jsonview(message))
+            ws.send(json.dumps(jsonview(message)))
 
-    def actor_call(self, game_id, username, actor_id, method, arglist):
+    def actor_call(self, game_id, username, actor_id, method, **kwargs):
         player = self.players[username, game_id]
         room = self.rooms[game_id, player.room_id]
         actor = room.actors[actor_id]
-        args = json.loads(arglist)
+        token = kwargs.pop('token')
+        if token != player.token:
+            raise Exception("Invalid token for player %s" % (player.username,))
         if actor.script.has_method(method):
-            actor.script_call(method, actor, *args)
+            actor.script_call(method, actor, **kwargs)
         else:
             raise Exception("No suche method %s" % (method,))
 

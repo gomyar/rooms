@@ -145,6 +145,7 @@ class NodeTest(unittest.TestCase):
         actor = MockActor()
         self.room1.actors['actor1'] = actor
 
-        self.node.actor_call("game1", "bob", "actor1", "do_something", "[]")
+        self.node.actor_call("game1", "bob", "actor1", "do_something",
+            token="TOKEN1")
 
         self.assertEquals([('do_something', (actor,), {})], actor.script.called)

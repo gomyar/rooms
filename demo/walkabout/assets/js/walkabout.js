@@ -21,6 +21,17 @@ function getParameter(paramName)
     return null;
 }
 
+canvas_clicked = function(e)
+{
+    var click_x = e.clientX - $("#screen").position().left - gui.viewport_x;
+    var click_y = e.clientY - $("#screen").position().top - gui.viewport_y;
+    console.log("clicked "+click_x+","+click_y);
+
+    var player_actor = api_rooms.player_actors()[0];
+    api_rooms.call_command(player_actor.actor_id, "move_to", { x: click_x, y: click_y });
+}
+
+
 function api_callback(message)
 {
     console.log("API Message:");
@@ -34,6 +45,7 @@ function init()
     guiassets.loadImages(image_map, function() {
         console.log("Loaded images");
         gui.initCanvas($("#screen")[0]);
+        $("#screen").click(canvas_clicked);
         api_rooms.connect(getParameter("game_id"), getParameter("username"), getParameter("token"), api_callback); 
     });
 }
