@@ -125,13 +125,6 @@ api_rooms.connect = function(game_id, username, token, custom_callback)
 api_rooms.command_sync = function(data)
 {
     api_rooms.set_now(data.now);
-
-    api_rooms.actors = {};
-    for (var i in data.actors)
-    {
-        var actor = data.actors[i];
-        api_rooms.actors[actor.actor_id] = new api_rooms.Actor(actor);
-    }
 }
 
 api_rooms.command_actor_update = function(data)

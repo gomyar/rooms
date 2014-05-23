@@ -4,9 +4,9 @@ import math
 
 class Position(object):
     def __init__(self, x, y, z=0):
-        self.x = x
-        self.y = y
-        self.z = z
+        self.x = float(x)
+        self.y = float(y)
+        self.z = float(z)
 
     def __repr__(self):
         if self.z != 0:

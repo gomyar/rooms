@@ -204,7 +204,7 @@ class Container(object):
             player_username=actor.player_username)
 
     def _build_actor(self, data):
-        actor = Actor(None)
+        actor = Actor(None, actor_id=data['actor_id'])
         actor.state = data['state']
         actor.path = data['path']
         actor.vector = data['vector']

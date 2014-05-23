@@ -12,6 +12,7 @@ from rooms.rpc import RPCException
 from rooms.room import Room
 from rooms.script import Script
 from rooms.views import jsonview
+from rooms.timer import Timer
 
 
 class GameController(object):
@@ -120,9 +121,11 @@ class Node(object):
         player = self.players[username, game_id]
         self.player_queues[game_id, username] = queue
         room = self.rooms[game_id, player.room_id]
+        ws.send(json.dumps({"command": "sync", "data": {"now": Timer.now()}}))
         for actor in room.actors.values():
             ws.send(json.dumps(
-                {"command": "actor_update", "data": jsonview(actor)}))
+                {"command": "actor_update", "actor_id": actor.actor_id,
+                "data": jsonview(actor)}))
         while True:
             print "Waiting"
             message = queue.get()
@@ -144,7 +147,8 @@ class Node(object):
     def actor_update(self, actor, update):
         for queue in self.player_queues.values():
             print "Adding %s" % (update,)
-            queue.put(update)
+            queue.put({"command": "actor_update", "actor_id": actor.actor_id,
+                "data": update})
             print "Queue is now %s" % (queue,)
 
     def _request_player_connection(self, username, game_id):

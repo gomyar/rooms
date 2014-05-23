@@ -82,7 +82,8 @@ class MasterTest(unittest.TestCase):
 
         self.assertEquals({}, self.container.players)
         node = self.master.join_game("bob", "game1", "room1")
-        self.assertEquals({'node': ("10.10.10.1", 8000), 'token': 'TOKEN'},
+        self.assertEquals({'node': ("10.10.10.1", 8000), 'token': 'TOKEN',
+            'url': 'http://localhost:8000/assets/index.html?token=TOKEN&game_id=game1&username=bob'},
             node)
         self.assertEquals('room1',
             self.container.players['bob', 'game1'].room_id)
@@ -161,9 +162,11 @@ class MasterTest(unittest.TestCase):
         game_2 = self.master.create_game("bob")
         node2 = self.master.join_game("bob", "game2", "room1")
 
-        self.assertEquals({'node': ("10.10.10.1", 8000), 'token': 'TOKEN'},
+        self.assertEquals({'node': ("10.10.10.1", 8000), 'token': 'TOKEN',
+            'url': 'http://localhost:8000/assets/index.html?token=TOKEN&game_id=game1&username=bob'},
             node1)
-        self.assertEquals({'node': ("10.10.10.2", 8000), 'token': 'TOKEN'},
+        self.assertEquals({'node': ("10.10.10.2", 8000), 'token': 'TOKEN',
+            'url': 'http://localhost:8000/assets/index.html?token=TOKEN&game_id=game2&username=bob'},
             node2)
 
         self.assertEquals([{'host': '10.10.10.2', 'port': 8000, 'online': True},

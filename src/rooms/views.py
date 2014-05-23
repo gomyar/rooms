@@ -49,4 +49,4 @@ class JsonView(object):
             end_pos=vector.end_pos, end_time=vector.end_time)
 
     def view_position(self, position):
-        return [position.x, position.y, position.z]
+        return dict(x=position.x, y=position.y, z=position.z)

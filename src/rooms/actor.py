@@ -26,9 +26,9 @@ class State(dict):
 
 
 class Actor(object):
-    def __init__(self, room):
+    def __init__(self, room, actor_id=None):
         self.room = room
-        self.actor_id = _create_actor_id()
+        self.actor_id = actor_id if actor_id else _create_actor_id()
         self.actor_type = ""
         self.model_type = ""
         self.state = State(self)

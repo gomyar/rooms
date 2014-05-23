@@ -82,6 +82,7 @@ gui.real_y = function(canvas_y)
 gui.draw = function()
 {
     console.log("Drawing");
+    gui.redraw_timeout = null;
     gui.ctx.clearRect(0, 0, gui.canvas.width, gui.canvas.height);
 
     gui.draw_room();
@@ -122,7 +123,8 @@ gui.draw_actors = function()
 
 gui.draw_player_actor = function(ctx, actor)
 {
-    ctx.drawImage(guiassets.images[actor.model_type], 0, 0, 25, 25, -12, -12, 25, 25);
+    var img = guiassets.images[actor.model_type];
+    ctx.drawImage(img, 0, 0, img.width, img.width, -img.width / 2, -img.width / 2, img.width / 2, img.width / 2);
 }
 
 gui.actor_draw_funcs = {
@@ -147,20 +149,29 @@ gui.optionalRedraw = function(until_time)
 gui.actorRedraw = function()
 {
     var until_time = api_rooms.get_now();
+    console.log("until_time="+new Date(until_time));
     for (var i in api_rooms.actors)
     {
         var actor = api_rooms.actors[i];
-        if (actor.vector.end_time > until_time)
-            until_time = actor.vector.end_time
+        console.log("actor.vector.end_time="+new Date(actor.vector.end_time * 1000));
+        if (actor.vector.end_time * 1000 > until_time)
+        {
+            until_time = actor.vector.end_time * 1000
+            console.log("adding until_time: "+until_time);
+        }
     }
+    console.log("until_time > api_rooms.get_now()" + (until_time > api_rooms.get_now()));
     if (until_time > api_rooms.get_now())
+    {
+        console.log("optionalRedraw() until " + new Date(until_time));
         gui.optionalRedraw(until_time);
+    }
 }
 
 gui.requestRedraw = function()
 {
     if (gui.redraw_timeout == null)
-        gui.redraw_timeout = setTimeout(gui.draw, 50);
+        gui.redraw_timeout = setTimeout(gui.draw, 200);
 }
 
 gui.draw_debug = function()

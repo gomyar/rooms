@@ -164,7 +164,9 @@ class Master(object):
 
         node = self._get_node_for_room(game_id, room_id)
         token = node.player_joins(username, game_id, room_id)
-        return {"token": token, "node": (node.host, node.port)}
+        return {"token": token, "node": (node.host, node.port),
+            "url": "http://localhost:8000/assets/index.html?"
+            "token=%s&game_id=%s&username=%s" % (token, game_id, username)}
 
     def _check_nodes_available(self):
         if not self.nodes:

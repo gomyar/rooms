@@ -7,6 +7,7 @@ from rooms.testutils import MockRoom
 from rooms.testutils import MockTimer
 from rooms.timer import Timer
 from rooms.vector import Vector
+from rooms import actor
 
 
 def kickoff(actor):
@@ -25,9 +26,17 @@ class ActorTest(unittest.TestCase):
         self.actor.state.log = []
         self.actor.room = self.mock_room
         MockTimer.setup_mock()
+        actor._create_actor_id = lambda: "actor1"
 
     def tearDown(self):
         MockTimer.teardown_mock()
+
+    def testActorId(self):
+        actor1 = Actor(None)
+        self.assertEquals("actor1", actor1.actor_id)
+
+        actor2 = Actor(None, actor_id="actor2")
+        self.assertEquals("actor2", actor2.actor_id)
 
     def testKickoff(self):
         self.actor.kick()

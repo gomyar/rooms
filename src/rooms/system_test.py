@@ -58,46 +58,50 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(0)
 
-        self.assertEquals([{u'command': u'actor_update',
+        self.assertEquals([
+            {u'command': u'sync', u'data': {u'now': 0}},
+            {u'command': u'actor_update', u'actor_id': u'actor2',
             u'data': {u'actor_id': u'actor2',
                         u'actor_type': u'',
                         u'model_type': u'',
                         u'state': {},
                         u'username': None,
-                        u'vector': {u'end_pos': [0, 0, 0],
+                        u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
                                     u'end_time': 0.0,
-                                    u'start_pos': [0, 0, 0],
+                                    u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
                                     u'start_time': 0}}},
-            {u'command': u'actor_update',
+            {u'command': u'actor_update', u'actor_id': u'actor1',
             u'data': {u'actor_id': u'actor1',
                         u'actor_type': u'',
                         u'model_type': u'',
                         u'state': {},
                         u'username': None,
-                        u'vector': {u'end_pos': [0, 0, 0],
+                        u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
                                     u'end_time': 0.0,
-                                    u'start_pos': [0, 0, 0],
+                                    u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
                                     u'start_time': 0}}}],
             player1_ws.updates)
-        self.assertEquals([{u'command': u'actor_update',
+        self.assertEquals([
+            {u'command': u'sync', u'data': {u'now': 0}},
+            {u'command': u'actor_update', u'actor_id': u'actor2',
             u'data': {u'actor_id': u'actor2',
                         u'actor_type': u'',
                         u'model_type': u'',
                         u'state': {},
                         u'username': None,
-                        u'vector': {u'end_pos': [0, 0, 0],
+                        u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
                                     u'end_time': 0.0,
-                                    u'start_pos': [0, 0, 0],
+                                    u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
                                     u'start_time': 0}}},
-            {u'command': u'actor_update',
+            {u'command': u'actor_update', u'actor_id': u'actor1',
             u'data': {u'actor_id': u'actor1',
                         u'actor_type': u'',
                         u'model_type': u'',
                         u'state': {},
                         u'username': None,
-                        u'vector': {u'end_pos': [0, 0, 0],
+                        u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
                                     u'end_time': 0.0,
-                                    u'start_pos': [0, 0, 0],
+                                    u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
                                     u'start_time': 0}}}],
             player2_ws.updates)
 
@@ -106,14 +110,16 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(0)
 
-        self.assertEquals({'vector': {u'end_pos': [10, 10, 0],
-            u'end_time': 14.142135623730951,
-            u'start_pos': [0, 0, 0],
-            u'start_time': 0}}, player1_ws.updates[2])
-        self.assertEquals({'vector': {u'end_pos': [10, 10, 0],
-            u'end_time': 14.142135623730951,
-            u'start_pos': [0, 0, 0],
-            u'start_time': 0}}, player2_ws.updates[2])
+        self.assertEquals({"command": "actor_update", "actor_id": "actor1",
+            "data": {'vector': {u'end_pos': {u'x': 10.0, u'y': 10.0, u'z': 0.0},
+                u'end_time': 14.142135623730951,
+                u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
+                u'start_time': 0}}}, player1_ws.updates[3])
+        self.assertEquals({"command": "actor_update", "actor_id": "actor1",
+            "data": {'vector': {u'end_pos': {u'x': 10.0, u'y': 10.0, u'z': 0.0},
+                u'end_time': 14.142135623730951,
+                u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
+                u'start_time': 0}}}, player2_ws.updates[3])
 
     def testPing(self):
         self.container.players['bob', 'game1'] = Player("bob", "game1", "room1")
@@ -134,8 +140,10 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals({'count': 0}, player1_ws.updates[1])
-        self.assertEquals({'count': 1}, player1_ws.updates[2])
+        self.assertEquals({"command": "actor_update", "actor_id": "actor1",
+            "data": {'count': 0}}, player1_ws.updates[2])
+        self.assertEquals({"command": "actor_update", "actor_id": "actor1",
+            "data": {'count': 1}}, player1_ws.updates[3])
 
     def testInvalidToken(self):
         self.container.players['bob', 'game1'] = Player("bob", "game1", "room1")
@@ -191,8 +199,9 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(0)
 
-        self.assertEquals({'vector': {u'end_pos': [10, 10, 0],
-            u'end_time': 14.142135623730951,
-            u'start_pos': [0, 0, 0],
-            u'start_time': 0}}, player1_ws.updates[1])
+        self.assertEquals({"command": "actor_update", "actor_id": "actor1",
+            "data": {'vector': {u'end_pos': {u'x': 10.0, u'y': 10.0, u'z': 0.0},
+                u'end_time': 14.142135623730951,
+                u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
+                u'start_time': 0}}}, player1_ws.updates[2])
 
