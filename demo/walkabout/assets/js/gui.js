@@ -79,7 +79,6 @@ gui.real_y = function(canvas_y)
 
 gui.draw = function()
 {
-    console.log("Drawing");
     gui.redraw_timeout = null;
     gui.ctx.clearRect(0, 0, gui.canvas.width, gui.canvas.height);
 
@@ -113,7 +112,6 @@ gui.draw_actors = function()
     {
         var actor = api_rooms.actors[i];
         gui.ctx.save();
-        console.log("Actor at: "+ + actor.x() + ", "+actor.y());
         gui.ctx.translate(gui.canvas_x(actor.x()), gui.canvas_y(actor.y()));
         gui.draw_actor(actor);
         gui.ctx.restore();
@@ -125,6 +123,8 @@ gui.draw_player_actor = function(ctx, actor)
     var img = guiassets.images[actor.model_type];
     var width = img.width / gui.zoom;
     var height = img.width / gui.zoom;
+    ctx.rotate(Math.atan2(actor.vector.end_pos.y - actor.vector.start_pos.y,
+        actor.vector.end_pos.x - actor.vector.start_pos.x));
     ctx.drawImage(img, 0, 0, img.width, img.width, -(width / 2), -(height / 2), width, height);
 }
 
@@ -150,18 +150,14 @@ gui.optionalRedraw = function(until_time)
 gui.actorRedraw = function()
 {
     var until_time = api_rooms.get_now();
-    console.log("until_time="+new Date(until_time));
     for (var i in api_rooms.actors)
     {
         var actor = api_rooms.actors[i];
-        console.log("actor.vector.end_time="+new Date(actor.vector.end_time * 1000));
         if (actor.vector.end_time * 1000 > until_time)
         {
             until_time = actor.vector.end_time * 1000
-            console.log("adding until_time: "+until_time);
         }
     }
-    console.log("until_time > api_rooms.get_now()" + (until_time > api_rooms.get_now()));
     if (until_time > api_rooms.get_now())
     {
         console.log("optionalRedraw() until " + new Date(until_time));
