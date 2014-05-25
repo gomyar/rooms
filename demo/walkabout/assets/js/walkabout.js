@@ -44,7 +44,12 @@ function init()
     console.log("Loading images");
     guiassets.loadImages(image_map, function() {
         console.log("Loaded images");
+
         gui.initCanvas($("#screen")[0]);
+
+        gui.canvas.width = $("#main").width();
+        gui.canvas.height = $("#main").height();
+
         $("#screen").click(canvas_clicked);
         api_rooms.connect(getParameter("game_id"), getParameter("username"), getParameter("token"), api_callback); 
     });

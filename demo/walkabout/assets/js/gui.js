@@ -23,8 +23,6 @@ gui.initCanvas = function(canvas)
 
 gui.resetCanvas = function()
 {
-    gui.canvas.width = $("#main").width();
-    gui.canvas.height = $("#main").height();
     gui.ctx = gui.canvas.getContext("2d");
     gui.requestRedraw();
 }
