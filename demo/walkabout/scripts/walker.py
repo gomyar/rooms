@@ -5,7 +5,7 @@ from rooms.position import Position
 def created(actor):
     actor.actor_type = "player"
     actor.model_type = "player"
-    actor.speed = 20
+    actor.speed = 100
 
 
 def move_to(actor, x, y):

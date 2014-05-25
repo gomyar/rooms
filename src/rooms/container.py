@@ -201,7 +201,7 @@ class Container(object):
         return dict(actor_id=actor.actor_id, state=actor.state,
             path=actor.path, vector=actor.vector, script=actor.script,
             actor_type=actor.actor_type, model_type=actor.model_type,
-            player_username=actor.player_username)
+            player_username=actor.player_username, speed=actor.speed)
 
     def _build_actor(self, data):
         actor = Actor(None, actor_id=data['actor_id'])
@@ -212,6 +212,7 @@ class Container(object):
         actor.actor_type = data['actor_type']
         actor.model_type = data['model_type']
         actor.player_username = data['player_username']
+        actor.speed = data['speed']
         return actor
 
     # Script

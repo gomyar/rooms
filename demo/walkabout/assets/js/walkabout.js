@@ -37,6 +37,14 @@ function api_callback(message)
     console.log("API Message:");
     console.log(message);
     gui.actorRedraw();
+    if (message.command == "actor_update")
+    {
+        var player_actors = api_rooms.player_actors();
+        if (player_actors.length > 0)
+            gui.following_actor = player_actors[0];
+        gui.requestRedraw();
+    }
+
 }
 
 function init()
