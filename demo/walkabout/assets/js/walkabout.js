@@ -23,8 +23,8 @@ function getParameter(paramName)
 
 canvas_clicked = function(e)
 {
-    var click_x = e.clientX - $("#screen").position().left - gui.viewport_x;
-    var click_y = e.clientY - $("#screen").position().top - gui.viewport_y;
+    var click_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
+    var click_y = gui.real_y((e.clientY - $(gui.canvas).offset().top));
     console.log("clicked "+click_x+","+click_y);
 
     var player_actor = api_rooms.player_actors()[0];

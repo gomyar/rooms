@@ -97,7 +97,7 @@ gui.draw = function()
 
 gui.draw_room = function()
 {
-    gui.ctx.strokeStyle = "rgb(255, 255, 255)";
+    gui.ctx.strokeStyle = "rgb(0, 255, 255)";
     gui.ctx.strokeRect(gui.canvas_x(api_rooms.room.position[0]), gui.canvas_y(api_rooms.room.position[1]), api_rooms.room.width / gui.zoom, api_rooms.room.height / gui.zoom)
 
     // Draw room objects
@@ -115,6 +115,7 @@ gui.draw_actors = function()
     {
         var actor = api_rooms.actors[i];
         gui.ctx.save();
+        console.log("Actor at: "+ + actor.x() + ", "+actor.y());
         gui.ctx.translate(gui.canvas_x(actor.x()), gui.canvas_y(actor.y()));
         gui.draw_actor(actor);
         gui.ctx.restore();
@@ -164,7 +165,8 @@ gui.actorRedraw = function()
     if (until_time > api_rooms.get_now())
     {
         console.log("optionalRedraw() until " + new Date(until_time));
-        gui.optionalRedraw(until_time);
+ //       gui.optionalRedraw(until_time);
+        gui.requestRedraw();
     }
 }
 

@@ -122,24 +122,30 @@ api_rooms.connect = function(game_id, username, token, custom_callback)
     api_rooms.custom_callback = custom_callback;
 }
 
-api_rooms.command_sync = function(data)
+api_rooms.command_sync = function(message)
 {
-    api_rooms.set_now(data.now);
+    api_rooms.set_now(message.data.now);
 }
 
-api_rooms.command_actor_update = function(data)
+api_rooms.command_actor_update = function(message)
 {
-    api_rooms.actors[data.actor_id] = new api_rooms.Actor(data);
+    if (message.actor_id in api_rooms.actors)
+    {
+        for (var f in message.data)
+            api_rooms.actors[message.actor_id][f] = message.data[f];
+    }
+    else
+        api_rooms.actors[message.actor_id] = new api_rooms.Actor(message.data);
 }
 
-api_rooms.command_remove_actor = function(data)
+api_rooms.command_remove_actor = function(message)
 {
-    delete api_rooms.actors[data.actor_id];
+    delete api_rooms.actors[message.actor_id];
 }
 
-api_rooms.command_moved_node = function(data)
+api_rooms.command_moved_node = function(message)
 {
-    window.location = "http://"+data.host+":"+data.port+"/?token="+data.token;
+    window.location = "http://"+message.host+":"+message.port+"/?token="+message.token;
 }
 
 api_rooms.commands = {
@@ -153,7 +159,7 @@ api_rooms.message_callback = function(msgevent)
 {
     var message = jQuery.parseJSON(msgevent.data);
     if (message.command in api_rooms.commands)
-        api_rooms.commands[message.command](message.data);
+        api_rooms.commands[message.command](message);
     if (api_rooms.custom_callback)
         api_rooms.custom_callback(message);
 }
