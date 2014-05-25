@@ -20,13 +20,15 @@ api_rooms.Actor = function(actor)
 api_rooms.Actor.prototype._calc_d = function(start_d, end_d)
 {
     var now = api_rooms.get_now();
-    if (now > this.vector.end_time)
+    var start_time = this.vector.start_time * 1000;
+    var end_time = this.vector.end_time * 1000;
+    if (now > end_time)
         return end_d;
     var diff_x = end_d - start_d;
-    var diff_t = this.vector.end_time - this.vector.start_time;
+    var diff_t = end_time - start_time;
     if (diff_t <= 0)
         return end_d;
-    var inc = (now - this.vector.start_time) / diff_t;
+    var inc = (now - start_time) / diff_t;
     return start_d + diff_x * inc;
 }
 

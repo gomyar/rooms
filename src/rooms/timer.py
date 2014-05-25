@@ -24,7 +24,7 @@ class Timer(object):
     def sleep_until(end_time):
         Timer.sleep(end_time - Timer.now())
 
-    def _sleep(self):
+    def _sleep(self, seconds):
         gevent.sleep(seconds)
 
     def _now(self):

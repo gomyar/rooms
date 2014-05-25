@@ -165,8 +165,7 @@ gui.actorRedraw = function()
     if (until_time > api_rooms.get_now())
     {
         console.log("optionalRedraw() until " + new Date(until_time));
- //       gui.optionalRedraw(until_time);
-        gui.requestRedraw();
+        gui.optionalRedraw(until_time);
     }
 }
 
