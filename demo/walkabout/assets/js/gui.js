@@ -125,7 +125,9 @@ gui.draw_actors = function()
 gui.draw_player_actor = function(ctx, actor)
 {
     var img = guiassets.images[actor.model_type];
-    ctx.drawImage(img, 0, 0, img.width, img.width, -img.width / 2, -img.width / 2, img.width / 2, img.width / 2);
+    var width = img.width / gui.zoom;
+    var height = img.width / gui.zoom;
+    ctx.drawImage(img, 0, 0, img.width, img.width, -(width / 2), -(height / 2), width, height);
 }
 
 gui.actor_draw_funcs = {
