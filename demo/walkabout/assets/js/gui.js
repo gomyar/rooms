@@ -125,7 +125,10 @@ gui.draw_player_actor = function(ctx, actor)
     var height = img.width / gui.zoom;
     ctx.rotate(Math.atan2(actor.vector.end_pos.y - actor.vector.start_pos.y,
         actor.vector.end_pos.x - actor.vector.start_pos.x));
-    ctx.drawImage(img, 0, 0, img.width, img.width, -(width / 2), -(height / 2), width, height);
+    var offset = 0;
+    if (actor.vector.end_time * 1000 > api_rooms.get_now())
+        offset = Math.round((api_rooms.get_now() - actor.vector.start_time * 1000) / 400) % Math.round(img.height / img.width) * img.width;
+    ctx.drawImage(img, 0, offset, img.width, img.width, -(width / 2), -(height / 2), width, height);
 }
 
 gui.actor_draw_funcs = {
@@ -168,7 +171,7 @@ gui.actorRedraw = function()
 gui.requestRedraw = function()
 {
     if (gui.redraw_timeout == null)
-        gui.redraw_timeout = setTimeout(gui.draw, 200);
+        gui.redraw_timeout = setTimeout(gui.draw, 50);
 }
 
 gui.draw_debug = function()
