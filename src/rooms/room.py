@@ -15,6 +15,32 @@ class State(dict):
         self[name] = value
 
 
+class Tag(object):
+    def __init__(self, tag_type, position, data=None):
+        self.tag_type = tag_type
+        self.position = position
+        self.data = data or {}
+
+    def __repr__(self):
+        return "<Tag %s (%s)>" % (self.tag_type, self.position)
+
+    def __eq__(self, rhs):
+        return rhs and type(rhs) is Tag and self.tag_type == rhs.tag_type and \
+            self.position == rhs.position and \
+            self.data == rhs.data
+
+
+class RoomObject(object):
+    def __init__(self, object_type, topleft, bottomright):
+        self.object_type = object_type
+        self.topleft = topleft
+        self.bottomright = bottomright
+
+    def __repr__(self):
+        return "<RoomObject %s at %s/%s>" (self.object_type, self.topleft,
+            self.bottomright)
+
+
 class Room(object):
     def __init__(self, game_id, room_id, topleft, bottomright, node):
         self.game_id = game_id
@@ -23,6 +49,8 @@ class Room(object):
         self.bottomright = bottomright
         self.geography = None
         self.actors = dict()
+        self.room_objects = []
+        self.tags = []
         self.node = node
 
     def __repr__(self):

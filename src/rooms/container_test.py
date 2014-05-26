@@ -110,6 +110,7 @@ class ContainerTest(unittest.TestCase):
             "bottomright": {"__type__": "Position", "x": 10, "y": 10, "z": 0},
             "actors": {"actor1": {"__type__": "Actor", "actor_id": "actor1",
                 "actor_type": "test", "model_type": "model",
+                "speed": 1.0,
                 "player_username": "ned",
                 "state": {}, "path": [], "vector": {"__type__": "Vector",
                 "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
