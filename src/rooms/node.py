@@ -71,6 +71,7 @@ class Node(object):
         self.player_script = Script()
         self.game_script = Script()
         self.container = None
+        self.room_factory = None
 
     def connect_to_master(self):
         self.master_conn.call("register_node", host=self.host, port=self.port)

@@ -16,6 +16,8 @@ from rooms.container import Container
 from rooms.dbase.mongo_dbase import MongoDBase
 from rooms.rpc import WSGIRPCServer
 from rooms.geography.basic_geography import BasicGeography
+from rooms.room_factory import RoomFactory
+from rooms.room_factory import FileMapSource
 
 import logging
 import logging.config
@@ -74,6 +76,8 @@ if __name__ == "__main__":
         server.add_controller("node", NodeController(node))
         server.add_controller("game", GameController(node))
         server.add_file_root("assets", os.path.join(options.game, "assets"))
+        node.room_factory = RoomFactory(FileMapSource(os.path.join(options.game,
+            "maps")), node)
         log.info("Starting Rooms Node")
         server.start()
         node.connect_to_master()
