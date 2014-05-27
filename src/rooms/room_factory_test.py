@@ -7,19 +7,19 @@ from rooms.testutils import MockNode
 from rooms.room import Room
 from rooms.room import Tag
 from rooms.room_factory import RoomFactory
+from rooms.room_factory import FileMapSource
 from rooms.position import Position
 
 
 class RoomFactoryTest(unittest.TestCase):
     def setUp(self):
         self.node = MockNode()
-        self.factory = RoomFactory(json.loads(open(os.path.join(
-            os.path.dirname(__file__), "room_factory_test.json")).read()),
-            self.node)
-
+        self.map_source = FileMapSource(os.path.join(os.path.dirname(__file__),
+            "test_maps"))
+        self.factory = RoomFactory(self.map_source, self.node)
 
     def testCreateRoom(self):
-        room = self.factory.create("room1", "game1")
+        room = self.factory.create("game1", "map1", "room1")
 
         self.assertEquals(1, len(room.room_objects))
         self.assertEquals("room1", room.room_id)

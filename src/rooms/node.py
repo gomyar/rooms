@@ -96,8 +96,9 @@ class Node(object):
         if self.container.room_exists(game_id, room_id):
             room = self.container.load_room(game_id, room_id)
         else:
-            room = self.container.create_room(game_id, room_id)
+            room = self.room_factory.create(game_id, room_id)
             self.game_script.call("room_created", room)
+            self.container.save_room(room)
         self.rooms[game_id, room_id] = room
         room.kick()
 

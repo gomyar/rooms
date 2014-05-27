@@ -12,6 +12,7 @@ from rooms.testutils import MockRoom
 from rooms.testutils import MockTimer
 from rooms.testutils import MockWebsocket
 from rooms.testutils import MockActor
+from rooms.testutils import MockRoomFactory
 from rooms.rpc import RPCException
 from rooms.position import Position
 
@@ -22,6 +23,8 @@ class NodeTest(unittest.TestCase):
         self.game_script = MockScript()
         self.mock_rpc = MockRpcClient()
         self.room1 = MockRoom("game1", "room1")
+        self.room2 = MockRoom("game1", "room2")
+        self.mock_room_factory = MockRoomFactory(self.room2)
         self.player1 = Player("bob", "game1", "room1")
         self.container = MockContainer(rooms={("game1", "room1"): self.room1},
             players={"bob1": self.player1})
@@ -31,6 +34,7 @@ class NodeTest(unittest.TestCase):
         self.node.player_script = self.player_script
         self.node.game_script = self.game_script
         self.node.master_conn = self.mock_rpc
+        self.node.room_factory = self.mock_room_factory
         MockTimer.setup_mock()
 
     def tearDown(self):
@@ -57,7 +61,7 @@ class NodeTest(unittest.TestCase):
         self.node.manage_room("game1", "room2")
         self.assertEquals(2, len(self.container.rooms))
         self.assertEquals([("room_created",
-            (self.container.rooms['game1', 'room2'],), {})],
+            (self.room2,), {})],
             self.game_script.called)
 
     def testConnectToMaster(self):

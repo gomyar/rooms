@@ -200,3 +200,11 @@ class MockWebsocket(object):
 
     def send(self, msg):
         self.updates.append(json.loads(msg))
+
+
+class MockRoomFactory(object):
+    def __init__(self, room):
+        self.room = room
+
+    def create(self, room_id, game_id):
+        return self.room

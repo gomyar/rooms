@@ -1,17 +1,30 @@
 
+import json
+import os
+
 from rooms.room import Room
 from rooms.room import RoomObject
 from rooms.room import Tag
 from rooms.position import Position
 
 
+class FileMapSource(object):
+    def __init__(self, dirpath):
+        self.dirpath = dirpath
+
+    def load_map(self, map_id):
+        filepath = os.path.join(self.dirpath, "%s.json" % (map_id,))
+        return json.loads(open(filepath).read())
+
+
 class RoomFactory(object):
-    def __init__(self, map_json, node):
-        self.map_json = map_json
+    def __init__(self, map_source, node):
+        self.map_source = map_source
         self.node = node
 
-    def create(self, room_id, game_id):
-        return self._create_room(self.map_json['rooms'][room_id], game_id,
+    def create(self, game_id, map_id, room_id):
+        map_json = self.map_source.load_map(map_id)
+        return self._create_room(map_json['rooms'][room_id], game_id,
             room_id)
 
     def _create_room(self, room_json, game_id, room_id):
