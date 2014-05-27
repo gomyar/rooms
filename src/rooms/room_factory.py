@@ -22,9 +22,10 @@ class RoomFactory(object):
         self.map_source = map_source
         self.node = node
 
-    def create(self, game_id, map_id, room_id):
+    def create(self, game_id, room_id):
+        map_id, map_room_id = room_id.split('.')
         map_json = self.map_source.load_map(map_id)
-        return self._create_room(map_json['rooms'][room_id], game_id,
+        return self._create_room(map_json['rooms'][map_room_id], game_id,
             room_id)
 
     def _create_room(self, room_json, game_id, room_id):
