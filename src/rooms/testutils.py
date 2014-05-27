@@ -10,12 +10,15 @@ from rooms.timer import Timer
 
 
 class MockContainer(object):
-    def __init__(self, rooms=None, players=None, games=None):
+    def __init__(self, rooms=None, players=None, games=None, room_factory=None):
         self.rooms = rooms or {}
         self.players = players or {}
         self.games = games or {}
+        self.room_factory = room_factory or {}
         self.gameids = 1
         self.node = MockNode()
+        self.room_factory = room_factory or \
+            MockRoomFactory(MockRoom("mock_game_1", "mock_room_1"))
 
     def load_room(self, game_id, room_id):
         return self.rooms[game_id, room_id]
@@ -42,8 +45,7 @@ class MockContainer(object):
         self.games[game.game_id] = game
 
     def create_room(self, game_id, room_id):
-        room = Room(game_id, room_id, Position(0, 0), Position(50, 50),
-            self.node)
+        room = self.room_factory.create(game_id, room_id)
         room.geography = MockGeog()
         self.rooms[game_id, room_id] = room
         return room
@@ -85,6 +87,9 @@ class MockRoom(object):
 
     def actor_update(self, actor, update):
         self._updates.append((actor, update))
+
+    def __repr__(self):
+        return "<MockRoom %s %s>" % (self.game_id, self.room_id)
 
 
 class MockNode(object):

@@ -53,7 +53,7 @@ if __name__ == "__main__":
         host, port = options.address.split(":")
         dbase = MongoDBase()
         dbase.init_mongo()
-        master = Master(Container(dbase, None, None))
+        master = Master(Container(dbase, None, None, None))
         server = WSGIRPCServer(host, port)
         server.add_controller("master", MasterController(master))
         server.add_controller("player", PlayerController(master))

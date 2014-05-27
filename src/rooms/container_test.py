@@ -8,6 +8,8 @@ from rooms.room import Room
 from rooms.position import Position
 from rooms.testutils import MockGeog
 from rooms.testutils import MockNode
+from rooms.testutils import MockRoomFactory
+from rooms.testutils import MockRoom
 
 
 class MockDbase(object):
@@ -55,7 +57,11 @@ class ContainerTest(unittest.TestCase):
         self.dbase = MockDbase()
         self.geography = MockGeog()
         self.node = MockNode()
-        self.container = Container(self.dbase, self.geography, self.node)
+        self.room2 = Room("game1", "room2", Position(0, 0), Position(10, 10),
+            self.node)
+        self.mock_room_factory = MockRoomFactory(self.room2)
+        self.container = Container(self.dbase, self.geography, self.node,
+            self.mock_room_factory)
 
     def testSaveGame(self):
         self.game = Game("bob")
@@ -128,11 +134,33 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals(self.node, room.node)
 
     def testCreateRoom(self):
-        room = self.container.create_room("game1", "room1")
+        room = self.container.create_room("game1", "room2")
         room_dict = self.dbase.dbases['rooms']['rooms_0']
-        self.assertEquals('room1', room_dict['room_id'])
+        self.assertEquals('room2', room_dict['room_id'])
         self.assertEquals(self.node, room.node)
         self.assertEquals(self.geography, room.geography)
+
+    def testCreateExistingRoom(self):
+        self.dbase.dbases['rooms'] = dict()
+        self.dbase.dbases['rooms']['rooms_0'] = { "_id": "rooms_0",
+            "__type__": "Room", "room_id": "room1", "game_id": "games_0",
+            "topleft": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "bottomright": {"__type__": "Position", "x": 10, "y": 10, "z": 0},
+            "actors": {"actor1": {"__type__": "Actor", "actor_id": "actor1",
+                "actor_type": "test", "model_type": "model",
+                "speed": 1.0,
+                "player_username": "ned",
+                "state": {}, "path": [], "vector": {"__type__": "Vector",
+                "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+                "start_time": 0,
+                "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
+                "end_time": 10,
+                }, "script": {
+                "__type__": "Script", "script_module": "rooms.container_test"}}}
+            }
+
+        self.assertRaises(Exception, self.container.create_room, "games_0",
+            "room1")
 
     def testSaveRoom(self):
         room = Room("game1", "room1", Position(0, 0), Position(10, 10),

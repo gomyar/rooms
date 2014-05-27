@@ -27,14 +27,14 @@ class NodeTest(unittest.TestCase):
         self.mock_room_factory = MockRoomFactory(self.room2)
         self.player1 = Player("bob", "game1", "room1")
         self.container = MockContainer(rooms={("game1", "room1"): self.room1},
-            players={"bob1": self.player1})
+            players={"bob1": self.player1},
+            room_factory=self.mock_room_factory)
         self.node = Node("10.10.10.1", 8000, "master", 9000)
         self.node.container = self.container
         self.node._create_token = lambda: "TOKEN1"
         self.node.player_script = self.player_script
         self.node.game_script = self.game_script
         self.node.master_conn = self.mock_rpc
-        self.node.room_factory = self.mock_room_factory
         MockTimer.setup_mock()
 
     def tearDown(self):

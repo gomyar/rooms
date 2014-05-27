@@ -70,14 +70,14 @@ if __name__ == "__main__":
         dbase = MongoDBase()
         dbase.init_mongo()
         geography = BasicGeography()
-        container = Container(dbase, geography, node)
+        room_factory = RoomFactory(FileMapSource(os.path.join(options.game,
+            "maps")), node)
+        container = Container(dbase, geography, node, room_factory)
         node.container = container
         server = WSGIRPCServer(host, port)
         server.add_controller("node", NodeController(node))
         server.add_controller("game", GameController(node))
         server.add_file_root("assets", os.path.join(options.game, "assets"))
-        node.room_factory = RoomFactory(FileMapSource(os.path.join(options.game,
-            "maps")), node)
         log.info("Starting Rooms Node")
         server.start()
         node.connect_to_master()

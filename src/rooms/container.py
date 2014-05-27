@@ -14,10 +14,11 @@ log = logging.getLogger("rooms.container")
 
 
 class Container(object):
-    def __init__(self, dbase, geography, node):
+    def __init__(self, dbase, geography, node, room_factory):
         self.dbase = dbase
         self.geography = geography
         self.node = node
+        self.room_factory = room_factory
         self.serializers = dict(
             Game=self._serialize_game,
             Player=self._serialize_player,
@@ -44,8 +45,9 @@ class Container(object):
         self._save_object(room, "rooms")
 
     def create_room(self, game_id, room_id):
-        room = Room(game_id, room_id, Position(0, 0), Position(10, 10),
-            self.node)
+        if self.room_exists(game_id, room_id):
+            raise Exception("Room %s %s already exists" % (game_id, room_id))
+        room = self.room_factory.create(game_id, room_id)
         room.geography = self.geography
         self.save_room(room)
         return room
