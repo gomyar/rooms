@@ -15,7 +15,7 @@ gui_room.draw_room = function()
     {
         var room_object = api_rooms.room.room_objects[object_id];
         gui.ctx.save();
-        gui.ctx.translate(gui.canvas_x(room_object.topleft.x), gui.canvas_y(room_object.topleft.y));
+        gui.ctx.translate(gui.canvas_x(api_rooms.room.topleft.x + room_object.topleft.x), gui.canvas_y(api_rooms.room.topleft.y + room_object.topleft.y));
         gui_room.draw_room_object(room_object);
         gui.ctx.restore();
     }
