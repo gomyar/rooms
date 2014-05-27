@@ -59,7 +59,7 @@ class SystemTest(unittest.TestCase):
         MockTimer.fast_forward(0)
 
         self.assertEquals([
-            {u'command': u'sync', u'data': {u'now': 0}},
+            {u'command': u'sync', u'data': {u'now': 0, "room_id": "room1"}},
             {u'command': u'actor_update', u'actor_id': u'actor2',
             u'data': {u'actor_id': u'actor2',
                         u'actor_type': u'',
@@ -82,7 +82,7 @@ class SystemTest(unittest.TestCase):
                                     u'start_time': 0}}}],
             player1_ws.updates)
         self.assertEquals([
-            {u'command': u'sync', u'data': {u'now': 0}},
+            {u'command': u'sync', u'data': {u'now': 0, "room_id": "room1"}},
             {u'command': u'actor_update', u'actor_id': u'actor2',
             u'data': {u'actor_id': u'actor2',
                         u'actor_type': u'',

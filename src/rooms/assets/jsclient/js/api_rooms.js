@@ -5,7 +5,7 @@ api_rooms.server_time = 0;
 api_rooms.local_time = 0;
 api_rooms.token = "";
 
-api_rooms.room = { width: 500, height: 500, position: [0, 0], map_objects: [], visibility_grid: { width : 0, height : 0, gridsize: 10 } };
+api_rooms.room = { topleft: {'x': 0, 'y': 0, 'z': 0}, bottomright: {'x': 0, 'y': 0, 'z': 0}, map_objects: [] };
 
 api_rooms.actors = {};
 api_rooms.socket = null;

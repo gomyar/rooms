@@ -95,13 +95,21 @@ gui.draw = function()
 gui.draw_room = function()
 {
     gui.ctx.strokeStyle = "rgb(0, 255, 255)";
-    gui.ctx.strokeRect(gui.canvas_x(api_rooms.room.position[0]), gui.canvas_y(api_rooms.room.position[1]), api_rooms.room.width / gui.zoom, api_rooms.room.height / gui.zoom)
+    var x = api_rooms.room.topleft.x;
+    var y = api_rooms.room.topleft.y;
+    var width = api_rooms.room.bottomright.x - x;
+    var height = api_rooms.room.bottomright.y - y;
+    gui.ctx.strokeRect(gui.canvas_x(x), gui.canvas_y(y), width / gui.zoom, height / gui.zoom)
 
     // Draw room objects
-    for (object_id in api_rooms.room.map_objects)
+    for (object_id in api_rooms.room.room_objects)
     {
-        var map_object = api_rooms.room.map_objects[object_id];
-        gui.ctx.drawImage(guiassets.images[map_object.object_type], gui.canvas_x(map_object.position[0]), gui.canvas_y(map_object.position[1]), map_object.width / gui.zoom, map_object.height / gui.zoom);
+        var room_object = api_rooms.room.room_objects[object_id];
+        var x = room_object.topleft.x;
+        var y = room_object.topleft.y;
+        var width = room_object.bottomright.x - x;
+        var height = room_object.bottomright.y - y;
+        gui.ctx.drawImage(guiassets.images[room_object.object_type], gui.canvas_x(x), gui.canvas_y(y), width / gui.zoom, height / gui.zoom);
     }
 }
 

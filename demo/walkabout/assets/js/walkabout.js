@@ -21,6 +21,24 @@ function getParameter(paramName)
     return null;
 }
 
+perform_get = function(url, callback, onerror)
+{
+    $.ajax({
+        'url': url,
+        'success': function(data) {
+            if (callback != null)
+                callback(data);
+        },
+        'error': function(jqXHR, errorText) {
+            console.log("Error calling "+url+" : "+errorText);
+            if (onerror)
+                onerror(errorText, jqXHR);
+        },
+        'type': 'GET'
+    });
+}
+
+
 canvas_clicked = function(e)
 {
     var click_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
@@ -31,6 +49,22 @@ canvas_clicked = function(e)
     api_rooms.call_command(player_actor.actor_id, "move_to", { x: click_x, y: click_y });
 }
 
+
+function load_room(room_id)
+{
+    var map_id = room_id.split('.')[0];
+    var map_room_id = room_id.split('.')[1];
+
+    perform_get("/maps/" + map_id + ".json",
+        function(data){ show_room(data, map_room_id);},
+        function(errTxt, jqXHR){ alert("Error loading room: "+errTxt);});
+}
+
+function show_room(data, map_room_id)
+{
+    api_rooms.room = data['rooms'][map_room_id];
+    gui.requestRedraw();
+}
 
 function api_callback(message)
 {
@@ -44,7 +78,10 @@ function api_callback(message)
             gui.following_actor = player_actors[0];
         gui.requestRedraw();
     }
-
+    if (message.command == "sync")
+    {
+        api_rooms.room = load_room(message.data.room_id);
+    }
 }
 
 function init()

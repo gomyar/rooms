@@ -123,7 +123,8 @@ class Node(object):
         player = self.players[username, game_id]
         self.player_queues[game_id, username] = queue
         room = self.rooms[game_id, player.room_id]
-        ws.send(json.dumps({"command": "sync", "data": {"now": Timer.now()}}))
+        ws.send(json.dumps({"command": "sync", "data": {"now": Timer.now(),
+            "room_id": room.room_id}}))
         for actor in room.actors.values():
             ws.send(json.dumps(
                 {"command": "actor_update", "actor_id": actor.actor_id,
