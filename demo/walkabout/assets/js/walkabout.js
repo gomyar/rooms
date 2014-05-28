@@ -46,9 +46,55 @@ canvas_clicked = function(e)
     console.log("clicked "+click_x+","+click_y);
 
     var player_actor = api_rooms.player_actors()[0];
-    api_rooms.call_command(player_actor.actor_id, "move_to", { x: click_x, y: click_y });
+    if (gui.door_hovered)
+        api_rooms.call_command(player_actor.actor_id, "exit_through_door", { exit_room_id: gui.door_hovered.exit_room_id });
+    else
+        api_rooms.call_command(player_actor.actor_id, "move_to", { x: click_x, y: click_y });
 }
 
+canvas_mousemove = function(e)
+{
+    var click_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
+    var click_y = gui.real_y((e.clientY - $(gui.canvas).offset().top));
+
+    var actor = gui_actors.actor_at(click_x, click_y);
+    if (actor)
+    {
+        console.log("Actor found at: "+click_x+", "+click_y);
+    }
+
+    var door = gui_room.door_at(click_x, click_y);
+    if (door)
+    {
+        gui.door_hovered = door;
+        $(gui.canvas).css('cursor', 'pointer');
+    }
+    else    
+    {
+        gui.door_hovered = null;
+        $(gui.canvas).css('cursor', 'auto');
+    }
+
+    gui.debug.mouse_at = [click_x, click_y];
+    gui.requestRedraw();
+/*
+    var sprite = gui_game.findSprite(click_x, click_y);
+    if (sprite)
+    {
+        sprite.hovered = true;
+        gui_game.hovered_sprite = sprite;
+
+        $(gui.canvas).css('cursor', 'pointer');
+        gui.requestRedraw();
+    }
+    else
+    {
+        if (gui_game.hovered_sprite != null)
+            gui_game.hovered_sprite.hovered = false;
+        gui_game.hovered_sprite = null;
+        $(gui.canvas).css('cursor', 'auto');
+    }*/
+}
 
 function load_room(room_id)
 {
@@ -96,6 +142,7 @@ function init()
         gui.canvas.height = $("#main").height();
 
         $("#screen").click(canvas_clicked);
+        $("#screen").mousemove(canvas_mousemove);
         api_rooms.connect(getParameter("game_id"), getParameter("username"), getParameter("token"), api_callback); 
     });
 }

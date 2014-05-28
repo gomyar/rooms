@@ -4,6 +4,7 @@ import json
 from rooms.game import Game
 from rooms.player import Player
 from rooms.room import Room
+from rooms.room import Door
 from rooms.position import Position
 from rooms.actor import Actor
 from rooms.script import Script
@@ -23,6 +24,7 @@ class Container(object):
             Game=self._serialize_game,
             Player=self._serialize_player,
             Room=self._serialize_room,
+            Door=self._serialize_door,
             Position=self._serialize_position,
             Actor=self._serialize_actor,
             Script=self._serialize_script,
@@ -32,6 +34,7 @@ class Container(object):
             Game=self._build_game,
             Player=self._build_player,
             Room=self._build_room,
+            Door=self._build_door,
             Position=self._build_position,
             Actor=self._build_actor,
             Script=self._build_script,
@@ -186,17 +189,27 @@ class Container(object):
     def _serialize_room(self, room):
         return dict(game_id=room.game_id, room_id=room.room_id,
             topleft=room.topleft, bottomright=room.bottomright,
-            actors=room.actors)
+            actors=room.actors, doors=room.doors)
 
     def _build_room(self, data):
         room = Room(data['game_id'], data['room_id'], data['topleft'],
             data['bottomright'], self.node)
         room.actors = data['actors']
+        room.doors = data['doors']
         for actor in room.actors.values():
             actor.room = room
         room.geography = self.geography
         self.geography.setup(room)
         return room
+
+    # Door
+    def _serialize_door(self, door):
+        return dict(exit_room_id=door.exit_room_id,
+            enter_position=door.enter_position, exit_position=door.exit_position)
+
+    def _build_door(self, data):
+        return Door(data['exit_room_id'], data['enter_position'],
+            data['exit_position'])
 
     # Actor
     def _serialize_actor(self, actor):

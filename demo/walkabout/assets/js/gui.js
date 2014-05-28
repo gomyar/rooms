@@ -13,6 +13,10 @@ gui.viewport_y = 0;
 gui.zoom = 1.0;
 
 gui.selected_actor = null;
+gui.door_hovered = null;
+gui.actor_hovered = null;
+
+gui.debug = {"mouse_at": [0, 0]};
 
 gui.initCanvas = function(canvas)
 {
@@ -24,6 +28,10 @@ gui.initCanvas = function(canvas)
 gui.resetCanvas = function()
 {
     gui.ctx = gui.canvas.getContext("2d");
+    var parent = $(gui.canvas).parent();
+    gui.canvas.width = parent.width();
+    gui.canvas.height = parent.height();
+
     gui.requestRedraw();
 }
 
@@ -131,9 +139,10 @@ gui.requestRedraw = function()
 
 gui.draw_debug = function()
 {
-    guiutils.draw_text_centered(50, 20, "("+parseInt(gui.viewport_x)+", "+parseInt(gui.viewport_y)+")", "white");
-    guiutils.draw_text_centered(75, 50, "canvas("+parseInt(gui.canvas_left())+", "+parseInt(gui.canvas_top())+", "+parseInt(gui.canvas_right())+","+parseInt(gui.canvas_bottom())+")", "white");
-    guiutils.draw_text_centered(50, 80, "Zoom:" + Math.round(gui.zoom*100)/100, "white");
+    guiutils.draw_text_centered(50, 20, "("+parseInt(gui.viewport_x)+", "+parseInt(gui.viewport_y)+")", "black");
+    guiutils.draw_text_centered(75, 50, "canvas("+parseInt(gui.canvas_left())+", "+parseInt(gui.canvas_top())+", "+parseInt(gui.canvas_right())+","+parseInt(gui.canvas_bottom())+")", "black");
+    guiutils.draw_text_centered(50, 80, "Zoom:" + Math.round(gui.zoom*100)/100, "black");
+    guiutils.draw_text_centered(50, 110, "MouseAt:" + Math.round(gui.debug.mouse_at[0] * 100)/100 + ", "+Math.round(gui.debug.mouse_at[1] * 100)/100, "black");
 }
 
 gui.check_viewport = function()

@@ -114,6 +114,7 @@ class ContainerTest(unittest.TestCase):
             "__type__": "Room", "room_id": "room1", "game_id": "games_0",
             "topleft": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
             "bottomright": {"__type__": "Position", "x": 10, "y": 10, "z": 0},
+            "doors": [{"__type__": "Door", "exit_room_id": "room2", "enter_position": {"__type__": "Position", "x": 10, "y": 10, "z": 0}, "exit_position": {"__type__": "Position", "x": 10, "y": 10, "z": 0}}],
             "actors": {"actor1": {"__type__": "Actor", "actor_id": "actor1",
                 "actor_type": "test", "model_type": "model",
                 "speed": 1.0,
@@ -132,6 +133,7 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals(1, len(room.actors))
         self.assertEquals(room, room.actors.values()[0].room)
         self.assertEquals(self.node, room.node)
+        self.assertEquals(1, len(room.doors))
 
     def testCreateRoom(self):
         room = self.container.create_room("game1", "room2")

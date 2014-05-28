@@ -43,8 +43,9 @@ class RoomFactory(object):
         return room
 
     def _create_door(self, door_json):
-        return Door(door_json['exit_room_id'], door_json['enter_position'],
-            door_json['exit_position'])
+        return Door(door_json['exit_room_id'],
+            self._create_pos(door_json['enter_position']),
+            self._create_pos(door_json['exit_position']))
 
     def _create_object(self, map_object_json):
         return RoomObject(map_object_json['object_type'],

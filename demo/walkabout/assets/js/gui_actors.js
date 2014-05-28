@@ -36,3 +36,10 @@ gui_actors.draw_actor = function(actor)
     gui_actors.actor_draw_funcs[actor.actor_type](actor);
 }
 
+gui_actors.actor_at = function(x, y)
+{
+    for (var i in api_rooms.actors)
+        if (api_rooms.actors[i].atPosition(x, y))
+            return api_rooms.actors[i];
+    return null;
+}

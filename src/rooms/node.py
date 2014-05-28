@@ -145,7 +145,7 @@ class Node(object):
         if actor.script.has_method(method):
             actor.script_call(method, actor, **kwargs)
         else:
-            raise Exception("No suche method %s" % (method,))
+            raise Exception("No such method %s" % (method,))
 
     def actor_update(self, actor, update):
         for queue in self.player_queues.values():

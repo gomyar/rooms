@@ -34,6 +34,10 @@ gui_room.draw_room = function()
 gui_room.draw_door = function(door)
 {
     guiutils.draw_circle(0, 0, 20 / gui.zoom, "#0011ff");
+    if (door == gui.door_hovered)
+    {
+        guiutils.draw_circle(0, 0, 22 / gui.zoom, "#00ffff");
+    }
 }
 
 gui_room.draw_rect = function(room_object)
@@ -54,3 +58,14 @@ gui_room.draw_room_object = function(room_object)
     gui_room.object_draw_funcs[room_object.object_type](room_object);
 }
 
+gui_room.door_at = function(x, y)
+{
+    for (var i in api_rooms.room.doors)
+    {
+        var door = api_rooms.room.doors[i];
+        if (door.enter_position.x + 20 > x && door.enter_position.x - 20 < x &&
+            door.enter_position.y + 20 > y && door.enter_position.y - 20 < y)
+            return door;
+    }
+    return null;
+}

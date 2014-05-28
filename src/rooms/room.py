@@ -104,3 +104,9 @@ class Room(object):
 
     def actor_update(self, actor, update):
         self.node.actor_update(actor, update)
+
+    def get_door(self, exit_room_id=None):
+        for door in self.doors:
+            if door.exit_room_id == exit_room_id:
+                return door
+        return None
