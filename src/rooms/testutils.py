@@ -146,6 +146,7 @@ class MockTimer(Timer):
         mock_timer._old_sleep = gevent.sleep
         mock_timer._mock_now = 0
         mock_timer._sleeping_gthreads = []
+        mock_timer._slept = 0
         gevent.sleep = mock_timer._mock_sleep
         Timer._instance = mock_timer
 
@@ -166,7 +167,12 @@ class MockTimer(Timer):
         self._sleeping_gthreads.append((gevent.getcurrent(),
             seconds + self._mock_now, event))
         self._sleeping_gthreads.sort()
+        self._slept += seconds
         event.wait(1)
+
+    @staticmethod
+    def slept():
+        return Timer._instance._slept
 
     @staticmethod
     def fast_forward(seconds):

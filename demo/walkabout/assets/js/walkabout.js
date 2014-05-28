@@ -67,23 +67,6 @@ canvas_mousemove = function(e)
 
     gui.debug.mouse_at = [click_x, click_y];
     gui.requestRedraw();
-/*
-    var sprite = gui_game.findSprite(click_x, click_y);
-    if (sprite)
-    {
-        sprite.hovered = true;
-        gui_game.hovered_sprite = sprite;
-
-        $(gui.canvas).css('cursor', 'pointer');
-        gui.requestRedraw();
-    }
-    else
-    {
-        if (gui_game.hovered_sprite != null)
-            gui_game.hovered_sprite.hovered = false;
-        gui_game.hovered_sprite = null;
-        $(gui.canvas).css('cursor', 'auto');
-    }*/
 }
 
 function load_room(room_id)

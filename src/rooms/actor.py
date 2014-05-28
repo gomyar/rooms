@@ -53,6 +53,17 @@ class Actor(object):
         self.path = path or self.room.find_path(self.position, position)
         self._move_gthread = gevent.spawn(self._move_update)
 
+    def move_wait(self, position, path=None):
+        self.move_to(position, path)
+        self.sleep(self._calc_end_time())
+
+    def _calc_end_time(self):
+        from_point = self.path[0]
+        total = 0
+        for to_point in self.path[1:]:
+            total += time_to_position(from_point, to_point, self.speed)
+        return total
+
     def sleep(self, seconds):
         Timer.sleep(seconds)
 
