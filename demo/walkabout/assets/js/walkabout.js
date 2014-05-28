@@ -57,23 +57,13 @@ canvas_mousemove = function(e)
     var click_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
     var click_y = gui.real_y((e.clientY - $(gui.canvas).offset().top));
 
-    var actor = gui_actors.actor_at(click_x, click_y);
-    if (actor)
-    {
-        console.log("Actor found at: "+click_x+", "+click_y);
-    }
+    gui.actor_hovered = gui_actors.actor_at(click_x, click_y);
+    gui.door_hovered = gui_room.door_at(click_x, click_y);
 
-    var door = gui_room.door_at(click_x, click_y);
-    if (door)
-    {
-        gui.door_hovered = door;
+    if (gui.door_hovered || gui.actor_hovered)
         $(gui.canvas).css('cursor', 'pointer');
-    }
-    else    
-    {
-        gui.door_hovered = null;
+    else
         $(gui.canvas).css('cursor', 'auto');
-    }
 
     gui.debug.mouse_at = [click_x, click_y];
     gui.requestRedraw();

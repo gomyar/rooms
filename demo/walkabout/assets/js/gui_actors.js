@@ -39,7 +39,11 @@ gui_actors.draw_actor = function(actor)
 gui_actors.actor_at = function(x, y)
 {
     for (var i in api_rooms.actors)
-        if (api_rooms.actors[i].atPosition(x, y))
-            return api_rooms.actors[i];
+    {
+        var actor = api_rooms.actors[i];
+        if (actor.x() + 20 > x && actor.x() - 20 < x &&
+            actor.y() + 20 > y && actor.y() - 20 < y)
+            return actor;
+    }
     return null;
 }
