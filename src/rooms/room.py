@@ -41,6 +41,16 @@ class RoomObject(object):
             self.bottomright)
 
 
+class Door(object):
+    def __init__(self, exit_room_id, enter_position, exit_position):
+        self.exit_room_id = exit_room_id
+        self.enter_position = enter_position
+        self.exit_position = exit_position
+
+    def __repr__(self):
+        return "<Door to %s at %s>" % (self.exit_room_id, self.enter_position)
+
+
 class Room(object):
     def __init__(self, game_id, room_id, topleft, bottomright, node):
         self.game_id = game_id
@@ -50,6 +60,7 @@ class Room(object):
         self.geography = None
         self.actors = dict()
         self.room_objects = []
+        self.doors = []
         self.tags = []
         self.node = node
 

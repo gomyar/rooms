@@ -19,6 +19,21 @@ gui_room.draw_room = function()
         gui_room.draw_room_object(room_object);
         gui.ctx.restore();
     }
+
+    // Draw doors
+    for (var i in api_rooms.room.doors)
+    {
+        var door = api_rooms.room.doors[i];
+        gui.ctx.save();
+        gui.ctx.translate(gui.canvas_x(api_rooms.room.topleft.x + door.enter_position.x), gui.canvas_y(api_rooms.room.topleft.y + door.enter_position.y));
+        gui_room.draw_door(door);
+        gui.ctx.restore();
+    }
+}
+
+gui_room.draw_door = function(door)
+{
+    guiutils.draw_circle(0, 0, 20 / gui.zoom, "#0011ff");
 }
 
 gui_room.draw_rect = function(room_object)

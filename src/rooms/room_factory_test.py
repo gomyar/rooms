@@ -26,6 +26,8 @@ class RoomFactoryTest(unittest.TestCase):
         self.assertEquals("game1", room.game_id)
         self.assertEquals(Tag("tag.type.1", Position(25, 25),
             {"field1": "value1"}), room.tags[0])
+        self.assertEquals(1, len(room.doors))
+        self.assertEquals("map1.room2", room.doors[0].exit_room_id)
 
     def testNoSuchRoom(self):
         self.assertRaises(Exception, self.factory.create, "game1",

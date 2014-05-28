@@ -5,6 +5,7 @@ import os
 from rooms.room import Room
 from rooms.room import RoomObject
 from rooms.room import Tag
+from rooms.room import Door
 from rooms.position import Position
 
 
@@ -35,9 +36,15 @@ class RoomFactory(object):
             self._create_pos(room_json['bottomright']), self.node)
         for map_object_json in room_json['room_objects']:
             room.room_objects.append(self._create_object(map_object_json))
+        for door_json in room_json['doors']:
+            room.doors.append(self._create_door(door_json))
         for tag_json in room_json['tags']:
             room.tags.append(self._create_tag(tag_json))
         return room
+
+    def _create_door(self, door_json):
+        return Door(door_json['exit_room_id'], door_json['enter_position'],
+            door_json['exit_position'])
 
     def _create_object(self, map_object_json):
         return RoomObject(map_object_json['object_type'],

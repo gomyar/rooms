@@ -8,7 +8,7 @@
                 {"object_type": "rect", "topleft": {"x": 5, "y": 5, "z": 0}, "bottomright": {"x": 25, "y": 25, "z": 0}}
             ],
             "doors": [
-                {"room_id": "room2", "position": {"x": 250, "y": 125, "z": 0}}
+                {"exit_room_id": "map1.room2", "enter_position": {"x": 250, "y": 125, "z": 0}, "exit_position": {"x": 0, "y": 125, "z": 0}}
             ],
             "tags": [
                 {"tag_type": "tag.type.1", "position": {"x": 25, "y": 25, "z": 0}, "data": {"field1": "value1"}}
@@ -21,7 +21,7 @@
                 {"object_type": "rect", "topleft": {"x": 5, "y": 5, "z": 0}, "bottomright": {"x": 25, "y": 25, "z": 0}}
             ],
             "doors": [
-                {"room_id": "room1", "position": {"x": 0, "y": 125, "z": 0}}
+                {"exit_room_id": "map1.room1", "enter_position": {"x": 0, "y": 125, "z": 0}, "exit_position": {"x": 250, "y": 125, "z": 0}}
             ],
             "tags": [
                 {"tag_type": "tag.type.1", "position": {"x": 25, "y": 25, "z": 0}, "data": {"field1": "value1"}}
