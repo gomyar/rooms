@@ -48,10 +48,20 @@ class MongoDBase(object):
     def filter(self, dbase_name, **search_fields):
         return self._collection(dbase_name).find(search_fields)
 
-    def update_object(self, obj, collection_name, update_key, update_obj):
+    def update_object(self, collection_name, obj, update_key, update_obj):
+        self.update_object_by_id(collection_name, obj._id, update_key,
+            update_obj)
+
+    def update_object_by_id(self, collection_name, obj_id, update_key,
+            update_obj):
+        self.update_object_by_fields(collection_name,
+            {'_id': bson.ObjectId(obj_id) }, update_key, update_obj)
+
+    def update_object_by_fields(self, fields_dict, collection_name, update_key,
+            update_obj):
         try:
             self._collection(collection_name).update(
-                {'_id': bson.ObjectId(obj._id) },
+                fields_dict,
                 {
                     '$set': { update_key: update_obj },
                 },
@@ -61,6 +71,7 @@ class MongoDBase(object):
             log.exception("Exception updating object in %s.update_key: %s",
                 collection_name, update_obj)
             raise
+
 
     def update_object_fields(self, obj, collection_name, **kwargs):
         try:

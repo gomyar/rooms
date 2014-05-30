@@ -101,6 +101,13 @@ class Container(object):
         self.save_player(player)
         return player
 
+    def save_actor_to_room(self, game_id, room_id, actor):
+        actor_dict = self._obj_to_dict(actor)
+        self.dbase.update_object_by_fields(
+            {"game_id": game_id, "room_id": room_id},
+            "rooms", actor.actor_id, actor
+        )
+
     ## ---- Encoding method
 
     def _save_object(self, saved_object, dbase_name):

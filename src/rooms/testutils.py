@@ -99,6 +99,9 @@ class MockNode(object):
     def actor_update(self, actor, update):
         self._updates.append((actor, update))
 
+    def move_actor_room(self, actor, game_id, exit_room_id, exit_room_position):
+        self._updates.append((actor, game_id, exit_room_id, exit_room_position))
+
 
 class MockGame(object):
     def __init__(self, owner_id, game_id):
@@ -198,7 +201,8 @@ class MockTimer(Timer):
 
 
 class MockActor(object):
-    def __init__(self):
+    def __init__(self, actor_id=None):
+        self.actor_id = actor_id
         self.script = MockScript()
 
     def script_call(self, method, *args):

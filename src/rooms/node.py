@@ -177,3 +177,27 @@ class Node(object):
 
     def _create_token(self):
         return str(uuid.uuid1())
+
+    def move_actor_room(self, actor, game_id, exit_room_id, exit_room_position):
+        from_room = actor.room
+        if (game_id, exit_room_id) in self.rooms:
+            from_room.actors.pop(actor.actor_id)
+            exit_room = self.rooms[game_id, exit_room_id]
+            exit_room.actors[actor.actor_id] = actor
+            actor.room = exit_room
+            if actor.player_username:
+                player = self.players[actor.player_username, game_id]
+                player.room_id = exit_room.room_id
+            # inject actor in to room db
+
+            # send sync
+        else:
+            if actor.player_username:
+                player = self.players[actor.player_username, game_id]
+                player.room_id = exit_room_id
+                response = self.master_conn.call("player_connects",
+                    game_id=game_id, room_id=exit_room_id)
+                if response['node'] == [self.host, self.port]:
+                    queue = self.player_queues[game_id, actor.player_username]
+                    queue.put({"command": "redirect", "node": response["node"],
+                        "token": response['token']})

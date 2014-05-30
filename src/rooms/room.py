@@ -110,3 +110,8 @@ class Room(object):
             if door.exit_room_id == exit_room_id:
                 return door
         return None
+
+    def actor_enters(self, actor, door):
+        self.node.move_actor_room(actor, self.game_id, door.exit_room_id,
+            door.exit_position)
+        self.actors.pop(actor.actor_id)

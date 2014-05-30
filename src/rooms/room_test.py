@@ -2,6 +2,7 @@
 import unittest
 
 from rooms.room import Room
+from rooms.room import Door
 from rooms.position import Position
 from rooms.testutils import MockGeog
 from rooms.testutils import MockNode
@@ -67,3 +68,16 @@ class RoomTest(unittest.TestCase):
         self.room.actor_update(self.actor, {"path": []})
 
         self.assertEquals([(self.actor, {"path": []})], self.node._updates)
+
+    def testActorEnterDoor(self):
+        self.door = Door("room2", Position(5, 5), Position(10, 10))
+        self.actor = MockActor("actor1")
+
+        self.room.doors.append(self.door)
+        self.room.actors["actor1"] = self.actor
+
+        self.room.actor_enters(self.actor, self.door)
+
+        self.assertEquals((self.actor, "game1", "room2", Position(10, 10)),
+            self.node._updates[0])
+        self.assertEquals({}, self.room.actors)

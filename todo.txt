@@ -1,4 +1,6 @@
 
+ - actor to own collection
+
  - add demo client
    - client reconnects smoothly (darkens screen etc)
 

@@ -51,6 +51,11 @@ class MockDbase(object):
                 keep[k] = v
         self.dbases[collection_name] = keep
 
+    def update_object_by_fields(self, fields_dict, collection_name, update_key,
+            update_obj):
+        parent = self.filter_one(collection_name, **fields_dict)
+        parent[update_key] = update_obj
+
 
 class ContainerTest(unittest.TestCase):
     def setUp(self):
@@ -177,3 +182,15 @@ class ContainerTest(unittest.TestCase):
         self.container.save_room(Room("games_0", "rooms_0", Position(0, 0),
             Position(50, 50), self.node))
         self.assertTrue(self.dbase.dbases['rooms'])
+
+    def testSaveActorToRoom(self):
+        room = self.container.create_room("game1", "room2")
+
+        actor = room.create_actor("rooms.room_test")
+        self.assertEquals({}, self.dbase.dbases['rooms']['rooms_0']['actors'])
+
+        actor.state.testme = "value1"
+        import ipdb; ipdb.set_trace()
+        self.container.save_actor_to_room("game1", "room2", actor)
+        self.assertEquals({"__type__": "Actor"},
+            self.dbase.dbases['rooms']['rooms_0']['actors'])
