@@ -99,6 +99,7 @@ class MockRoom(object):
         self.topleft = Position(0, 0)
         self.bottomright = Position(10, 10)
         self.center = Position(0, 0)
+        self._actor_enters = []
 
     def kick(self):
         self._kicked_off = True
@@ -115,6 +116,9 @@ class MockRoom(object):
         actor.player_username = player.username if player else None
         self.actors[actor.actor_id] = actor
         return actor
+
+    def actor_enters(self, actor, door):
+        self._actor_enters.append((actor, door))
 
     def __repr__(self):
         return "<MockRoom %s %s>" % (self.game_id, self.room_id)

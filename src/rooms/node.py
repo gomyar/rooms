@@ -68,6 +68,8 @@ class Node(object):
         self.rooms = dict()
         self.players = dict()
         self.master_conn = WSGIRPCClient(master_host, master_port, 'master')
+        self.master_player_conn = WSGIRPCClient(master_host, master_port,
+            'player')
         self.player_script = NullScript()
         self.game_script = NullScript()
         self.container = None
@@ -201,7 +203,7 @@ class Node(object):
         else:
             if self._following_player(actor, game_id):
                 player = self._following_player(actor, game_id)
-                response = self.master_conn.call("player_connects",
+                response = self.master_player_conn.call("player_connects",
                     username=player.username, game_id=game_id)
                 if response['node'] != [self.host, self.port]:
                     player.queue.put({"command": "redirect",

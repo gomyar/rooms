@@ -67,7 +67,7 @@ if __name__ == "__main__":
         master_host, master_port = options.master.split(":")
         node = Node(host, port, master_host, master_port)
         node.load_player_script("player_script")
-        node.load_game_script("game_script")
+#        node.load_game_script("game_script")
         dbase = MongoDBase()
         dbase.init_mongo()
         geography = BasicGeography()

@@ -7,6 +7,7 @@ from rooms.testutils import MockRoom
 from rooms.testutils import MockTimer
 from rooms.timer import Timer
 from rooms.vector import Vector
+from rooms.room import Door
 from rooms import actor
 
 
@@ -22,7 +23,7 @@ class ActorTest(unittest.TestCase):
     def setUp(self):
         MockTimer.setup_mock()
         self.mock_room = MockRoom("game1", "room1")
-        self.actor = Actor(MockRoom("game1", "room1"), "mock_actor",
+        self.actor = Actor(self.mock_room, "mock_actor",
             "rooms.actor_test")
         self.actor.state.log = []
         self.actor.room = self.mock_room
@@ -130,3 +131,9 @@ class ActorTest(unittest.TestCase):
         MockTimer.fast_forward(1)
 
         self.assertEquals(20, MockTimer.slept())
+
+    def testActorEnters(self):
+        door = Door("room2", Position(0, 0), Position(10, 10))
+        self.actor.enter(door)
+
+        self.assertEquals((self.actor, door), self.mock_room._actor_enters[0])

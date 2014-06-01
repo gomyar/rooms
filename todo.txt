@@ -1,6 +1,4 @@
 
- - actor to own collection
-
  - each player object is connected to a single actor at any given time,
     must be owned by that player. 
     if That actor leaves the room, the player connection follows

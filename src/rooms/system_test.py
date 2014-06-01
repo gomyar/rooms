@@ -15,6 +15,7 @@ from rooms.script import Script
 class SystemTest(unittest.TestCase):
     def setUp(self):
         self.mock_rpc = MockRpcClient()
+        self.mock_player_rpc = MockRpcClient()
         self.player1 = Player("bob", "game1", "room1")
         self.container = MockContainer(players={("bob", "game1"): self.player1})
         self.node = Node("10.10.10.1", 8000, "master", 9000)
@@ -22,6 +23,7 @@ class SystemTest(unittest.TestCase):
         self.node._create_token = lambda: "TOKEN1"
         self.node.load_player_script("rooms.test_scripts.basic_player")
         self.node.master_conn = self.mock_rpc
+        self.node.master_player_conn = self.mock_player_rpc
         rooms.actor._create_actor_id = self._create_actor_id
         self._actor_id = 0
         MockTimer.setup_mock()
@@ -201,7 +203,7 @@ class SystemTest(unittest.TestCase):
         self.room1.geography = MockGeog()
         self.container.rooms['game1', 'room1'] = self.room1
 
-        self.mock_rpc.expect['player_connects'] = {"token": "TOKEN2",
+        self.mock_player_rpc.expect['player_connects'] = {"token": "TOKEN2",
             "node": ["10.10.10.2", 8000]}
 
         # add 1 room
@@ -228,4 +230,4 @@ class SystemTest(unittest.TestCase):
             'command': 'redirect'}, queue.get())
         self.assertEquals([
             ('player_connects', {'game_id': 'game1', 'username': 'bob'})],
-            self.mock_rpc.called)
+            self.mock_player_rpc.called)

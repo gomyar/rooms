@@ -86,3 +86,6 @@ class Actor(object):
     @property
     def position(self):
         return self.vector.position()
+
+    def enter(self, door):
+        self.room.actor_enters(self, door)
