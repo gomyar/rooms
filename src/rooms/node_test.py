@@ -1,6 +1,7 @@
 
 import unittest
 import gevent
+from gevent.queue import Queue
 
 from rooms.node import Node
 from rooms.room import Room
@@ -153,69 +154,6 @@ class NodeTest(unittest.TestCase):
             token="TOKEN1")
 
         self.assertEquals([('do_something', (actor,), {})], actor.script.called)
-
-    def testMoveActorRoomSameNode(self):
-        # add 2 rooms
-        self.node.manage_room("game1", "room1")
-        self.node.manage_room("game1", "room2")
-
-        # add 1 player
-        player = Player('bob', 'game1', 'room1')
-        self.container.players['bob', 'game1'] = player
-        self.node.player_joins("bob", "game1", "room1")
-        # add 1 player actor
-        room1 = self.node.rooms["game1", "room1"]
-        actor = MockActor('actor1')
-        actor.room = room1
-        actor.player_username = "bob"
-        room1.actors['actor1'] = actor
-
-        # assert actor moves and player is updated
-        self.node.move_actor_room(actor, "game1", "room2", Position(5, 5))
-        # player is saved immediately, actor is put on save queue
-        room2 = self.node.rooms["game1", "room2"]
-        self.assertEquals("room2", player.room_id)
-        self.assertEquals(actor, room2.actors["actor1"])
-        self.assertEquals(room2, actor.room)
-
-        # assert container has been called with new values for:
-        # player
-        # actor
-        # room
-
-        # actor_enters_room script?
-
-    def testMoveActorRoomAnotherNode(self):
-        self.mock_rpc.expect['player_connects'] = {"token": "TOKEN2",
-            "node": ["10.10.10.2", 8000]}
-
-        # add 1 room
-        self.node.manage_room("game1", "room1")
-
-        # add 1 player
-        player = Player('bob', 'game1', 'room1')
-        self.container.players['bob', 'game1'] = player
-        self.node.player_joins("bob", "game1", "room1")
-        # add 1 player actor
-        room1 = self.node.rooms["game1", "room1"]
-        actor = MockActor('actor1')
-        actor.room = room1
-        actor.player_username = "bob"
-        room1.actors['actor1'] = actor
-
-        # assert actor leaves and player is gone
-        self.node.move_actor_room(actor, "game1", "room2", Position(5, 5))
-        # player is saved immediately
-        self.assertEquals("room2", player.room_id)
-        self.assertEquals("room2", self.container.actors['actor1'].room_id)
-        self.assertEquals([
-            ('player_connects', {'game_id': 'game1', 'room_id': 'room2'})],
-            self.mock_rpc.called)
-
-        queue = self.node.player_queues['game1', 'bob']
-        self.assertEquals({"command": "redirect", "node": ("10.10.10.2", 8000),
-            "token": "TOKEN2"}, queue[0])
-        # actor is put in limbo / pushed directly to room ?
 
     def testNonPlayerActorMovesNode(self):
         pass

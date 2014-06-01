@@ -63,7 +63,7 @@ class MongoDBase(object):
             raise
 
 
-    def update_object_fields(self, obj, collection_name, **kwargs):
+    def update_object_fields(self, collection_name, obj, **kwargs):
         try:
             self._collection(collection_name).update(
                 {'_id': bson.ObjectId(obj._id) },
@@ -77,7 +77,7 @@ class MongoDBase(object):
                 collection_name, update_obj)
             raise
 
-    def remove_object(self, obj, collection_name, remove_key):
+    def remove_object(self, collection_name, obj, remove_key):
         try:
             self._collection(collection_name).update(
                 {'_id': obj._id },

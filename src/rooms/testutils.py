@@ -23,6 +23,7 @@ class MockContainer(object):
         self.node = MockNode()
         self.room_factory = room_factory or \
             MockRoomFactory(MockRoom("mock_game_1", "mock_room_1"))
+        self.actor_updates = []
 
     def load_room(self, game_id, room_id):
         return self.rooms[game_id, room_id]
@@ -50,6 +51,9 @@ class MockContainer(object):
 
     def save_actor(self, actor):
         self.actors[actor.actor_id] = actor
+
+    def update_actor(self, actor, **fields):
+        self.actor_updates.append((actor, fields))
 
     def create_room(self, game_id, room_id):
         room = self.room_factory.create(game_id, room_id)
@@ -104,6 +108,13 @@ class MockRoom(object):
 
     def actor_update(self, actor, update):
         self._updates.append((actor, update))
+
+    def create_actor(self, actor_type, script_name, player=None):
+        actor = MockActor("mock1")
+        actor.room = self
+        actor.player_username = player.username if player else None
+        self.actors[actor.actor_id] = actor
+        return actor
 
     def __repr__(self):
         return "<MockRoom %s %s>" % (self.game_id, self.room_id)
@@ -221,6 +232,7 @@ class MockActor(object):
     def __init__(self, actor_id=None):
         self.actor_id = actor_id
         self.script = MockScript()
+        self.player_username = None
 
     def script_call(self, method, *args):
         self.script.call(method, *args)

@@ -67,7 +67,6 @@ class Node(object):
         self.master_port = master_port
         self.rooms = dict()
         self.players = dict()
-        self.player_queues = dict()
         self.master_conn = WSGIRPCClient(master_host, master_port, 'master')
         self.player_script = NullScript()
         self.game_script = NullScript()
@@ -92,8 +91,8 @@ class Node(object):
 
     def all_rooms(self):
         return [{"game_id": room.game_id, "room_id": room.room_id,
-            "actors": [(key, jsonview(a)) for (key, a) in room.actors.items()]} for \
-            room in self.rooms.values()]
+            "actors": [(key, jsonview(a)) for (key, a) in \
+            room.actors.items()]} for room in self.rooms.values()]
 
     def all_players(self):
         return [{"username": player.username, "game_id": player.game_id,
@@ -128,10 +127,9 @@ class Node(object):
     def player_connects(self, ws, game_id, username, token):
         queue = Queue()
         player = self.players[username, game_id]
-        self.player_queues[game_id, username] = queue
+        player.queue = queue
         room = self.rooms[game_id, player.room_id]
-        ws.send(json.dumps({"command": "sync", "data": {"now": Timer.now(),
-            "room_id": room.room_id}}))
+        ws.send(json.dumps(self._sync_message(room)))
         for actor in room.actors.values():
             ws.send(json.dumps(
                 {"command": "actor_update", "actor_id": actor.actor_id,
@@ -141,6 +139,10 @@ class Node(object):
             message = queue.get()
             print "Sending"
             ws.send(json.dumps(jsonview(message)))
+
+    def _sync_message(self, room):
+        return {"command": "sync", "data": {"now": Timer.now(),
+            "room_id": room.room_id}}
 
     def actor_call(self, game_id, username, actor_id, method, **kwargs):
         player = self.players[username, game_id]
@@ -155,11 +157,9 @@ class Node(object):
             raise Exception("No such method %s" % (method,))
 
     def actor_update(self, actor, update):
-        for queue in self.player_queues.values():
-            print "Adding %s" % (update,)
-            queue.put({"command": "actor_update", "actor_id": actor.actor_id,
-                "data": update})
-            print "Queue is now %s" % (queue,)
+        for player in self.players.values():
+            player.queue.put({"command": "actor_update",
+                "actor_id": actor.actor_id, "data": update})
 
     def _request_player_connection(self, username, game_id):
         player = self._get_or_load_player(username, game_id)
@@ -185,27 +185,35 @@ class Node(object):
     def _create_token(self):
         return str(uuid.uuid1())
 
+    def _following_player(self, actor, game_id):
+        return self.players.get((actor.player_username, game_id), None)
+
     def move_actor_room(self, actor, game_id, exit_room_id, exit_room_position):
         from_room = actor.room
+        self.container.update_actor(actor, room_id=exit_room_id)
         if (game_id, exit_room_id) in self.rooms:
-            from_room.actors.pop(actor.actor_id)
-            exit_room = self.rooms[game_id, exit_room_id]
-            exit_room.actors[actor.actor_id] = actor
-            actor.room = exit_room
-            if actor.player_username:
-                player = self.players[actor.player_username, game_id]
-                player.room_id = exit_room.room_id
-            # inject actor in to room db
-            self.container.save_actor(actor)
-
-            # send sync
+            exit_room = self._move_actor_internal(game_id, exit_room_id, actor,
+                from_room)
+            if self._following_player(actor, game_id):
+                # send sync
+                player = self._following_player(actor, game_id)
+                player.queue.put(self._sync_message(exit_room))
         else:
-            if actor.player_username:
-                player = self.players[actor.player_username, game_id]
-                player.room_id = exit_room_id
+            if self._following_player(actor, game_id):
+                player = self._following_player(actor, game_id)
                 response = self.master_conn.call("player_connects",
-                    game_id=game_id, room_id=exit_room_id)
-                if response['node'] == [self.host, self.port]:
-                    queue = self.player_queues[game_id, actor.player_username]
-                    queue.put({"command": "redirect", "node": response["node"],
-                        "token": response['token']})
+                    username=player.username, game_id=game_id)
+                if response['node'] != [self.host, self.port]:
+                    player.queue.put({"command": "redirect",
+                        "node": response["node"], "token": response['token']})
+                else:
+                    exit_room = self._move_actor_internal(game_id, exit_room_id,
+                        actor, from_room)
+                    player.queue.put(self._sync_message(exit_room))
+
+    def _move_actor_internal(self, game_id, exit_room_id, actor, from_room):
+        from_room.actors.pop(actor.actor_id)
+        exit_room = self.rooms[game_id, exit_room_id]
+        exit_room.actors[actor.actor_id] = actor
+        actor.room = exit_room
+        return exit_room

@@ -11,6 +11,7 @@ from rooms.testutils import MockNode
 from rooms.testutils import MockRoomFactory
 from rooms.testutils import MockRoom
 from rooms.testutils import MockTimer
+from rooms.testutils import MockActor
 
 
 class MockDbase(object):
@@ -52,10 +53,9 @@ class MockDbase(object):
                 keep[k] = v
         self.dbases[collection_name] = keep
 
-    def update_object_by_fields(self, fields_dict, collection_name, update_key,
-            update_obj):
-        parent = self.filter_one(collection_name, **fields_dict)
-        parent[update_key] = update_obj
+    def update_object_fields(self, collection_name, obj, **fields):
+        objdata = self.dbases.get(collection_name, dict()).get(obj._id)
+        objdata.update(fields)
 
 
 class ContainerTest(unittest.TestCase):
@@ -233,3 +233,17 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals({u'created': True, u'testme': u'value1'},
             self.dbase.dbases['actors']['actors_0']['state'])
 
+    def testUpdateActor(self):
+        actor = MockActor("actor1")
+        actor._id = "actor1"
+
+        self.dbase.dbases['actors'] = {}
+        self.dbase.dbases['actors']['actor1'] = {'_id': "actor1"}
+        self.dbase.dbases['actors']['actor2'] = {'_id': "actor2"}
+
+        self.container.update_actor(actor, room_id="room2")
+
+        self.assertEquals({'_id': "actor1", "room_id": "room2"},
+            self.dbase.dbases['actors']['actor1'])
+        self.assertEquals({'_id': "actor2"},
+            self.dbase.dbases['actors']['actor2'])

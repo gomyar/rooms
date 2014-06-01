@@ -65,6 +65,9 @@ class Container(object):
     def save_actor(self, actor):
         self._save_object(actor, "actors")
 
+    def update_actor(self, actor, **fields):
+        self.dbase.update_object_fields("actors", actor, **fields)
+
     def room_exists(self, game_id, room_id):
         return self.dbase.object_exists("rooms", game_id=game_id,
             room_id=room_id)

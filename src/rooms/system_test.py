@@ -1,7 +1,8 @@
 import unittest
 import gevent
 
-from rooms.testutils import MockRpcClient, MockContainer, MockTimer, MockWebsocket, MockGeog
+from rooms.testutils import MockRpcClient, MockContainer, MockTimer
+from rooms.testutils import MockWebsocket, MockGeog
 from rooms.node import Node
 from rooms.room import Room
 from rooms.player import Player
@@ -15,7 +16,7 @@ class SystemTest(unittest.TestCase):
     def setUp(self):
         self.mock_rpc = MockRpcClient()
         self.player1 = Player("bob", "game1", "room1")
-        self.container = MockContainer(players={"bob1": self.player1})
+        self.container = MockContainer(players={("bob", "game1"): self.player1})
         self.node = Node("10.10.10.1", 8000, "master", 9000)
         self.node.container = self.container
         self.node._create_token = lambda: "TOKEN1"
@@ -157,3 +158,74 @@ class SystemTest(unittest.TestCase):
         self.assertEquals({u'x': 10.0, u'y': 10.0, u'z': 0.0},
             player1_ws.updates[2]['data']['vector']['end_pos'])
 
+    def testMoveActorRoomSameNode(self):
+        self.room1 = Room("game1", "room1",
+            Position(0, 0), Position(50, 50), self.node)
+        self.room1.geography = MockGeog()
+        self.container.rooms['game1', 'room1'] = self.room1
+
+        # add 2 rooms
+        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "room2")
+
+        # add 1 player
+        self.player = Player('bob', 'game1', 'room1')
+        self.container.players['bob', 'game1'] = self.player
+        self.node.player_joins("bob", "game1", "room1")
+
+        # add 1 room
+        self.node.manage_room("game1", "room1")
+
+        # add 1 player
+        self.node.player_joins("bob", "game1", "room1")
+
+        # connect player
+        queue = gevent.queue.Queue()
+        self.player.queue = queue
+
+        # add 1 player actor
+        room1 = self.node.rooms["game1", "room1"]
+        actor = room1.create_actor("mock_actor", "node_test", player=self.player)
+
+        # assert actor moves and player is updated
+        self.node.move_actor_room(actor, "game1", "room2", Position(5, 5))
+        # player is saved immediately, actor is put on save queue
+        room2 = self.node.rooms["game1", "room2"]
+        self.assertEquals(actor, room2.actors["actor3"])
+        self.assertEquals(room2, actor.room)
+
+    def testMoveActorRoomAnotherNode(self):
+        self.player = self.container.players['bob', 'game1']
+        self.room1 = Room("game1", "room1",
+            Position(0, 0), Position(50, 50), self.node)
+        self.room1.geography = MockGeog()
+        self.container.rooms['game1', 'room1'] = self.room1
+
+        self.mock_rpc.expect['player_connects'] = {"token": "TOKEN2",
+            "node": ["10.10.10.2", 8000]}
+
+        # add 1 room
+        self.node.manage_room("game1", "room1")
+
+        # add 1 player
+        self.node.player_joins("bob", "game1", "room1")
+
+        # connect player
+        queue = gevent.queue.Queue()
+        self.player.queue = queue
+
+        # add 1 player actor
+        room1 = self.node.rooms["game1", "room1"]
+        actor = room1.create_actor("mock_actor", "node_test", player=self.player)
+
+        # perform actor move
+        self.node.move_actor_room(actor, "game1", "room2", Position(5, 5))
+        # player is saved immediately
+        self.assertEquals([(actor, {"room_id": "room2"})],
+            self.container.actor_updates)
+
+        self.assertEquals({'node': ['10.10.10.2', 8000], 'token': 'TOKEN2',
+            'command': 'redirect'}, queue.get())
+        self.assertEquals([
+            ('player_connects', {'game_id': 'game1', 'username': 'bob'})],
+            self.mock_rpc.called)
