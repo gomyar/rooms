@@ -49,19 +49,9 @@ class MongoDBase(object):
         return self._collection(dbase_name).find(search_fields)
 
     def update_object(self, collection_name, obj, update_key, update_obj):
-        self.update_object_by_id(collection_name, obj._id, update_key,
-            update_obj)
-
-    def update_object_by_id(self, collection_name, obj_id, update_key,
-            update_obj):
-        self.update_object_by_fields(collection_name,
-            {'_id': bson.ObjectId(obj_id) }, update_key, update_obj)
-
-    def update_object_by_fields(self, fields_dict, collection_name, update_key,
-            update_obj):
         try:
             self._collection(collection_name).update(
-                fields_dict,
+                {'_id': bson.ObjectId(obj._id) },
                 {
                     '$set': { update_key: update_obj },
                 },

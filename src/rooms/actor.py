@@ -1,16 +1,11 @@
 
 import gevent
-import uuid
 
 from rooms.script import Script
 from rooms.position import Position
 from rooms.vector import create_vector, Vector
 from rooms.vector import time_to_position
 from rooms.timer import Timer
-
-
-def _create_actor_id():
-    return str(uuid.uuid1())
 
 
 class State(dict):
@@ -26,22 +21,24 @@ class State(dict):
 
 
 class Actor(object):
-    def __init__(self, room, actor_id=None):
+    def __init__(self, room, actor_type, script_name, player_username=None,
+            actor_id=None):
         self.room = room
-        self.actor_id = actor_id if actor_id else _create_actor_id()
-        self.actor_type = ""
-        self.model_type = ""
+        self._actor_id = actor_id
+        self.actor_type = actor_type
         self.state = State(self)
         self.path = []
         self.vector = create_vector(Position(0, 0), Position(0, 0))
-        self.script = Script()
+        self.script = Script(script_name)
         self.speed = 1.0
-        self.width = 1.0
-        self.height = 1.0
-        self.player_username = None
+        self.player_username = player_username
 
         self._gthread = None
         self._move_gthread = None
+
+    @property
+    def actor_id(self):
+        return self._actor_id or getattr(self, "_id", None)
 
     def kick(self):
         self._run_on_gthread(self.script.call, "kickoff", self)

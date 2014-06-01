@@ -1,18 +1,14 @@
-
 import unittest
 import gevent
 
-from rooms.testutils import MockRpcClient
-from rooms.testutils import MockContainer
+from rooms.testutils import MockRpcClient, MockContainer, MockTimer, MockWebsocket, MockGeog
 from rooms.node import Node
 from rooms.room import Room
 from rooms.player import Player
 from rooms.position import Position
-from rooms.testutils import MockTimer
-from rooms.testutils import MockWebsocket
-from rooms.testutils import MockGeog
 from rooms.actor import Actor
 import rooms.actor
+from rooms.script import Script
 
 
 class SystemTest(unittest.TestCase):
@@ -23,7 +19,7 @@ class SystemTest(unittest.TestCase):
         self.node = Node("10.10.10.1", 8000, "master", 9000)
         self.node.container = self.container
         self.node._create_token = lambda: "TOKEN1"
-        self.node.player_script.load_script("rooms.test_scripts.basic_player")
+        self.node.load_player_script("rooms.test_scripts.basic_player")
         self.node.master_conn = self.mock_rpc
         rooms.actor._create_actor_id = self._create_actor_id
         self._actor_id = 0
@@ -58,68 +54,26 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(0)
 
-        self.assertEquals([
-            {u'command': u'sync', u'data': {u'now': 0, "room_id": "room1"}},
-            {u'command': u'actor_update', u'actor_id': u'actor2',
-            u'data': {u'actor_id': u'actor2',
-                        u'actor_type': u'',
-                        u'model_type': u'',
-                        u'state': {},
-                        u'username': None,
-                        u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                                    u'end_time': 0.0,
-                                    u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                                    u'start_time': 0}}},
-            {u'command': u'actor_update', u'actor_id': u'actor1',
-            u'data': {u'actor_id': u'actor1',
-                        u'actor_type': u'',
-                        u'model_type': u'',
-                        u'state': {},
-                        u'username': None,
-                        u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                                    u'end_time': 0.0,
-                                    u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                                    u'start_time': 0}}}],
-            player1_ws.updates)
-        self.assertEquals([
-            {u'command': u'sync', u'data': {u'now': 0, "room_id": "room1"}},
-            {u'command': u'actor_update', u'actor_id': u'actor2',
-            u'data': {u'actor_id': u'actor2',
-                        u'actor_type': u'',
-                        u'model_type': u'',
-                        u'state': {},
-                        u'username': None,
-                        u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                                    u'end_time': 0.0,
-                                    u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                                    u'start_time': 0}}},
-            {u'command': u'actor_update', u'actor_id': u'actor1',
-            u'data': {u'actor_id': u'actor1',
-                        u'actor_type': u'',
-                        u'model_type': u'',
-                        u'state': {},
-                        u'username': None,
-                        u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                                    u'end_time': 0.0,
-                                    u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                                    u'start_time': 0}}}],
-            player2_ws.updates)
+        self.assertEquals(3, len(player1_ws.updates))
+        self.assertEquals("sync", player1_ws.updates[0]['command'])
+        self.assertEquals("actor_update", player1_ws.updates[1]['command'])
+        self.assertEquals("actor_update", player1_ws.updates[2]['command'])
+
+        self.assertEquals(3, len(player2_ws.updates))
+        self.assertEquals("sync", player2_ws.updates[0]['command'])
+        self.assertEquals("actor_update", player2_ws.updates[1]['command'])
+        self.assertEquals("actor_update", player2_ws.updates[2]['command'])
+
 
         self.node.actor_call("game1", "bob", "actor1", "move_to", x=10, y=10,
             token="TOKEN1")
 
         MockTimer.fast_forward(0)
 
-        self.assertEquals({"command": "actor_update", "actor_id": "actor1",
-            "data": {'vector': {u'end_pos': {u'x': 10.0, u'y': 10.0, u'z': 0.0},
-                u'end_time': 14.142135623730951,
-                u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                u'start_time': 0}}}, player1_ws.updates[3])
-        self.assertEquals({"command": "actor_update", "actor_id": "actor1",
-            "data": {'vector': {u'end_pos': {u'x': 10.0, u'y': 10.0, u'z': 0.0},
-                u'end_time': 14.142135623730951,
-                u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                u'start_time': 0}}}, player2_ws.updates[3])
+        self.assertEquals(4, len(player1_ws.updates))
+        self.assertEquals("actor_update", player1_ws.updates[3]['command'])
+        self.assertEquals(4, len(player2_ws.updates))
+        self.assertEquals("actor_update", player2_ws.updates[3]['command'])
 
     def testPing(self):
         self.container.players['bob', 'game1'] = Player("bob", "game1", "room1")
@@ -199,9 +153,7 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(0)
 
-        self.assertEquals({"command": "actor_update", "actor_id": "actor1",
-            "data": {'vector': {u'end_pos': {u'x': 10.0, u'y': 10.0, u'z': 0.0},
-                u'end_time': 14.142135623730951,
-                u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                u'start_time': 0}}}, player1_ws.updates[2])
+        self.assertEquals("actor_update", player1_ws.updates[2]['command'])
+        self.assertEquals({u'x': 10.0, u'y': 10.0, u'z': 0.0},
+            player1_ws.updates[2]['data']['vector']['end_pos'])
 

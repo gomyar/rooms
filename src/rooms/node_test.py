@@ -207,8 +207,7 @@ class NodeTest(unittest.TestCase):
         self.node.move_actor_room(actor, "game1", "room2", Position(5, 5))
         # player is saved immediately
         self.assertEquals("room2", player.room_id)
-        self.assertEquals(("game1", "room2", actor),
-            self.container._save_actor_to_room[0])
+        self.assertEquals("room2", self.container.actors['actor1'].room_id)
         self.assertEquals([
             ('player_connects', {'game_id': 'game1', 'room_id': 'room2'})],
             self.mock_rpc.called)

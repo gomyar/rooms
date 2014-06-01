@@ -16,7 +16,7 @@ gui_actors.draw_actors = function()
 
 gui_actors.draw_player_actor = function(actor)
 {
-    var img = guiassets.images[actor.model_type];
+    var img = guiassets.images[actor.actor_type];
     var width = img.width / gui.zoom;
     var height = img.width / gui.zoom;
     gui.ctx.rotate(Math.atan2(actor.vector.end_pos.y - actor.vector.start_pos.y,

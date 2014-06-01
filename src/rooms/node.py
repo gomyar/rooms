@@ -11,6 +11,7 @@ from rooms.rpc import websocket
 from rooms.rpc import RPCException
 from rooms.room import Room
 from rooms.script import Script
+from rooms.script import NullScript
 from rooms.views import jsonview
 from rooms.timer import Timer
 
@@ -68,10 +69,16 @@ class Node(object):
         self.players = dict()
         self.player_queues = dict()
         self.master_conn = WSGIRPCClient(master_host, master_port, 'master')
-        self.player_script = Script()
-        self.game_script = Script()
+        self.player_script = NullScript()
+        self.game_script = NullScript()
         self.container = None
         self.room_factory = None
+
+    def load_player_script(self, script_name):
+        self.player_script = Script(script_name)
+
+    def load_game_script(self, script_name):
+        self.game_script = Script(script_name)
 
     def connect_to_master(self):
         self.master_conn.call("register_node", host=self.host, port=self.port)
@@ -189,6 +196,7 @@ class Node(object):
                 player = self.players[actor.player_username, game_id]
                 player.room_id = exit_room.room_id
             # inject actor in to room db
+            self.container.save_actor(actor)
 
             # send sync
         else:

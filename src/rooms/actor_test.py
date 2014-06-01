@@ -20,23 +20,32 @@ def kickoff(actor):
 
 class ActorTest(unittest.TestCase):
     def setUp(self):
+        MockTimer.setup_mock()
         self.mock_room = MockRoom("game1", "room1")
-        self.actor = Actor(MockRoom("game1", "room1"))
-        self.actor.script.load_script("rooms.actor_test")
+        self.actor = Actor(MockRoom("game1", "room1"), "mock_actor",
+            "rooms.actor_test")
         self.actor.state.log = []
         self.actor.room = self.mock_room
-        MockTimer.setup_mock()
-        actor._create_actor_id = lambda: "actor1"
 
     def tearDown(self):
         MockTimer.teardown_mock()
 
-    def testActorId(self):
-        actor1 = Actor(None)
-        self.assertEquals("actor1", actor1.actor_id)
+    def testCreation(self):
+        self.assertEquals(Vector(Position(0, 0), 0, Position(0, 0), 0),
+            self.actor.vector)
+        self.assertEquals("rooms.actor_test", self.actor.script.script_name)
 
-        actor2 = Actor(None, actor_id="actor2")
+    def testActorId(self):
+        actor1 = Actor(self.mock_room, "mock_actor", "rooms.actor_test", None)
+        self.assertEquals(None, actor1.actor_id)
+
+        actor2 = Actor(self.mock_room, "mock_actor", "rooms.actor_test",
+            actor_id="actor2")
         self.assertEquals("actor2", actor2.actor_id)
+
+        actor1 = Actor(self.mock_room, "mock_actor", "rooms.actor_test")
+        actor1._id = "actor3"
+        self.assertEquals("actor3", actor1.actor_id)
 
     def testKickoff(self):
         self.actor.kick()

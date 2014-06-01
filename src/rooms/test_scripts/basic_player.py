@@ -1,5 +1,5 @@
 
 
-def player_joins(player, room):
-    room.create_actor("rooms.test_scripts.basic_actor")
+def player_joins(player, room): # add player_actor
+    room.create_actor("basic_actor", "rooms.test_scripts.basic_actor")
 

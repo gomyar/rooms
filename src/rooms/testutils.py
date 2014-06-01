@@ -5,17 +5,21 @@ import json
 
 from rooms.player import Player
 from rooms.room import Room
+from rooms.actor import Actor
 from rooms.position import Position
 from rooms.timer import Timer
 
 
 class MockContainer(object):
-    def __init__(self, rooms=None, players=None, games=None, room_factory=None):
+    def __init__(self, rooms=None, players=None, games=None, room_factory=None,
+            actors=None):
         self.rooms = rooms or {}
         self.players = players or {}
         self.games = games or {}
+        self.actors = actors or {}
         self.room_factory = room_factory or {}
         self.gameids = 1
+        self.actorids = 1
         self.node = MockNode()
         self.room_factory = room_factory or \
             MockRoomFactory(MockRoom("mock_game_1", "mock_room_1"))
@@ -44,11 +48,21 @@ class MockContainer(object):
     def save_game(self, game):
         self.games[game.game_id] = game
 
+    def save_actor(self, actor):
+        self.actors[actor.actor_id] = actor
+
     def create_room(self, game_id, room_id):
         room = self.room_factory.create(game_id, room_id)
         room.geography = MockGeog()
         self.rooms[game_id, room_id] = room
         return room
+
+    def create_actor(self, room, actor_type, script_name, player_username=None):
+        actor = Actor(room, actor_type, script_name, player_username)
+        actor._actor_id = "actor%s" % (self.actorids)
+        self.actors[actor.actor_id] = actor
+        self.actorids += 1
+        return actor
 
     def all_games(self):
         return self.games.values()
@@ -78,6 +92,9 @@ class MockRoom(object):
         self.game_id = game_id
         self._updates = []
         self.actors = dict()
+        self.topleft = Position(0, 0)
+        self.bottomright = Position(10, 10)
+        self.center = Position(0, 0)
 
     def kick(self):
         self._kicked_off = True

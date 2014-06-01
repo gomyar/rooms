@@ -90,10 +90,9 @@ class Room(object):
     def kick(self):
         pass
 
-    def create_actor(self, script_name, player=None):
-        actor = Actor(self)
-        actor.player_username = player.username if player else None
-        actor.script.load_script(script_name)
+    def create_actor(self, actor_type, script_name, player=None):
+        actor = self.node.container.create_actor(self, actor_type, script_name,
+            player.username if player else None)
         actor.script.call("created", actor)
         actor.kick()
         self.actors[actor.actor_id] = actor

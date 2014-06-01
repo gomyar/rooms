@@ -10,6 +10,7 @@ from rooms.testutils import MockGeog
 from rooms.testutils import MockNode
 from rooms.testutils import MockRoomFactory
 from rooms.testutils import MockRoom
+from rooms.testutils import MockTimer
 
 
 class MockDbase(object):
@@ -67,6 +68,8 @@ class ContainerTest(unittest.TestCase):
         self.mock_room_factory = MockRoomFactory(self.room2)
         self.container = Container(self.dbase, self.geography, self.node,
             self.mock_room_factory)
+        self.node.container = self.container
+        MockTimer.setup_mock()
 
     def testSaveGame(self):
         self.game = Game("bob")
@@ -119,19 +122,21 @@ class ContainerTest(unittest.TestCase):
             "__type__": "Room", "room_id": "room1", "game_id": "games_0",
             "topleft": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
             "bottomright": {"__type__": "Position", "x": 10, "y": 10, "z": 0},
-            "doors": [{"__type__": "Door", "exit_room_id": "room2", "enter_position": {"__type__": "Position", "x": 10, "y": 10, "z": 0}, "exit_position": {"__type__": "Position", "x": 10, "y": 10, "z": 0}}],
-            "actors": {"actor1": {"__type__": "Actor", "actor_id": "actor1",
-                "actor_type": "test", "model_type": "model",
-                "speed": 1.0,
-                "player_username": "ned",
-                "state": {}, "path": [], "vector": {"__type__": "Vector",
-                "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
-                "start_time": 0,
-                "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
-                "end_time": 10,
-                }, "script": {
-                "__type__": "Script", "script_module": "rooms.container_test"}}}
+            "doors": [{"__type__": "Door", "exit_room_id": "room2", "enter_position": {"__type__": "Position", "x": 10, "y": 10, "z": 0}, "exit_position": {"__type__": "Position", "x": 10, "y": 10, "z": 0}}]
             }
+        self.dbase.dbases['actors'] = {}
+        self.dbase.dbases['actors']['actor1'] = \
+            {"__type__": "Actor", "_id": "actor1", "actor_id": None,
+            "game_id": "games_0", "room_id": "room1",
+            "actor_type": "test", "model_type": "model",
+            "speed": 1.0,
+            "player_username": "ned",
+            "state": {}, "path": [], "vector": {"__type__": "Vector",
+            "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "start_time": 0,
+            "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
+            "end_time": 10,
+            }, "script_name": "rooms.container_test"}
         room = self.container.load_room("games_0", "room1")
         self.assertEquals(self.geography, room.geography)
         self.assertEquals(room, self.geography.room)
@@ -153,17 +158,6 @@ class ContainerTest(unittest.TestCase):
             "__type__": "Room", "room_id": "room1", "game_id": "games_0",
             "topleft": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
             "bottomright": {"__type__": "Position", "x": 10, "y": 10, "z": 0},
-            "actors": {"actor1": {"__type__": "Actor", "actor_id": "actor1",
-                "actor_type": "test", "model_type": "model",
-                "speed": 1.0,
-                "player_username": "ned",
-                "state": {}, "path": [], "vector": {"__type__": "Vector",
-                "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
-                "start_time": 0,
-                "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
-                "end_time": 10,
-                }, "script": {
-                "__type__": "Script", "script_module": "rooms.container_test"}}}
             }
 
         self.assertRaises(Exception, self.container.create_room, "games_0",
@@ -172,25 +166,70 @@ class ContainerTest(unittest.TestCase):
     def testSaveRoom(self):
         room = Room("game1", "room1", Position(0, 0), Position(10, 10),
             self.node)
-        room.create_actor("rooms.room_test")
+        actor = room.create_actor("mock_actor", "rooms.room_test")
         self.container.save_room(room)
         room_dict = self.dbase.dbases['rooms']['rooms_0']
         self.assertEquals('room1', room_dict['room_id'])
-        self.assertEquals(1, len(room_dict['actors']))
+        actor_dict = self.dbase.dbases['actors'][actor.actor_id]
+        self.assertEquals({u'__type__': u'Actor',
+            '_id': 'actors_0',
+            u'actor_id': None,
+            u'actor_type': u'mock_actor',
+            u'game_id': u'game1',
+            u'path': [],
+            u'player_username': None,
+            u'room_id': u'room1',
+            u'script_name': u'rooms.room_test',
+            u'speed': 1.0,
+            u'state': {},
+            u'vector': {u'__type__': u'Vector',
+                        u'end_pos': {u'__type__': u'Position',
+                                    u'x': 0.0,
+                                    u'y': 0.0,
+                                    u'z': 0.0},
+                        u'end_time': 0.0,
+                        u'start_pos': {u'__type__': u'Position',
+                                        u'x': 0.0,
+                                        u'y': 0.0,
+                                        u'z': 0.0},
+                        u'start_time': 0}}
+            , actor_dict)
 
     def testOkWeveGotTheIdea(self):
         self.container.save_room(Room("games_0", "rooms_0", Position(0, 0),
             Position(50, 50), self.node))
         self.assertTrue(self.dbase.dbases['rooms'])
 
-    def testSaveActorToRoom(self):
+    def testSaveActor(self):
         room = self.container.create_room("game1", "room2")
-
-        actor = room.create_actor("rooms.room_test")
-        self.assertEquals({}, self.dbase.dbases['rooms']['rooms_0']['actors'])
+        actor = room.create_actor("mock_actor", "rooms.room_test")
+        self.container.save_actor(actor)
+        self.assertEquals({u'__type__': u'Actor',
+            '_id': 'actors_0',
+            u'actor_id': None,
+            u'actor_type': u'mock_actor',
+            u'game_id': u'game1',
+            u'path': [],
+            u'player_username': None,
+            u'room_id': u'room2',
+            u'script_name': u'rooms.room_test',
+            u'speed': 1.0,
+            u'state': {u'created': True},
+            u'vector': {u'__type__': u'Vector',
+                        u'end_pos': {u'__type__': u'Position',
+                                    u'x': 0.0,
+                                    u'y': 0.0,
+                                    u'z': 0.0},
+                        u'end_time': 0.0,
+                        u'start_pos': {u'__type__': u'Position',
+                                        u'x': 0.0,
+                                        u'y': 0.0,
+                                        u'z': 0.0},
+                        u'start_time': 0}}
+            , self.dbase.dbases['actors']['actors_0'])
 
         actor.state.testme = "value1"
-        import ipdb; ipdb.set_trace()
-        self.container.save_actor_to_room("game1", "room2", actor)
-        self.assertEquals({"__type__": "Actor"},
-            self.dbase.dbases['rooms']['rooms_0']['actors'])
+        self.container.save_actor(actor)
+        self.assertEquals({u'created': True, u'testme': u'value1'},
+            self.dbase.dbases['actors']['actors_0']['state'])
+
