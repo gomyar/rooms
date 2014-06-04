@@ -11,6 +11,7 @@ class JsonView(object):
     def __init__(self):
         self.views = dict(
             Actor=self.view_actor,
+            PlayerActor=self.view_actor,
             State=self.view_state,
             Vector=self.view_vector,
             Position=self.view_position,

@@ -3,7 +3,7 @@ import gevent
 from gevent.event import Event
 import json
 
-from rooms.player import Player
+from rooms.player import PlayerActor
 from rooms.room import Room
 from rooms.actor import Actor
 from rooms.position import Position
@@ -11,15 +11,16 @@ from rooms.timer import Timer
 
 
 class MockContainer(object):
-    def __init__(self, rooms=None, players=None, games=None, room_factory=None,
-            actors=None):
+    def __init__(self, rooms=None, games=None, room_factory=None,
+            actors=None, player_actors=None):
         self.rooms = rooms or {}
-        self.players = players or {}
         self.games = games or {}
         self.actors = actors or {}
+        self.player_actors = player_actors or {}
         self.room_factory = room_factory or {}
         self.gameids = 1
         self.actorids = 1
+        self.playerids = 1
         self.node = MockNode()
         self.room_factory = room_factory or \
             MockRoomFactory(MockRoom("mock_game_1", "mock_room_1"))
@@ -35,13 +36,13 @@ class MockContainer(object):
         return (game_id, room_id) in self.rooms
 
     def load_player(self, username, game_id):
-        return self.players[username, game_id]
+        return self.player_actors[username, game_id]
 
     def save_player(self, player):
-        self.players[player.username, player.game_id] = player
+        self.player_actors[player.username, player.game_id] = player
 
     def player_exists(self, username, game_id):
-        return (username, game_id) in self.players
+        return (username, game_id) in self.player_actors
 
     def load_game(self, game_id):
         return self.games[game_id]
@@ -80,13 +81,15 @@ class MockContainer(object):
         self.save_game(game)
         return game
 
-    def create_player(self, username, game_id, room_id):
-        player = Player(username, game_id, room_id)
+    def create_player(self, room, actor_type, script_name, username, game_id):
+        player = PlayerActor(room, actor_type, script_name, username,
+            actor_id="player%s" % (self.playerids), game_id=game_id)
+        self.playerids += 1
         self.save_player(player)
         return player
 
     def players_in_game(self, game_id):
-        return [p for p in self.players.values() if p.game_id == game_id]
+        return [p for p in self.player_actors.values() if p.game_id == game_id]
 
 
 class MockRoom(object):
@@ -117,6 +120,10 @@ class MockRoom(object):
         self.actors[actor.actor_id] = actor
         return actor
 
+    def put_actor(self, actor):
+        self.actors[actor.actor_id] = actor
+        actor.room = self
+
     def actor_enters(self, actor, door):
         self._actor_enters.append((actor, door))
 
@@ -144,6 +151,7 @@ class MockGame(object):
 class MockScript(object):
     def __init__(self):
         self.called = []
+        self.script_name = "rooms.test_scripts.basic_player"
 
     def call(self, method, *args, **kwargs):
         self.called.append((method, args, kwargs))

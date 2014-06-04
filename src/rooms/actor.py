@@ -22,9 +22,11 @@ class State(dict):
 
 class Actor(object):
     def __init__(self, room, actor_type, script_name, player_username=None,
-            actor_id=None):
+            actor_id=None, room_id=None, game_id=None):
         self.room = room
         self._actor_id = actor_id
+        self._room_id = room_id
+        self._game_id = game_id
         self.actor_type = actor_type
         self.state = State(self)
         self.path = []
@@ -39,6 +41,14 @@ class Actor(object):
     @property
     def actor_id(self):
         return self._actor_id or getattr(self, "_id", None)
+
+    @property
+    def room_id(self):
+        return self.room.room_id if self.room else self._room_id
+
+    @property
+    def game_id(self):
+        return self.room.game_id if self.room else self._game_id
 
     def kick(self):
         self._run_on_gthread(self.script.call, "kickoff", self)

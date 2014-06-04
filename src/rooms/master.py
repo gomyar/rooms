@@ -2,7 +2,7 @@
 import gevent
 
 from rooms.game import Game
-from rooms.player import Player
+from rooms.player import PlayerActor
 from rooms.rpc import RPCException
 from rooms.rpc import RPCWaitException
 from rooms.rpc import WSGIRPCServer
@@ -154,13 +154,11 @@ class Master(object):
         return self.container.create_game(owner_id).game_id
 
     def join_game(self, username, game_id, room_id):
-        ''' Player joins a game - player object created.
+        ''' PlayerActor joins a game - player object created.
             script player_joins() is called on node.'''
         self._check_can_join(username, game_id)
         self._check_node_offline(game_id, room_id)
         self._check_nodes_available()
-
-        player = self._create_player(username, game_id, room_id)
 
         node = self._get_node_for_room(game_id, room_id)
         token = node.player_joins(username, game_id, room_id)
@@ -180,11 +178,13 @@ class Master(object):
         player = self._load_player(username, game_id)
         node = self._get_node_for_room(game_id, player.room_id)
         token = node.request_token(username, game_id)
-        return {"token": token, "node": (node.host, node.port)}
+        return {"token": token, "node": (node.host, node.port),
+            "url": "http://localhost:8000/assets/index.html?"
+            "token=%s&game_id=%s&username=%s" % (token, game_id, username)}
 
     def _check_can_join(self, username, game_id):
         if self.container.player_exists(username, game_id):
-            raise RPCException("Player already joined %s %s" % (username,
+            raise RPCException("PlayerActor already joined %s %s" % (username,
                 game_id))
 
     def _check_node_offline(self, game_id, room_id):
@@ -193,9 +193,6 @@ class Master(object):
             if (host, port) in self.nodes and \
                 not self.nodes[host, port].online:
                 raise RPCWaitException("Room in transit")
-
-    def _create_player(self, username, game_id, room_id):
-        return self.container.create_player(username, game_id, room_id)
 
     def _load_player(self, username, game_id):
         return self.container.load_player(username, game_id)

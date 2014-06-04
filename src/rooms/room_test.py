@@ -10,7 +10,7 @@ from rooms.testutils import MockActor
 from rooms.testutils import MockContainer
 from rooms.geography.basic_geography import BasicGeography
 from rooms import actor
-from rooms.player import Player
+from rooms.player import PlayerActor
 
 
 def created(actor):
@@ -46,7 +46,7 @@ class RoomTest(unittest.TestCase):
         self.assertEquals(actor, self.room.actors['actor1'])
         self.assertEquals(None, actor.player_username)
 
-        self.player = Player("bob", "game1", "room1")
+        self.player = PlayerActor(self.room, "player", "rooms.room_test", "bob")
         actor2 = self.room.create_actor("mock_actor", "rooms.room_test",
             player=self.player)
         self.assertEquals("bob", actor2.player_username)

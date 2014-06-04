@@ -95,8 +95,12 @@ class Room(object):
             player.username if player else None)
         actor.script.call("created", actor)
         actor.kick()
-        self.actors[actor.actor_id] = actor
+        self.put_actor(actor)
         return actor
+
+    def put_actor(self, actor):
+        self.actors[actor.actor_id] = actor
+        actor.room = self
 
     def find_path(self, from_pos, to_pos):
         return self.geography.find_path(self, from_pos, to_pos)

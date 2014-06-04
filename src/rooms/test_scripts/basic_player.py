@@ -1,5 +1,15 @@
 
+from rooms.position import Position
 
-def player_joins(player, room): # add player_actor
-    room.create_actor("basic_actor", "rooms.test_scripts.basic_actor")
 
+def player_joins(player_actor, room):
+    player_actor.state.initialized = True
+
+def move_to(actor, x, y):
+    actor.move_to(Position(x, y))
+
+def ping(actor):
+    print "PING"
+    for i in range(10):
+        actor._send_update({"count": i})
+        actor.sleep(1)

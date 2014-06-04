@@ -3,7 +3,7 @@ import unittest
 
 from rooms.container import Container
 from rooms.game import Game
-from rooms.player import Player
+from rooms.player import PlayerActor
 from rooms.room import Room
 from rooms.position import Position
 from rooms.testutils import MockGeog
@@ -63,7 +63,7 @@ class ContainerTest(unittest.TestCase):
         self.dbase = MockDbase()
         self.geography = MockGeog()
         self.node = MockNode()
-        self.room2 = Room("game1", "room2", Position(0, 0), Position(10, 10),
+        self.room2 = Room("games_0", "room2", Position(0, 0), Position(10, 10),
             self.node)
         self.mock_room_factory = MockRoomFactory(self.room2)
         self.container = Container(self.dbase, self.geography, self.node,
@@ -82,39 +82,47 @@ class ContainerTest(unittest.TestCase):
             self.dbase.dbases['games'])
 
     def testSavePlayer(self):
-        self.player = Player("bob", "games_0", "rooms_0")
+        self.player = PlayerActor(self.room2, "player", "container_test",
+            "bob", game_id="games_0", actor_id="actors_0")
 
         self.assertFalse(self.container.player_exists("bob", "games_0"))
         self.container.save_player(self.player)
         self.assertTrue(self.container.player_exists("bob", "games_0"))
 
-        self.assertEquals({'players_0': {u'__type__': u'Player',
-            '_id': 'players_0',
+        self.assertEquals({'actors_0': {u'__type__': u'PlayerActor',
+            '_id': 'actors_0',
+            u'actor_id': u'actors_0',
+            u'actor_type': u'player',
             u'game_id': u'games_0',
-            u'room_id': u'rooms_0',
-            u'username': u'bob'}}, self.dbase.dbases['players'])
+            u'script_name': u'container_test',
+            u'room_id': u'room2',
+            u'username': u'bob'}}, self.dbase.dbases['actors'])
 
     def testLoadPlayer(self):
-        self.dbase.dbases['players'] = {'players_0': {u'__type__': u'Player',
-            '_id': 'players_0',
+        self.dbase.dbases['actors'] = {'actors_0': {u'__type__': u'PlayerActor',
+            '_id': 'actors_0',
+            u'actor_id': u'actors_0',
+            u'actor_type': u'player',
             u'game_id': u'games_1',
+            u'script_name': u'container_test',
             u'room_id': u'rooms_10',
             u'username': u'ned'}}
 
         player = self.container.load_player("ned", "games_1")
 
         self.assertEquals("rooms_10", player.room_id)
-        self.assertEquals("players_0", player._id)
+        self.assertEquals("actors_0", player._id)
 
         self.assertRaises(Exception,
             self.container.load_player, "ned", "nonexistant")
 
     def testCreatePlayer(self):
-        player = self.container.create_player("ned", "games_0", "rooms_1")
-        self.assertEquals("players_0", player._id)
+        player = self.container.create_player(self.room2, "player",
+            "container_test", "ned", game_id="games_0")
+        self.assertEquals("actors_0", player._id)
         self.assertEquals("ned", player.username)
         self.assertEquals("games_0", player.game_id)
-        self.assertEquals("rooms_1", player.room_id)
+        self.assertEquals("room2", player.room_id)
 
     def testLoadRoom(self):
         self.dbase.dbases['rooms'] = {}
@@ -208,7 +216,7 @@ class ContainerTest(unittest.TestCase):
             '_id': 'actors_0',
             u'actor_id': None,
             u'actor_type': u'mock_actor',
-            u'game_id': u'game1',
+            u'game_id': u'games_0',
             u'path': [],
             u'player_username': None,
             u'room_id': u'room2',

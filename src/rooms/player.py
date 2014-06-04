@@ -1,17 +1,25 @@
 
-class Player(object):
-    def __init__(self, username, game_id, room_id):
-        self.username = username
-        self.game_id = game_id
-        self.room_id = room_id
+from rooms.actor import Actor
+from gevent.queue import Queue
+
+
+class PlayerActor(Actor):
+    def __init__(self, room, actor_type, script_name, username, actor_id=None,
+            game_id=None, room_id=None):
+        super(PlayerActor, self).__init__(room, actor_type, script_name,
+            player_username=username, actor_id=actor_id, game_id=game_id,
+            room_id=room_id)
         self.token = None
-        self.queue = None
+        self.queue = Queue()
+
+    @property
+    def username(self):
+        return self.player_username
 
     def __repr__(self):
-        return "<Player %s in game %s room %s>" % (self.username,
-            self.game_id, self.room_id)
+        return "<PlayerActor %s in game %s room %s>" % (self.username,
+            self.room.game_id, self.room.room_id)
 
-    def __eq__(self, rhs):
-        return rhs and type(rhs) is Player and \
-            self.username == rhs.username and self.game_id == rhs.game_id and \
-            self.room_id == rhs.room_id
+#    def __eq__(self, rhs):
+#        return rhs and type(rhs) is PlayerActor and \
+#            super(PlayerActor, self).__eq__(rhs)

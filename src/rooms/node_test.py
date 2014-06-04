@@ -5,7 +5,7 @@ from gevent.queue import Queue
 
 from rooms.node import Node
 from rooms.room import Room
-from rooms.player import Player
+from rooms.player import PlayerActor
 from rooms.testutils import MockContainer
 from rooms.testutils import MockRpcClient
 from rooms.testutils import MockScript
@@ -26,9 +26,10 @@ class NodeTest(unittest.TestCase):
         self.room1 = MockRoom("game1", "room1")
         self.room2 = MockRoom("game1", "room2")
         self.mock_room_factory = MockRoomFactory(self.room2)
-        self.player1 = Player("bob", "game1", "room1")
+        self.player1 = PlayerActor(self.room1, "player", "rooms.node_test",
+            "bob")
         self.container = MockContainer(rooms={("game1", "room1"): self.room1},
-            players={"bob1": self.player1},
+            player_actors={("bob1", "game1"): self.player1},
             room_factory=self.mock_room_factory)
         self.node = Node("10.10.10.1", 8000, "master", 9000)
         self.node.container = self.container
@@ -49,13 +50,17 @@ class NodeTest(unittest.TestCase):
 
     def testPlayerJoins(self):
         self.node.manage_room("game1", "room1")
-        self.container.players['bob', 'game1'] = Player('bob', 'game1', 'room1')
+
         token = self.node.player_joins("bob", "game1", "room1")
         self.assertEquals("TOKEN1", token)
 
+        new_player = self.container.player_actors['bob', 'game1']
+        self.assertEquals("bob", new_player.username)
+        self.assertEquals("room1", new_player.room_id)
+        self.assertEquals("game1", new_player.game_id)
         self.assertEquals(1, len(self.node.players))
         self.assertEquals([
-            ("player_joins", (self.player1, self.room1), {})
+            ("player_joins", (new_player, self.room1), {})
         ], self.player_script.called)
 
     def testManageNonExistantRoom(self):
@@ -99,8 +104,6 @@ class NodeTest(unittest.TestCase):
 
     def testAllPlayers(self):
         self.node.manage_room("game1", "room1")
-        # expects player to exist in dbase
-        self.container.players['bob', 'game1'] = Player('bob', 'game1', 'room1')
         token = self.node.player_joins("bob", "game1", "room1")
         self.assertEquals([{'username': 'bob', 'game_id': 'game1',
             'token': 'TOKEN1', 'room_id': 'room1'}], self.node.all_players())
@@ -113,18 +116,18 @@ class NodeTest(unittest.TestCase):
 
     def testRequestToken(self):
         self.node.manage_room("game1", "room1")
-        self.container.players['bob', 'game1'] = Player("bob", "game1", "room1")
+        self.container.player_actors['bob', 'game1'] = self.player1
         token = self.node.request_token("bob", "game1")
         self.assertEquals("TOKEN1", token)
 
     def testRequestTokenInvalidPlayer(self):
         self.node.manage_room("game1", "room_other")
-        self.container.players['bob', 'game1'] = Player("bob", "game1", "room1")
+        self.container.player_actors['bob', 'game1'] = self.player1
         self.assertRaises(RPCException, self.node.request_token, "bob", "game1")
 
     def testRequestTokenNoSuchPlayer(self):
         self.node.manage_room("game1", "room_other")
-        self.container.players['bob', 'game1'] = Player("bob", "game1", "room1")
+        self.container.player_actors['bob', 'game1'] = self.player1
         self.assertRaises(RPCException, self.node.request_token, "no", "game1")
 
     def testPlayerConnects(self):
@@ -145,7 +148,7 @@ class NodeTest(unittest.TestCase):
 
     def testActorCall(self):
         self.node.manage_room("game1", "room1")
-        self.container.players['bob', 'game1'] = Player('bob', 'game1', 'room1')
+        self.container.player_actors['bob', 'game1'] = self.player1
         self.node.player_joins("bob", "game1", "room1")
         actor = MockActor()
         self.room1.actors['actor1'] = actor

@@ -1,10 +1,9 @@
 
 import uuid
 import gevent
-from gevent.queue import Queue
 import json
 
-from rooms.player import Player
+from rooms.player import PlayerActor
 from rooms.rpc import WSGIRPCClient
 from rooms.rpc import request
 from rooms.rpc import websocket
@@ -112,10 +111,14 @@ class Node(object):
         room.kick()
 
     def player_joins(self, username, game_id, room_id):
-        player = self._request_player_connection(username, game_id)
         room = self.rooms[game_id, room_id]
-        self.player_script.call("player_joins", player, room)
-        return player.token
+        player_actor = self.container.create_player(room, "player",
+            self.player_script.script_name, username, game_id)
+        self._setup_player_token(player_actor)
+        self.players[username, game_id] = player_actor
+        room.put_actor(player_actor)
+        self.player_script.call("player_joins", player_actor, room)
+        return player_actor.token
 
     def request_token(self, username, game_id):
         player = self._request_player_connection(username, game_id)
@@ -127,19 +130,14 @@ class Node(object):
             gevent.sleep(1)
 
     def player_connects(self, ws, game_id, username, token):
-        queue = Queue()
         player = self.players[username, game_id]
-        player.queue = queue
-        room = self.rooms[game_id, player.room_id]
-        ws.send(json.dumps(self._sync_message(room)))
-        for actor in room.actors.values():
+        ws.send(json.dumps(self._sync_message(player.room)))
+        for actor in player.room.actors.values():
             ws.send(json.dumps(
                 {"command": "actor_update", "actor_id": actor.actor_id,
                 "data": jsonview(actor)}))
         while True:
-            print "Waiting"
-            message = queue.get()
-            print "Sending"
+            message = player.queue.get()
             ws.send(json.dumps(jsonview(message)))
 
     def _sync_message(self, room):
@@ -166,9 +164,12 @@ class Node(object):
     def _request_player_connection(self, username, game_id):
         player = self._get_or_load_player(username, game_id)
         self._check_player_valid(player)
+        self._setup_player_token(player)
+        return player
+
+    def _setup_player_token(self, player):
         if not player.token:
             player.token = self._create_token()
-        return player
 
     def _check_player_valid(self, player):
         if (player.game_id, player.room_id) not in self.rooms:

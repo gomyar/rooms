@@ -1,7 +1,7 @@
 import json
 
 from rooms.game import Game
-from rooms.player import Player
+from rooms.player import PlayerActor
 from rooms.room import Room, Door
 from rooms.position import Position
 from rooms.actor import Actor
@@ -20,7 +20,7 @@ class Container(object):
         self.room_factory = room_factory
         self.serializers = dict(
             Game=self._serialize_game,
-            Player=self._serialize_player,
+            PlayerActor=self._serialize_player,
             Room=self._serialize_room,
             Door=self._serialize_door,
             Position=self._serialize_position,
@@ -29,7 +29,7 @@ class Container(object):
         )
         self.builders = dict(
             Game=self._build_game,
-            Player=self._build_player,
+            PlayerActor=self._build_player,
             Room=self._build_room,
             Door=self._build_door,
             Position=self._build_position,
@@ -73,13 +73,14 @@ class Container(object):
             room_id=room_id)
 
     def load_player(self, username, game_id):
-        return self._load_filter_one("players", username=username, game_id=game_id)
+        return self._load_filter_one("actors", username=username,
+            game_id=game_id)
 
     def save_player(self, player):
-        self._save_object(player, "players")
+        self._save_object(player, "actors")
 
     def player_exists(self, username, game_id):
-        return self.dbase.object_exists("players", username=username,
+        return self.dbase.object_exists("actors", username=username,
             game_id=game_id)
 
     def players_in_game(self, game_id):
@@ -109,8 +110,9 @@ class Container(object):
         games = [self._decode_enc_dict(enc_dict) for enc_dict in game_dicts]
         return games
 
-    def create_player(self, username, game_id, room_id):
-        player = Player(username, game_id, room_id)
+    def create_player(self, room, actor_type, script_name, username, game_id):
+        player = PlayerActor(room, actor_type, script_name, username,
+            game_id=game_id)
         self.save_player(player)
         return player
 
@@ -193,14 +195,19 @@ class Container(object):
     def _build_position(self, data):
         return Position(data['x'], data['y'], data['y'])
 
-    # Player
+    # PlayerActor
     def _serialize_player(self, player):
-        return dict(username=player.username,
+        return dict(actor_id=player.actor_id,
+            username=player.username,
+            actor_type=player.actor_type,
+            script_name=player.script.script_name,
             game_id=player.game_id,
             room_id=player.room_id)
 
     def _build_player(self, data):
-        return Player(data['username'], data['game_id'], data['room_id'])
+        return PlayerActor(None, data['actor_type'], data['script_name'],
+            data['username'], game_id=data['game_id'], actor_id=data['actor_id'],
+            room_id=data['room_id'])
 
     # Room
     def _serialize_room(self, room):
@@ -230,7 +237,7 @@ class Container(object):
         return dict(actor_id=actor.actor_id,
             state=actor.state,
             game_id=actor.room.game_id,
-            room_id=actor.room.room_id,
+            room_id=actor.room_id,
             path=actor.path,
             vector=actor.vector,
             script_name=actor.script.script_name,
@@ -240,7 +247,8 @@ class Container(object):
 
     def _build_actor(self, data):
         actor = Actor(None, data['actor_type'], data['script_name'],
-            data['player_username'], actor_id=data['actor_id'])
+            data['player_username'], actor_id=data['actor_id'],
+            room_id=data['room_id'])
         actor.state = data['state']
         actor.path = data['path']
         actor.vector = data['vector']
