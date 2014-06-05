@@ -197,17 +197,19 @@ class Container(object):
 
     # PlayerActor
     def _serialize_player(self, player):
-        return dict(actor_id=player.actor_id,
-            username=player.username,
-            actor_type=player.actor_type,
-            script_name=player.script.script_name,
-            game_id=player.game_id,
-            room_id=player.room_id)
+        data = self._serialize_actor(player)
+        data['game_id'] = player.game_id
+        return data
 
     def _build_player(self, data):
-        return PlayerActor(None, data['actor_type'], data['script_name'],
+        player = PlayerActor(None, data['actor_type'], data['script_name'],
             data['username'], game_id=data['game_id'], actor_id=data['actor_id'],
             room_id=data['room_id'])
+        player.state = data['state']
+        player.path = data['path']
+        player.vector = data['vector']
+        player.speed = data['speed']
+        return player
 
     # Room
     def _serialize_room(self, room):

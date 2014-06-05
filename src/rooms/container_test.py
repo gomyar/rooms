@@ -106,6 +106,15 @@ class ContainerTest(unittest.TestCase):
             u'game_id': u'games_1',
             u'script_name': u'container_test',
             u'room_id': u'rooms_10',
+            "state": {},
+            "path": [],
+            "speed": 1.0,
+            "vector": {"__type__": "Vector",
+            "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "start_time": 0,
+            "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
+            "end_time": 10,
+            },
             u'username': u'ned'}}
 
         player = self.container.load_player("ned", "games_1")
