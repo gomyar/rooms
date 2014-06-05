@@ -44,12 +44,12 @@ class RoomTest(unittest.TestCase):
         self.assertEquals(created, actor.script._script_module.created)
         self.assertEquals(self.room, actor.room)
         self.assertEquals(actor, self.room.actors['actor1'])
-        self.assertEquals(None, actor.player_username)
+        self.assertEquals(None, actor.username)
 
         self.player = PlayerActor(self.room, "player", "rooms.room_test", "bob")
         actor2 = self.room.create_actor("mock_actor", "rooms.room_test",
             player=self.player)
-        self.assertEquals("bob", actor2.player_username)
+        self.assertEquals("bob", actor2.username)
 
     def testFindPath(self):
         path = self.room.find_path(Position(1, 2), Position(3, 4))

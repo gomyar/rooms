@@ -189,7 +189,7 @@ class Node(object):
         return str(uuid.uuid1())
 
     def _following_player(self, actor, game_id):
-        return self.players.get((actor.player_username, game_id), None)
+        return self.players.get((actor.username, game_id), None)
 
     def move_actor_room(self, actor, game_id, exit_room_id, exit_room_position):
         from_room = actor.room

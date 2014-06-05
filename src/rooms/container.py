@@ -57,8 +57,8 @@ class Container(object):
         self.save_room(room)
         return room
 
-    def create_actor(self, room, actor_type, script_name, player_username=None):
-        actor = Actor(room, actor_type, script_name, player_username)
+    def create_actor(self, room, actor_type, script_name, username=None):
+        actor = Actor(room, actor_type, script_name, username)
         self.save_actor(actor)
         return actor
 
@@ -244,12 +244,12 @@ class Container(object):
             vector=actor.vector,
             script_name=actor.script.script_name,
             actor_type=actor.actor_type,
-            player_username=actor.player_username,
+            username=actor.username,
             speed=actor.speed)
 
     def _build_actor(self, data):
         actor = Actor(None, data['actor_type'], data['script_name'],
-            data['player_username'], actor_id=data['actor_id'],
+            data['username'], actor_id=data['actor_id'],
             room_id=data['room_id'])
         actor.state = data['state']
         actor.path = data['path']

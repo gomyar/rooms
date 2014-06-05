@@ -62,8 +62,8 @@ class MockContainer(object):
         self.rooms[game_id, room_id] = room
         return room
 
-    def create_actor(self, room, actor_type, script_name, player_username=None):
-        actor = Actor(room, actor_type, script_name, player_username)
+    def create_actor(self, room, actor_type, script_name, username=None):
+        actor = Actor(room, actor_type, script_name, username)
         actor._actor_id = "actor%s" % (self.actorids)
         self.actors[actor.actor_id] = actor
         self.actorids += 1
@@ -116,7 +116,7 @@ class MockRoom(object):
     def create_actor(self, actor_type, script_name, player=None):
         actor = MockActor("mock1")
         actor.room = self
-        actor.player_username = player.username if player else None
+        actor.username = player.username if player else None
         self.actors[actor.actor_id] = actor
         return actor
 
@@ -244,7 +244,7 @@ class MockActor(object):
     def __init__(self, actor_id=None):
         self.actor_id = actor_id
         self.script = MockScript()
-        self.player_username = None
+        self.username = None
 
     def script_call(self, method, *args):
         self.script.call(method, *args)

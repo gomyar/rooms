@@ -38,7 +38,7 @@ class JsonView(object):
             state=actor.state,
             vector=actor.vector,
             actor_type=actor.actor_type,
-            username=actor.player_username,
+            username=actor.username,
         )
 
     def view_state(self, state):
