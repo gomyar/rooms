@@ -63,8 +63,10 @@ gui_room.door_at = function(x, y)
     for (var i in api_rooms.room.doors)
     {
         var door = api_rooms.room.doors[i];
-        if (door.enter_position.x + 20 > x && door.enter_position.x - 20 < x &&
-            door.enter_position.y + 20 > y && door.enter_position.y - 20 < y)
+        var door_x = door.enter_position.x + api_rooms.room.topleft.x;
+        var door_y = door.enter_position.y + api_rooms.room.topleft.y;
+        if (door_x + 20 > x && door_x - 20 < x &&
+            door_y + 20 > y && door_y - 20 < y)
             return door;
     }
     return null;
