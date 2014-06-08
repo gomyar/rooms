@@ -213,6 +213,7 @@ class Node(object):
                     exit_room = self._move_actor_internal(game_id, exit_room_id,
                         actor, from_room)
                     player.queue.put(self._sync_message(exit_room))
+            from_room.actors.pop(actor.actor_id)
 
     def _move_actor_internal(self, game_id, exit_room_id, actor, from_room):
         from_room.actors.pop(actor.actor_id)

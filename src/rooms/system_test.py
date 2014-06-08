@@ -180,6 +180,7 @@ class SystemTest(unittest.TestCase):
         room2 = self.node.rooms["game1", "room2"]
         self.assertEquals(self.player, room2.actors["player1"])
         self.assertEquals(room2, self.player.room)
+        self.assertEquals({}, self.room1.actors)
 
     def testMoveActorRoomAnotherNode(self):
         self.room1 = Room("game1", "room1",
@@ -211,3 +212,4 @@ class SystemTest(unittest.TestCase):
         self.assertEquals([
             ('player_connects', {'game_id': 'game1', 'username': 'bob'})],
             self.mock_player_rpc.called)
+        self.assertEquals({}, self.room1.actors)

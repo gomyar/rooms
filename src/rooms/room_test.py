@@ -83,4 +83,3 @@ class RoomTest(unittest.TestCase):
 
         self.assertEquals((self.actor, "game1", "room2", Position(10, 10)),
             self.node._updates[0])
-        self.assertEquals({}, self.room.actors)

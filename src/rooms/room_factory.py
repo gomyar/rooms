@@ -19,13 +19,19 @@ class FileMapSource(object):
 
 
 class RoomFactory(object):
+    POS_TOPLEFT = "relative_topleft"
+    POS_ABS = "absolute"
+
     def __init__(self, map_source, node):
         self.map_source = map_source
         self.node = node
+        self.origin = Position(0, 0)
+        self.positioning = RoomFactory.POS_ABS
 
     def create(self, game_id, room_id):
         map_id, map_room_id = room_id.split('.')
         map_json = self.map_source.load_map(map_id)
+        self.positioning = map_json.get("positioning", RoomFactory.POS_ABS)
         if map_room_id not in map_json['rooms']:
             raise Exception("No room %s in map %s" % (map_room_id, map_id))
         return self._create_room(map_json['rooms'][map_room_id], game_id,
@@ -34,6 +40,8 @@ class RoomFactory(object):
     def _create_room(self, room_json, game_id, room_id):
         room = Room(game_id, room_id, self._create_pos(room_json['topleft']),
             self._create_pos(room_json['bottomright']), self.node)
+        if self.positioning == RoomFactory.POS_TOPLEFT:
+            self.origin = self._create_pos(room_json['topleft'])
         for map_object_json in room_json['room_objects']:
             room.room_objects.append(self._create_object(map_object_json))
         for door_json in room_json['doors']:
@@ -57,4 +65,6 @@ class RoomFactory(object):
             tag_json['data'])
 
     def _create_pos(self, pos_json):
-        return Position(pos_json['x'], pos_json['y'], pos_json['z'])
+        return Position(pos_json['x'] + self.origin.x,
+            pos_json['y'] + self.origin.y,
+            pos_json['z'] + self.origin.z)

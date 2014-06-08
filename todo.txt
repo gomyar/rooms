@@ -1,9 +1,5 @@
-
- - each player object is connected to a single actor at any given time,
-    must be owned by that player. 
-    if That actor leaves the room, the player connection follows
-    Gonna have to work out exactly what happens if that actor is accidentally
-    or purposely destroyed (perhaps it can't be?)
+ - player_connects on node broken (not managing room and setting to player.room)
+ - "disconnect" message to websocket on bounce to another node
 
  - add demo client
    - client reconnects smoothly (darkens screen etc)
