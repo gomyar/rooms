@@ -92,6 +92,10 @@ class MasterTest(unittest.TestCase):
                 'username': 'bob'})
         ], self.rpc_conn.called)
 
+    def testJoinGameNonexistant(self):
+        self.master.register_node("10.10.10.1", 8000)
+        self.assertRaises(Exception, self.master.join_game, "bob", "nonexistant",
+            "room1")
 
     def testPlayersInGame(self):
         self.container.player_actors['bob', 'game1'] = PlayerActor(
@@ -137,6 +141,7 @@ class MasterTest(unittest.TestCase):
         self.assertEquals([], self.rpc_conn.called)
 
     def testJoinGameNoNodes(self):
+        self.master.create_game("bob")
         self.assertRaises(RPCWaitException, self.master.join_game, "bob",
             "game1", "room1")
 

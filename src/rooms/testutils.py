@@ -50,6 +50,9 @@ class MockContainer(object):
     def save_game(self, game):
         self.games[game.game_id] = game
 
+    def game_exists(self, game_id):
+        return game_id in self.games
+
     def save_actor(self, actor):
         self.actors[actor.actor_id] = actor
 
@@ -240,11 +243,11 @@ class MockTimer(Timer):
         return False
 
 
-class MockActor(object):
+class MockActor(Actor):
     def __init__(self, actor_id=None):
-        self.actor_id = actor_id
+        super(MockActor, self).__init__(None, "mock_actor", "rooms.testutils",
+            actor_id=actor_id)
         self.script = MockScript()
-        self.username = None
 
     def script_call(self, method, *args):
         self.script.call(method, *args)

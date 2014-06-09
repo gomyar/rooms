@@ -11,6 +11,7 @@ class PlayerActor(Actor):
             room_id=room_id)
         self.token = None
         self.queue = Queue()
+        self.is_player = True
 
     def __repr__(self):
         return "<PlayerActor %s in game %s room %s>" % (self.username,

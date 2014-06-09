@@ -156,6 +156,7 @@ class Master(object):
     def join_game(self, username, game_id, room_id):
         ''' PlayerActor joins a game - player object created.
             script player_joins() is called on node.'''
+        self._check_game_exists(game_id)
         self._check_can_join(username, game_id)
         self._check_node_offline(game_id, room_id)
         self._check_nodes_available()
@@ -165,6 +166,10 @@ class Master(object):
         return {"token": token, "node": (node.host, node.port),
             "url": "http://localhost:8000/assets/index.html?"
             "token=%s&game_id=%s&username=%s" % (token, game_id, username)}
+
+    def _check_game_exists(self, game_id):
+        if not self.container.game_exists(game_id):
+            raise Exception("Game %s does not exist" % (game_id,))
 
     def _check_nodes_available(self):
         if not self.nodes:

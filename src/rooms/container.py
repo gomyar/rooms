@@ -105,6 +105,9 @@ class Container(object):
         self.save_game(game)
         return game
 
+    def game_exists(self, game_id):
+        return self.dbase.object_exists("games", _id=game_id)
+
     def all_games(self):
         game_dicts = self.dbase.filter("games")
         games = [self._decode_enc_dict(enc_dict) for enc_dict in game_dicts]

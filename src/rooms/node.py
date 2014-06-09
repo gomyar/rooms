@@ -14,6 +14,9 @@ from rooms.script import NullScript
 from rooms.views import jsonview
 from rooms.timer import Timer
 
+import logging
+log = logging.getLogger("rooms.node")
+
 
 class GameController(object):
     def __init__(self, node):
@@ -188,36 +191,54 @@ class Node(object):
     def _create_token(self):
         return str(uuid.uuid1())
 
-    def _following_player(self, actor, game_id):
-        return self.players.get((actor.username, game_id), None)
-
-    def move_actor_room(self, actor, game_id, exit_room_id, exit_room_position):
+    def move_actor_room(self, actor, game_id, exit_room_id, exit_position):
+        log.debug("Moving actor %s to %s", actor, exit_room_id)
         from_room = actor.room
         self.container.update_actor(actor, room_id=exit_room_id)
         if (game_id, exit_room_id) in self.rooms:
+            log.debug("Moving internally")
             exit_room = self._move_actor_internal(game_id, exit_room_id, actor,
-                from_room)
-            if self._following_player(actor, game_id):
+                from_room, exit_position)
+            if actor.is_player:
                 # send sync
-                player = self._following_player(actor, game_id)
-                player.queue.put(self._sync_message(exit_room))
+                log.debug("Syncing player")
+                actor.queue.put(self._sync_message(exit_room))
         else:
-            if self._following_player(actor, game_id):
-                player = self._following_player(actor, game_id)
+            log.debug("Room not on this node")
+
+            # save actor - wait for save to complete
+
+            # if other room being managed,
+                # tell other room to load actor
+
+            # if player,
+               # if exit room on this node, send sync
+
+               # if not, bounce to other node
+
+               # if other room not managed, bounce to master
+
+            if actor.is_player:
+                log.debug("Is a player, connecting to other node")
                 response = self.master_player_conn.call("player_connects",
-                    username=player.username, game_id=game_id)
+                    username=actor.username, game_id=game_id)
                 if response['node'] != [self.host, self.port]:
-                    player.queue.put({"command": "redirect",
+                    # also save possibly
+                    log.debug("Redirecting to other node")
+                    from_room.remove_actor(actor)
+                    actor.position = exit_position
+                    actor.queue.put({"command": "redirect",
                         "node": response["node"], "token": response['token']})
                 else:
+                    log.debug("Response is same node, moving internally")
                     exit_room = self._move_actor_internal(game_id, exit_room_id,
-                        actor, from_room)
-                    player.queue.put(self._sync_message(exit_room))
-            from_room.actors.pop(actor.actor_id)
+                        actor, from_room, exit_position)
+                    actor.queue.put(self._sync_message(exit_room))
 
-    def _move_actor_internal(self, game_id, exit_room_id, actor, from_room):
-        from_room.actors.pop(actor.actor_id)
+    def _move_actor_internal(self, game_id, exit_room_id, actor, from_room,
+            exit_position):
+        from_room.remove_actor(actor)
         exit_room = self.rooms[game_id, exit_room_id]
-        exit_room.actors[actor.actor_id] = actor
-        actor.room = exit_room
+        exit_room.put_actor(actor)
+        actor.position = exit_position
         return exit_room

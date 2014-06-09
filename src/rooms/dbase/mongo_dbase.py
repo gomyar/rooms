@@ -43,7 +43,7 @@ class MongoDBase(object):
         return bool(self.filter_one(dbase_name, **search_fields))
 
     def filter_one(self, dbase_name, **search_fields):
-        return self._collection(dbase_name).find_one(search_fields)
+        return self._collection(dbase_name).find_one(**search_fields)
 
     def filter(self, dbase_name, **search_fields):
         return self._collection(dbase_name).find(search_fields)

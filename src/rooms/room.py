@@ -98,9 +98,11 @@ class Room(object):
         self.put_actor(actor)
         return actor
 
-    def put_actor(self, actor):
+    def put_actor(self, actor, position=None):
         self.actors[actor.actor_id] = actor
         actor.room = self
+        if position:
+            actor.position = position
 
     def find_path(self, from_pos, to_pos):
         return self.geography.find_path(self, from_pos, to_pos)
@@ -117,3 +119,6 @@ class Room(object):
     def actor_enters(self, actor, door):
         self.node.move_actor_room(actor, self.game_id, door.exit_room_id,
             door.exit_position)
+
+    def remove_actor(self, actor):
+        self.actors.pop(actor.actor_id)

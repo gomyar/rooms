@@ -83,3 +83,12 @@ class RoomTest(unittest.TestCase):
 
         self.assertEquals((self.actor, "game1", "room2", Position(10, 10)),
             self.node._updates[0])
+
+    def testActorAddRemove(self):
+        newactor1 = MockActor("new1")
+        self.room.put_actor(newactor1, Position(5, 5))
+
+        self.assertEquals(1, len(self.room.actors))
+        self.assertEquals("new1", self.room.actors.values()[0].actor_id)
+        self.assertEquals(Position(5, 5), self.room.actors['new1'].vector.start_pos)
+        self.assertEquals(Position(5, 5), self.room.actors['new1'].vector.end_pos)

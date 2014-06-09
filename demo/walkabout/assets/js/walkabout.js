@@ -99,7 +99,7 @@ function api_callback(message)
     }
     if (message.command == "sync")
     {
-        api_rooms.room = load_room(message.data.room_id);
+        load_room(message.data.room_id);
     }
 }
 

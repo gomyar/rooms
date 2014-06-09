@@ -34,6 +34,7 @@ class Actor(object):
         self.script = Script(script_name)
         self.speed = 1.0
         self.username = username
+        self.is_player = False
 
         self._gthread = None
         self._move_gthread = None
@@ -96,6 +97,10 @@ class Actor(object):
     @property
     def position(self):
         return self.vector.position()
+
+    @position.setter
+    def position(self, pos):
+        self.vector = create_vector(pos, pos)
 
     def enter(self, door):
         self.room.actor_enters(self, door)

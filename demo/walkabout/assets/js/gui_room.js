@@ -15,7 +15,7 @@ gui_room.draw_room = function()
     {
         var room_object = api_rooms.room.room_objects[object_id];
         gui.ctx.save();
-        gui.ctx.translate(gui.canvas_x(api_rooms.room.topleft.x + room_object.topleft.x), gui.canvas_y(api_rooms.room.topleft.y + room_object.topleft.y));
+        gui.ctx.translate(gui.canvas_x(room_object.topleft.x), gui.canvas_y(room_object.topleft.y));
         gui_room.draw_room_object(room_object);
         gui.ctx.restore();
     }
@@ -25,7 +25,7 @@ gui_room.draw_room = function()
     {
         var door = api_rooms.room.doors[i];
         gui.ctx.save();
-        gui.ctx.translate(gui.canvas_x(api_rooms.room.topleft.x + door.enter_position.x), gui.canvas_y(api_rooms.room.topleft.y + door.enter_position.y));
+        gui.ctx.translate(gui.canvas_x(door.enter_position.x), gui.canvas_y(door.enter_position.y));
         gui_room.draw_door(door);
         gui.ctx.restore();
     }
@@ -63,8 +63,8 @@ gui_room.door_at = function(x, y)
     for (var i in api_rooms.room.doors)
     {
         var door = api_rooms.room.doors[i];
-        var door_x = door.enter_position.x + api_rooms.room.topleft.x;
-        var door_y = door.enter_position.y + api_rooms.room.topleft.y;
+        var door_x = door.enter_position.x;
+        var door_y = door.enter_position.y;
         if (door_x + 20 > x && door_x - 20 < x &&
             door_y + 20 > y && door_y - 20 < y)
             return door;

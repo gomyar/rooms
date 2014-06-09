@@ -1,5 +1,6 @@
 {
     "map_id": "map1",
+    "positioning": "absolute",
     "rooms": {
         "room1": {
             "topleft": {"x": 0, "y": 0, "z": 0},
@@ -8,7 +9,7 @@
                 {"object_type": "rect", "topleft": {"x": 5, "y": 5, "z": 0}, "bottomright": {"x": 25, "y": 25, "z": 0}}
             ],
             "doors": [
-                {"exit_room_id": "map1.room2", "enter_position": {"x": 250, "y": 125, "z": 0}, "exit_position": {"x": 0, "y": 125, "z": 0}}
+                {"exit_room_id": "map1.room2", "enter_position": {"x": 250, "y": 125, "z": 0}, "exit_position": {"x": 250, "y": 125, "z": 0}}
             ],
             "tags": [
                 {"tag_type": "tag.type.1", "position": {"x": 25, "y": 25, "z": 0}, "data": {"field1": "value1"}}
@@ -18,13 +19,13 @@
             "topleft": {"x": 250, "y": 0, "z": 0},
             "bottomright": {"x": 500, "y": 250, "z": 0},
             "room_objects": [
-                {"object_type": "rect", "topleft": {"x": 5, "y": 5, "z": 0}, "bottomright": {"x": 25, "y": 25, "z": 0}}
+                {"object_type": "rect", "topleft": {"x": 255, "y": 255, "z": 0}, "bottomright": {"x": 275, "y": 275, "z": 0}}
             ],
             "doors": [
-                {"exit_room_id": "map1.room1", "enter_position": {"x": 0, "y": 125, "z": 0}, "exit_position": {"x": 250, "y": 125, "z": 0}}
+                {"exit_room_id": "map1.room1", "enter_position": {"x": 250, "y": 125, "z": 0}, "exit_position": {"x": 250, "y": 125, "z": 0}}
             ],
             "tags": [
-                {"tag_type": "tag.type.1", "position": {"x": 25, "y": 25, "z": 0}, "data": {"field1": "value1"}}
+                {"tag_type": "tag.type.1", "position": {"x": 275, "y": 25, "z": 0}, "data": {"field1": "value1"}}
             ]
         }
     }
