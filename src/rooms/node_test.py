@@ -166,3 +166,5 @@ class NodeTest(unittest.TestCase):
         # a redirect is given
         pass
 
+    def testActorEntered(self):
+        self.fail()

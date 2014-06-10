@@ -39,6 +39,10 @@ class RegisteredNode(object):
         return self.rpc_conn.call("request_token", username=username,
             game_id=game_id)
 
+    def actor_enters_node(self, game_id, room_id, actor_id):
+        return self.rpc_conn.call("actor_enters_node", game_id=game_id,
+            room_id=room_id, actor_id=actor_id)
+
     def server_load(self):
         return len(self.rooms)
 
@@ -86,6 +90,11 @@ class MasterController(object):
     @request
     def request_room(self, game_id, room_id):
         return self.master.request_room(game_id, room_id)
+
+    @request
+    def actor_entered(self, game_id, room_id, actor_id, is_player, username):
+        return self.master.actor_entered(game_id, room_id, actor_id, is_player,
+            username)
 
 
 class PlayerController(object):
@@ -243,3 +252,13 @@ class Master(object):
             gevent.sleep(1)
             ws.send("Sending %s" % i)
         return "Done"
+
+    def actor_entered(self, game_id, room_id, actor_id, is_player, username):
+        if (game_id, room_id) in self.rooms:
+            host, port = self.rooms[game_id, room_id]
+            self.nodes[host, port].actor_enters_node(game_id, room_id, actor_id)
+            return {"node": [host, port]}
+        elif is_player:
+            node = self._get_node_for_room(game_id, room_id)
+            token = node.request_token(username, game_id)
+            return {"node": [node.host, node.port], "token": token}

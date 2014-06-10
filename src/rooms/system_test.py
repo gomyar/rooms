@@ -189,8 +189,9 @@ class SystemTest(unittest.TestCase):
         self.room1.geography = MockGeog()
         self.container.rooms['game1', 'room1'] = self.room1
 
-        self.mock_player_rpc.expect['player_connects'] = {"token": "TOKEN2",
-            "node": ["10.10.10.2", 8000]}
+        # add token to expects
+        self.mock_rpc.expect['actor_entered'] = {
+            "node": ["10.10.10.2", 8000], "token": "TOKEN2"}
 
         # add 1 room
         self.node.manage_room("game1", "room1")
@@ -204,14 +205,11 @@ class SystemTest(unittest.TestCase):
 
         # perform actor move
         self.node.move_actor_room(self.player, "game1", "room2", Position(5, 5))
-        # player is saved immediately
-        self.assertEquals([(self.player, {"room_id": "room2"})],
-            self.container.actor_updates)
+
+        # player is saved
+        self.assertEquals({"player1": self.player}, self.container.actors)
 
         self.assertEquals({'node': ['10.10.10.2', 8000], 'token': 'TOKEN2',
             'command': 'redirect'}, queue.get())
-        self.assertEquals([
-            ('player_connects', {'game_id': 'game1', 'username': 'bob'})],
-            self.mock_player_rpc.called)
         self.assertEquals({}, self.room1.actors)
         self.assertEquals(Position(5, 5), self.player.position)

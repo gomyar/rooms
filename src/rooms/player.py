@@ -15,7 +15,7 @@ class PlayerActor(Actor):
 
     def __repr__(self):
         return "<PlayerActor %s in game %s room %s>" % (self.username,
-            self.room.game_id, self.room.room_id)
+            self.game_id, self.room_id)
 
 #    def __eq__(self, rhs):
 #        return rhs and type(rhs) is PlayerActor and \

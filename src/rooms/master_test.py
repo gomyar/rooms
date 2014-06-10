@@ -258,3 +258,41 @@ class MasterTest(unittest.TestCase):
             ('player_joins', {'game_id': 'game1', 'room_id': 'room1', 'username': 'bob'}),
             ('player_joins', {'game_id': 'game1', 'room_id': 'room1', 'username': 'ned'}),
         ], self.rpc_conn.called)
+
+    def testActorEntered(self):
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+
+        self.master.join_game("bob", "game1", "room1")
+
+        self.assertEquals({'node': ['10.10.10.1', 8000]},
+            self.master.actor_entered("game1", "room1", "actor1", True, "bob"))
+
+        self.assertEquals(
+            ('actor_enters_node',
+                {"game_id": "game1", "room_id": "room1", "actor_id": "actor1"}),
+            self.rpc_conn.called[2])
+
+    def testNonPlayerActorEnteredNoManagedRoom(self):
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+
+        self.assertEquals(None,
+            self.master.actor_entered("game1", "room1", "actor1", False, None))
+
+        self.assertEquals([], self.rpc_conn.called)
+
+    def testPlayerActorEnteredManagesRoom(self):
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+
+        self.assertEquals({"node": ["10.10.10.1", 8000], "token": "TOKEN"},
+            self.master.actor_entered("game1", "room1", "actor1", True, "bob"))
+
+        self.assertEquals([
+            ('manage_room', {'game_id': 'game1', 'room_id': 'room1'}),
+            ('request_token', {'username': 'bob', 'game_id': 'game1'}),
+            ], self.rpc_conn.called)
