@@ -167,4 +167,12 @@ class NodeTest(unittest.TestCase):
         pass
 
     def testActorEntered(self):
-        self.fail()
+        self.node.manage_room("game1", "room1")
+
+        actor = MockActor()
+        self.room1.actors['actor1'] = actor
+
+        self.node.actor_enters_node("game1", "room1", "actor1")
+
+        room = self.node.rooms['game1', 'room1']
+        self.assertEquals(actor, room.actors['actor1'])

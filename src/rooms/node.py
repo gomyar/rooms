@@ -214,27 +214,31 @@ class Node(object):
         else:
             log.debug("Room not on this node")
 
-            # save actor - wait for save to complete
-            from_room.remove_actor(actor)
-            actor.position = exit_position
-            actor._room_id = exit_room_id
-            self.container.save_actor(actor)
+            self._save_actor_to_other_room(exit_room_id, exit_position, actor,
+                from_room)
 
-            # inform room that a actor has entered
-            response = self.master_conn.call("actor_entered", game_id=game_id,
-                room_id=exit_room_id, actor_id=actor.actor_id,
-                is_player=actor.is_player, username=actor.username)
+            response = self._send_actor_entered_message(game_id, exit_room_id,
+                actor)
 
-            # if player,
             if actor.is_player:
-                # if exit room on this node, send sync
                 if (game_id, exit_room_id) in self.rooms:
                     actor.queue.put(self._sync_message(exit_room))
-
-                # if not, bounce to other node
                 else:
                     actor.queue.put({"command": "redirect",
                         "node": response['node'], "token": response['token']})
+
+    def _send_actor_entered_message(self, game_id, exit_room_id, actor):
+        response = self.master_conn.call("actor_entered", game_id=game_id,
+            room_id=exit_room_id, actor_id=actor.actor_id,
+            is_player=actor.is_player, username=actor.username)
+        return response
+
+    def _save_actor_to_other_room(self, exit_room_id, exit_position, actor,
+            from_room):
+        from_room.remove_actor(actor)
+        actor.position = exit_position
+        actor._room_id = exit_room_id
+        self.container.save_actor(actor) # (, async=False) ?
 
     def _move_actor_internal(self, game_id, exit_room_id, actor, from_room,
             exit_position):
