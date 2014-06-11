@@ -138,8 +138,8 @@ class MockNode(object):
     def __init__(self):
         self._updates = []
 
-    def actor_update(self, actor, update):
-        self._updates.append((actor, update))
+    def actor_update(self, room, actor_id, update):
+        self._updates.append((room, actor_id, update))
 
     def move_actor_room(self, actor, game_id, exit_room_id, exit_room_position):
         self._updates.append((actor, game_id, exit_room_id, exit_room_position))

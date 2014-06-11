@@ -58,7 +58,8 @@ class NodeTest(unittest.TestCase):
         self.assertEquals("bob", new_player.username)
         self.assertEquals("room1", new_player.room_id)
         self.assertEquals("game1", new_player.game_id)
-        self.assertEquals(1, len(self.node.players))
+        self.assertEquals(1, len(self.node.player_connections))
+        self.assertEquals(1, len(self.node.rooms["game1", "room1"].actors))
         self.assertEquals([
             ("player_joins", (new_player, self.room1), {})
         ], self.player_script.called)
@@ -148,17 +149,26 @@ class NodeTest(unittest.TestCase):
 
     def testActorCall(self):
         self.node.manage_room("game1", "room1")
-        self.container.player_actors['bob', 'game1'] = self.player1
         self.node.player_joins("bob", "game1", "room1")
-        actor = MockActor()
-        self.room1.actors['actor1'] = actor
 
-        self.node.actor_call("game1", "bob", "actor1", "do_something",
-            token="TOKEN1")
+        player_actor = self.room1.actors['player1']
+        player_actor.script = MockScript()
+        self.node.actor_call("game1", "bob", "player1", "TOKEN1",
+            "do_something")
 
-        self.assertEquals([('do_something', (actor,), {})], actor.script.called)
+        # script calls happen on a gthread
+        self.assertEquals([],
+            player_actor.script.called)
+
+        MockTimer.fast_forward(1)
+
+        self.assertEquals([('do_something', (player_actor,), {})],
+            player_actor.script.called)
 
     def testNonPlayerActorMovesNode(self):
+        pass
+
+    def testPlayerActorMovesToRoomManagedOnSameNodeAfterMasterBounce(self):
         pass
 
     def testPlayerConnectsQueueDisconnectsOnRedirect(self):
@@ -176,3 +186,19 @@ class NodeTest(unittest.TestCase):
 
         room = self.node.rooms['game1', 'room1']
         self.assertEquals(actor, room.actors['actor1'])
+
+    def testPlayerJoinsActorCreatedConnectionCreated(self):
+        self.node.manage_room("game1", "room1")
+
+        self.assertEquals({}, self.node.rooms['game1', 'room1'].actors)
+        self.assertEquals({}, self.node.player_connections)
+
+        self.assertEquals("TOKEN1",
+            self.node.player_joins("bob", "game1", "room1"))
+
+        self.assertEquals(PlayerActor,
+            type(self.node.rooms['game1', 'room1'].actors['player1']))
+        self.assertEquals("bob",
+            self.node.rooms['game1', 'room1'].actors['player1'].username)
+        self.assertEquals("player1",
+            self.node.player_connections['bob', 'game1'].actor.actor_id)

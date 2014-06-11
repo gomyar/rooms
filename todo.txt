@@ -1,4 +1,14 @@
- - player_connects on node broken (not managing room and setting to player.room)
+
+ - separate player from player_connection
+ - mock container - merge actors and player_actors - or just delete mock container
+ - on load of a room, create player connection for any players in room
+ - on unload of a room, player connections removed
+ - on player move to another node, player connection removed
+ - on player disconnect remove player connection
+ - test for multiple connections from same player, disconnect previous
+ - token per player connection (on construction)
+
+- player_connects on node broken (not managing room and setting to player.room)
  - "disconnect" message to websocket on bounce to another node
 
  - add demo client

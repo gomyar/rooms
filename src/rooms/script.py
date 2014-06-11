@@ -7,6 +7,9 @@ class Script(object):
         self.script_name = script_name
         self._script_module = None
 
+    def __repr__(self):
+        return "<Script %s - %s>" % (self.script_name, self._script_module)
+
     def _lazy_import_script(self):
         if not self._script_module:
             self._script_module= __import__(self.script_name,

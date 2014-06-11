@@ -90,7 +90,8 @@ class Container(object):
         return self._find_players()
 
     def _find_players(self, **kwargs):
-        player_dicts = self.dbase.filter("players", **kwargs)
+        player_dicts = self.dbase.filter("actors", __type__="PlayerActor",
+            **kwargs)
         players = [self._decode_enc_dict(enc_dict) for enc_dict in player_dicts]
         return players
 
@@ -241,7 +242,7 @@ class Container(object):
     def _serialize_actor(self, actor):
         return dict(actor_id=actor.actor_id,
             state=actor.state,
-            game_id=actor.room.game_id,
+            game_id=actor.game_id,
             room_id=actor.room_id,
             path=actor.path,
             vector=actor.vector,

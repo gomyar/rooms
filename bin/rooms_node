@@ -35,7 +35,7 @@ if __name__ == "__main__":
             help="Address of node", default="localhost:8000")
 
         parser.add_option("-m", "--master", dest="master",
-            help="Address of master", default="localhost:9000")
+            help="Address of master", default="localhost:9999")
 
         parser.add_option("-g", "--game", dest="game",
             help="Path to game dir", default=".")

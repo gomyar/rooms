@@ -1,6 +1,7 @@
 
 import uuid
 import gevent
+from gevent.queue import Queue
 import json
 
 from rooms.player import PlayerActor
@@ -27,8 +28,8 @@ class GameController(object):
         return self.node.player_connects(ws, game_id, username, token)
 
     @request
-    def actor_call(self, game_id, username, actor_id, method, **kwargs):
-        return self.node.actor_call(game_id, username, actor_id, method,
+    def actor_call(self, game_id, username, actor_id, token, method, **kwargs):
+        return self.node.actor_call(game_id, username, actor_id, token, method,
             **kwargs)
 
 
@@ -66,6 +67,16 @@ class NodeController(object):
         return self.node.ping(ws)
 
 
+class PlayerConnection(object):
+    def __init__(self, game_id, username, room, actor, token):
+        self.game_id = game_id
+        self.username = username
+        self.room = room
+        self.actor = actor
+        self.token = token
+        self.queue = Queue()
+
+
 class Node(object):
     def __init__(self, host, port, master_host, master_port):
         self.host = host
@@ -73,7 +84,7 @@ class Node(object):
         self.master_host = master_host
         self.master_port = master_port
         self.rooms = dict()
-        self.players = dict()
+        self.player_connections = dict()
         self.master_conn = WSGIRPCClient(master_host, master_port, 'master')
         self.master_player_conn = WSGIRPCClient(master_host, master_port,
             'player')
@@ -104,9 +115,9 @@ class Node(object):
             room.actors.items()]} for room in self.rooms.values()]
 
     def all_players(self):
-        return [{"username": player.username, "game_id": player.game_id,
-            "room_id": player.room_id, "token": player.token} for player in \
-            self.players.values()]
+        return [{"username": conn.username, "game_id": conn.game_id,
+            "room_id": conn.room.room_id, "token": conn.token} for conn in \
+            self.player_connections.values()]
 
     def manage_room(self, game_id, room_id):
         if self.container.room_exists(game_id, room_id):
@@ -122,11 +133,12 @@ class Node(object):
         room = self.rooms[game_id, room_id]
         player_actor = self.container.create_player(room, "player",
             self.player_script.script_name, username, game_id)
-        self._setup_player_token(player_actor)
-        self.players[username, game_id] = player_actor
+        player_conn = PlayerConnection(game_id, username, room, player_actor,
+            self._create_token())
+        self.player_connections[username, game_id] = player_conn
         room.put_actor(player_actor)
         self.player_script.call("player_joins", player_actor, room)
-        return player_actor.token
+        return player_conn.token
 
     def request_token(self, username, game_id):
         player = self._request_player_connection(username, game_id)
@@ -138,36 +150,39 @@ class Node(object):
             gevent.sleep(1)
 
     def player_connects(self, ws, game_id, username, token):
-        player = self.players[username, game_id]
-        ws.send(json.dumps(self._sync_message(player.room)))
-        for actor in player.room.actors.values():
+        player_conn = self.player_connections[username, game_id]
+        room = self.rooms[game_id, player_conn.room.room_id]
+        ws.send(json.dumps(self._sync_message(room)))
+        for actor in room.actors.values():
             ws.send(json.dumps(
                 {"command": "actor_update", "actor_id": actor.actor_id,
                 "data": jsonview(actor)}))
         while True:
-            message = player.queue.get()
+            message = player_conn.queue.get()
             ws.send(json.dumps(jsonview(message)))
 
     def _sync_message(self, room):
         return {"command": "sync", "data": {"now": Timer.now(),
             "room_id": room.room_id}}
 
-    def actor_call(self, game_id, username, actor_id, method, **kwargs):
-        player = self.players[username, game_id]
-        room = self.rooms[game_id, player.room_id]
-        actor = room.actors[actor_id]
-        token = kwargs.pop('token')
-        if token != player.token:
-            raise Exception("Invalid token for player %s" % (player.username,))
+    def actor_call(self, game_id, username, actor_id, token, method, **kwargs):
+        player_conn = self.player_connections[username, game_id]
+        if token != player_conn.token:
+            raise Exception("Invalid token for player %s" % (username,))
+        actor = player_conn.actor
         if actor.script.has_method(method):
             actor.script_call(method, actor, **kwargs)
         else:
             raise Exception("No such method %s" % (method,))
 
-    def actor_update(self, actor, update):
-        for player in self.players.values():
-            player.queue.put({"command": "actor_update",
-                "actor_id": actor.actor_id, "data": update})
+    def actor_update(self, room, actor_id, update):
+        for actor in room.actors.values():
+            if actor.is_player and \
+                    (actor.username, room.game_id) in self.player_connections:
+                player_conn = self.player_connections[actor.username,
+                    room.game_id]
+                player_conn.queue.put({"command": "actor_update",
+                    "actor_id": actor_id, "data": update})
 
     def _request_player_connection(self, username, game_id):
         player = self._get_or_load_player(username, game_id)
@@ -185,13 +200,13 @@ class Node(object):
                 (player,))
 
     def _get_or_load_player(self, username, game_id):
-        if (username, game_id) not in self.players:
+        if (username, game_id) not in self.player_connections:
             if not self.container.player_exists(username, game_id):
                 raise RPCException("No such player %s, %s" % (username,
                     game_id))
-            self.players[username, game_id] = self.container.load_player(
-                username, game_id)
-        return self.players[username, game_id]
+            self.player_connections[username, game_id] = \
+                self.container.load_player(username, game_id)
+        return self.player_connections[username, game_id]
 
     def _create_token(self):
         return str(uuid.uuid1())
@@ -207,13 +222,8 @@ class Node(object):
             exit_room = self._move_actor_internal(game_id, exit_room_id, actor,
                 from_room, exit_position)
             self.container.save_actor(actor)
-            if actor.is_player:
-                # send sync
-                log.debug("Syncing player")
-                actor.queue.put(self._sync_message(exit_room))
         else:
             log.debug("Room not on this node")
-
             self._save_actor_to_other_room(exit_room_id, exit_position, actor,
                 from_room)
 
@@ -221,11 +231,20 @@ class Node(object):
                 actor)
 
             if actor.is_player:
+                log.debug("It's a player")
                 if (game_id, exit_room_id) in self.rooms:
-                    actor.queue.put(self._sync_message(exit_room))
+                    log.debug("Room now managed by this node")
+                    self._move_actor_internal(game_id, exit_room_id, actor,
+                        from_room, exit_position)
                 else:
-                    actor.queue.put({"command": "redirect",
-                        "node": response['node'], "token": response['token']})
+                    log.debug("Redirecting to node: %s", response['node'])
+                    if (actor.username, actor.game_id) in \
+                        self.player_connections:
+                        conn = self.player_connections[actor.username,
+                            actor.game_id]
+                        conn.queue.put({"command": "redirect",
+                            "node": response['node'],
+                            "token": response['token']})
 
     def _send_actor_entered_message(self, game_id, exit_room_id, actor):
         response = self.master_conn.call("actor_entered", game_id=game_id,
@@ -242,8 +261,16 @@ class Node(object):
 
     def _move_actor_internal(self, game_id, exit_room_id, actor, from_room,
             exit_position):
-        from_room.remove_actor(actor)
+        if actor.actor_id in from_room.actors:
+            from_room.remove_actor(actor)
         exit_room = self.rooms[game_id, exit_room_id]
         exit_room.put_actor(actor)
         actor.position = exit_position
-        return exit_room
+        if actor.is_player and \
+                (actor.username, game_id) in self.player_connections:
+            log.debug("Sending room sync to %s-%s", game_id, actor.username)
+            player_conn = self.player_connections[actor.username, game_id]
+            player_conn.room = exit_room
+            player_conn.queue.put(self._sync_message(exit_room))
+        else:
+            log.debug("No connection for player %s-%s", game_id, actor.username)

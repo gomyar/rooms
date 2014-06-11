@@ -10,6 +10,9 @@ from rooms.rpc import WSGIRPCClient
 from rooms.rpc import request
 from rooms.rpc import websocket
 
+import logging
+log = logging.getLogger("rooms.master")
+
 
 class RegisteredNode(object):
     def __init__(self, host, port, rpc_conn):
@@ -254,11 +257,18 @@ class Master(object):
         return "Done"
 
     def actor_entered(self, game_id, room_id, actor_id, is_player, username):
+        log.debug("Actor entered %s-%s %s %s %s", game_id, room_id, actor_id,
+            is_player, username)
         if (game_id, room_id) in self.rooms:
+            log.debug("Room %s-%s already managed", game_id, room_id)
             host, port = self.rooms[game_id, room_id]
+            log.debug("Calling actor_enters on %s:%s", host, port)
             self.nodes[host, port].actor_enters_node(game_id, room_id, actor_id)
             return {"node": [host, port]}
         elif is_player:
+            log.debug("Room %s-%s not managed, managing room")
             node = self._get_node_for_room(game_id, room_id)
             token = node.request_token(username, game_id)
+            log.debug("Managed node %s:%s for %s - %s", node.host, node.port,
+                username, game_id)
             return {"node": [node.host, node.port], "token": token}

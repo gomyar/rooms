@@ -265,6 +265,12 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals({u'created': True, u'testme': u'value1'},
             self.dbase.dbases['actors']['actors_0']['state'])
 
+        actor.room = None
+        actor._room_id = "newroom1"
+        self.container.save_actor(actor)
+        self.assertEquals("newroom1",
+            self.dbase.dbases['actors']['actors_0']['room_id'])
+
     def testUpdateActor(self):
         actor = MockActor("actor1")
         actor._id = "actor1"

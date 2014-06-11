@@ -67,10 +67,11 @@ class RoomTest(unittest.TestCase):
             self.room.find_path(Position(10, 20), Position(30, 40)))
 
     def testActorUpdate(self):
-        self.actor = MockActor()
+        self.actor = MockActor("actor1")
         self.room.actor_update(self.actor, {"path": []})
 
-        self.assertEquals([(self.actor, {"path": []})], self.node._updates)
+        self.assertEquals([(self.room, "actor1", {"path": []})],
+            self.node._updates)
 
     def testActorEnterDoor(self):
         self.door = Door("room2", Position(5, 5), Position(10, 10))

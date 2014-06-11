@@ -28,7 +28,7 @@ if __name__ == "__main__":
         parser = OptionParser()
 
         parser.add_option("-a", "--address", dest="address",
-            help="Address of master", default="localhost:9000")
+            help="Address of master", default="localhost:9999")
 
         parser.add_option("-g", "--game", dest="gameconf",
                 help="Path to game config file", default="./game.conf")

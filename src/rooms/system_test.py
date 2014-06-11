@@ -66,8 +66,8 @@ class SystemTest(unittest.TestCase):
         self.assertEquals("actor_update", player2_ws.updates[2]['command'])
 
 
-        self.node.actor_call("game1", "bob", "player1", "move_to", x=10, y=10,
-            token="TOKEN1")
+        self.node.actor_call("game1", "bob", "player1", "TOKEN1", "move_to",
+            x=10, y=10)
 
         MockTimer.fast_forward(0)
 
@@ -94,7 +94,7 @@ class SystemTest(unittest.TestCase):
         player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
             "game1", "bob", "TOKEN1")
 
-        self.node.actor_call("game1", "bob", "player1", "ping", token="TOKEN1")
+        self.node.actor_call("game1", "bob", "player1", "TOKEN1", "ping")
 
         MockTimer.fast_forward(1)
 
@@ -118,7 +118,7 @@ class SystemTest(unittest.TestCase):
             "game1", "bob", "TOKEN1")
 
         self.assertRaises(Exception, self.node.actor_call, "game1", "bob",
-            "player1", "ping", token="TOKEN2")
+            "player1", "TOKEN2", "ping")
 
     def testExceptionIfNoSuchMethod(self):
         self.room1 = Room("game1", "room1",
@@ -131,7 +131,7 @@ class SystemTest(unittest.TestCase):
         self.node.player_joins("bob", "game1", "room1")
 
         self.assertRaises(Exception, self.node.actor_call, "game1", "bob",
-            "player1", "nonexistant")
+            "player1", "TOKEN2", "nonexistant")
 
     def testMultiPath(self):
         self.room1 = Room("game1", "room1",
@@ -149,8 +149,8 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(0)
 
-        self.node.actor_call("game1", "bob", "player1", "move_to", x=10, y=10,
-            token="TOKEN1")
+        self.node.actor_call("game1", "bob", "player1", "TOKEN1", "move_to",
+            x=10, y=10)
 
         MockTimer.fast_forward(0)
 
@@ -201,7 +201,8 @@ class SystemTest(unittest.TestCase):
 
         # connect player
         self.player = self.container.player_actors['bob', 'game1']
-        queue = self.player.queue
+        player_conn = self.node.player_connections['bob', 'game1']
+        queue = player_conn.queue
 
         # perform actor move
         self.node.move_actor_room(self.player, "game1", "room2", Position(5, 5))
