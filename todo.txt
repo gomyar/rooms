@@ -1,4 +1,7 @@
 
+ - implement js redirect
+ - I can still connecto a node I just left
+
  - separate player from player_connection
  - mock container - merge actors and player_actors - or just delete mock container
  - on load of a room, create player connection for any players in room

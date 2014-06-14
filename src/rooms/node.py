@@ -129,9 +129,7 @@ class Node(object):
         if self.container.room_exists(game_id, room_id):
             room = self.container.load_room(game_id, room_id)
             for player_actor in room.player_actors():
-                self.player_connections[player_actor.username, game_id] = \
-                    PlayerConnection(game_id, player_actor.username, room,
-                        player_actor, self._create_token())
+                self._create_player_conn(player_actor)
         else:
             room = self.container.create_room(game_id, room_id)
             self.scripts['game_script'].call("room_created", room)
@@ -143,12 +141,18 @@ class Node(object):
         room = self.rooms[game_id, room_id]
         player_actor = self.container.create_player(room, "player",
             self.scripts['player_script'], username, game_id)
-        player_conn = PlayerConnection(game_id, username, room, player_actor,
-            self._create_token())
-        self.player_connections[username, game_id] = player_conn
+        player_conn = self._create_player_conn(player_actor)
         room.put_actor(player_actor)
         self.scripts['player_script'].call("player_joins", player_actor, room)
         return player_conn.token
+
+    def _create_player_conn(self, player_actor):
+        player_conn = PlayerConnection(player_actor.game_id,
+            player_actor.username, player_actor.room, player_actor,
+            self._create_token())
+        self.player_connections[player_actor.username, player_actor.game_id] = \
+            player_conn
+        return player_conn
 
     def request_token(self, username, game_id):
         if (username, game_id) not in self.player_connections:
@@ -228,9 +232,7 @@ class Node(object):
         actor = self.container.load_actor(actor_id)
         room = self.rooms[actor.game_id, actor.room_id]
         if actor.is_player:
-            self.player_connections[player_actor.username, game_id] = \
-                PlayerConnection(actor.game_id, actor.username, room,
-                    actor, self._create_token())
+            self._create_player_conn(actor)
         room.put_actor(actor)
 
     def move_actor_room(self, actor, game_id, exit_room_id, exit_position):

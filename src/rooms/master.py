@@ -175,8 +175,9 @@ class Master(object):
         node = self._get_node_for_room(game_id, room_id)
         token = node.player_joins(username, game_id, room_id)
         return {"token": token, "node": (node.host, node.port),
-            "url": "http://localhost:8000/assets/index.html?"
-            "token=%s&game_id=%s&username=%s" % (token, game_id, username)}
+            "url": "http://%s:%s/assets/index.html?"
+            "token=%s&game_id=%s&username=%s" % (node.host, node.port, token,
+                game_id, username)}
 
     def _check_game_exists(self, game_id):
         if not self.container.game_exists(game_id):
@@ -195,8 +196,9 @@ class Master(object):
         node = self._get_node_for_room(game_id, player.room_id)
         token = node.request_token(username, game_id)
         return {"token": token, "node": (node.host, node.port),
-            "url": "http://localhost:8000/assets/index.html?"
-            "token=%s&game_id=%s&username=%s" % (token, game_id, username)}
+            "url": "http://%s:%s/assets/index.html?"
+            "token=%s&game_id=%s&username=%s" % (node.host, node.port, token,
+                game_id, username)}
 
     def _check_can_join(self, username, game_id):
         if self.container.player_exists(username, game_id):

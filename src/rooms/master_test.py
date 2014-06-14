@@ -86,7 +86,7 @@ class MasterTest(unittest.TestCase):
         self.assertEquals({}, self.container.dbase.dbases['actors'])
         node = self.master.join_game("bob", "games_0", "room1")
         self.assertEquals({'node': ("10.10.10.1", 8000), 'token': 'TOKEN',
-            'url': 'http://localhost:8000/assets/index.html?token=TOKEN&game_id=games_0&username=bob'},
+            'url': 'http://10.10.10.1:8000/assets/index.html?token=TOKEN&game_id=games_0&username=bob'},
             node)
 
         self.assertEquals([
@@ -170,10 +170,10 @@ class MasterTest(unittest.TestCase):
         node2 = self.master.join_game("bob", "games_1", "room1")
 
         self.assertEquals({'node': ("10.10.10.1", 8000), 'token': 'TOKEN',
-            'url': 'http://localhost:8000/assets/index.html?token=TOKEN&game_id=games_0&username=bob'},
+            'url': 'http://10.10.10.1:8000/assets/index.html?token=TOKEN&game_id=games_0&username=bob'},
             node1)
         self.assertEquals({'node': ("10.10.10.2", 8000), 'token': 'TOKEN',
-            'url': 'http://localhost:8000/assets/index.html?token=TOKEN&game_id=games_1&username=bob'},
+            'url': 'http://10.10.10.2:8000/assets/index.html?token=TOKEN&game_id=games_1&username=bob'},
             node2)
 
         self.assertEquals([{'host': '10.10.10.2', 'port': 8000, 'online': True},
@@ -219,7 +219,7 @@ class MasterTest(unittest.TestCase):
             "player", MockScript(), "bob", "game1")
 
         self.assertEquals({'token': 'TOKEN', 'node': ('10.10.10.1', 8000),
-            'url': 'http://localhost:8000/assets/index.html'
+            'url': 'http://10.10.10.1:8000/assets/index.html'
             '?token=TOKEN&game_id=game1&username=bob'},
             self.master.player_connects("bob", "game1"))
         self.assertEquals({('game1', 'room1'): ('10.10.10.1', 8000)},
