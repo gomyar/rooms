@@ -109,7 +109,7 @@ class Container(object):
         return game
 
     def game_exists(self, game_id):
-        return self.dbase.object_exists("games", _id=game_id)
+        return self.dbase.object_exists_by_id("games", game_id)
 
     def all_games(self):
         game_dicts = self.dbase.filter("games")

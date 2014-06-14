@@ -51,6 +51,9 @@ class MockDbase(object):
     def object_exists(self, collection_name, **search_fields):
         return bool(self.filter(collection_name, **search_fields))
 
+    def object_exists_by_id(self, collection_name, object_id):
+        return bool(self.dbases[collection_name].get(object_id))
+
     def remove(self, collection_name, **fields):
         dbase = self.dbases.get(collection_name, [])
         keep = dict()

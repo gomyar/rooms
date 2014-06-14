@@ -19,19 +19,19 @@ class MongoDBase(object):
     def _collection(self, name):
         return getattr(self.db(), name)
 
-    def load_object(self, object_id, dbase_name):
-        obj_dict = self._collection(dbase_name).find_one(
+    def load_object(self, object_id, collection_name):
+        obj_dict = self._collection(collection_name).find_one(
             bson.ObjectId(object_id))
         if not obj_dict:
             raise Exception("Object %s not found in dbase %s" % (object_id,
-                dbase_name))
+                collection_name))
         obj_dict['_id'] = str(obj_dict['_id'])
         return obj_dict
 
-    def save_object(self, encoded_dict, dbase_name, object_id=None):
+    def save_object(self, encoded_dict, collection_name, object_id=None):
         if object_id:
             encoded_dict['_id'] = bson.ObjectId(object_id)
-        return self._collection(dbase_name).save(encoded_dict)
+        return self._collection(collection_name).save(encoded_dict)
 
     def remove(self, collection_name, **kwargs):
         self._collection(collection_name).remove(kwargs)
@@ -39,14 +39,18 @@ class MongoDBase(object):
     def remove_by_id(self, collection_name, object_id):
         self._collection(collection_name).remove(bson.ObjectId(object_id))
 
-    def object_exists(self, dbase_name, **search_fields):
-        return bool(self.filter_one(dbase_name, **search_fields))
+    def object_exists(self, collection_name, **search_fields):
+        return bool(self.filter_one(collection_name, **search_fields))
 
-    def filter_one(self, dbase_name, **search_fields):
-        return self._collection(dbase_name).find_one(**search_fields)
+    def object_exists_by_id(self, collection_name, object_id):
+        return bool(self._collection(collection_name).find(
+            {"_id": bson.ObjectId(object_id)}))
 
-    def filter(self, dbase_name, **search_fields):
-        return self._collection(dbase_name).find(search_fields)
+    def filter_one(self, collection_name, **search_fields):
+        return self._collection(collection_name).find_one(search_fields)
+
+    def filter(self, collection_name, **search_fields):
+        return self._collection(collection_name).find(search_fields)
 
     def update_object(self, collection_name, obj, update_key, update_obj):
         try:

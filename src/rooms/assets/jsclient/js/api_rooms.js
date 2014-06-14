@@ -83,7 +83,7 @@ api_rooms.set_now = function(now_time)
 
 api_rooms.service_call = function(url, data, callback)
 {
-    data.token = api_rooms.token;
+//    data.token = api_rooms.token;
     $.ajax({
         'url': url,
         'data': data,
@@ -170,7 +170,7 @@ api_rooms.message_callback = function(msgevent)
 // *** API Calls
 api_rooms.call_command = function(actor_id, command, args, callback)
 {
-    api_rooms.service_call("/game/actor_call/" + api_rooms.game_id + "/" + api_rooms.username + "/" + actor_id + "/" + command, args, callback);
+    api_rooms.service_call("/game/actor_call/" + api_rooms.game_id + "/" + api_rooms.username + "/" + actor_id + "/" + api_rooms.token + "/" + command, args, callback);
 }
 
 api_rooms.actor_request = function(actor_id, command, args, callback)
