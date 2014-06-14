@@ -9,26 +9,24 @@ from rooms.testutils import MockNode
 from rooms.testutils import MockActor
 from rooms.testutils import MockContainer
 from rooms.geography.basic_geography import BasicGeography
-from rooms import actor
 from rooms.player import PlayerActor
-
-
-def created(actor):
-    actor.state['created'] = True
+from rooms.script import Script
 
 
 class RoomTest(unittest.TestCase):
     def setUp(self):
+        self.script = Script("room_test", RoomTest)
         self.node = MockNode()
+        self.node.scripts['rooms.room_test'] = self.script
         self.node.container = MockContainer()
         self.room = Room("game1", "room1", Position(0, 0), Position(50, 50),
             self.node)
         self.geography = MockGeog()
         self.room.geography = self.geography
-        actor._create_actor_id = lambda: "actor1"
 
-    def tearDown(self):
-        reload(actor)
+    @staticmethod
+    def created(actor):
+        actor.state['created'] = True
 
     def testInitialSetup(self):
         self.assertEquals(50, self.room.width)
@@ -41,15 +39,16 @@ class RoomTest(unittest.TestCase):
         actor = self.room.create_actor("mock_actor", "rooms.room_test")
         self.assertTrue(actor.state.created)
         self.assertFalse(actor._gthread is None)
-        self.assertEquals(created, actor.script._script_module.created)
+        self.assertEquals(RoomTest.created, actor.script.script_module.created)
         self.assertEquals(self.room, actor.room)
-        self.assertEquals(actor, self.room.actors['actor1'])
+        self.assertEquals(actor, self.room.actors['actors_0'])
         self.assertEquals(None, actor.username)
 
         self.player = PlayerActor(self.room, "player", "rooms.room_test", "bob")
         actor2 = self.room.create_actor("mock_actor", "rooms.room_test",
             player=self.player)
         self.assertEquals("bob", actor2.username)
+        self.assertEquals(self.script, actor.script)
 
     def testFindPath(self):
         path = self.room.find_path(Position(1, 2), Position(3, 4))

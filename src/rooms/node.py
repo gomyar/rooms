@@ -3,6 +3,8 @@ import uuid
 import gevent
 from gevent.queue import Queue
 import json
+import imp
+import os
 
 from rooms.player import PlayerActor
 from rooms.rpc import WSGIRPCClient
@@ -88,16 +90,20 @@ class Node(object):
         self.master_conn = WSGIRPCClient(master_host, master_port, 'master')
         self.master_player_conn = WSGIRPCClient(master_host, master_port,
             'player')
-        self.player_script = NullScript()
-        self.game_script = NullScript()
+
+        self.scripts = dict()
         self.container = None
         self.room_factory = None
 
-    def load_player_script(self, script_name):
-        self.player_script = Script(script_name)
+    def load_scripts(self, script_path):
+        for py_file in self._list_scripts(script_path):
+            script_name = os.path.splitext(py_file)[0]
+            self.scripts[script_name] = Script(script_name,
+                imp.load_source("", os.path.join(script_path, py_file)))
 
-    def load_game_script(self, script_name):
-        self.game_script = Script(script_name)
+    def _list_scripts(self, script_path):
+        return [path for path in os.listdir(script_path) if \
+            path.endswith(".py") and path!= "__init__.py"]
 
     def connect_to_master(self):
         self.master_conn.call("register_node", host=self.host, port=self.port)
@@ -122,9 +128,13 @@ class Node(object):
     def manage_room(self, game_id, room_id):
         if self.container.room_exists(game_id, room_id):
             room = self.container.load_room(game_id, room_id)
+            for player_actor in room.player_actors():
+                self.player_connections[player_actor.username, game_id] = \
+                    PlayerConnection(game_id, player_actor.username, room,
+                        player_actor, self._create_token())
         else:
             room = self.container.create_room(game_id, room_id)
-            self.game_script.call("room_created", room)
+            self.scripts['game_script'].call("room_created", room)
             self.container.save_room(room)
         self.rooms[game_id, room_id] = room
         room.kick()
@@ -132,17 +142,18 @@ class Node(object):
     def player_joins(self, username, game_id, room_id):
         room = self.rooms[game_id, room_id]
         player_actor = self.container.create_player(room, "player",
-            self.player_script.script_name, username, game_id)
+            self.scripts['player_script'], username, game_id)
         player_conn = PlayerConnection(game_id, username, room, player_actor,
             self._create_token())
         self.player_connections[username, game_id] = player_conn
         room.put_actor(player_actor)
-        self.player_script.call("player_joins", player_actor, room)
+        self.scripts['player_script'].call("player_joins", player_actor, room)
         return player_conn.token
 
     def request_token(self, username, game_id):
-        player = self._request_player_connection(username, game_id)
-        return player.token
+        if (username, game_id) not in self.player_connections:
+            raise RPCException("No such player connected")
+        return self.player_connections[username, game_id].token
 
     def ping(self, ws):
         for i in range(10):
@@ -150,6 +161,7 @@ class Node(object):
             gevent.sleep(1)
 
     def player_connects(self, ws, game_id, username, token):
+        log.debug("Player conects: %s-%s %s", username, game_id, token)
         player_conn = self.player_connections[username, game_id]
         room = self.rooms[game_id, player_conn.room.room_id]
         ws.send(json.dumps(self._sync_message(room)))
@@ -181,6 +193,7 @@ class Node(object):
                     (actor.username, room.game_id) in self.player_connections:
                 player_conn = self.player_connections[actor.username,
                     room.game_id]
+                log.debug("Sending to : %s : %s", actor.username, update)
                 player_conn.queue.put({"command": "actor_update",
                     "actor_id": actor_id, "data": update})
 

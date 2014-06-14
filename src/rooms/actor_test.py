@@ -9,32 +9,33 @@ from rooms.timer import Timer
 from rooms.vector import Vector
 from rooms.room import Door
 from rooms import actor
-
-
-def kickoff(actor):
-    actor.state.log.append('a')
-    Timer.sleep(1)
-    actor.state.log.append('b')
-    Timer.sleep(1)
-    actor.state.log.append('c')
+from rooms.script import Script
 
 
 class ActorTest(unittest.TestCase):
     def setUp(self):
         MockTimer.setup_mock()
         self.mock_room = MockRoom("game1", "room1")
-        self.actor = Actor(self.mock_room, "mock_actor",
-            "rooms.actor_test")
+        self.actor = Actor(self.mock_room, "mock_actor", Script("actor_script",
+            ActorTest))
         self.actor.state.log = []
         self.actor.room = self.mock_room
 
     def tearDown(self):
         MockTimer.teardown_mock()
 
+    @staticmethod
+    def kickoff(actor):
+        actor.state.log.append('a')
+        Timer.sleep(1)
+        actor.state.log.append('b')
+        Timer.sleep(1)
+        actor.state.log.append('c')
+
     def testCreation(self):
         self.assertEquals(Vector(Position(0, 0), 0, Position(0, 0), 0),
             self.actor.vector)
-        self.assertEquals("rooms.actor_test", self.actor.script.script_name)
+        self.assertEquals("actor_script", self.actor.script.script_name)
 
     def testActorId(self):
         actor1 = Actor(self.mock_room, "mock_actor", "rooms.actor_test", None)

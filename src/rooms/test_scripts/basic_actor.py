@@ -10,3 +10,6 @@ def ping(actor):
     for i in range(10):
         actor._send_update({"count": i})
         actor.sleep(1)
+
+def test():
+    return "loaded"

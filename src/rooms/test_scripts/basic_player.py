@@ -2,6 +2,9 @@
 from rooms.position import Position
 
 
+def created(actor):
+    actor.state['created'] = True
+
 def player_joins(player_actor, room):
     player_actor.state.initialized = True
 

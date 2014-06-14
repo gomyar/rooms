@@ -2,6 +2,7 @@
 import unittest
 import gevent
 from gevent.queue import Queue
+import os
 
 from rooms.node import Node
 from rooms.room import Room
@@ -16,6 +17,7 @@ from rooms.testutils import MockActor
 from rooms.testutils import MockRoomFactory
 from rooms.rpc import RPCException
 from rooms.position import Position
+from rooms.actor import Actor
 
 
 class NodeTest(unittest.TestCase):
@@ -23,50 +25,59 @@ class NodeTest(unittest.TestCase):
         self.player_script = MockScript()
         self.game_script = MockScript()
         self.mock_rpc = MockRpcClient()
-        self.room1 = MockRoom("game1", "room1")
-        self.room2 = MockRoom("game1", "room2")
-        self.mock_room_factory = MockRoomFactory(self.room2)
-        self.player1 = PlayerActor(self.room1, "player", "rooms.node_test",
-            "bob")
-        self.container = MockContainer(rooms={("game1", "room1"): self.room1},
-            player_actors={("bob1", "game1"): self.player1},
-            room_factory=self.mock_room_factory)
         self.node = Node("10.10.10.1", 8000, "master", 9000)
-        self.node.container = self.container
         self.node._create_token = lambda: "TOKEN1"
-        self.node.player_script = self.player_script
-        self.node.game_script = self.game_script
+        self.node.scripts['player_script'] = self.player_script
+        self.node.scripts['game_script'] = self.game_script
+        self.node.scripts['mock_script'] = MockScript()
         self.node.master_conn = self.mock_rpc
+        self.room1 = Room("game1", "room1", Position(0, 0), Position(0, 0),
+            self.node)
+        self.room2 = Room("game1", "room2", Position(0, 0), Position(0, 0),
+            self.node)
+        self.container = MockContainer(room_factory=MockRoomFactory(self.room2))
+        self.container.save_room(self.room1)
+#        self.container.save_room(self.room2)
+        self.node.container = self.container
+        self.container.node = self.node
         MockTimer.setup_mock()
 
     def tearDown(self):
         MockTimer.teardown_mock()
 
     def testManageRoom(self):
+        mock_script = MockScript()
+        self.player1 = PlayerActor(self.room1, "player", mock_script,
+            "bob")
+        self.container.save_actor(self.player1)
+
         self.node.manage_room("game1", "room1")
 
         self.assertEquals(1, len(self.node.rooms))
-        self.assertTrue(self.room1._kicked_off)
+        self.assertEquals([], mock_script.called)
+        MockTimer.fast_forward(0)
+        self.assertEquals([], mock_script.called)
 
     def testPlayerJoins(self):
         self.node.manage_room("game1", "room1")
 
-        token = self.node.player_joins("bob", "game1", "room1")
+        token = self.node.player_joins("ned", "game1", "room1")
         self.assertEquals("TOKEN1", token)
 
-        new_player = self.container.player_actors['bob', 'game1']
-        self.assertEquals("bob", new_player.username)
-        self.assertEquals("room1", new_player.room_id)
-        self.assertEquals("game1", new_player.game_id)
+        player_actor = self.node.rooms['game1', 'room1'].actors['actors_0']
+        room = self.node.rooms['game1', 'room1']
+        self.assertEquals("ned", player_actor.username)
+        self.assertEquals("room1", player_actor.room_id)
+        self.assertEquals("game1", player_actor.game_id)
         self.assertEquals(1, len(self.node.player_connections))
         self.assertEquals(1, len(self.node.rooms["game1", "room1"].actors))
         self.assertEquals([
-            ("player_joins", (new_player, self.room1), {})
+            ("player_joins", (player_actor, room), {})
         ], self.player_script.called)
 
     def testManageNonExistantRoom(self):
         self.node.manage_room("game1", "room2")
-        self.assertEquals(2, len(self.container.rooms))
+        self.assertEquals(2, len(self.container.dbase.dbases['rooms']))
         self.assertEquals([("room_created",
             (self.room2,), {})],
             self.game_script.called)
@@ -79,11 +90,6 @@ class NodeTest(unittest.TestCase):
             self.mock_rpc.called)
 
     def testDeregister(self):
-        mockroom1 = MockRoom('game1', 'room1')
-        mockroom2 = MockRoom('game1', 'room2')
-        self.node.rooms['game1', 'room1'] = mockroom1
-        self.node.rooms['game1', 'room2'] = mockroom2
-
         self.node.deregister()
 
         self.assertEquals([
@@ -91,8 +97,7 @@ class NodeTest(unittest.TestCase):
             ('deregister_node', {'host': '10.10.10.1', 'port': 8000})],
             self.mock_rpc.called)
 
-        self.assertEquals({('game1', 'room1'): mockroom1,
-            ('game1', 'room2'): mockroom2}, self.container.rooms)
+        self.assertEquals(1, len(self.container.dbase.dbases['rooms']))
 
     def testOfflineBouncesAllConnectedToMaster(self):
         pass
@@ -110,26 +115,48 @@ class NodeTest(unittest.TestCase):
             'token': 'TOKEN1', 'room_id': 'room1'}], self.node.all_players())
 
     def testAllRooms(self):
+        self.player1 = PlayerActor(self.room1, "player", MockScript(),
+            "bob")
+        self.container.save_actor(self.player1)
         self.node.manage_room("game1", "room1")
         self.assertEquals([
-            {'actors': [], 'game_id': 'game1', 'room_id': 'room1'}],
+            {'actors': [('actors_0',
+              {u'actor_id': u'actors_0',
+               u'actor_type': u'player',
+               u'state': {},
+               u'username': u'bob',
+               u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
+                           u'end_time': 0.0,
+                           u'start_pos': {u'x': 0.0,
+                                          u'y': 0.0,
+                                          u'z': 0.0},
+                           u'start_time': 0.0}})],
+              'game_id': 'game1',
+              'room_id': 'room1'}],
             self.node.all_rooms())
 
     def testRequestToken(self):
+        self.player1 = PlayerActor(self.room1, "player", MockScript(),
+            "bob")
+        self.container.save_actor(self.player1)
+
         self.node.manage_room("game1", "room1")
-        self.container.player_actors['bob', 'game1'] = self.player1
         token = self.node.request_token("bob", "game1")
         self.assertEquals("TOKEN1", token)
 
     def testRequestTokenInvalidPlayer(self):
         self.node.manage_room("game1", "room_other")
-        self.container.player_actors['bob', 'game1'] = self.player1
+        self.player1 = PlayerActor(self.room1, "player", MockScript(),
+            "bob")
+        self.container.save_actor(self.player1)
         self.assertRaises(RPCException, self.node.request_token, "bob", "game1")
 
     def testRequestTokenNoSuchPlayer(self):
         self.node.manage_room("game1", "room_other")
-        self.container.player_actors['bob', 'game1'] = self.player1
-        self.assertRaises(RPCException, self.node.request_token, "no", "game1")
+        self.player1 = PlayerActor(self.room1, "player", MockScript(),
+            "bob")
+        self.container.save_actor(self.player1)
+        self.assertRaises(RPCException, self.node.request_token, "bob", "game1")
 
     def testPlayerConnects(self):
         ws = MockWebsocket()
@@ -151,7 +178,8 @@ class NodeTest(unittest.TestCase):
         self.node.manage_room("game1", "room1")
         self.node.player_joins("bob", "game1", "room1")
 
-        player_actor = self.room1.actors['player1']
+        room1 = self.node.rooms["game1", "room1"]
+        player_actor = room1.actors['actors_0']
         player_actor.script = MockScript()
         self.node.actor_call("game1", "bob", "player1", "TOKEN1",
             "do_something")
@@ -179,8 +207,9 @@ class NodeTest(unittest.TestCase):
     def testActorEntered(self):
         self.node.manage_room("game1", "room1")
 
-        actor = MockActor()
-        self.room1.actors['actor1'] = actor
+        actor = Actor(None, "test_actor", MockScript())
+        actor._room_id = "room1"
+        self.container.save_actor(actor)
 
         self.node.actor_enters_node("game1", "room1", "actor1")
 
@@ -190,15 +219,40 @@ class NodeTest(unittest.TestCase):
     def testPlayerJoinsActorCreatedConnectionCreated(self):
         self.node.manage_room("game1", "room1")
 
-        self.assertEquals({}, self.node.rooms['game1', 'room1'].actors)
-        self.assertEquals({}, self.node.player_connections)
+        self.assertEquals(0, len(self.node.rooms['game1', 'room1'].actors))
+        self.assertEquals(0, len(self.node.player_connections))
 
         self.assertEquals("TOKEN1",
-            self.node.player_joins("bob", "game1", "room1"))
+            self.node.player_joins("ned", "game1", "room1"))
 
         self.assertEquals(PlayerActor,
-            type(self.node.rooms['game1', 'room1'].actors['player1']))
+            type(self.node.rooms['game1', 'room1'].actors['actors_0']))
+        self.assertEquals("ned",
+            self.node.rooms['game1', 'room1'].actors['actors_0'].username)
+        self.assertEquals("actors_0",
+            self.node.player_connections['ned', 'game1'].actor.actor_id)
+
+    def testRoomManagedWithPlayerActorsPlayerConnectionsCreated(self):
+        self.player1 = PlayerActor(self.room1, "player", MockScript(),
+            "bob")
+        self.container.save_actor(self.player1)
+
+        self.node.manage_room("game1", "room1")
+
+        self.assertEquals(1, len(self.node.rooms['game1', 'room1'].actors))
+        self.assertEquals(1, len(self.node.player_connections))
+
+        self.assertEquals(PlayerActor,
+            type(self.node.rooms['game1', 'room1'].actors['actors_0']))
         self.assertEquals("bob",
-            self.node.rooms['game1', 'room1'].actors['player1'].username)
-        self.assertEquals("player1",
+            self.node.rooms['game1', 'room1'].actors['actors_0'].username)
+        self.assertEquals("actors_0",
             self.node.player_connections['bob', 'game1'].actor.actor_id)
+
+    def testLoadScriptsFromPath(self):
+        script_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+            "test_scripts")
+        self.node.load_scripts(script_path)
+
+        self.assertEquals("loaded", self.node.scripts['basic_actor'].call("test"))
+

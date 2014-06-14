@@ -21,7 +21,7 @@ class State(dict):
 
 
 class Actor(object):
-    def __init__(self, room, actor_type, script_name, username=None,
+    def __init__(self, room, actor_type, script, username=None,
             actor_id=None, room_id=None, game_id=None):
         self.room = room
         self._actor_id = actor_id
@@ -31,7 +31,7 @@ class Actor(object):
         self.state = State(self)
         self.path = []
         self.vector = create_vector(Position(0, 0), Position(0, 0))
-        self.script = Script(script_name)
+        self.script = script
         self.speed = 1.0
         self.username = username
         self.is_player = False

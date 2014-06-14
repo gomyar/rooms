@@ -42,8 +42,7 @@ class Container(object):
         actors_list = self._load_filter("actors", game_id=game_id,
             room_id=room_id)
         for actor in actors_list:
-            actor.room = room
-            room.actors[actor.actor_id] = actor
+            room.put_actor(actor)
         return room
 
     def save_room(self, room):
@@ -114,8 +113,8 @@ class Container(object):
         games = [self._decode_enc_dict(enc_dict) for enc_dict in game_dicts]
         return games
 
-    def create_player(self, room, actor_type, script_name, username, game_id):
-        player = PlayerActor(room, actor_type, script_name, username,
+    def create_player(self, room, actor_type, script, username, game_id):
+        player = PlayerActor(room, actor_type, script, username,
             game_id=game_id)
         self.save_player(player)
         return player
@@ -206,7 +205,9 @@ class Container(object):
         return data
 
     def _build_player(self, data):
-        player = PlayerActor(None, data['actor_type'], data['script_name'],
+        script = self.node.scripts[data['script_name']] if self.node else None
+        player = PlayerActor(None, data['actor_type'],
+            script,
             data['username'], game_id=data['game_id'], actor_id=data['actor_id'],
             room_id=data['room_id'])
         player.state = data['state']
@@ -252,7 +253,9 @@ class Container(object):
             speed=actor.speed)
 
     def _build_actor(self, data):
-        actor = Actor(None, data['actor_type'], data['script_name'],
+        script = self.node.scripts[data['script_name']] if self.node else None
+        actor = Actor(None, data['actor_type'],
+            script,
             data['username'], actor_id=data['actor_id'],
             room_id=data['room_id'])
         actor.state = data['state']
@@ -263,10 +266,11 @@ class Container(object):
 
     # Script
     def _serialize_script(self, script):
-        return dict(script_module=script._script_module.__name__)
+        return dict(script_name=script.script_name)
 
     def _build_script(self, data):
-        return Script(data['script_module'])
+        script_name = data['script_name']
+        return Script(script_name, self.node.scripts[script_name])
 
     # Vector
     def _serialize_vector(self, vector):

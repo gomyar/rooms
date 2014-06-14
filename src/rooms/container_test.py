@@ -12,50 +12,8 @@ from rooms.testutils import MockRoomFactory
 from rooms.testutils import MockRoom
 from rooms.testutils import MockTimer
 from rooms.testutils import MockActor
-
-
-class MockDbase(object):
-    def __init__(self):
-        self.dbases = dict()
-
-    def load_object(self, obj_id, collection_name):
-        return self.dbases.get(collection_name, dict()).get(obj_id).copy()
-
-    def save_object(self, obj_dict, collection_name, db_id):
-        obj_dict = obj_dict.copy()
-        if collection_name not in self.dbases:
-            self.dbases[collection_name] = dict()
-        db_id = db_id or collection_name + "_" + \
-            str(len(self.dbases[collection_name]))
-        obj_dict['_id'] = db_id
-        self.dbases[collection_name][db_id] = obj_dict
-        return db_id
-
-    def filter(self, collection_name, **fields):
-        found = self.dbases.get(collection_name, dict()).values()
-        found = [o for o in found if all([i in o.items() for \
-            i in fields.items()])]
-        found = [o.copy() for o in found]
-        return found
-
-    def filter_one(self, collection_name, **fields):
-        result = self.filter(collection_name, **fields)
-        return result[0] if result else None
-
-    def object_exists(self, collection_name, **search_fields):
-        return bool(self.filter(collection_name, **search_fields))
-
-    def remove(self, collection_name, **fields):
-        dbase = self.dbases.get(collection_name, [])
-        keep = dict()
-        for k, v in dbase.items():
-            if not all([i in v.items() for i in fields.items()]):
-                keep[k] = v
-        self.dbases[collection_name] = keep
-
-    def update_object_fields(self, collection_name, obj, **fields):
-        objdata = self.dbases.get(collection_name, dict()).get(obj._id)
-        objdata.update(fields)
+from rooms.testutils import MockDbase
+from rooms.testutils import MockScript
 
 
 class ContainerTest(unittest.TestCase):
@@ -63,6 +21,7 @@ class ContainerTest(unittest.TestCase):
         self.dbase = MockDbase()
         self.geography = MockGeog()
         self.node = MockNode()
+        self.node.scripts["rooms.room_test"] = MockScript()
         self.room2 = Room("games_0", "room2", Position(0, 0), Position(10, 10),
             self.node)
         self.mock_room_factory = MockRoomFactory(self.room2)
@@ -82,7 +41,7 @@ class ContainerTest(unittest.TestCase):
             self.dbase.dbases['games'])
 
     def testSavePlayer(self):
-        self.player = PlayerActor(self.room2, "player", "container_test",
+        self.player = PlayerActor(self.room2, "player", MockScript(),
             "bob", game_id="games_0", actor_id="actors_0")
 
         self.assertFalse(self.container.player_exists("bob", "games_0"))
@@ -96,7 +55,7 @@ class ContainerTest(unittest.TestCase):
               u'game_id': u'games_0',
               u'path': [],
               u'room_id': u'room2',
-              u'script_name': u'container_test',
+              u'script_name': u'mock_script',
               u'speed': 1.0,
               u'state': {},
               u'username': u'bob',
@@ -119,7 +78,7 @@ class ContainerTest(unittest.TestCase):
             u'actor_id': u'actors_0',
             u'actor_type': u'player',
             u'game_id': u'games_1',
-            u'script_name': u'container_test',
+            u'script_name': u'rooms.room_test',
             u'room_id': u'rooms_10',
             "state": {},
             "path": [],
@@ -142,7 +101,7 @@ class ContainerTest(unittest.TestCase):
 
     def testCreatePlayer(self):
         player = self.container.create_player(self.room2, "player",
-            "container_test", "ned", game_id="games_0")
+            MockScript(), "ned", game_id="games_0")
         self.assertEquals("actors_0", player._id)
         self.assertEquals("ned", player.username)
         self.assertEquals("games_0", player.game_id)
@@ -168,7 +127,7 @@ class ContainerTest(unittest.TestCase):
             "start_time": 0,
             "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
             "end_time": 10,
-            }, "script_name": "rooms.container_test"}
+            }, "script_name": "rooms.room_test"}
         room = self.container.load_room("games_0", "room1")
         self.assertEquals(self.geography, room.geography)
         self.assertEquals(room, self.geography.room)
@@ -211,7 +170,7 @@ class ContainerTest(unittest.TestCase):
             u'path': [],
             u'username': None,
             u'room_id': u'room1',
-            u'script_name': u'rooms.room_test',
+            u'script_name': u'mock_script',
             u'speed': 1.0,
             u'state': {},
             u'vector': {u'__type__': u'Vector',
@@ -244,9 +203,9 @@ class ContainerTest(unittest.TestCase):
             u'path': [],
             u'username': None,
             u'room_id': u'room2',
-            u'script_name': u'rooms.room_test',
+            u'script_name': u'mock_script',
             u'speed': 1.0,
-            u'state': {u'created': True},
+            u'state': {},
             u'vector': {u'__type__': u'Vector',
                         u'end_pos': {u'__type__': u'Position',
                                     u'x': 0.0,
@@ -262,7 +221,7 @@ class ContainerTest(unittest.TestCase):
 
         actor.state.testme = "value1"
         self.container.save_actor(actor)
-        self.assertEquals({u'created': True, u'testme': u'value1'},
+        self.assertEquals({u'testme': u'value1'},
             self.dbase.dbases['actors']['actors_0']['state'])
 
         actor.room = None

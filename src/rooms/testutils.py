@@ -8,91 +8,60 @@ from rooms.room import Room
 from rooms.actor import Actor
 from rooms.position import Position
 from rooms.timer import Timer
+from rooms.container import Container
 
 
-class MockContainer(object):
+class MockContainer(Container):
     def __init__(self, rooms=None, games=None, room_factory=None,
             actors=None, player_actors=None):
-        self.rooms = rooms or {}
-        self.games = games or {}
-        self.actors = actors or {}
-        self.player_actors = player_actors or {}
-        self.room_factory = room_factory or {}
-        self.gameids = 1
-        self.actorids = 1
-        self.playerids = 1
-        self.node = MockNode()
-        self.room_factory = room_factory or \
-            MockRoomFactory(MockRoom("mock_game_1", "mock_room_1"))
-        self.actor_updates = []
+        super(MockContainer, self).__init__(MockDbase(), MockGeog(),
+            MockNode(),
+            room_factory or MockRoomFactory(MockRoom("mock_game_1",
+                "mock_room_1")))
 
-    def load_room(self, game_id, room_id):
-        return self.rooms[game_id, room_id]
 
-    def save_room(self, room):
-        self.rooms[room.game_id, room.room_id] = room
+class MockDbase(object):
+    def __init__(self):
+        self.dbases = dict(rooms={}, actors={})
 
-    def room_exists(self, game_id, room_id):
-        return (game_id, room_id) in self.rooms
+    def load_object(self, obj_id, collection_name):
+        return self.dbases.get(collection_name, dict()).get(obj_id).copy()
 
-    def load_player(self, username, game_id):
-        return self.player_actors[username, game_id]
+    def save_object(self, obj_dict, collection_name, db_id):
+        obj_dict = obj_dict.copy()
+        if collection_name not in self.dbases:
+            self.dbases[collection_name] = dict()
+        db_id = db_id or collection_name + "_" + \
+            str(len(self.dbases[collection_name]))
+        obj_dict['_id'] = db_id
+        self.dbases[collection_name][db_id] = obj_dict
+        return db_id
 
-    def save_player(self, player):
-        self.player_actors[player.username, player.game_id] = player
+    def filter(self, collection_name, **fields):
+        found = self.dbases.get(collection_name, dict()).values()
+        found = [o for o in found if all([i in o.items() for \
+            i in fields.items()])]
+        found = [o.copy() for o in found]
+        return found
 
-    def player_exists(self, username, game_id):
-        return (username, game_id) in self.player_actors
+    def filter_one(self, collection_name, **fields):
+        result = self.filter(collection_name, **fields)
+        return result[0] if result else None
 
-    def load_game(self, game_id):
-        return self.games[game_id]
+    def object_exists(self, collection_name, **search_fields):
+        return bool(self.filter(collection_name, **search_fields))
 
-    def save_game(self, game):
-        self.games[game.game_id] = game
+    def remove(self, collection_name, **fields):
+        dbase = self.dbases.get(collection_name, [])
+        keep = dict()
+        for k, v in dbase.items():
+            if not all([i in v.items() for i in fields.items()]):
+                keep[k] = v
+        self.dbases[collection_name] = keep
 
-    def game_exists(self, game_id):
-        return game_id in self.games
-
-    def save_actor(self, actor):
-        self.actors[actor.actor_id] = actor
-
-    def update_actor(self, actor, **fields):
-        self.actor_updates.append((actor, fields))
-
-    def create_room(self, game_id, room_id):
-        room = self.room_factory.create(game_id, room_id)
-        room.geography = MockGeog()
-        self.rooms[game_id, room_id] = room
-        return room
-
-    def create_actor(self, room, actor_type, script_name, username=None):
-        actor = Actor(room, actor_type, script_name, username)
-        actor._actor_id = "actor%s" % (self.actorids)
-        self.actors[actor.actor_id] = actor
-        self.actorids += 1
-        return actor
-
-    def all_games(self):
-        return self.games.values()
-
-    def all_active_games(self):
-        return self.games.values()
-
-    def create_game(self, owner_id):
-        game = MockGame(owner_id, "game%s" % (self.gameids))
-        self.gameids += 1
-        self.save_game(game)
-        return game
-
-    def create_player(self, room, actor_type, script_name, username, game_id):
-        player = PlayerActor(room, actor_type, script_name, username,
-            actor_id="player%s" % (self.playerids), game_id=game_id)
-        self.playerids += 1
-        self.save_player(player)
-        return player
-
-    def players_in_game(self, game_id):
-        return [p for p in self.player_actors.values() if p.game_id == game_id]
+    def update_object_fields(self, collection_name, obj, **fields):
+        objdata = self.dbases.get(collection_name, dict()).get(obj._id)
+        objdata.update(fields)
 
 
 class MockRoom(object):
@@ -137,6 +106,7 @@ class MockRoom(object):
 class MockNode(object):
     def __init__(self):
         self._updates = []
+        self.scripts = {}
 
     def actor_update(self, room, actor_id, update):
         self._updates.append((room, actor_id, update))
@@ -154,7 +124,7 @@ class MockGame(object):
 class MockScript(object):
     def __init__(self):
         self.called = []
-        self.script_name = "rooms.test_scripts.basic_player"
+        self.script_name = "mock_script"
 
     def call(self, method, *args, **kwargs):
         self.called.append((method, args, kwargs))
@@ -245,9 +215,8 @@ class MockTimer(Timer):
 
 class MockActor(Actor):
     def __init__(self, actor_id=None):
-        super(MockActor, self).__init__(None, "mock_actor", "rooms.testutils",
+        super(MockActor, self).__init__(None, "mock_actor", MockScript(),
             actor_id=actor_id)
-        self.script = MockScript()
 
     def script_call(self, method, *args):
         self.script.call(method, *args)

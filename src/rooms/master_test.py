@@ -10,6 +10,7 @@ from rooms.testutils import MockContainer
 from rooms.testutils import MockRpcClient
 from rooms.testutils import MockGame
 from rooms.testutils import MockRoom
+from rooms.testutils import MockScript
 
 
 class MockNodeRpcClient(object):
@@ -27,6 +28,7 @@ class MockNodeRpcClient(object):
 class MasterTest(unittest.TestCase):
     def setUp(self):
         self.container = MockContainer()
+        self.container.node = None
         self.rpc_conn = MockRpcClient(expect={"player_joins": "TOKEN",
             "request_token": "TOKEN"})
 
@@ -61,9 +63,10 @@ class MasterTest(unittest.TestCase):
         self.master.register_node("10.10.10.1", 8000)
 
         game_id = self.master.create_game("bob")
-        self.assertEquals("bob", self.container.games['game1'].owner_id)
+        self.assertEquals("bob",
+            self.container.dbase.dbases['games']['games_0']['owner_id'])
 
-        self.assertEquals([{'game_id': 'game1', 'owner_id': 'bob'}],
+        self.assertEquals([{'game_id': 'games_0', 'owner_id': 'bob'}],
             self.master.all_games())
 
     def testCantRegisterNodeTwice(self):
@@ -80,15 +83,15 @@ class MasterTest(unittest.TestCase):
         self.master.create_game("bob")
         self.master.nodes['10.10.10.1', 8000].client = self.rpc_conn
 
-        self.assertEquals({}, self.container.player_actors)
-        node = self.master.join_game("bob", "game1", "room1")
+        self.assertEquals({}, self.container.dbase.dbases['actors'])
+        node = self.master.join_game("bob", "games_0", "room1")
         self.assertEquals({'node': ("10.10.10.1", 8000), 'token': 'TOKEN',
-            'url': 'http://localhost:8000/assets/index.html?token=TOKEN&game_id=game1&username=bob'},
+            'url': 'http://localhost:8000/assets/index.html?token=TOKEN&game_id=games_0&username=bob'},
             node)
 
         self.assertEquals([
-            ('manage_room', {'game_id': 'game1', 'room_id': 'room1'}),
-            ('player_joins', {'game_id': 'game1', 'room_id': 'room1',
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('player_joins', {'game_id': 'games_0', 'room_id': 'room1',
                 'username': 'bob'})
         ], self.rpc_conn.called)
 
@@ -98,8 +101,8 @@ class MasterTest(unittest.TestCase):
             "room1")
 
     def testPlayersInGame(self):
-        self.container.player_actors['bob', 'game1'] = PlayerActor(
-            MockRoom("game1", "room1"), 'player', "rooms.master_test", "bob")
+        self.container.save_actor(PlayerActor(
+            MockRoom("game1", "room1"), 'player', MockScript(), "bob"))
         self.assertEquals([{'game_id': 'game1', 'room_id': 'room1',
             'username': 'bob'}], self.master.players_in_game("game1"))
 
@@ -143,7 +146,7 @@ class MasterTest(unittest.TestCase):
     def testJoinGameNoNodes(self):
         self.master.create_game("bob")
         self.assertRaises(RPCWaitException, self.master.join_game, "bob",
-            "game1", "room1")
+            "games_0", "room1")
 
     def testJoinGamePlayerAlreadyJoined(self):
         self.master.register_node("10.10.10.1", 8000)
@@ -151,26 +154,26 @@ class MasterTest(unittest.TestCase):
         self.master.nodes['10.10.10.1', 8000].client = self.rpc_conn
 
         # Player exists
-        self.container.player_actors['bob', 'game1'] = PlayerActor(
-            MockRoom("game1", "room1"), 'player', "rooms.master_test", "bob")
+        self.container.save_actor(PlayerActor(
+            MockRoom("games_0", "room1"), 'player', MockScript(), "bob"))
 
-        self.assertRaises(RPCException, self.master.join_game, "bob", "game1",
+        self.assertRaises(RPCException, self.master.join_game, "bob", "games_0",
             "room1")
 
     def testJoinGameTwoGamesTwoNodes(self):
         self.master.register_node("10.10.10.1", 8000)
         game_1 = self.master.create_game("bob")
-        node1 = self.master.join_game("bob", "game1", "room1")
+        node1 = self.master.join_game("bob", "games_0", "room1")
 
         self.master.register_node("10.10.10.2", 8000)
         game_2 = self.master.create_game("bob")
-        node2 = self.master.join_game("bob", "game2", "room1")
+        node2 = self.master.join_game("bob", "games_1", "room1")
 
         self.assertEquals({'node': ("10.10.10.1", 8000), 'token': 'TOKEN',
-            'url': 'http://localhost:8000/assets/index.html?token=TOKEN&game_id=game1&username=bob'},
+            'url': 'http://localhost:8000/assets/index.html?token=TOKEN&game_id=games_0&username=bob'},
             node1)
         self.assertEquals({'node': ("10.10.10.2", 8000), 'token': 'TOKEN',
-            'url': 'http://localhost:8000/assets/index.html?token=TOKEN&game_id=game2&username=bob'},
+            'url': 'http://localhost:8000/assets/index.html?token=TOKEN&game_id=games_1&username=bob'},
             node2)
 
         self.assertEquals([{'host': '10.10.10.2', 'port': 8000, 'online': True},
@@ -178,31 +181,31 @@ class MasterTest(unittest.TestCase):
             self.master.all_nodes())
 
     def testNodeOffliningQueueRoomRequests(self):
-        self.master.create_game("bob")
+        self.assertEquals("games_0", self.master.create_game("bob"))
 
         self.master.register_node("10.10.10.1", 8000)
         self.master.register_node("20.20.20.2", 8000)
 
-        self.master.request_room("game1", "room1")
-        self.master.request_room("game1", "room2")
+        self.master.request_room("games_0", "room1")
+        self.master.request_room("games_0", "room2")
 
         # receive offline signal
         self.master.offline_node("10.10.10.1", 8000)
 
         # receieve room request - send wait response
         self.assertRaises(RPCWaitException, self.master.join_game,
-            "bob", "game1", "room1")
+            "bob", "games_0", "room1")
 
         # wait until room becomes available (from node)
         self.master.deregister_node("10.10.10.1", 8000)
-        self.assertEquals({('game1', 'room2'): ('20.20.20.2', 8000)},
+        self.assertEquals({('games_0', 'room2'): ('20.20.20.2', 8000)},
             self.master.rooms)
 
         # receive room request - normal room manage
-        self.master.join_game("bob", "game1", "room1")
+        self.master.join_game("bob", "games_0", "room1")
 
-        self.assertEquals({('game1', 'room1'): ('20.20.20.2', 8000),
-            ('game1', 'room2'): ('20.20.20.2', 8000)}, self.master.rooms)
+        self.assertEquals({('games_0', 'room1'): ('20.20.20.2', 8000),
+            ('games_0', 'room2'): ('20.20.20.2', 8000)}, self.master.rooms)
 
     def testOfflineNonexistant(self):
         self.assertRaises(RPCException,
@@ -212,9 +215,8 @@ class MasterTest(unittest.TestCase):
         self.master.create_game("bob")
         self.master.register_node("10.10.10.1", 8000)
 
-        player = self.container.create_player(None, "player",
-            "test_scripts.basic_player", "bob", "game1")
-        player._room_id = "room1"
+        player = self.container.create_player(MockRoom("game1", "room1"),
+            "player", MockScript(), "bob", "game1")
 
         self.assertEquals({'token': 'TOKEN', 'node': ('10.10.10.1', 8000),
             'url': 'http://localhost:8000/assets/index.html'
@@ -228,18 +230,18 @@ class MasterTest(unittest.TestCase):
         self.master.register_node("10.10.10.1", 8000)
         self.master.register_node("10.10.10.2", 8000)
 
-        self.master.join_game("bob", "game1", "room1")
+        self.master.join_game("bob", "games_0", "room1")
 
         self.assertEquals([
-            ('manage_room', {'game_id': 'game1', 'room_id': 'room1'}),
-            ('player_joins', {'game_id': 'game1', 'room_id': 'room1',
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('player_joins', {'game_id': 'games_0', 'room_id': 'room1',
                 'username': 'bob'})], self.rpc_conn.called)
 
-        self.master.request_room("game1", "room1")
+        self.master.request_room("games_0", "room1")
 
         self.assertEquals([
-            ('manage_room', {'game_id': 'game1', 'room_id': 'room1'}),
-            ('player_joins', {'game_id': 'game1', 'room_id': 'room1',
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('player_joins', {'game_id': 'games_0', 'room_id': 'room1',
                 'username': 'bob'})], self.rpc_conn.called)
 
     def testAllRooms(self):
@@ -248,15 +250,15 @@ class MasterTest(unittest.TestCase):
         self.master.register_node("10.10.10.1", 8000)
         self.master.register_node("10.10.10.2", 8000)
 
-        self.master.join_game("bob", "game1", "room1")
-        self.master.join_game("ned", "game1", "room1")
+        self.master.join_game("bob", "games_0", "room1")
+        self.master.join_game("ned", "games_0", "room1")
 
-        self.assertEquals({('game1', 'room1'): ('10.10.10.2', 8000)},
+        self.assertEquals({('games_0', 'room1'): ('10.10.10.2', 8000)},
             self.master.rooms)
         self.assertEquals([
-            ('manage_room', {'game_id': 'game1', 'room_id': 'room1'}),
-            ('player_joins', {'game_id': 'game1', 'room_id': 'room1', 'username': 'bob'}),
-            ('player_joins', {'game_id': 'game1', 'room_id': 'room1', 'username': 'ned'}),
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('player_joins', {'game_id': 'games_0', 'room_id': 'room1', 'username': 'bob'}),
+            ('player_joins', {'game_id': 'games_0', 'room_id': 'room1', 'username': 'ned'}),
         ], self.rpc_conn.called)
 
     def testActorEntered(self):
@@ -264,14 +266,14 @@ class MasterTest(unittest.TestCase):
 
         self.master.register_node("10.10.10.1", 8000)
 
-        self.master.join_game("bob", "game1", "room1")
+        self.master.join_game("bob", "games_0", "room1")
 
         self.assertEquals({'node': ['10.10.10.1', 8000]},
-            self.master.actor_entered("game1", "room1", "actor1", True, "bob"))
+            self.master.actor_entered("games_0", "room1", "actor1", True, "bob"))
 
         self.assertEquals(
             ('actor_enters_node',
-                {"game_id": "game1", "room_id": "room1", "actor_id": "actor1"}),
+                {"game_id": "games_0", "room_id": "room1", "actor_id": "actor1"}),
             self.rpc_conn.called[2])
 
     def testNonPlayerActorEnteredNoManagedRoom(self):
@@ -280,7 +282,7 @@ class MasterTest(unittest.TestCase):
         self.master.register_node("10.10.10.1", 8000)
 
         self.assertEquals(None,
-            self.master.actor_entered("game1", "room1", "actor1", False, None))
+            self.master.actor_entered("games_0", "room1", "actor1", False, None))
 
         self.assertEquals([], self.rpc_conn.called)
 

@@ -3,9 +3,9 @@ from rooms.actor import Actor
 
 
 class PlayerActor(Actor):
-    def __init__(self, room, actor_type, script_name, username, actor_id=None,
+    def __init__(self, room, actor_type, script, username, actor_id=None,
             game_id=None, room_id=None):
-        super(PlayerActor, self).__init__(room, actor_type, script_name,
+        super(PlayerActor, self).__init__(room, actor_type, script,
             username=username, actor_id=actor_id, game_id=game_id,
             room_id=room_id)
         self.is_player = True

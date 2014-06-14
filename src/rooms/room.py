@@ -67,10 +67,6 @@ class Room(object):
     def __repr__(self):
         return "<Room %s %s>" % (self.game_id, self.room_id)
 
-    def __eq__(self, rhs):
-        return rhs and type(rhs) is Room and self.game_id == rhs.game_id and \
-            self.room_id == rhs.room_id
-
     @property
     def width(self):
         return self.bottomright.x - self.topleft.x
@@ -88,10 +84,12 @@ class Room(object):
         )
 
     def kick(self):
-        pass
+        for actor in self.actors.values():
+            actor.kick()
 
     def create_actor(self, actor_type, script_name, player=None):
-        actor = self.node.container.create_actor(self, actor_type, script_name,
+        script = self.node.scripts[script_name]
+        actor = self.node.container.create_actor(self, actor_type, script,
             player.username if player else None)
         actor.script.call("created", actor)
         actor.kick()
@@ -103,6 +101,9 @@ class Room(object):
         actor.room = self
         if position:
             actor.position = position
+
+    def player_actors(self):
+        return [a for a in self.actors.values() if a.is_player]
 
     def find_path(self, from_pos, to_pos):
         return self.geography.find_path(self, from_pos, to_pos)
