@@ -209,12 +209,14 @@ class NodeTest(unittest.TestCase):
 
         actor = Actor(None, "test_actor", MockScript())
         actor._room_id = "room1"
+        actor._game_id = "game1"
         self.container.save_actor(actor)
 
-        self.node.actor_enters_node("game1", "room1", "actor1")
+        self.node.actor_enters_node("actors_0")
 
         room = self.node.rooms['game1', 'room1']
-        self.assertEquals(actor, room.actors['actor1'])
+        self.assertEquals(actor.actor_id, room.actors['actors_0'].actor_id)
+        self.assertEquals(actor.room_id, room.actors['actors_0'].room_id)
 
     def testPlayerJoinsActorCreatedConnectionCreated(self):
         self.node.manage_room("game1", "room1")

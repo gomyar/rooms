@@ -73,7 +73,10 @@ class Container(object):
 
     def load_player(self, username, game_id):
         return self._load_filter_one("actors", username=username,
-            game_id=game_id)
+            game_id=game_id, __type__="PlayerActor")
+
+    def load_actor(self, actor_id):
+        return self._load_object(actor_id, "actors")
 
     def save_player(self, player):
         self._save_object(player, "actors")
@@ -257,7 +260,7 @@ class Container(object):
         actor = Actor(None, data['actor_type'],
             script,
             data['username'], actor_id=data['actor_id'],
-            room_id=data['room_id'])
+            room_id=data['room_id'], game_id=data['game_id'])
         actor.state = data['state']
         actor.path = data['path']
         actor.vector = data['vector']

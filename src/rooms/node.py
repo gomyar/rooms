@@ -224,8 +224,14 @@ class Node(object):
     def _create_token(self):
         return str(uuid.uuid1())
 
-    def actor_enters_node(self, game_id, room_id, actor_id):
-        pass
+    def actor_enters_node(self, actor_id):
+        actor = self.container.load_actor(actor_id)
+        room = self.rooms[actor.game_id, actor.room_id]
+        if actor.is_player:
+            self.player_connections[player_actor.username, game_id] = \
+                PlayerConnection(actor.game_id, actor.username, room,
+                    actor, self._create_token())
+        room.put_actor(actor)
 
     def move_actor_room(self, actor, game_id, exit_room_id, exit_position):
         log.debug("Moving actor %s to %s", actor, exit_room_id)

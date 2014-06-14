@@ -14,6 +14,7 @@ from rooms.testutils import MockTimer
 from rooms.testutils import MockActor
 from rooms.testutils import MockDbase
 from rooms.testutils import MockScript
+from rooms.actor import Actor
 
 
 class ContainerTest(unittest.TestCase):
@@ -21,7 +22,7 @@ class ContainerTest(unittest.TestCase):
         self.dbase = MockDbase()
         self.geography = MockGeog()
         self.node = MockNode()
-        self.node.scripts["rooms.room_test"] = MockScript()
+        self.node.scripts["mock_script"] = MockScript()
         self.room2 = Room("games_0", "room2", Position(0, 0), Position(10, 10),
             self.node)
         self.mock_room_factory = MockRoomFactory(self.room2)
@@ -78,7 +79,7 @@ class ContainerTest(unittest.TestCase):
             u'actor_id': u'actors_0',
             u'actor_type': u'player',
             u'game_id': u'games_1',
-            u'script_name': u'rooms.room_test',
+            u'script_name': u'mock_script',
             u'room_id': u'rooms_10',
             "state": {},
             "path": [],
@@ -127,7 +128,7 @@ class ContainerTest(unittest.TestCase):
             "start_time": 0,
             "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
             "end_time": 10,
-            }, "script_name": "rooms.room_test"}
+            }, "script_name": "mock_script"}
         room = self.container.load_room("games_0", "room1")
         self.assertEquals(self.geography, room.geography)
         self.assertEquals(room, self.geography.room)
@@ -157,7 +158,7 @@ class ContainerTest(unittest.TestCase):
     def testSaveRoom(self):
         room = Room("game1", "room1", Position(0, 0), Position(10, 10),
             self.node)
-        actor = room.create_actor("mock_actor", "rooms.room_test")
+        actor = room.create_actor("mock_actor", "mock_script")
         self.container.save_room(room)
         room_dict = self.dbase.dbases['rooms']['rooms_0']
         self.assertEquals('room1', room_dict['room_id'])
@@ -193,7 +194,7 @@ class ContainerTest(unittest.TestCase):
 
     def testSaveActor(self):
         room = self.container.create_room("game1", "room2")
-        actor = room.create_actor("mock_actor", "rooms.room_test")
+        actor = room.create_actor("mock_actor", "mock_script")
         self.container.save_actor(actor)
         self.assertEquals({u'__type__': u'Actor',
             '_id': 'actors_0',
@@ -244,3 +245,25 @@ class ContainerTest(unittest.TestCase):
             self.dbase.dbases['actors']['actor1'])
         self.assertEquals({'_id': "actor2"},
             self.dbase.dbases['actors']['actor2'])
+
+    def testLoadPlayerVSLoadActor(self):
+        room = MockRoom("game1", "room1")
+        actor1 = Actor(room, "basic", MockScript(), username="bob")
+        player_actor1 = PlayerActor(room, "player", MockScript(), "bob")
+
+        self.container.save_actor(player_actor1)
+        self.container.save_actor(actor1)
+
+        loaded = self.container.load_player("bob", "game1")
+        self.assertTrue(loaded.is_player)
+        loaded_actor = self.container.load_actor("actors_1")
+        self.assertFalse(loaded_actor.is_player)
+
+    def testLoadPlayerOnly(self):
+        room = MockRoom("game1", "room1")
+        player_actor1 = PlayerActor(room, "player", MockScript(), "bob")
+
+        self.container.save_actor(player_actor1)
+
+        loaded = self.container.load_player("bob", "game1")
+        self.assertTrue(loaded.is_player)

@@ -42,9 +42,8 @@ class RegisteredNode(object):
         return self.rpc_conn.call("request_token", username=username,
             game_id=game_id)
 
-    def actor_enters_node(self, game_id, room_id, actor_id):
-        return self.rpc_conn.call("actor_enters_node", game_id=game_id,
-            room_id=room_id, actor_id=actor_id)
+    def actor_enters_node(self, actor_id):
+        return self.rpc_conn.call("actor_enters_node", actor_id=actor_id)
 
     def server_load(self):
         return len(self.rooms)
@@ -263,7 +262,7 @@ class Master(object):
             log.debug("Room %s-%s already managed", game_id, room_id)
             host, port = self.rooms[game_id, room_id]
             log.debug("Calling actor_enters on %s:%s", host, port)
-            self.nodes[host, port].actor_enters_node(game_id, room_id, actor_id)
+            self.nodes[host, port].actor_enters_node(actor_id)
             return {"node": [host, port]}
         elif is_player:
             log.debug("Room %s-%s not managed, managing room")

@@ -272,8 +272,7 @@ class MasterTest(unittest.TestCase):
             self.master.actor_entered("games_0", "room1", "actor1", True, "bob"))
 
         self.assertEquals(
-            ('actor_enters_node',
-                {"game_id": "games_0", "room_id": "room1", "actor_id": "actor1"}),
+            ('actor_enters_node', {"actor_id": "actor1"}),
             self.rpc_conn.called[2])
 
     def testNonPlayerActorEnteredNoManagedRoom(self):
