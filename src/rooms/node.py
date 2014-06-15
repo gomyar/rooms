@@ -150,12 +150,13 @@ class Node(object):
         return player_conn.token
 
     def _create_player_conn(self, player_actor):
-        player_conn = PlayerConnection(player_actor.game_id,
-            player_actor.username, player_actor.room, player_actor,
-            self._create_token())
-        self.player_connections[player_actor.username, player_actor.game_id] = \
-            player_conn
-        return player_conn
+        conn_key = player_actor.username, player_actor.game_id
+        if conn_key not in self.player_connections:
+            player_conn = PlayerConnection(player_actor.game_id,
+                player_actor.username, player_actor.room, player_actor,
+                self._create_token())
+            self.player_connections[conn_key] = player_conn
+        return self.player_connections[conn_key]
 
     def request_token(self, username, game_id):
         if (username, game_id) not in self.player_connections:
@@ -182,6 +183,7 @@ class Node(object):
             ws.send(json.dumps(jsonview(message)))
             if message.get("command") in ['disconnect', 'redirect']:
                 connected = False
+                self.player_connections.pop((username, game_id))
         return ""
 
     def _sync_message(self, room):

@@ -259,7 +259,39 @@ class NodeTest(unittest.TestCase):
         self.assertEquals("loaded", self.node.scripts['basic_actor'].call("test"))
 
     def testManageRoomWithPlayersAlreadyCreated(self):
-        pass
+        # save player
+        mock_script = MockScript()
+        self.player1 = PlayerActor(self.room1, "player", mock_script,
+            "bob")
+        self.container.save_actor(self.player1)
+
+        # manage room
+        self.node.manage_room("game1", "room1")
+
+        # assert player actors in room
+        room = self.node.rooms["game1", "room1"]
+        actor = room.actors['actors_0']
+        self.assertEquals("bob", actor.username)
+
+        # assert player connections exist
+        self.assertEquals(self.node.player_connections["bob", "game1"].actor,
+            actor)
 
     def testManageRoomWithPlayersNotYetCreated(self):
-        pass
+        # save player
+        mock_script = MockScript()
+        self.player1 = PlayerActor(self.room2, "player", mock_script,
+            "bob")
+        self.container.save_actor(self.player1)
+
+        # manage room
+        self.node.manage_room("game1", "room2")
+
+        # assert player actors in room
+        room = self.node.rooms["game1", "room2"]
+        actor = room.actors['actors_0']
+        self.assertEquals("bob", actor.username)
+
+        # assert player connections exist
+        self.assertEquals(self.node.player_connections["bob", "game1"].actor,
+            actor)

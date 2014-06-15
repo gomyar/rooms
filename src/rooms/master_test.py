@@ -262,13 +262,15 @@ class MasterTest(unittest.TestCase):
         ], self.rpc_conn.called)
 
     def testActorEntered(self):
+        self.rpc_conn.expect['actor_enters_node'] = {'host': '10.10.10.1',
+            'port': 8000, 'token': 'TOKEN'}
         self.master.create_game("bob")
 
         self.master.register_node("10.10.10.1", 8000)
 
         self.master.join_game("bob", "games_0", "room1")
 
-        self.assertEquals({'node': ['10.10.10.1', 8000]},
+        self.assertEquals({'node': ['10.10.10.1', 8000], 'token': 'TOKEN'},
             self.master.actor_entered("games_0", "room1", "actor1", True, "bob"))
 
         self.assertEquals(
