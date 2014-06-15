@@ -264,8 +264,8 @@ class Master(object):
             log.debug("Room %s-%s already managed", game_id, room_id)
             host, port = self.rooms[game_id, room_id]
             log.debug("Calling actor_enters on %s:%s", host, port)
-            self.nodes[host, port].actor_enters_node(actor_id)
-            return {"node": [host, port]}
+            response = self.nodes[host, port].actor_enters_node(actor_id)
+            return {"node": [host, port], "token": response['token']}
         elif is_player:
             log.debug("Room %s-%s not managed, managing room")
             node = self._get_node_for_room(game_id, room_id)

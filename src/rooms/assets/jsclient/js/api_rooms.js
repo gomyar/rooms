@@ -147,14 +147,14 @@ api_rooms.command_remove_actor = function(message)
 
 api_rooms.command_moved_node = function(message)
 {
-    window.location = "http://"+message.host+":"+message.port+"/?token="+message.token;
+    window.location = "http://"+message.node[0]+":"+message.node[1]+"/assets/index.html?token="+message.token+"&game_id="+api_rooms.game_id+"&username="+api_rooms.username;
 }
 
 api_rooms.commands = {
     "sync": api_rooms.command_sync,
     "actor_update": api_rooms.command_actor_update,
     "remove_actor": api_rooms.command_remove_actor,
-    "moved_node": api_rooms.command_moved_node
+    "redirect": api_rooms.command_moved_node
 };
 
 api_rooms.message_callback = function(msgevent)

@@ -267,3 +267,6 @@ class ContainerTest(unittest.TestCase):
 
         loaded = self.container.load_player("bob", "game1")
         self.assertTrue(loaded.is_player)
+
+    def testLoadPlayersForRoom(self):
+        pass

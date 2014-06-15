@@ -60,9 +60,8 @@ class NodeController(object):
         return self.node.request_token(username, game_id)
 
     @request
-    def actor_entered(self, game_id, room_id, actor_id, is_player, username):
-        return self.node.actor_entered(game_id, room_id, actor_id, is_player,
-            username)
+    def actor_enters_node(self, actor_id):
+        return self.node.actor_enters_node(actor_id)
 
     @websocket
     def ping(self, ws):
@@ -133,6 +132,10 @@ class Node(object):
         else:
             room = self.container.create_room(game_id, room_id)
             self.scripts['game_script'].call("room_created", room)
+            players = self.container.load_players_for_room(game_id, room_id)
+            for player_actor in players:
+                room.put_actor(player_actor)
+                self._create_player_conn(player_actor)
             self.container.save_room(room)
         self.rooms[game_id, room_id] = room
         room.kick()
@@ -173,9 +176,13 @@ class Node(object):
             ws.send(json.dumps(
                 {"command": "actor_update", "actor_id": actor.actor_id,
                 "data": jsonview(actor)}))
-        while True:
+        connected = True
+        while connected:
             message = player_conn.queue.get()
             ws.send(json.dumps(jsonview(message)))
+            if message.get("command") in ['disconnect', 'redirect']:
+                connected = False
+        return ""
 
     def _sync_message(self, room):
         return {"command": "sync", "data": {"now": Timer.now(),
@@ -231,9 +238,11 @@ class Node(object):
     def actor_enters_node(self, actor_id):
         actor = self.container.load_actor(actor_id)
         room = self.rooms[actor.game_id, actor.room_id]
-        if actor.is_player:
-            self._create_player_conn(actor)
         room.put_actor(actor)
+        if actor.is_player:
+            return {"token": self._create_player_conn(actor).token}
+        else:
+            return {}
 
     def move_actor_room(self, actor, game_id, exit_room_id, exit_position):
         log.debug("Moving actor %s to %s", actor, exit_room_id)

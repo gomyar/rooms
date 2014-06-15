@@ -258,3 +258,8 @@ class NodeTest(unittest.TestCase):
 
         self.assertEquals("loaded", self.node.scripts['basic_actor'].call("test"))
 
+    def testManageRoomWithPlayersAlreadyCreated(self):
+        pass
+
+    def testManageRoomWithPlayersNotYetCreated(self):
+        pass

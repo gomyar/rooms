@@ -75,6 +75,10 @@ class Container(object):
         return self._load_filter_one("actors", username=username,
             game_id=game_id, __type__="PlayerActor")
 
+    def load_players_for_room(self, game_id, room_id):
+        return self._load_filter("actors", game_id=game_id, room_id=room_id,
+            __type__="PlayerActor")
+
     def load_actor(self, actor_id):
         return self._load_object(actor_id, "actors")
 
