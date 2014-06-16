@@ -93,3 +93,11 @@ class RoomTest(unittest.TestCase):
         self.assertEquals(Position(5, 5), self.room.actors['new1'].vector.start_pos)
         self.assertEquals(Position(5, 5), self.room.actors['new1'].vector.end_pos)
         self.assertEquals([(self.room, newactor1)], self.node._updates)
+
+    def testSendRemoveUpdateOnRemoveActor(self):
+        newactor1 = MockActor("new1")
+        self.room.put_actor(newactor1, Position(5, 5))
+
+        self.room.remove_actor(newactor1)
+
+        self.assertEquals([(self.room, newactor1)], self.node._removals)

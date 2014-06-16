@@ -109,10 +109,14 @@ class MockRoom(object):
 class MockNode(object):
     def __init__(self):
         self._updates = []
+        self._removals = []
         self.scripts = {}
 
     def actor_update(self, room, actor):
         self._updates.append((room, actor))
+
+    def actor_removed(self, room, actor):
+        self._removals.append((room, actor))
 
     def move_actor_room(self, actor, game_id, exit_room_id, exit_room_position):
         self._updates.append((actor, game_id, exit_room_id, exit_room_position))

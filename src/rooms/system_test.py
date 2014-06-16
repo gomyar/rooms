@@ -223,6 +223,8 @@ class SystemTest(unittest.TestCase):
         self.assertEquals("ned",
             self.container.dbase.dbases['actors']['actors_1']['username'])
 
+        self.assertEquals({'actor_id': 'actors_1', 'command': 'remove_actor'},
+            queue.get())
         self.assertEquals({'node': ['10.10.10.2', 8000], 'token': 'TOKEN2',
             'command': 'redirect'}, queue.get())
         self.assertEquals({}, self.room1.actors)
@@ -258,3 +260,27 @@ class SystemTest(unittest.TestCase):
         self.assertEquals(5, len(player1_ws.updates))
         self.assertEquals(5, len(player1_ws_2.updates))
         self.assertEquals(5, len(player2_ws.updates))
+
+    def testRemoveActorSignal(self):
+        self.node.manage_room("game1", "room1")
+
+        self.node.player_joins("fred", "game1", "room1")
+        self.node.player_joins("ned", "game1", "room1")
+
+        player1_ws = MockWebsocket()
+        player2_ws = MockWebsocket()
+        player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
+            "game1", "fred", "TOKEN1")
+        player2_gthread = gevent.spawn(self.node.player_connects, player2_ws,
+            "game1", "ned", "TOKEN1")
+
+        MockTimer.fast_forward(0)
+
+        room = self.node.rooms["game1", "room1"]
+        fred_actor = room.actors["actors_1"]
+        self.node.actor_removed(room, fred_actor)
+
+        MockTimer.fast_forward(0)
+
+        self.assertEquals({"command": "remove_actor", "actor_id": "actors_1"},
+            player2_ws.updates[-1])

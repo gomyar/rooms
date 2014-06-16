@@ -209,11 +209,23 @@ class Node(object):
         else:
             raise Exception("No such method %s" % (method,))
 
+    def _connections_for(self, room):
+        return [conn for conn in self.player_connections.values() if \
+            conn.room == room]
+
     def actor_update(self, room, actor):
-        for player_conn in self.player_connections.values():
+        log.debug("Actor update for %s in %s", actor, room)
+        for player_conn in self._connections_for(room):
             log.debug("Sending to : %s : %s", player_conn.username, actor)
             player_conn.send_message({"command": "actor_update",
                 "actor_id": actor.actor_id, "data": jsonview(actor)})
+
+    def actor_removed(self, room, actor):
+        log.debug("Actor removed %s from %s", actor, room)
+        for player_conn in self._connections_for(room):
+            log.debug("Actor removed : %s : %s", player_conn.username, actor)
+            player_conn.send_message({"command": "remove_actor",
+                "actor_id": actor.actor_id})
 
     def _request_player_connection(self, username, game_id):
         player = self._get_or_load_player(username, game_id)

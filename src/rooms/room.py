@@ -125,3 +125,4 @@ class Room(object):
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)
         actor.room = None
+        self.node.actor_removed(self, actor)
