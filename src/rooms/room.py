@@ -108,8 +108,8 @@ class Room(object):
     def find_path(self, from_pos, to_pos):
         return self.geography.find_path(self, from_pos, to_pos)
 
-    def actor_update(self, actor, update):
-        self.node.actor_update(self, actor.actor_id, update)
+    def actor_update(self, actor):
+        self.node.actor_update(self, actor)
 
     def get_door(self, exit_room_id=None):
         for door in self.doors:

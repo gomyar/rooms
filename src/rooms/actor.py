@@ -18,6 +18,7 @@ class State(dict):
 
     def __setattr__(self, name, value):
         self[name] = value
+        self.actor._send_update()
 
 
 class Actor(object):
@@ -86,13 +87,13 @@ class Actor(object):
             end_time = from_time + \
                 time_to_position(from_point, to_point, self.speed)
             self.vector = Vector(from_point, from_time, to_point, end_time)
-            self._send_update({'vector': self.vector})
+            self._send_update()
             from_point = to_point
             from_time = end_time
             Timer.sleep_until(end_time)
 
-    def _send_update(self, update):
-        self.room.actor_update(self, update)
+    def _send_update(self):
+        self.room.actor_update(self)
 
     @property
     def position(self):

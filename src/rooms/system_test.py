@@ -48,7 +48,7 @@ class SystemTest(unittest.TestCase):
     def ping(self, actor):
         print "PING"
         for i in range(10):
-            actor._send_update({"count": i})
+            actor.state.count = i
             actor.sleep(1)
 
     def tearDown(self):
@@ -94,7 +94,8 @@ class SystemTest(unittest.TestCase):
         self.assertEquals(5, len(player2_ws.updates))
         self.assertEquals("actor_update", player2_ws.updates[3]['command'])
 
-    def testPing(self):
+    def testPingUpdatesStateSendsActorUpdate(self):
+        # Internal only ?
         self.node.manage_room("game1", "room1")
 
         self.node.player_joins("ned", "game1", "room1")
@@ -107,10 +108,8 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals({"command": "actor_update", "actor_id": "actors_1",
-            "data": {'count': 0}}, player1_ws.updates[3])
-        self.assertEquals({"command": "actor_update", "actor_id": "actors_1",
-            "data": {'count': 1}}, player1_ws.updates[4])
+        self.assertEquals(0, player1_ws.updates[3]['data']['state']['count'])
+        self.assertEquals(1, player1_ws.updates[4]['data']['state']['count'])
 
     def testInvalidToken(self):
         self.room1 = Room("game1", "room1",
@@ -215,7 +214,7 @@ class SystemTest(unittest.TestCase):
         # connect player
         ned_actor = self.node.rooms['game1', 'room1'].actors['actors_1']
         player_conn = self.node.player_connections['ned', 'game1']
-        queue = player_conn.queue
+        queue = player_conn.new_queue()
 
         # perform actor move
         self.node.move_actor_room(ned_actor, "game1", "room2", Position(5, 5))
@@ -228,3 +227,34 @@ class SystemTest(unittest.TestCase):
             'command': 'redirect'}, queue.get())
         self.assertEquals({}, self.room1.actors)
         self.assertEquals(Position(5, 5), ned_actor.position)
+
+    def testMultiplePlayerConnections(self):
+        self.node.manage_room("game1", "room1")
+
+        self.node.player_joins("fred", "game1", "room1")
+        self.node.player_joins("ned", "game1", "room1")
+
+        player1_ws = MockWebsocket()
+        player1_ws_2 = MockWebsocket()
+        player2_ws = MockWebsocket()
+        player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
+            "game1", "fred", "TOKEN1")
+        player1_g2 = gevent.spawn(self.node.player_connects, player1_ws_2,
+            "game1", "fred", "TOKEN1")
+        player2_gthread = gevent.spawn(self.node.player_connects, player2_ws,
+            "game1", "ned", "TOKEN1")
+
+        MockTimer.fast_forward(0)
+
+        self.assertEquals(4, len(player1_ws.updates))
+        self.assertEquals(4, len(player1_ws_2.updates))
+        self.assertEquals(4, len(player2_ws.updates))
+
+        self.node.actor_call("game1", "fred", "actors_1", "TOKEN1", "move_to",
+            x=10, y=10)
+
+        MockTimer.fast_forward(0)
+
+        self.assertEquals(5, len(player1_ws.updates))
+        self.assertEquals(5, len(player1_ws_2.updates))
+        self.assertEquals(5, len(player2_ws.updates))

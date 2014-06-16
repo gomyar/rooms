@@ -75,7 +75,16 @@ class PlayerConnection(object):
         self.room = room
         self.actor = actor
         self.token = token
-        self.queue = Queue()
+        self.queues = []
+
+    def new_queue(self):
+        queue = Queue()
+        self.queues.append(queue)
+        return queue
+
+    def send_message(self, message):
+        for queue in self.queues:
+            queue.put(message)
 
 
 class Node(object):
@@ -179,11 +188,11 @@ class Node(object):
                 "data": jsonview(actor)}))
         connected = True
         while connected:
-            message = player_conn.queue.get()
+            queue = player_conn.new_queue()
+            message = queue.get()
             ws.send(json.dumps(jsonview(message)))
             if message.get("command") in ['disconnect', 'redirect']:
                 connected = False
-                self.player_connections.pop((username, game_id))
         return ""
 
     def _sync_message(self, room):
@@ -200,15 +209,13 @@ class Node(object):
         else:
             raise Exception("No such method %s" % (method,))
 
-    def actor_update(self, room, actor_id, update):
-        for actor in room.actors.values():
-            if actor.is_player and \
-                    (actor.username, room.game_id) in self.player_connections:
-                player_conn = self.player_connections[actor.username,
-                    room.game_id]
-                log.debug("Sending to : %s : %s", actor.username, update)
-                player_conn.queue.put({"command": "actor_update",
-                    "actor_id": actor_id, "data": update})
+    def actor_update(self, room, actor):
+        for player_actor in room.player_actors():
+            player_conn = self.player_connections[player_actor.username,
+                player_actor.game_id]
+            log.debug("Sending to : %s : %s", player_actor.username, actor)
+            player_conn.send_message({"command": "actor_update",
+                "actor_id": actor.actor_id, "data": jsonview(actor)})
 
     def _request_player_connection(self, username, game_id):
         player = self._get_or_load_player(username, game_id)
@@ -274,9 +281,11 @@ class Node(object):
                         self.player_connections:
                         conn = self.player_connections[actor.username,
                             actor.game_id]
-                        conn.queue.put({"command": "redirect",
+                        conn.send_message({"command": "redirect",
                             "node": response['node'],
                             "token": response['token']})
+                        self.player_connections.pop((actor.username,
+                            actor.game_id))
 
     def _send_actor_entered_message(self, game_id, exit_room_id, actor):
         response = self.master_conn.call("actor_entered", game_id=game_id,
@@ -303,6 +312,6 @@ class Node(object):
             log.debug("Sending room sync to %s-%s", game_id, actor.username)
             player_conn = self.player_connections[actor.username, game_id]
             player_conn.room = exit_room
-            player_conn.queue.put(self._sync_message(exit_room))
+            player_conn.send_message(self._sync_message(exit_room))
         else:
             log.debug("No connection for player %s-%s", game_id, actor.username)

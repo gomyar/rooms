@@ -1,4 +1,9 @@
 
+ - multiple connecting clients are confusing
+
+ - add actor_added for new actors
+ - actor_update - send complete actor dict for each update
+
  - implement js redirect
  - I can still connecto a node I just left
 

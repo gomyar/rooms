@@ -85,8 +85,8 @@ class MockRoom(object):
     def find_path(self, from_pos, to_pos):
         return [from_pos, to_pos]
 
-    def actor_update(self, actor, update):
-        self._updates.append((actor, update))
+    def actor_update(self, actor):
+        self._updates.append(actor)
 
     def create_actor(self, actor_type, script_name, player=None):
         actor = MockActor("mock1")
@@ -111,8 +111,8 @@ class MockNode(object):
         self._updates = []
         self.scripts = {}
 
-    def actor_update(self, room, actor_id, update):
-        self._updates.append((room, actor_id, update))
+    def actor_update(self, room, actor):
+        self._updates.append((room, actor))
 
     def move_actor_room(self, actor, game_id, exit_room_id, exit_room_position):
         self._updates.append((actor, game_id, exit_room_id, exit_room_position))
