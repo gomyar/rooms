@@ -210,10 +210,8 @@ class Node(object):
             raise Exception("No such method %s" % (method,))
 
     def actor_update(self, room, actor):
-        for player_actor in room.player_actors():
-            player_conn = self.player_connections[player_actor.username,
-                player_actor.game_id]
-            log.debug("Sending to : %s : %s", player_actor.username, actor)
+        for player_conn in self.player_connections.values():
+            log.debug("Sending to : %s : %s", player_conn.username, actor)
             player_conn.send_message({"command": "actor_update",
                 "actor_id": actor.actor_id, "data": jsonview(actor)})
 

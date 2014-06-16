@@ -101,6 +101,7 @@ class Room(object):
         actor.room = self
         if position:
             actor.position = position
+        self.actor_update(actor)
 
     def player_actors(self):
         return [a for a in self.actors.values() if a.is_player]

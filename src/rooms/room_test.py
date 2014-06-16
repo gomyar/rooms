@@ -92,3 +92,4 @@ class RoomTest(unittest.TestCase):
         self.assertEquals("new1", self.room.actors.values()[0].actor_id)
         self.assertEquals(Position(5, 5), self.room.actors['new1'].vector.start_pos)
         self.assertEquals(Position(5, 5), self.room.actors['new1'].vector.end_pos)
+        self.assertEquals([(self.room, newactor1)], self.node._updates)
