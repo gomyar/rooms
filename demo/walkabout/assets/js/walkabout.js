@@ -119,6 +119,10 @@ function init()
         $("#screen").click(canvas_clicked);
         $("#screen").mousemove(canvas_mousemove);
         api_rooms.connect(getParameter("game_id"), getParameter("username"), getParameter("token"), api_callback); 
+
+        $(window).bind('beforeunload', function(){
+            api_rooms.socket.close();
+        });
     });
 }
 

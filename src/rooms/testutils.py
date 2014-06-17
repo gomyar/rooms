@@ -232,9 +232,13 @@ class MockActor(Actor):
 class MockWebsocket(object):
     def __init__(self):
         self.updates = []
+        self.closed = False
 
     def send(self, msg):
         self.updates.append(json.loads(msg))
+
+    def close(self):
+        self.closed = True
 
 
 class MockRoomFactory(object):

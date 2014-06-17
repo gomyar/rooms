@@ -185,19 +185,27 @@ class Node(object):
         player_conn = self.player_connections[username, game_id]
         room = self.rooms[game_id, player_conn.room.room_id]
         queue = player_conn.new_queue()
+        self._send_sync_to_websocket(ws, room)
+        self._perform_ws_loop(player_conn, queue, ws)
+
+    def _perform_ws_loop(self, player_conn, queue, ws):
+        try:
+            connected = True
+            while connected:
+                message = queue.get()
+                log.debug("Websocket message: %s", message)
+                ws.send(json.dumps(jsonview(message)))
+                if message.get("command") in ['disconnect', 'redirect']:
+                    connected = False
+        finally:
+            player_conn.queues.remove(queue)
+
+    def _send_sync_to_websocket(self, ws, room):
         ws.send(json.dumps(self._sync_message(room)))
         for actor in room.actors.values():
             ws.send(json.dumps(
                 {"command": "actor_update", "actor_id": actor.actor_id,
                 "data": jsonview(actor)}))
-        connected = True
-        while connected:
-            message = queue.get()
-            log.debug("Websocket message: %s", message)
-            ws.send(json.dumps(jsonview(message)))
-            if message.get("command") in ['disconnect', 'redirect']:
-                connected = False
-        return ""
 
     def _sync_message(self, room):
         return {"command": "sync", "data": {"now": Timer.now(),
