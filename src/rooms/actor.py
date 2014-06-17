@@ -7,6 +7,9 @@ from rooms.vector import create_vector, Vector
 from rooms.vector import time_to_position
 from rooms.timer import Timer
 
+import logging
+log = logging.getLogger("rooms.actor")
+
 
 class State(dict):
     def __init__(self, actor):
@@ -40,6 +43,10 @@ class Actor(object):
         self._gthread = None
         self._move_gthread = None
 
+    def __repr__(self):
+        return "<Actor %s %s in %s-%s owned by %s>" % (self.actor_type,
+            self.actor_id, self.room_id, self.game_id, self.username)
+
     @property
     def actor_id(self):
         return self._actor_id or getattr(self, "_id", None)
@@ -56,15 +63,32 @@ class Actor(object):
         self._run_on_gthread(self.script.call, "kickoff", self)
 
     def _run_on_gthread(self, method, *args, **kwargs):
+        self._kill_gthread()
         self._gthread = gevent.spawn(method, *args, **kwargs)
 
     def move_to(self, position, path=None):
         self.path = path or self.room.find_path(self.position, position)
+        self._kill_move_gthread()
         self._move_gthread = gevent.spawn(self._move_update)
 
     def move_wait(self, position, path=None):
         self.move_to(position, path)
         self.sleep(self._calc_end_time())
+
+    def _kill_move_gthread(self):
+        try:
+            self._move_gthread.kill()
+        except:
+            pass
+        self._move_gthread = None
+
+    def _kill_gthread(self):
+        try:
+            self._gthread.kill()
+        except:
+            pass
+        self._gthread = None
+
 
     def _calc_end_time(self):
         from_point = self.path[0]
@@ -87,6 +111,7 @@ class Actor(object):
             end_time = from_time + \
                 time_to_position(from_point, to_point, self.speed)
             self.vector = Vector(from_point, from_time, to_point, end_time)
+            log.debug("Sending update for vector change: %s", self.vector)
             self._send_update()
             from_point = to_point
             from_time = end_time

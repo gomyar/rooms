@@ -83,6 +83,8 @@ class PlayerConnection(object):
         return queue
 
     def send_message(self, message):
+        log.debug("PlayerConnection: sending message to %s queues: %s",
+            len(self.queues), message)
         for queue in self.queues:
             queue.put(message)
 
@@ -107,7 +109,8 @@ class Node(object):
         for py_file in self._list_scripts(script_path):
             script_name = os.path.splitext(py_file)[0]
             self.scripts[script_name] = Script(script_name,
-                imp.load_source("", os.path.join(script_path, py_file)))
+                imp.load_source("rooms.scripts" + script_name,
+                os.path.join(script_path, py_file)))
 
     def _list_scripts(self, script_path):
         return [path for path in os.listdir(script_path) if \
@@ -181,6 +184,7 @@ class Node(object):
         log.debug("Player conects: %s-%s %s", username, game_id, token)
         player_conn = self.player_connections[username, game_id]
         room = self.rooms[game_id, player_conn.room.room_id]
+        queue = player_conn.new_queue()
         ws.send(json.dumps(self._sync_message(room)))
         for actor in room.actors.values():
             ws.send(json.dumps(
@@ -188,8 +192,8 @@ class Node(object):
                 "data": jsonview(actor)}))
         connected = True
         while connected:
-            queue = player_conn.new_queue()
             message = queue.get()
+            log.debug("Websocket message: %s", message)
             ws.send(json.dumps(jsonview(message)))
             if message.get("command") in ['disconnect', 'redirect']:
                 connected = False
@@ -319,9 +323,13 @@ class Node(object):
         actor.position = exit_position
         if actor.is_player and \
                 (actor.username, game_id) in self.player_connections:
-            log.debug("Sending room sync to %s-%s", game_id, actor.username)
+            log.debug("Sending room sync for %s to %s-%s", exit_room, game_id,
+                actor.username)
             player_conn = self.player_connections[actor.username, game_id]
             player_conn.room = exit_room
             player_conn.send_message(self._sync_message(exit_room))
+            for actor in exit_room.actors.values():
+                player_conn.send_message({"command": "actor_update",
+                    "actor_id": actor.actor_id, "data": jsonview(actor)})
         else:
             log.debug("No connection for player %s-%s", game_id, actor.username)

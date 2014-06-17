@@ -99,7 +99,9 @@ function api_callback(message)
     }
     if (message.command == "sync")
     {
+        api_rooms.actors = {};
         load_room(message.data.room_id);
+        gui.requestRedraw();
     }
 }
 

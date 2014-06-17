@@ -28,7 +28,8 @@ gui_actors.draw_player_actor = function(actor)
 }
 
 gui_actors.actor_draw_funcs = {
-    'player': gui_actors.draw_player_actor
+    'player': gui_actors.draw_player_actor,
+    'npc': gui_actors.draw_player_actor
 };
 
 gui_actors.draw_actor = function(actor)

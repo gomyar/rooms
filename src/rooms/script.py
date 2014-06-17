@@ -8,7 +8,7 @@ class Script(object):
         self.script_module = script_module
 
     def __repr__(self):
-        return "<Script %s - %s>" % (self.script_module)
+        return "<Script %s - %s>" % (self.script_name, self.script_module)
 
     def call(self, method, *args, **kwargs):
         if self.has_method(method):

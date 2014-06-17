@@ -18,6 +18,7 @@ from rooms.testutils import MockRoomFactory
 from rooms.rpc import RPCException
 from rooms.position import Position
 from rooms.actor import Actor
+from rooms.node import PlayerConnection
 
 
 class NodeTest(unittest.TestCase):
@@ -295,3 +296,22 @@ class NodeTest(unittest.TestCase):
         # assert player connections exist
         self.assertEquals(self.node.player_connections["bob", "game1"].actor,
             actor)
+
+    def testActorMovesRoom(self):
+        # manage room2
+        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "room2")
+
+        # assert player actors in room2
+        room1 = self.node.rooms["game1", "room1"]
+        room2 = self.node.rooms["game1", "room2"]
+        actor = room1.create_actor("npc", "mock_script")
+
+        player_conn = PlayerConnection("game1", "bob", room1, actor, "TOKEN1")
+        self.node.player_connections['player1', 'game1'] = player_conn
+        queue = player_conn.new_queue()
+
+        self.node.move_actor_room(actor, "game1", "room2", Position(10, 10))
+
+        self.assertEquals("remove_actor", queue.get()['command'])
+        #self.assertEquals({}, queue.get_nowait())
