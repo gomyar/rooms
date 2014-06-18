@@ -1,28 +1,14 @@
 
- - multiple connecting clients are confusing
-
- - add actor_added for new actors
- - actor_update - send complete actor dict for each update
-
- - implement js redirect
- - I can still connecto a node I just left
-
- - separate player from player_connection
- - mock container - merge actors and player_actors - or just delete mock container
- - on load of a room, create player connection for any players in room
- - on unload of a room, player connections removed
- - on player move to another node, player connection removed
- - on player disconnect remove player connection
- - test for multiple connections from same player, disconnect previous
- - token per player connection (on construction)
-
-- player_connects on node broken (not managing room and setting to player.room)
- - "disconnect" message to websocket on bounce to another node
-
- - add demo client
-   - client reconnects smoothly (darkens screen etc)
+ - actors (npcs) moving between rooms
 
  - add admin client
+
+ - deactivate room if no players enter for period of time
+
+ - container save queue
+
+ - complex state objects (tiered, automatic updated for each)
+   - to be used for complex actor fields like inventory, chat, quest log etc.
 
  - automatic websocket keep alive
 

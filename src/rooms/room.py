@@ -126,3 +126,6 @@ class Room(object):
         self.actors.pop(actor.actor_id)
         actor.room = None
         self.node.actor_removed(self, actor)
+
+    def find_tags(self, tag_id):
+        return [tag for tag in self.tags if tag.tag_type.startswith(tag_id)]

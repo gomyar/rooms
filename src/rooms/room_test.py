@@ -3,6 +3,7 @@ import unittest
 
 from rooms.room import Room
 from rooms.room import Door
+from rooms.room import Tag
 from rooms.position import Position
 from rooms.testutils import MockGeog
 from rooms.testutils import MockNode
@@ -101,3 +102,17 @@ class RoomTest(unittest.TestCase):
         self.room.remove_actor(newactor1)
 
         self.assertEquals([(self.room, newactor1)], self.node._removals)
+
+    def testFindTags(self):
+        tag1 = Tag("tag.room.1", Position(0, 0), {"field": "1"})
+        tag2 = Tag("tag.room.2", Position(0, 0), {"field": "2"})
+        tag3 = Tag("tag.something", Position(0, 0), {"field": "3"})
+
+        self.room.tags = [tag1, tag2, tag3]
+
+        self.assertEquals([tag1, tag2], self.room.find_tags("tag.room"))
+        self.assertEquals([tag2], self.room.find_tags("tag.room.2"))
+        self.assertEquals([tag3], self.room.find_tags("tag.something"))
+
+        self.assertEquals([tag1, tag2, tag3], self.room.find_tags("tag"))
+        self.assertEquals([tag1, tag2, tag3], self.room.find_tags(""))

@@ -1,3 +1,4 @@
 
 def room_created(room):
-    room.create_actor("npc", "npc_script")
+    for tag in room.find_tags("actor.spawn"):
+        room.create_actor(tag.data['actor_type'], tag.data['actor_script'])

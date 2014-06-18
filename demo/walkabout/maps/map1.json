@@ -12,7 +12,7 @@
                 {"exit_room_id": "map1.room2", "enter_position": {"x": 250, "y": 125, "z": 0}, "exit_position": {"x": 250, "y": 125, "z": 0}}
             ],
             "tags": [
-                {"tag_type": "tag.type.1", "position": {"x": 25, "y": 25, "z": 0}, "data": {"field1": "value1"}}
+                {"tag_type": "actor.spawn", "position": {"x": 25, "y": 25, "z": 0}, "data": {"actor_type": "npc", "actor_script": "npc_script"}}
             ]
         },
         "room2": {
@@ -22,11 +22,25 @@
                 {"object_type": "rect", "topleft": {"x": 255, "y": 255, "z": 0}, "bottomright": {"x": 275, "y": 275, "z": 0}}
             ],
             "doors": [
-                {"exit_room_id": "map1.room1", "enter_position": {"x": 250, "y": 125, "z": 0}, "exit_position": {"x": 250, "y": 125, "z": 0}}
+                {"exit_room_id": "map1.room1", "enter_position": {"x": 250, "y": 125, "z": 0}, "exit_position": {"x": 250, "y": 125, "z": 0}},
+                {"exit_room_id": "map1.room3", "enter_position": {"x": 375, "y": 250, "z": 0}, "exit_position": {"x": 375, "y": 250, "z": 0}}
             ],
             "tags": [
-                {"tag_type": "tag.type.1", "position": {"x": 275, "y": 25, "z": 0}, "data": {"field1": "value1"}}
+            ]
+        },
+        "room3": {
+            "topleft": {"x": 250, "y": 250, "z": 0},
+            "bottomright": {"x": 500, "y": 500, "z": 0},
+            "room_objects": [
+                {"object_type": "rect", "topleft": {"x": 375, "y": 505, "z": 0}, "bottomright": {"x": 275, "y": 275, "z": 0}}
+            ],
+            "doors": [
+                {"exit_room_id": "map1.room2", "enter_position": {"x": 375, "y": 250, "z": 0}, "exit_position": {"x": 375, "y": 250, "z": 0}}
+            ],
+            "tags": [
+                {"tag_type": "actor.spawn", "position": {"x": 25, "y": 25, "z": 0}, "data": {"actor_type": "npc", "actor_script": "npc_script"}}
             ]
         }
+
     }
 }
