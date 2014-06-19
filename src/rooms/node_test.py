@@ -186,12 +186,13 @@ class NodeTest(unittest.TestCase):
             "do_something")
 
         # script calls happen on a gthread
-        self.assertEquals([],
-            player_actor.script.called)
+        self.assertEquals([], player_actor.script.called)
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals([('do_something', (player_actor,), {})],
+        self.assertEquals([
+            ('kickoff', (player_actor,), {}),
+            ('do_something', (player_actor,), {})],
             player_actor.script.called)
 
     def testNonPlayerActorMovesNode(self):

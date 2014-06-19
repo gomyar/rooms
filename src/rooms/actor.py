@@ -1,5 +1,6 @@
 
 import gevent
+from gevent import GreenletExit
 
 from rooms.script import Script
 from rooms.position import Position
@@ -94,8 +95,17 @@ class Actor(object):
 
     def script_call(self, method, *args, **kwargs):
         self._kill_script_gthread()
-        self._script_gthread = gevent.spawn(self.script.call, method, *args,
-            **kwargs)
+        self._script_gthread = gevent.spawn(self._checked_script_call, method,
+            *args, **kwargs)
+
+    def _checked_script_call(self, method, *args, **kwargs):
+        try:
+            self.script.call(method, *args, **kwargs)
+        except GreenletExit, ge:
+            pass
+        except:
+            log.exception("Exception running script: %s(%s, %s)", method,
+                args, kwargs)
 
     def _move_update(self):
         from_point = self.path[0]
