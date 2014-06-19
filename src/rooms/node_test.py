@@ -25,12 +25,13 @@ class NodeTest(unittest.TestCase):
     def setUp(self):
         self.player_script = MockScript()
         self.game_script = MockScript()
+        self.mock_script = MockScript()
         self.mock_rpc = MockRpcClient()
         self.node = Node("10.10.10.1", 8000, "master", 9000)
         self.node._create_token = lambda: "TOKEN1"
         self.node.scripts['player_script'] = self.player_script
         self.node.scripts['game_script'] = self.game_script
-        self.node.scripts['mock_script'] = MockScript()
+        self.node.scripts['mock_script'] = self.mock_script
         self.node.master_conn = self.mock_rpc
         self.room1 = Room("game1", "room1", Position(0, 0), Position(0, 0),
             self.node)
@@ -91,6 +92,15 @@ class NodeTest(unittest.TestCase):
             self.mock_rpc.called)
 
     def testDeregister(self):
+        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "room2")
+
+        room1 = self.node.rooms["game1", "room1"]
+        room2 = self.node.rooms["game1", "room2"]
+
+        room1.put_actor(Actor(room1, "mock1", self.mock_script))
+        room2.put_actor(Actor(room2, "mock1", self.mock_script))
+
         self.node.deregister()
 
         self.assertEquals([
@@ -98,7 +108,8 @@ class NodeTest(unittest.TestCase):
             ('deregister_node', {'host': '10.10.10.1', 'port': 8000})],
             self.mock_rpc.called)
 
-        self.assertEquals(1, len(self.container.dbase.dbases['rooms']))
+        self.assertEquals(2, len(self.container.dbase.dbases['rooms']))
+        self.assertEquals(2, len(self.container.dbase.dbases['actors']))
 
     def testOfflineBouncesAllConnectedToMaster(self):
         pass

@@ -122,6 +122,9 @@ class Node(object):
     def deregister(self):
         self.master_conn.call("offline_node", host=self.host, port=self.port)
         for (game_id, room_id), room in self.rooms.items():
+            for actor in room.actors.values():
+                actor._kill_gthreads()
+                self.container.save_actor(actor)
             self.container.save_room(room)
         self.master_conn.call("deregister_node", host=self.host,
             port=self.port)

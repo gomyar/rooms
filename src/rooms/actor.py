@@ -83,6 +83,10 @@ class Actor(object):
             self._script_gthread.kill()
         self._script_gthread = None
 
+    def _kill_gthreads(self):
+        self._kill_move_gthread()
+        self._kill_script_gthread()
+
     def _calc_end_time(self):
         from_point = self.path[0]
         total = 0

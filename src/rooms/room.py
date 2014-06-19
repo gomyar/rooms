@@ -129,8 +129,7 @@ class Room(object):
 
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)
-        actor._kill_move_gthread()
-        actor._kill_script_gthread()
+        actor._kill_gthreads()
         actor.room = None
         self.node.actor_removed(self, actor)
 

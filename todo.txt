@@ -1,5 +1,5 @@
 
- - actors (npcs) moving between rooms
+ - node saves everything on exit
 
  - add admin client
 
