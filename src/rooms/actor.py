@@ -40,7 +40,7 @@ class Actor(object):
         self.username = username
         self.is_player = False
 
-        self._gthread = None
+        self._script_gthread = None
         self._move_gthread = None
 
     def __repr__(self):
@@ -60,11 +60,8 @@ class Actor(object):
         return self.room.game_id if self.room else self._game_id
 
     def kick(self):
-        self._run_on_gthread(self.script.call, "kickoff", self)
-
-    def _run_on_gthread(self, method, *args, **kwargs):
-        self._kill_gthread()
-        self._gthread = gevent.spawn(method, *args, **kwargs)
+        log.debug("Kicking actor %s", self)
+        self.script_call("kickoff", self)
 
     def move_to(self, position, path=None):
         self.path = path or self.room.find_path(self.position, position)
@@ -76,19 +73,14 @@ class Actor(object):
         self.sleep(self._calc_end_time())
 
     def _kill_move_gthread(self):
-        try:
+        if self._move_gthread:
             self._move_gthread.kill()
-        except:
-            pass
         self._move_gthread = None
 
-    def _kill_gthread(self):
-        try:
-            self._gthread.kill()
-        except:
-            pass
-        self._gthread = None
-
+    def _kill_script_gthread(self):
+        if self._script_gthread:
+            self._script_gthread.kill()
+        self._script_gthread = None
 
     def _calc_end_time(self):
         from_point = self.path[0]
@@ -101,6 +93,7 @@ class Actor(object):
         Timer.sleep(seconds)
 
     def script_call(self, method, *args, **kwargs):
+        self._kill_script_gthread()
         self._script_gthread = gevent.spawn(self.script.call, method, *args,
             **kwargs)
 

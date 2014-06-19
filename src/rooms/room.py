@@ -2,6 +2,9 @@
 from rooms.position import Position
 from rooms.actor import Actor
 
+import logging
+log = logging.getLogger("rooms.room")
+
 
 class State(dict):
     def __init__(self, actor):
@@ -84,6 +87,7 @@ class Room(object):
         )
 
     def kick(self):
+        log.debug("Kicking room (%s actors)", len(self.actors))
         for actor in self.actors.values():
             actor.kick()
 
@@ -101,6 +105,7 @@ class Room(object):
         actor.room = self
         if position:
             actor.position = position
+        actor.kick()
         self.actor_update(actor)
 
     def player_actors(self):
@@ -124,6 +129,8 @@ class Room(object):
 
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)
+        actor._kill_move_gthread()
+        actor._kill_script_gthread()
         actor.room = None
         self.node.actor_removed(self, actor)
 

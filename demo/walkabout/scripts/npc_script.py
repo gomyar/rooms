@@ -1,5 +1,9 @@
 
 from rooms.position import Position
+import random
+
+import logging
+log = logging.getLogger("npc")
 
 
 def created(actor):
@@ -9,5 +13,8 @@ def created(actor):
 def kickoff(actor):
     print "Running kickoff for %s" % (actor,)
     while True:
-        actor.move_wait(Position(actor.room.topleft.x + 10, 10))
-        actor.move_wait(Position(actor.room.topleft.x + 450, 450))
+        log.debug("kickoff for actor %s in room %s", actor, actor.room)
+        actor.move_wait(actor.room.center)
+        door = random.choice(actor.room.doors)
+        actor.move_wait(door.enter_position)
+        actor.enter(door)

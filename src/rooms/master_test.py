@@ -293,7 +293,8 @@ class MasterTest(unittest.TestCase):
         self.master.register_node("10.10.10.1", 8000)
 
         self.assertEquals({"node": ["10.10.10.1", 8000], "token": "TOKEN"},
-            self.master.actor_entered("game1", "room1", "actor1", True, "bob"))
+            self.master.actor_entered("game1", "room1", "actor1", "True",
+                "bob"))
 
         self.assertEquals([
             ('manage_room', {'game_id': 'game1', 'room_id': 'room1'}),

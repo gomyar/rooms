@@ -134,6 +134,7 @@ class MockScript(object):
         self.script_name = "mock_script"
 
     def call(self, method, *args, **kwargs):
+        print "Script called: %s(%s, %s)" % (method, args, kwargs)
         self.called.append((method, args, kwargs))
 
     def has_method(self, method):

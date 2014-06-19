@@ -39,7 +39,7 @@ class RoomTest(unittest.TestCase):
     def testCreateActor(self):
         actor = self.room.create_actor("mock_actor", "rooms.room_test")
         self.assertTrue(actor.state.created)
-        self.assertFalse(actor._gthread is None)
+        self.assertFalse(actor._script_gthread is None)
         self.assertEquals(RoomTest.created, actor.script.script_module.created)
         self.assertEquals(self.room, actor.room)
         self.assertEquals(actor, self.room.actors['actors_0'])
@@ -94,6 +94,8 @@ class RoomTest(unittest.TestCase):
         self.assertEquals(Position(5, 5), self.room.actors['new1'].vector.start_pos)
         self.assertEquals(Position(5, 5), self.room.actors['new1'].vector.end_pos)
         self.assertEquals([(self.room, newactor1)], self.node._updates)
+        self.assertEquals([('kickoff', (newactor1,), {})],
+            newactor1.script.called)
 
     def testSendRemoveUpdateOnRemoveActor(self):
         newactor1 = MockActor("new1")

@@ -144,11 +144,8 @@ class Node(object):
         else:
             room = self.container.create_room(game_id, room_id)
             self.scripts['game_script'].call("room_created", room)
-            players = self.container.load_players_for_room(game_id, room_id)
-            for player_actor in players:
-                room.put_actor(player_actor)
+            for player_actor in room.player_actors():
                 self._create_player_conn(player_actor)
-            self.container.save_room(room)
         self.rooms[game_id, room_id] = room
         room.kick()
 
@@ -276,6 +273,10 @@ class Node(object):
             return {}
 
     def move_actor_room(self, actor, game_id, exit_room_id, exit_position):
+        gevent.spawn(self._move_actor_room, actor, game_id, exit_room_id,
+            exit_position).join()
+
+    def _move_actor_room(self, actor, game_id, exit_room_id, exit_position):
         log.debug("Moving actor %s to %s", actor, exit_room_id)
         from_room = actor.room
         if (game_id, exit_room_id) in self.rooms:
@@ -317,6 +318,7 @@ class Node(object):
 
     def _save_actor_to_other_room(self, exit_room_id, exit_position, actor,
             from_room):
+        actor._game_id = actor.game_id
         from_room.remove_actor(actor)
         actor.position = exit_position
         actor._room_id = exit_room_id

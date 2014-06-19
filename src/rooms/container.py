@@ -39,11 +39,16 @@ class Container(object):
 
     def load_room(self, game_id, room_id):
         room = self._load_filter_one("rooms", game_id=game_id, room_id=room_id)
+        self._load_actors_for_room(room, game_id, room_id)
+        return room
+
+    def _load_actors_for_room(self, room, game_id, room_id):
+        log.debug("Load actors for room: %s %s", game_id, room_id)
         actors_list = self._load_filter("actors", game_id=game_id,
             room_id=room_id)
+        log.debug("Found %s actors", len(actors_list))
         for actor in actors_list:
             room.put_actor(actor)
-        return room
 
     def save_room(self, room):
         self._save_object(room, "rooms")
@@ -54,6 +59,7 @@ class Container(object):
         room = self.room_factory.create(game_id, room_id)
         room.geography = self.geography
         self.save_room(room)
+        self._load_actors_for_room(room, game_id, room_id)
         return room
 
     def create_actor(self, room, actor_type, script_name, username=None):
