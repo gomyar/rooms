@@ -84,6 +84,7 @@ if __name__ == "__main__":
         log.info("Starting Rooms Node")
         server.start()
         node.connect_to_master()
+        node.start_reporting()
         server.serve_forever()
     except KeyboardInterrupt, ke:
         log.debug("Node stopped")

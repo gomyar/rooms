@@ -21,6 +21,7 @@ class RegisteredNode(object):
         self.rpc_conn = rpc_conn
         self.rooms = []
         self.online = True
+        self.load = 0.0
 
     def __repr__(self):
         return "<RegisteredNode %s:%s>" % (self.host, self.port)
@@ -46,7 +47,7 @@ class RegisteredNode(object):
         return self.rpc_conn.call("actor_enters_node", actor_id=actor_id)
 
     def server_load(self):
-        return len(self.rooms)
+        return self.load
 
 
 class MasterController(object):
@@ -97,6 +98,10 @@ class MasterController(object):
     def actor_entered(self, game_id, room_id, actor_id, is_player, username):
         return self.master.actor_entered(game_id, room_id, actor_id, is_player,
             username)
+
+    @request
+    def report_load_stats(self, host, port, server_load):
+        return self.master.report_load_stats(host, port, server_load)
 
 
 class PlayerController(object):
@@ -159,7 +164,11 @@ class Master(object):
 
     def all_nodes(self):
         return [{'host': node.host, 'port': node.port,
-            'online': node.online} for node in self.nodes.values()]
+            'online': node.online, 'load': node.server_load()} for node in \
+            self.nodes.values()]
+
+    def report_load_stats(self, host, port, server_load):
+        self.nodes[host, port].load = float(server_load)
 
     def create_game(self, owner_id):
         return self.container.create_game(owner_id).game_id
@@ -265,7 +274,8 @@ class Master(object):
             host, port = self.rooms[game_id, room_id]
             log.debug("Calling actor_enters on %s:%s", host, port)
             response = self.nodes[host, port].actor_enters_node(actor_id)
-            return {"node": [host, port], "token": response['token']}
+            log.debug("Response: %s", response)
+            return {"node": [host, port], "token": response.get('token')}
         elif is_player == "True":
             log.debug("Room %s-%s not managed, managing room", game_id, room_id)
             node = self._get_node_for_room(game_id, room_id)

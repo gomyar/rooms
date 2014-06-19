@@ -104,6 +104,7 @@ class Node(object):
         self.scripts = dict()
         self.container = None
         self.room_factory = None
+        self._report_gthread = None
 
     def load_scripts(self, script_path):
         for py_file in self._list_scripts(script_path):
@@ -119,7 +120,18 @@ class Node(object):
     def connect_to_master(self):
         self.master_conn.call("register_node", host=self.host, port=self.port)
 
+    def start_reporting(self):
+        self._report_gthread = gevent.spawn(self._start_reporting)
+
+    def _start_reporting(self):
+        while True:
+            gevent.sleep(5)
+            self.master_conn.call("report_load_stats", host=self.host,
+                port=self.port, server_load=len(self.rooms) / 100.0)
+
     def deregister(self):
+        if self._report_gthread:
+            self._report_gthread.kill()
         self.master_conn.call("offline_node", host=self.host, port=self.port)
         for (game_id, room_id), room in self.rooms.items():
             for actor in room.actors.values():

@@ -327,3 +327,42 @@ class NodeTest(unittest.TestCase):
 
         self.assertEquals("remove_actor", queue.get()['command'])
         #self.assertEquals({}, queue.get_nowait())
+
+    def testStartReport(self):
+        self.node.start_reporting()
+
+        self.assertEquals([], self.mock_rpc.called)
+
+        MockTimer.fast_forward(5)
+
+        self.assertEquals([
+            ('report_load_stats',
+                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0}),
+            ]
+        , self.mock_rpc.called)
+
+        MockTimer.fast_forward(5)
+
+        self.assertEquals([
+            ('report_load_stats',
+                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0}),
+            ('report_load_stats',
+                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0}),
+            ]
+        , self.mock_rpc.called)
+
+        self.node.manage_room("game1", "room1")
+
+        MockTimer.fast_forward(5)
+
+        self.assertEquals([
+            ('report_load_stats',
+                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0}),
+            ('report_load_stats',
+                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0}),
+            ('report_load_stats',
+                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.01}),
+            ]
+        , self.mock_rpc.called)
+
+

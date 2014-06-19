@@ -1,6 +1,8 @@
 
  - node saves everything on exit
 
+ - node pushes load info to master every n seconds
+
  - add admin client
 
  - deactivate room if no players enter for period of time

@@ -176,8 +176,9 @@ class MasterTest(unittest.TestCase):
             'url': 'http://10.10.10.2:8000/assets/index.html?token=TOKEN&game_id=games_1&username=bob'},
             node2)
 
-        self.assertEquals([{'host': '10.10.10.2', 'port': 8000, 'online': True},
-            {'host': '10.10.10.1', 'port': 8000, 'online': True}],
+        self.assertEquals([
+            {'host': '10.10.10.2', 'port': 8000, 'online': True, 'load': 0.0},
+            {'host': '10.10.10.1', 'port': 8000, 'online': True, 'load': 0.0}],
             self.master.all_nodes())
 
     def testNodeOffliningQueueRoomRequests(self):
@@ -187,6 +188,9 @@ class MasterTest(unittest.TestCase):
         self.master.register_node("20.20.20.2", 8000)
 
         self.master.request_room("games_0", "room1")
+
+        self.master.report_load_stats("10.10.10.1", 8000, 0.1)
+
         self.master.request_room("games_0", "room2")
 
         # receive offline signal
@@ -277,6 +281,14 @@ class MasterTest(unittest.TestCase):
             ('actor_enters_node', {"actor_id": "actor1"}),
             self.rpc_conn.called[2])
 
+        # doesn't need a token (if npc)
+        self.rpc_conn.expect['actor_enters_node'] = {'host': '10.10.10.1',
+            'port': 8000}
+        self.master.actor_entered("games_0", "room1", "actor1", True, "bob")
+        self.assertEquals(
+            ('actor_enters_node', {"actor_id": "actor1"}),
+            self.rpc_conn.called[2])
+
     def testNonPlayerActorEnteredNoManagedRoom(self):
         self.master.create_game("bob")
 
@@ -300,3 +312,13 @@ class MasterTest(unittest.TestCase):
             ('manage_room', {'game_id': 'game1', 'room_id': 'room1'}),
             ('request_token', {'username': 'bob', 'game_id': 'game1'}),
             ], self.rpc_conn.called)
+
+    def testReportServerLoad(self):
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+
+        self.master.report_load_stats("10.10.10.1", 8000, 0.5)
+
+        self.assertEquals(0.5,
+            self.master.nodes["10.10.10.1", 8000].server_load())

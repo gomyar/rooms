@@ -62,7 +62,7 @@ class WSGIRPCClient(object):
 
 
 def _json_return(response, returned):
-    if returned:
+    if returned != None:
         returned = json.dumps(returned)
     else:
         returned = "[]"
