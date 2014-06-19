@@ -113,9 +113,16 @@ class MasterTest(unittest.TestCase):
 
         self.master.request_room("game1", "room1")
 
-        self.assertEquals({('game1', 'room1'): ('10.10.10.1', 8000)},
-            self.master.rooms)
-        self.assertEquals(self.master.rooms.items(),
+        self.assertEquals(('10.10.10.1', 8000),
+            self.master.rooms['game1', 'room1'].node)
+        self.assertEquals("game1",
+            self.master.rooms['game1', 'room1'].game_id)
+        self.assertEquals("room1",
+            self.master.rooms['game1', 'room1'].room_id)
+
+        self.assertEquals([
+            {'node': ('10.10.10.1', 8000), 'game_id': 'game1',
+                'room_id': 'room1', 'online': True}],
             self.master.managed_rooms())
         self.assertEquals([
             ('manage_room', {'game_id': 'game1', 'room_id': 'room1'}),
@@ -202,14 +209,23 @@ class MasterTest(unittest.TestCase):
 
         # wait until room becomes available (from node)
         self.master.deregister_node("10.10.10.1", 8000)
-        self.assertEquals({('games_0', 'room2'): ('20.20.20.2', 8000)},
-            self.master.rooms)
+
+        self.assertEquals(('20.20.20.2', 8000),
+            self.master.rooms['games_0', 'room2'].node)
+        self.assertEquals("games_0",
+            self.master.rooms['games_0', 'room2'].game_id)
+        self.assertEquals("room2",
+            self.master.rooms['games_0', 'room2'].room_id)
 
         # receive room request - normal room manage
         self.master.join_game("bob", "games_0", "room1")
 
-        self.assertEquals({('games_0', 'room1'): ('20.20.20.2', 8000),
-            ('games_0', 'room2'): ('20.20.20.2', 8000)}, self.master.rooms)
+        self.assertEquals(('20.20.20.2', 8000),
+            self.master.rooms['games_0', 'room1'].node)
+        self.assertEquals("games_0",
+            self.master.rooms['games_0', 'room1'].game_id)
+        self.assertEquals("room1",
+            self.master.rooms['games_0', 'room1'].room_id)
 
     def testOfflineNonexistant(self):
         self.assertRaises(RPCException,
@@ -226,8 +242,12 @@ class MasterTest(unittest.TestCase):
             'url': 'http://10.10.10.1:8000/assets/index.html'
             '?token=TOKEN&game_id=game1&username=bob'},
             self.master.player_connects("bob", "game1"))
-        self.assertEquals({('game1', 'room1'): ('10.10.10.1', 8000)},
-            self.master.rooms)
+        self.assertEquals(('10.10.10.1', 8000),
+            self.master.rooms['game1', 'room1'].node)
+        self.assertEquals("game1",
+            self.master.rooms['game1', 'room1'].game_id)
+        self.assertEquals("room1",
+            self.master.rooms['game1', 'room1'].room_id)
 
     def testManageRoomOnlyOnce(self):
         self.master.create_game("bob")
@@ -257,8 +277,13 @@ class MasterTest(unittest.TestCase):
         self.master.join_game("bob", "games_0", "room1")
         self.master.join_game("ned", "games_0", "room1")
 
-        self.assertEquals({('games_0', 'room1'): ('10.10.10.2', 8000)},
-            self.master.rooms)
+        self.assertEquals(('10.10.10.2', 8000),
+            self.master.rooms['games_0', 'room1'].node)
+        self.assertEquals("games_0",
+            self.master.rooms['games_0', 'room1'].game_id)
+        self.assertEquals("room1",
+            self.master.rooms['games_0', 'room1'].room_id)
+
         self.assertEquals([
             ('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
             ('player_joins', {'game_id': 'games_0', 'room_id': 'room1', 'username': 'bob'}),

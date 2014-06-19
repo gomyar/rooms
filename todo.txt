@@ -1,6 +1,16 @@
 
  - node saves everything on exit
 
+ - check RPCWaitsExceptions for:
+   - player moves room to offline node
+   - actor (npc) moves room to offline node
+
+ - if a room is being torn down:
+   - set it to offline in master
+   - any player requests for that room are bounced to master
+   - any npc requests for that room are ignored
+     - npc should restore when/if room comes back up again
+
  - node pushes load info to master every n seconds
 
  - add admin client

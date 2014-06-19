@@ -50,6 +50,25 @@ class RegisteredNode(object):
         return self.load
 
 
+class RegisteredRoom(object):
+    def __init__(self, node_host, node_port, game_id, room_id):
+        self.node_host = node_host
+        self.node_port = node_port
+        self.game_id = game_id
+        self.room_id = room_id
+
+        self.node = (node_host, node_port)
+        self.online = True
+
+    def __repr__(self):
+        return "<RegisteredRoom %s-%s on %s:%s>" % (self.game_id, self.room_id,
+            self.node_host, self.node_port)
+
+    def tojson(self):
+        return {"node": self.node, "game_id": self.game_id,
+            "room_id": self.room_id, "online": self.online}
+
+
 class MasterController(object):
     def __init__(self, master):
         self.master = master
@@ -156,8 +175,9 @@ class Master(object):
         if (host, port) not in self.nodes:
             raise RPCException("Node not registered %s:%s" % (host, port))
         self.nodes.pop((host, port))
-        self.rooms = dict([(room, node) for (room, node) in \
-            self.rooms.items() if node != (host, port)])
+        self.rooms = dict([
+            ((game_id, room_id), room) for ((game_id, room_id), room) in \
+            self.rooms.items() if room.node != (host, port)])
 
     def _create_rpc_conn(self, host, port):
         return WSGIRPCClient(host, port, 'node')
@@ -216,9 +236,9 @@ class Master(object):
 
     def _check_node_offline(self, game_id, room_id):
         if (game_id, room_id) in self.rooms:
-            host, port = self.rooms[game_id, room_id]
-            if (host, port) in self.nodes and \
-                not self.nodes[host, port].online:
+            room = self.rooms[game_id, room_id]
+            if room.node in self.nodes and \
+                not self.nodes[room.node].online:
                 raise RPCWaitException("Room in transit")
 
     def _load_player(self, username, game_id):
@@ -228,9 +248,10 @@ class Master(object):
         if (game_id, room_id) not in self.rooms:
             node = self._select_available_node()
             node.manage_room(game_id, room_id)
-            self.rooms[game_id, room_id] = (node.host, node.port)
+            self.rooms[game_id, room_id] = RegisteredRoom(node.host, node.port,
+                game_id, room_id)
 
-        host, port = self.rooms[game_id, room_id]
+        host, port = self.rooms[game_id, room_id].node
         return self.nodes[host, port]
 
     def _select_available_node(self):
@@ -241,7 +262,7 @@ class Master(object):
             in self.container.all_games()]
 
     def managed_rooms(self):
-        return self.rooms.items()
+        return [room.tojson() for room in self.rooms.values()]
 
     def players_in_game(self, game_id):
         return [{'username': player.username, 'game_id': player.game_id,
@@ -271,7 +292,7 @@ class Master(object):
             is_player, username)
         if (game_id, room_id) in self.rooms:
             log.debug("Room %s-%s already managed", game_id, room_id)
-            host, port = self.rooms[game_id, room_id]
+            host, port = self.rooms[game_id, room_id].node
             log.debug("Calling actor_enters on %s:%s", host, port)
             response = self.nodes[host, port].actor_enters_node(actor_id)
             log.debug("Response: %s", response)
