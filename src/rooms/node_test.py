@@ -378,6 +378,17 @@ class NodeTest(unittest.TestCase):
         self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
 
         # nothing happens
+        self.mock_rpc.exceptions['actor_entered'] = HTTPError("/actor_enters",
+            500, "Random Error", {}, None)
+
+        self.node.manage_room("game1", "room1")
+
+        room1 = self.node.rooms["game1", "room1"]
+        actor = room1.create_actor("npc", "mock_script")
+
+        self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
+
+        # nothing happens
 
     def testHandleRPCWaitExceptionOnPlayerActorEnters(self):
         self.mock_rpc.exceptions['actor_entered'] = HTTPError("/actor_enters",
@@ -403,4 +414,51 @@ class NodeTest(unittest.TestCase):
 
         self.assertEquals({'command': 'redirect_to_master',
             'master': ['master', 9000]},
+            queue.get_nowait())
+
+    def testHandleAnyExceptionOnPlayerActorEnters(self):
+        self.mock_rpc.exceptions['actor_entered'] = HTTPError("/actor_enters",
+            500, "Random Error", {}, None)
+
+        self.node.manage_room("game1", "room1")
+
+        room1 = self.node.rooms["game1", "room1"]
+        actor = room1.create_actor("npc", "mock_script")
+
+        self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
+
+        room1 = self.node.rooms["game1", "room1"]
+        actor = PlayerActor(room1, "player", MockScript(), "bob", "actor1",
+            "game1")
+        self.room1.put_actor(actor)
+
+        player_conn = PlayerConnection("game1", "bob", room1, actor, "TOKEN1")
+        self.node.player_connections['bob', 'game1'] = player_conn
+        queue = player_conn.new_queue()
+
+        self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
+
+        self.assertEquals({'command': 'redirect_to_master',
+            'master': ['master', 9000]},
+            queue.get_nowait())
+
+    def testHandlePlayerActorEnters(self):
+        self.mock_rpc.expect['actor_entered'] = {"node": ["10.10.10.1", 8000],
+            "token": "TOKEN1"}
+
+        self.node.manage_room("game1", "room1")
+
+        room1 = self.node.rooms["game1", "room1"]
+        actor = PlayerActor(room1, "player", MockScript(), "bob", "actor1",
+            "game1")
+        self.room1.put_actor(actor)
+
+        player_conn = PlayerConnection("game1", "bob", room1, actor, "TOKEN1")
+        self.node.player_connections['bob', 'game1'] = player_conn
+        queue = player_conn.new_queue()
+
+        self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
+
+        self.assertEquals({'command': 'redirect', 'node': ['10.10.10.1', 8000],
+            'token': 'TOKEN1'},
             queue.get_nowait())

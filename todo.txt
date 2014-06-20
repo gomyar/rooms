@@ -8,12 +8,13 @@
    - master.actor_entered - if room offline, send wait
    - node._send_actor_entered_message - if player and got wait, redirect to master
 
-
  - if a room is being torn down:
    - set it to offline in master
    - any player requests for that room are bounced to master
    - any npc requests for that room are ignored
      - npc should restore when/if room comes back up again
+
+ - get a "connecting/loading" bit going on the js gui
 
  - actors move slowly on entering a room for some reason
 

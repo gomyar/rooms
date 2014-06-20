@@ -304,16 +304,18 @@ class Node(object):
             log.debug("Room not on this node")
             self._save_actor_to_other_room(exit_room_id, exit_position, actor,
                 from_room)
-            self._send_actor_entered_message(game_id, exit_room_id, actor)
+            self._send_actor_entered_message(game_id, exit_room_id, actor,
+                from_room, exit_position)
 
-    def _send_actor_entered_message(self, game_id, exit_room_id, actor):
+    def _send_actor_entered_message(self, game_id, exit_room_id, actor,
+            from_room, exit_position):
         try:
             response = self.master_conn.call("actor_entered", game_id=game_id,
                 room_id=exit_room_id, actor_id=actor.actor_id,
                 is_player=actor.is_player, username=actor.username)
         except HTTPError, httpe:
             log.debug("Got http error: %s", httpe)
-            if httpe.code == 503 and actor.is_player:
+            if actor.is_player:
                 conn = self.player_connections[actor.username, actor.game_id]
                 conn.send_message({"command": "redirect_to_master",
                     "master": [self.master_host, self.master_port]})
