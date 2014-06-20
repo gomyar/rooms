@@ -5,6 +5,7 @@ from gevent.queue import Queue
 import json
 import imp
 import os
+from urllib2 import HTTPError
 
 from rooms.player import PlayerActor
 from rooms.rpc import WSGIRPCClient
@@ -303,33 +304,37 @@ class Node(object):
             log.debug("Room not on this node")
             self._save_actor_to_other_room(exit_room_id, exit_position, actor,
                 from_room)
-
-            response = self._send_actor_entered_message(game_id, exit_room_id,
-                actor)
-
-            if actor.is_player:
-                log.debug("It's a player")
-                if (game_id, exit_room_id) in self.rooms:
-                    log.debug("Room now managed by this node")
-                    self._move_actor_internal(game_id, exit_room_id, actor,
-                        from_room, exit_position)
-                else:
-                    log.debug("Redirecting to node: %s", response['node'])
-                    if (actor.username, actor.game_id) in \
-                        self.player_connections:
-                        conn = self.player_connections[actor.username,
-                            actor.game_id]
-                        conn.send_message({"command": "redirect",
-                            "node": response['node'],
-                            "token": response['token']})
-                        self.player_connections.pop((actor.username,
-                            actor.game_id))
+            self._send_actor_entered_message(game_id, exit_room_id, actor)
 
     def _send_actor_entered_message(self, game_id, exit_room_id, actor):
-        response = self.master_conn.call("actor_entered", game_id=game_id,
-            room_id=exit_room_id, actor_id=actor.actor_id,
-            is_player=actor.is_player, username=actor.username)
-        return response
+        try:
+            response = self.master_conn.call("actor_entered", game_id=game_id,
+                room_id=exit_room_id, actor_id=actor.actor_id,
+                is_player=actor.is_player, username=actor.username)
+        except HTTPError, httpe:
+            log.debug("Got http error: %s", httpe)
+            if httpe.code == 503 and actor.is_player:
+                conn = self.player_connections[actor.username, actor.game_id]
+                conn.send_message({"command": "redirect_to_master",
+                    "master": [self.master_host, self.master_port]})
+                self.player_connections.pop((actor.username,
+                    actor.game_id))
+            return
+
+        if actor.is_player:
+            log.debug("It's a player")
+            if (game_id, exit_room_id) in self.rooms:
+                log.debug("Room now managed by this node")
+                self._move_actor_internal(game_id, exit_room_id, actor,
+                    from_room, exit_position)
+            else:
+                log.debug("Redirecting to node: %s", response['node'])
+                conn = self.player_connections[actor.username, actor.game_id]
+                conn.send_message({"command": "redirect",
+                    "node": response['node'],
+                    "token": response['token']})
+                self.player_connections.pop((actor.username,
+                    actor.game_id))
 
     def _save_actor_to_other_room(self, exit_room_id, exit_position, actor,
             from_room):

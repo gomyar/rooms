@@ -142,11 +142,14 @@ class MockScript(object):
 
 
 class MockRpcClient(object):
-    def __init__(self, expect=None):
+    def __init__(self, expect=None, exceptions=None):
         self.called = []
         self.expect = expect or {}
+        self.exceptions = exceptions or {}
 
     def call(self, method, **kwargs):
+        if method in self.exceptions:
+            raise self.exceptions[method]
         self.called.append((method, kwargs))
         return self.expect.get(method)
 

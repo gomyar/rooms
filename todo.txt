@@ -5,11 +5,19 @@
    - player moves room to offline node
    - actor (npc) moves room to offline node
 
+   - master.actor_entered - if room offline, send wait
+   - node._send_actor_entered_message - if player and got wait, redirect to master
+
+
  - if a room is being torn down:
    - set it to offline in master
    - any player requests for that room are bounced to master
    - any npc requests for that room are ignored
      - npc should restore when/if room comes back up again
+
+ - actors move slowly on entering a room for some reason
+
+ - since we're doing a bunch of extra http stuff with our rpc interface (http codes for redirection, retry etc) we might wanna expand the return value to include those code, etc, and not just be a dumb json dict assumption of success
 
  - node pushes load info to master every n seconds
 
