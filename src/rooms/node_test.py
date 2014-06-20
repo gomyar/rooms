@@ -417,8 +417,7 @@ class NodeTest(unittest.TestCase):
             queue.get_nowait())
 
     def testHandleAnyExceptionOnPlayerActorEnters(self):
-        self.mock_rpc.exceptions['actor_entered'] = HTTPError("/actor_enters",
-            500, "Random Error", {}, None)
+        self.mock_rpc.exceptions['actor_entered'] = Exception("anything")
 
         self.node.manage_room("game1", "room1")
 
