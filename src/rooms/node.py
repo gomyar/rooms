@@ -313,8 +313,8 @@ class Node(object):
             response = self.master_conn.call("actor_entered", game_id=game_id,
                 room_id=exit_room_id, actor_id=actor.actor_id,
                 is_player=actor.is_player, username=actor.username)
-        except:
-            log.debug("Got http error: %s", httpe)
+        except Exception, e:
+            log.debug("Got http error: %s", e)
             if actor.is_player:
                 conn = self.player_connections[actor.username, actor.game_id]
                 conn.send_message({"command": "redirect_to_master",
