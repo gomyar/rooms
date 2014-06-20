@@ -222,6 +222,7 @@ class Master(object):
         self._check_nodes_available()
 
         player = self._load_player(username, game_id)
+        self._check_node_offline(game_id, player.room_id)
         node = self._get_node_for_room(game_id, player.room_id)
         token = node.request_token(username, game_id)
         return {"token": token, "node": (node.host, node.port),
@@ -239,7 +240,9 @@ class Master(object):
             room = self.rooms[game_id, room_id]
             if room.node in self.nodes and \
                 not self.nodes[room.node].online:
-                raise RPCWaitException("Room in transit")
+                raise RPCWaitException("Node offline")
+            if not room.online:
+                raise RPCWaitException("Room in offline")
 
     def _load_player(self, username, game_id):
         return self.container.load_player(username, game_id)

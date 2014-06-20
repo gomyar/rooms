@@ -227,6 +227,16 @@ class MasterTest(unittest.TestCase):
         self.assertEquals("room1",
             self.master.rooms['games_0', 'room1'].room_id)
 
+        self.container.save_actor(PlayerActor(
+            MockRoom("games_0", "room1"), 'player', MockScript(), "bob"))
+
+        # offline the second node
+        self.master.deregister_node("20.20.20.2", 8000)
+
+        # attempt player connect
+        self.assertRaises(RPCWaitException, self.master.player_connects,
+            "bob", "games_0")
+
     def testOfflineNonexistant(self):
         self.assertRaises(RPCException,
             self.master.offline_node,"10.10.10.1", 8000)
@@ -347,3 +357,28 @@ class MasterTest(unittest.TestCase):
 
         self.assertEquals(0.5,
             self.master.nodes["10.10.10.1", 8000].server_load())
+
+    def testRoomOfflineQueueRoomRequests(self):
+        self.assertEquals("games_0", self.master.create_game("bob"))
+
+        self.master.register_node("10.10.10.1", 8000)
+
+        self.master.request_room("games_0", "room1")
+        self.master.request_room("games_0", "room2")
+
+        self.master.rooms["games_0", "room1"].online = False
+
+        # receieve room request - send wait response
+        self.assertRaises(RPCWaitException, self.master.join_game,
+            "bob", "games_0", "room1")
+
+        self.container.save_actor(PlayerActor(
+            MockRoom("games_0", "room1"), 'player', MockScript(), "bob"))
+        self.assertRaises(RPCWaitException, self.master.player_connects,
+            "bob", "games_0")
+
+        self.master.join_game("ned", "games_0", "room2")
+
+        self.container.save_actor(PlayerActor(
+            MockRoom("games_0", "room2"), 'player', MockScript(), "ned"))
+        self.master.player_connects("ned", "games_0")
