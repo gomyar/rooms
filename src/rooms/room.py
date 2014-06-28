@@ -66,6 +66,7 @@ class Room(object):
         self.doors = []
         self.tags = []
         self.node = node
+        self.online = True
 
     def __repr__(self):
         return "<Room %s %s>" % (self.game_id, self.room_id)

@@ -58,9 +58,11 @@ if __name__ == "__main__":
         server.add_controller("master", MasterController(master))
         server.add_controller("player", PlayerController(master))
         log.info("Starting Rooms Master")
+        master.start()
         server.start()
         server.serve_forever()
     except KeyboardInterrupt, ke:
         log.debug("Master stopped")
+        master.shutdown()
     except:
         log.exception("Exception starting server")

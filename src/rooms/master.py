@@ -1,5 +1,6 @@
 
 import gevent
+import json
 
 from rooms.game import Game
 from rooms.player import PlayerActor
@@ -9,6 +10,7 @@ from rooms.rpc import WSGIRPCServer
 from rooms.rpc import WSGIRPCClient
 from rooms.rpc import request
 from rooms.rpc import websocket
+from rooms.timer import Timer
 
 import logging
 log = logging.getLogger("rooms.master")
@@ -46,6 +48,10 @@ class RegisteredNode(object):
     def actor_enters_node(self, actor_id):
         return self.rpc_conn.call("actor_enters_node", actor_id=actor_id)
 
+    def deactivate_room(self, game_id, room_id):
+        return self.rpc_conn.call("deactivate_room", game_id=game_id,
+            room_id=room_id)
+
     def server_load(self):
         return self.load
 
@@ -56,9 +62,11 @@ class RegisteredRoom(object):
         self.node_port = node_port
         self.game_id = game_id
         self.room_id = room_id
+        self.connected_players = 0
 
         self.node = (node_host, node_port)
         self.online = True
+        self.up_at = Timer.now()
 
     def __repr__(self):
         return "<RegisteredRoom %s-%s on %s:%s>" % (self.game_id, self.room_id,
@@ -67,6 +75,9 @@ class RegisteredRoom(object):
     def tojson(self):
         return {"node": self.node, "game_id": self.game_id,
             "room_id": self.room_id, "online": self.online}
+
+    def uptime(self):
+        return Timer.now() - self.up_at
 
 
 class MasterController(object):
@@ -119,8 +130,8 @@ class MasterController(object):
             username)
 
     @request
-    def report_load_stats(self, host, port, server_load):
-        return self.master.report_load_stats(host, port, server_load)
+    def report_load_stats(self, host, port, server_load, node_info):
+        return self.master.report_load_stats(host, port, server_load, node_info)
 
 
 class PlayerController(object):
@@ -145,10 +156,27 @@ class PlayerController(object):
 
 
 class Master(object):
+    NODE_NOMINAL = 0.5
+    NODE_BUSY = 0.7
+    NODE_OVERLOADED = 0.9
+
+    ROOM_IDLE = 15
+
     def __init__(self, container):
         self.nodes = dict()
         self.rooms = dict()
         self.container = container
+        self._cleanup_gthread = None
+        self.running = True
+
+    def start(self):
+        self._cleanup_gthread = gevent.spawn(self._run_cleanup)
+
+    def shutdown(self):
+        log.info("Waiting for cleanup thread to end")
+        self.running = False
+        self._cleanup_gthread.join()
+        log.info("Shutting down")
 
     def all_players(self):
         return sorted([
@@ -187,8 +215,13 @@ class Master(object):
             'online': node.online, 'load': node.server_load()} for node in \
             self.nodes.values()]
 
-    def report_load_stats(self, host, port, server_load):
+    def report_load_stats(self, host, port, server_load, node_info):
+        node_info = json.loads(node_info)
         self.nodes[host, port].load = float(server_load)
+        for room_desc, info in node_info.items():
+            game_id, room_id = room_desc.split('.', 1)
+            self.rooms[game_id, room_id].connected_players = \
+                info['connected_players']
 
     def create_game(self, owner_id):
         return self.container.create_game(owner_id).game_id
@@ -198,8 +231,6 @@ class Master(object):
             script player_joins() is called on node.'''
         self._check_game_exists(game_id)
         self._check_can_join(username, game_id)
-        self._check_node_offline(game_id, room_id)
-        self._check_nodes_available()
 
         node = self._get_node_for_room(game_id, room_id)
         token = node.player_joins(username, game_id, room_id)
@@ -219,10 +250,8 @@ class Master(object):
     def player_connects(self, username, game_id):
         if not self.container.player_exists(username, game_id):
             raise RPCException("No such player %s, %s" % (username, game_id))
-        self._check_nodes_available()
 
         player = self._load_player(username, game_id)
-        self._check_node_offline(game_id, player.room_id)
         node = self._get_node_for_room(game_id, player.room_id)
         token = node.request_token(username, game_id)
         return {"token": token, "node": (node.host, node.port),
@@ -242,12 +271,14 @@ class Master(object):
                 not self.nodes[room.node].online:
                 raise RPCWaitException("Node offline")
             if not room.online:
-                raise RPCWaitException("Room in offline")
+                raise RPCWaitException("Room is offline")
 
     def _load_player(self, username, game_id):
         return self.container.load_player(username, game_id)
 
     def _get_node_for_room(self, game_id, room_id):
+        self._check_nodes_available()
+        self._check_node_offline(game_id, room_id)
         if (game_id, room_id) not in self.rooms:
             node = self._select_available_node()
             node.manage_room(game_id, room_id)
@@ -293,7 +324,8 @@ class Master(object):
     def actor_entered(self, game_id, room_id, actor_id, is_player, username):
         log.debug("Actor entered %s-%s %s %s %s", game_id, room_id, actor_id,
             is_player, username)
-        if (game_id, room_id) in self.rooms:
+        if (game_id, room_id) in self.rooms and \
+                self.rooms[game_id, room_id].online:
             log.debug("Room %s-%s already managed", game_id, room_id)
             host, port = self.rooms[game_id, room_id].node
             log.debug("Calling actor_enters on %s:%s", host, port)
@@ -303,7 +335,24 @@ class Master(object):
         elif is_player == "True":
             log.debug("Room %s-%s not managed, managing room", game_id, room_id)
             node = self._get_node_for_room(game_id, room_id)
+            log.debug("Got node")
             token = node.request_token(username, game_id)
             log.debug("Managed node %s:%s for %s - %s", node.host, node.port,
                 username, game_id)
             return {"node": [node.host, node.port], "token": token}
+
+    def _run_cleanup(self):
+        while self.running:
+            gevent.sleep(0.5)
+            self.run_cleanup_rooms()
+
+    def run_cleanup_rooms(self):
+        for ((game_id, room_id), room) in self.rooms.items():
+            node = self.nodes[room.node]
+            if not room.connected_players and \
+                    room.online and node.online and \
+                    room.uptime() > Master.ROOM_IDLE:
+                room.online = False
+                node.deactivate_room(game_id, room_id)
+                # comment this guy out to simulate walking into offline
+                self.rooms.pop((game_id, room_id))

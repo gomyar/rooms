@@ -12,6 +12,7 @@ from rooms.rpc import WSGIRPCClient
 from rooms.rpc import request
 from rooms.rpc import websocket
 from rooms.rpc import RPCException
+from rooms.rpc import RPCWaitException
 from rooms.room import Room
 from rooms.script import Script
 from rooms.script import NullScript
@@ -67,6 +68,10 @@ class NodeController(object):
     @websocket
     def ping(self, ws):
         return self.node.ping(ws)
+
+    @request
+    def deactivate_room(self, game_id, room_id):
+        return self.node.deactivate_room(game_id, room_id)
 
 
 class PlayerConnection(object):
@@ -128,7 +133,20 @@ class Node(object):
         while True:
             gevent.sleep(5)
             self.master_conn.call("report_load_stats", host=self.host,
-                port=self.port, server_load=len(self.rooms) / 100.0)
+                port=self.port, server_load=len(self.rooms) / 100.0,
+                node_info=json.dumps(self._compile_node_info()))
+
+    def _compile_node_info(self):
+        node_info = dict()
+        for room in self.rooms.values():
+            node_info["%s.%s" % (room.game_id, room.room_id)] = dict(
+                connected_players=len(self._connected_players_for(room))
+            )
+        return node_info
+
+    def _connected_players_for(self, room):
+        return [conn for conn in self.player_connections.values() if \
+            conn.room == room]
 
     def deregister(self):
         if self._report_gthread:
@@ -281,12 +299,19 @@ class Node(object):
 
     def actor_enters_node(self, actor_id):
         actor = self.container.load_actor(actor_id)
+        self._check_room_active(actor.game_id, actor.room_id)
         room = self.rooms[actor.game_id, actor.room_id]
         room.put_actor(actor)
         if actor.is_player:
             return {"token": self._create_player_conn(actor).token}
         else:
             return {}
+
+    def _check_room_active(self, game_id, room_id):
+        if (game_id, room_id) not in self.rooms:
+            raise RPCWaitException("No such room %s-%s" % (game_id, room_id))
+        if not self.rooms[game_id, room_id].online:
+            raise RPCWaitException("Room offline %s-%s" % (game_id, room_id))
 
     def move_actor_room(self, actor, game_id, exit_room_id, exit_position):
         gevent.spawn(self._move_actor_room, actor, game_id, exit_room_id,
@@ -365,3 +390,12 @@ class Node(object):
                     "actor_id": actor.actor_id, "data": jsonview(actor)})
         else:
             log.debug("No connection for player %s-%s", game_id, actor.username)
+
+    def deactivate_room(self, game_id, room_id):
+        room = self.rooms.pop((game_id, room_id))
+        room.online = False
+        for actor in room.actors.values():
+            actor._kill_gthreads()
+        for actor in room.actors.values():
+            self.container.save_actor(actor)
+        self.container.save_room(room)

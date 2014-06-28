@@ -1,4 +1,10 @@
 
+ - might need a queued approach to transferring actors between rooms:
+   - game_id.room_id queue per room for actors
+   - game_id.room_id queue per room for players
+   - nodes listen on whatever room queues they are managing rooms for
+   - the queues are queues for entry to the room
+
  - node saves everything on exit
 
  - check RPCWaitsExceptions for:
@@ -10,9 +16,10 @@
 
  - if a room is being torn down:
    - set it to offline in master
-   - any player requests for that room are bounced to master
+   - any node (player) requests for that room are bounced to master
    - any npc requests for that room are ignored
      - npc should restore when/if room comes back up again
+   - any player connections for that room are waited
 
  - get a "connecting/loading" bit going on the js gui
 

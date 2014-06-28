@@ -17,6 +17,7 @@ from rooms.testutils import MockWebsocket
 from rooms.testutils import MockActor
 from rooms.testutils import MockRoomFactory
 from rooms.rpc import RPCException
+from rooms.rpc import RPCWaitException
 from rooms.position import Position
 from rooms.actor import Actor
 from rooms.node import PlayerConnection
@@ -232,6 +233,23 @@ class NodeTest(unittest.TestCase):
         self.assertEquals(actor.actor_id, room.actors['actors_0'].actor_id)
         self.assertEquals(actor.room_id, room.actors['actors_0'].room_id)
 
+    def testActorEntersDeactivatedRoom(self):
+        self.node.manage_room("game1", "room1")
+
+        actor = Actor(None, "test_actor", MockScript())
+        actor._room_id = "room1"
+        actor._game_id = "game1"
+        self.container.save_actor(actor)
+
+        room = self.node.rooms["game1", "room1"]
+        room.online = False
+
+        try:
+            self.node.actor_enters_node("actors_0")
+            self.fail("Should have thrown")
+        except RPCWaitException, rpcwe:
+            self.assertEquals("Room offline game1-room1", str(rpcwe))
+
     def testPlayerJoinsActorCreatedConnectionCreated(self):
         self.node.manage_room("game1", "room1")
 
@@ -338,7 +356,8 @@ class NodeTest(unittest.TestCase):
 
         self.assertEquals([
             ('report_load_stats',
-                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0}),
+                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0,
+                    'node_info': '{}'}),
             ]
         , self.mock_rpc.called)
 
@@ -346,9 +365,11 @@ class NodeTest(unittest.TestCase):
 
         self.assertEquals([
             ('report_load_stats',
-                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0}),
+                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0,
+                    'node_info': '{}'}),
             ('report_load_stats',
-                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0}),
+                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0,
+                    'node_info': '{}'}),
             ]
         , self.mock_rpc.called)
 
@@ -358,11 +379,14 @@ class NodeTest(unittest.TestCase):
 
         self.assertEquals([
             ('report_load_stats',
-                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0}),
+                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0,
+                    'node_info': '{}'}),
             ('report_load_stats',
-                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0}),
+                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0,
+                    'node_info': '{}'}),
             ('report_load_stats',
-                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.01}),
+                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.01,
+                    'node_info': '{"game1.room1": {"connected_players": 0}}'}),
             ]
         , self.mock_rpc.called)
 
@@ -461,3 +485,26 @@ class NodeTest(unittest.TestCase):
         self.assertEquals({'command': 'redirect', 'node': ['10.10.10.1', 8000],
             'token': 'TOKEN1'},
             queue.get_nowait())
+
+    def testDeactivateRoom(self):
+        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "room2")
+
+        room1 = self.node.rooms["game1", "room1"]
+        room2 = self.node.rooms["game1", "room2"]
+        actor1 = room1.create_actor("npc",
+            "mock_script")
+        actor2 = room2.create_actor("npc",
+            "mock_script")
+
+        # expecting saves so blank dbase
+        self.container.dbase.dbases = {}
+
+        self.node.deactivate_room("game1", "room2")
+
+        self.assertEquals({('game1', 'room1'): room1}, self.node.rooms)
+        self.assertEquals(1, len(self.container.dbase.dbases['actors']))
+        self.assertEquals(1, len(self.container.dbase.dbases['rooms']))
+
+    def testMoveActorBetweenRoomsWhenDestinationIsOffline(self):
+        pass

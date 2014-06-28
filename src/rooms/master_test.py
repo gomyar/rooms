@@ -11,6 +11,7 @@ from rooms.testutils import MockRpcClient
 from rooms.testutils import MockGame
 from rooms.testutils import MockRoom
 from rooms.testutils import MockScript
+from rooms.testutils import MockTimer
 
 
 class MockNodeRpcClient(object):
@@ -34,6 +35,10 @@ class MasterTest(unittest.TestCase):
 
         self.master = Master(self.container)
         self.master._create_rpc_conn = lambda h, p: self.rpc_conn
+        MockTimer.setup_mock()
+
+    def tearDown(self):
+        MockTimer.teardown_mock()
 
     def testNodeAttach(self):
         self.master.register_node("10.10.10.1", 8000)
@@ -196,7 +201,7 @@ class MasterTest(unittest.TestCase):
 
         self.master.request_room("games_0", "room1")
 
-        self.master.report_load_stats("10.10.10.1", 8000, 0.1)
+        self.master.report_load_stats("10.10.10.1", 8000, 0.1, '{}')
 
         self.master.request_room("games_0", "room2")
 
@@ -348,15 +353,72 @@ class MasterTest(unittest.TestCase):
             ('request_token', {'username': 'bob', 'game_id': 'game1'}),
             ], self.rpc_conn.called)
 
+    def testActorEnteredOfflineRoom(self):
+        self.rpc_conn = MockRpcClient(exceptions={
+            "actor_enters_node": Exception("room is offline")})
+
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+
+        self.master.join_game("bob", "games_0", "room1")
+
+        self.master.rooms["games_0", "room1"].online = False
+
+        self.assertEquals(None,
+            self.master.actor_entered("games_0", "room1", "actor1", False, None))
+
+        self.assertEquals([
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('player_joins', {'username': 'bob', 'game_id': 'games_0',
+                'room_id': 'room1'})], self.rpc_conn.called)
+
+    def testPlayerActorEnteredOfflineRoom(self):
+        self.rpc_conn = MockRpcClient(exceptions={
+            "actor_enters_node": Exception("room is offline")})
+
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+
+        self.master.join_game("bob", "games_0", "room1")
+
+        self.master.rooms["games_0", "room1"].online = False
+
+        try:
+            self.master.actor_entered("games_0", "room1", "actor1", "True",
+                None)
+            self.fail("Should have thrown")
+        except RPCWaitException, rpcwe:
+            self.assertEquals("Room is offline", str(rpcwe))
+
     def testReportServerLoad(self):
         self.master.create_game("bob")
 
         self.master.register_node("10.10.10.1", 8000)
 
-        self.master.report_load_stats("10.10.10.1", 8000, 0.5)
+        self.master.report_load_stats("10.10.10.1", 8000, 0.5, '{}')
 
         self.assertEquals(0.5,
             self.master.nodes["10.10.10.1", 8000].server_load())
+
+    def testReportConnectedPlayers(self):
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+        self.master.register_node("10.10.10.2", 8000)
+
+        self.master.join_game("bob", "games_0", "room1")
+        self.master.join_game("ned", "games_0", "room2")
+
+        self.master.report_load_stats("10.10.10.1", 8000, 0.5,
+            '{"games_0.room2": {"connected_players": 1}}')
+
+        self.assertEquals(0,
+            self.master.rooms["games_0", "room1"].connected_players)
+        self.assertEquals(1,
+            self.master.rooms["games_0", "room2"].connected_players)
+
 
     def testRoomOfflineQueueRoomRequests(self):
         self.assertEquals("games_0", self.master.create_game("bob"))
@@ -382,3 +444,83 @@ class MasterTest(unittest.TestCase):
         self.container.save_actor(PlayerActor(
             MockRoom("games_0", "room2"), 'player', MockScript(), "ned"))
         self.master.player_connects("ned", "games_0")
+
+    def testRoomManagerRemovesUnneededRoomsOnBusyNodes(self):
+        self.master.register_node("10.10.10.1", 8000)
+
+        self.master.request_room("games_0", "room1")
+        self.master.request_room("games_0", "room2")
+
+        self.master.rooms["games_0", "room1"].connected_players = 1
+        self.master.nodes['10.10.10.1', 8000].load = 0.1
+
+        # Dont deactivate if uptime < 15 seconds
+        self.master.run_cleanup_rooms()
+
+        self.assertEquals(
+            [('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+#            ('deactivate_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+            ]
+        , self.rpc_conn.called)
+        self.assertTrue(self.master.rooms["games_0", "room1"].online)
+        self.assertTrue(self.master.rooms["games_0", "room2"].online)
+
+        # Node must have been up for 30 seconds before allowing room deactivate
+        MockTimer.fast_forward(16)
+
+        self.master.run_cleanup_rooms()
+
+        self.assertEquals(
+            [('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+            ('deactivate_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+            ]
+        , self.rpc_conn.called)
+        self.assertTrue(("games_0", "room1") in self.master.rooms)
+        self.assertFalse(("games_0", "room2") in self.master.rooms)
+
+    def testRoomManagerRemovesUnneededRoomsOnBusyNodesByUpTime(self):
+        self.master.register_node("10.10.10.1", 8000)
+
+        self.master.request_room("games_0", "room1")
+        MockTimer.fast_forward(10)
+        self.master.request_room("games_0", "room2")
+
+        self.master.rooms["games_0", "room1"].connected_players = 0
+        self.master.rooms["games_0", "room2"].connected_players = 0
+
+        # Dont deactivate if uptime < 15 seconds
+        self.master.run_cleanup_rooms()
+
+        self.assertEquals(
+            [('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+#            ('deactivate_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+            ]
+        , self.rpc_conn.called)
+
+        # Node must have been up for 15 seconds before allowing room deactivate
+        MockTimer.fast_forward(10)
+
+        self.master.run_cleanup_rooms()
+
+        self.assertEquals(
+            [('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+            ('deactivate_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ]
+        , self.rpc_conn.called)
+
+        # Node must have been up for 15 seconds before allowing room deactivate
+        MockTimer.fast_forward(10)
+
+        self.master.run_cleanup_rooms()
+
+        self.assertEquals(
+            [('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+            ('deactivate_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('deactivate_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+            ]
+        , self.rpc_conn.called)
