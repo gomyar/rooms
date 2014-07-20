@@ -203,6 +203,19 @@ class RPCTest(unittest.TestCase):
         self.assertEquals([('location', '/rpc/index.html')],
             self._server_lines)
 
+    def testRPCFileIndexRedirectOverride(self):
+        self.rpc_server = WSGIRPCServer("10.10.10.1", 8888,
+            indexpath="/otherpath/home.html")
+
+        result = self.rpc_server.handle({'PATH_INFO': '/',
+            'wsgi.input': StringIO("")},
+            self._server_response)
+
+        self.assertEquals('302 Found', self._server_code)
+        self.assertEquals([('location', '/otherpath/home.html')],
+            self._server_lines)
+
+
     def testRPCFiles(self):
         self.rpc_server = WSGIRPCServer("10.10.10.1", 8888)
 

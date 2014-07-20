@@ -92,9 +92,10 @@ def websocket(func):
 
 
 class WSGIRPCServer(object):
-    def __init__(self, host, port):
+    def __init__(self, host, port, indexpath=None):
         self.host = host
         self.port = port
+        self.indexpath = indexpath
         self.controllers = dict()
         self.file_roots = {
             "rpc": os.path.join(os.path.dirname(__file__), "assets/rpc"),
@@ -157,7 +158,7 @@ class WSGIRPCServer(object):
                     response)
             if path == ['']:
                 response('302 Found', [
-                    ('location', '/rpc/index.html'),
+                    ('location', self.indexpath or '/rpc/index.html'),
                 ])
                 return ""
             response('404 Not Found', [])

@@ -10,6 +10,7 @@ monkey.patch_socket()
 from optparse import OptionParser
 from ConfigParser import ConfigParser
 
+import rooms
 from rooms.master import Master
 from rooms.master import MasterController
 from rooms.master import PlayerController
@@ -58,10 +59,12 @@ if __name__ == "__main__":
         dbase = MongoDBase()
         dbase.init_mongo()
         master = Master(Container(dbase, None, None, None))
-        server = WSGIRPCServer(host, port)
+        server = WSGIRPCServer(host, port, "gameadmin/index.html")
         server.add_controller("master", MasterController(master))
         server.add_controller("player", PlayerController(master))
         # dev server serves game files:
+        server.add_file_root("gameadmin", os.path.join(
+            os.path.dirname(rooms.__file__), "assets/gameadmin"))
         server.add_file_root("assets", os.path.join(options.game, "assets"))
         server.add_file_root("maps", os.path.join(options.game, "maps"))
         log.info("Starting Rooms Master")
