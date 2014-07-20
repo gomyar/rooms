@@ -3,6 +3,7 @@
 import os
 import sys
 
+import gevent.backdoor
 from gevent import monkey
 monkey.patch_socket()
 
@@ -25,7 +26,6 @@ log = logging.getLogger("rooms.node")
 
 
 if __name__ == "__main__":
-    master = None
     node = None
     try:
         log.info("Starting Node")
@@ -39,6 +39,9 @@ if __name__ == "__main__":
 
         parser.add_option("-g", "--game", dest="game",
             help="Path to game dir", default=".")
+
+        parser.add_option("-b", "--backdoor", dest="backdoor",
+            action="store_true", default=True, help="Open backdoor socket")
 
         (options, args) = parser.parse_args()
 
@@ -83,6 +86,12 @@ if __name__ == "__main__":
         server.add_file_root("maps", os.path.join(options.game, "maps"))
         log.info("Starting Rooms Node")
         server.start()
+
+        if options.backdoor:
+            log.debug("Starting backdoor server on port 3001")
+            backdoor = gevent.backdoor.BackdoorServer(('127.0.0.1', 3001),
+                locals=dict(node=node))
+            backdoor.start()
         node.connect_to_master()
         node.start_reporting()
         server.serve_forever()

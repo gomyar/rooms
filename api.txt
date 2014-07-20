@@ -1,0 +1,26 @@
+
+connect to :
+
+localhost:9999 (master)
+
+if accepts = app/json
+    get back api calls as json
+if accepts = text/html
+    get back api index.html
+
+on join_game
+
+redirect to 
+    node / token
+
+
+connect to : 
+
+localhost:8000/token (node)
+
+if accepts = app/json
+    get back api calls as json
+if accepts = text/html
+    redirect to index.html from assets
+
+

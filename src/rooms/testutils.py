@@ -207,7 +207,9 @@ class MockTimer(Timer):
 
     def _fast_forward(self, seconds):
         # ping waiting gthreads
-        self._old_sleep(0)
+        # some gthreads spawn other gthreads, this seems to work for those
+        for i in range(10):
+            self._old_sleep(0)
         end_time = self._mock_now + seconds
         while self._processed(end_time):
             pass

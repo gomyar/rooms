@@ -3,6 +3,7 @@
 import os
 import sys
 
+import gevent.backdoor
 from gevent import monkey
 monkey.patch_socket()
 
@@ -30,8 +31,11 @@ if __name__ == "__main__":
         parser.add_option("-a", "--address", dest="address",
             help="Address of master", default="localhost:9999")
 
-        parser.add_option("-g", "--game", dest="gameconf",
-                help="Path to game config file", default="./game.conf")
+        parser.add_option("-g", "--game", dest="game",
+            help="Path to game config file", default=".")
+
+        parser.add_option("-b", "--backdoor", dest="backdoor",
+            action="store_true", default=True, help="Open backdoor socket")
 
         (options, args) = parser.parse_args()
 
@@ -57,9 +61,18 @@ if __name__ == "__main__":
         server = WSGIRPCServer(host, port)
         server.add_controller("master", MasterController(master))
         server.add_controller("player", PlayerController(master))
+        # dev server serves game files:
+        server.add_file_root("assets", os.path.join(options.game, "assets"))
+        server.add_file_root("maps", os.path.join(options.game, "maps"))
         log.info("Starting Rooms Master")
         master.start()
         server.start()
+
+        if options.backdoor:
+            log.debug("Starting backdoor server on port 3000")
+            backdoor = gevent.backdoor.BackdoorServer(('127.0.0.1', 3000),
+                locals=dict(master=master))
+            backdoor.start()
         server.serve_forever()
     except KeyboardInterrupt, ke:
         log.debug("Master stopped")

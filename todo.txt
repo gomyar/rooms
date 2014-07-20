@@ -1,4 +1,8 @@
 
+ - add master_domain to master and node
+
+ - node polls dbase for actors entering rooms (mongo query-update)
+
  - might need a queued approach to transferring actors between rooms:
    - game_id.room_id queue per room for actors
    - game_id.room_id queue per room for players

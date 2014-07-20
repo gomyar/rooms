@@ -11,6 +11,9 @@ from rooms.actor import Actor
 import rooms.actor
 from rooms.script import Script
 
+import logging
+log = logging.getLogger("rooms.test")
+
 
 class SystemTest(unittest.TestCase):
     def setUp(self):
@@ -42,6 +45,7 @@ class SystemTest(unittest.TestCase):
 
     # script function
     def move_to(self, actor, x, y):
+        log.debug("Moving %s to %s, %s", actor, x, y)
         actor.move_to(Position(x, y))
 
     # script function
@@ -83,7 +87,6 @@ class SystemTest(unittest.TestCase):
         self.assertEquals("actor_update", player2_ws.updates[2]['command'])
         self.assertEquals("fred", player1_ws.updates[2]['data']['username'])
 
-
         self.node.actor_call("game1", "fred", "actors_1", "TOKEN1", "move_to",
             x=10, y=10)
 
@@ -109,6 +112,9 @@ class SystemTest(unittest.TestCase):
         MockTimer.fast_forward(1)
 
         self.assertEquals(0, player1_ws.updates[3]['data']['state']['count'])
+
+        MockTimer.fast_forward(1)
+
         self.assertEquals(1, player1_ws.updates[4]['data']['state']['count'])
 
     def testInvalidToken(self):

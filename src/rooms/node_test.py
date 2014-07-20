@@ -204,7 +204,6 @@ class NodeTest(unittest.TestCase):
         MockTimer.fast_forward(1)
 
         self.assertEquals([
-            ('kickoff', (player_actor,), {}),
             ('do_something', (player_actor,), {})],
             player_actor.script.called)
 
