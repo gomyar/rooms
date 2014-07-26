@@ -1,0 +1,25 @@
+<div ng-controller="AdminCtrl">
+
+game admin
+
+<div id="username">
+Your username: <input type=text></input>
+</div>
+
+<div id="games">
+list games
+<ul>
+    <li ng-repeat="game in games">game owned by {{ game.owner_id }} - <div ng-click="games.select(game)">join</div></li>
+</ul>
+</div>
+
+<div id="newgame">
+
+ - game params
+    (ie team="green")
+    (ie ship="bulldog")
+    (ie player="investigator")
+ 
+</div>
+
+</div>
