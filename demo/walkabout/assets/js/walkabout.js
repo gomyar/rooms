@@ -105,7 +105,7 @@ function api_callback(message)
     }
 }
 
-function init()
+function init_game()
 {
     console.log("Loading images");
     guiassets.loadImages(image_map, function() {
@@ -125,6 +125,3 @@ function init()
         });
     });
 }
-
-
-$(document).ready(init);
