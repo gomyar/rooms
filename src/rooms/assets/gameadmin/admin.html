@@ -3,13 +3,14 @@
 game admin
 
 <div id="username">
-Your username: <input type=text></input>
+Your username: <input type=text ng-model="username"></input>
+Room id: <input type=text ng-model="room_id"></input>
 </div>
 
 <div id="games">
 list games
 <ul>
-    <li ng-repeat="game in games">game owned by {{ game.owner_id }} - <div ng-click="games.select(game)">join</div></li>
+    <li ng-repeat="game in games">game owned by {{ game.owner_id }} - <div class="join_game" ng-click="games.select(game)">join</div></li>
 </ul>
 </div>
 

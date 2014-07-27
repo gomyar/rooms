@@ -1,0 +1,19 @@
+
+div#games
+{
+    font-weight : bold;
+    margin : 5px;
+    padding : 5px;
+    border : 1px solid black;
+    background-color : lightblue;
+}
+
+div#games ul li div.join_game
+{
+    width : 4em;
+    height : 1.1em;
+    background-color : lightgreen;
+    border : 1px solid black;
+    cursor : pointer;
+    float : right;
+}
