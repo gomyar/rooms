@@ -12,5 +12,5 @@ setup(
     include_package_data=True,
     package_dir= { '': 'src'},
     install_requires=[req.strip() for req in requirements],
-    scripts=['bin/rooms_node', 'bin/rooms_master'],
+    scripts=['bin/rooms_node', 'bin/rooms_master', 'bin/rooms'],
 )

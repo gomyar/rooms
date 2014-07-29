@@ -4,23 +4,6 @@ var image_map = {
     'npc': '/assets/images/character_models/npc.png'
 }
 
-// Thank you stackoverflow
-function getParameter(paramName)
-{
-    var searchString = window.location.search.substring(1),
-    i, val, params = searchString.split("&");
-
-    for (var i=0;i<params.length;i++)
-    {
-        val = params[i].split("=");
-        if (val[0] == paramName)
-        {
-        return unescape(val[1]);
-        }
-    }
-    return null;
-}
-
 perform_get = function(url, callback, onerror)
 {
     $.ajax({
@@ -105,7 +88,7 @@ function api_callback(message)
     }
 }
 
-function init_game()
+function init_game(game_id, username, token)
 {
     console.log("Loading images");
     guiassets.loadImages(image_map, function() {
@@ -118,7 +101,7 @@ function init_game()
 
         $("#screen").click(canvas_clicked);
         $("#screen").mousemove(canvas_mousemove);
-        api_rooms.connect(getParameter("game_id"), getParameter("username"), getParameter("token"), api_callback); 
+        api_rooms.connect(game_id, username, token, api_callback); 
 
         $(window).bind('beforeunload', function(){
             api_rooms.socket.close();

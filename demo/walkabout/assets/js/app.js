@@ -7,6 +7,7 @@ window.onerror = function (errorMsg, url, lineNumber, columnNumber, errorObject)
 
 var gameAdminApp = angular.module("gameAdminApp", [
     'ngRoute',
+    'ngCookies',
     'gameControllers',
     'gameAdminControllers'
 ]);
@@ -18,7 +19,7 @@ gameAdminApp.config(['$routeProvider',
         templateUrl: 'admin.html',
         controller: 'AdminCtrl'
       }).
-      when('/games/:game_id', {
+      when('/play', {
         templateUrl: 'game.html',
         controller: 'GameCtrl'
       }).
