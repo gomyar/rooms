@@ -3,3 +3,5 @@
 src/Rooms.egg-info/
 .coverage
 .ropeproject
+db.sqlite3
+*.egg-info
