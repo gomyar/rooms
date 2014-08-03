@@ -218,6 +218,14 @@ class NodeTest(unittest.TestCase):
         # a redirect is given
         pass
 
+    def testInvalidToken(self):
+        self.node.player_connections['bob', 'game1'] = PlayerConnection('game1',
+            'bob', None, None, "BOBSTOKEN")
+        try:
+            self.node.player_connects(None, 'game1', 'bob', 'WRONGTOKEN')
+        except Exception, e:
+            self.assertEquals("Invalid token for player", str(e))
+
     def testActorEntered(self):
         self.node.manage_room("game1", "room1")
 
@@ -507,3 +515,11 @@ class NodeTest(unittest.TestCase):
 
     def testMoveActorBetweenRoomsWhenDestinationIsOffline(self):
         pass
+
+    def testAdminConnects(self):
+        self.node.manage_room("game1", "map1.room1")
+        token = self.node.request_admin_token("game1", "map1.room1")
+
+        room1 = self.node.rooms["game1", "map1.room1"]
+        self.assertEquals(room1, self.node.admin_connections[token].room)
+        self.assertEquals(1, len(self.node._connections_for(room1)))

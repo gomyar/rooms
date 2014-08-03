@@ -36,6 +36,10 @@ class GameController(object):
         return self.node.actor_call(game_id, username, actor_id, token, method,
             **kwargs)
 
+    @websocket
+    def admin_connects(self, ws, token):
+        return self.node.admin_connects(ws, token)
+
 
 class NodeController(object):
     def __init__(self, node):
@@ -73,6 +77,10 @@ class NodeController(object):
     def deactivate_room(self, game_id, room_id):
         return self.node.deactivate_room(game_id, room_id)
 
+    @request
+    def request_admin_token(self, game_id, room_id):
+        return self.node.request_admin_token(game_id, room_id)
+
 
 class PlayerConnection(object):
     def __init__(self, game_id, username, room, actor, token):
@@ -82,6 +90,10 @@ class PlayerConnection(object):
         self.actor = actor
         self.token = token
         self.queues = []
+
+    def __repr__(self):
+        return "<PlayerConnection %s in %s-%s>" % (self.username,
+            self.game_id, self.room.room_id)
 
     def new_queue(self):
         queue = Queue()
@@ -103,9 +115,11 @@ class Node(object):
         self.master_port = master_port
         self.rooms = dict()
         self.player_connections = dict()
-        self.master_conn = WSGIRPCClient(master_host, master_port, 'master')
+        self.admin_connections = dict()
+        self.master_conn = WSGIRPCClient(master_host, master_port,
+            'master_control')
         self.master_player_conn = WSGIRPCClient(master_host, master_port,
-            'player')
+            'master_game')
 
         self.scripts = dict()
         self.container = None
@@ -214,6 +228,8 @@ class Node(object):
     def player_connects(self, ws, game_id, username, token):
         log.debug("Player conects: %s-%s %s", username, game_id, token)
         player_conn = self.player_connections[username, game_id]
+        if token != player_conn.token:
+            raise Exception("Invalid token for player")
         room = self.rooms[game_id, player_conn.room.room_id]
         queue = player_conn.new_queue()
         self._send_sync_to_websocket(ws, room)
@@ -253,8 +269,11 @@ class Node(object):
             raise Exception("No such method %s" % (method,))
 
     def _connections_for(self, room):
-        return [conn for conn in self.player_connections.values() if \
+        player_conns = [conn for conn in self.player_connections.values() if \
             conn.room == room]
+        admin_conns= [conn for conn in self.admin_connections.values() if \
+            conn.room == room]
+        return player_conns + admin_conns
 
     def actor_update(self, room, actor):
         log.debug("Actor update for %s in %s", actor, room)
@@ -399,3 +418,17 @@ class Node(object):
         for actor in room.actors.values():
             self.container.save_actor(actor)
         self.container.save_room(room)
+
+    def request_admin_token(self, game_id, room_id):
+        room = self.rooms[game_id, room_id]
+        token = self._create_token()
+        self.admin_connections[token] = PlayerConnection(game_id, "admin",
+            room, None, token)
+        return token
+
+    def admin_connects(self, ws, token):
+        admin_conn = self.admin_connections[token]
+        log.debug("Admin conects: %s", token)
+        queue = admin_conn.new_queue()
+        self._send_sync_to_websocket(ws, admin_conn.room)
+        self._perform_ws_loop(admin_conn, queue, ws)

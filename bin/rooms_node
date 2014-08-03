@@ -79,9 +79,9 @@ if __name__ == "__main__":
             "maps")), node)
         container = Container(dbase, geography, node, room_factory)
         node.container = container
-        server = WSGIRPCServer(host, port)
-        server.add_controller("node", NodeController(node))
-        server.add_controller("game", GameController(node))
+        server = WSGIRPCServer(host, port, access_control_header="*")
+        server.add_controller("node_control", NodeController(node))
+        server.add_controller("node_game", GameController(node))
         server.add_file_root("assets", os.path.join(options.game, "assets"))
         server.add_file_root("maps", os.path.join(options.game, "maps"))
         log.info("Starting Rooms Node")

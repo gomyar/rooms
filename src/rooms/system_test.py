@@ -290,3 +290,31 @@ class SystemTest(unittest.TestCase):
 
         self.assertEquals({"command": "remove_actor", "actor_id": "actors_1"},
             player2_ws.updates[-1])
+
+    def testAdminConnection(self):
+        self.node.manage_room("game1", "room1")
+
+        self.node.player_joins("fred", "game1", "room1")
+        adm_token = self.node.request_admin_token("game1", "room1")
+
+        player1_ws = MockWebsocket()
+        player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
+            "game1", "fred", "TOKEN1")
+        admin_ws = MockWebsocket()
+        admin_gthread = gevent.spawn(self.node.admin_connects, admin_ws,
+            adm_token)
+
+        MockTimer.fast_forward(0)
+
+        self.assertEquals(3, len(player1_ws.updates))
+        self.assertEquals(3, len(admin_ws.updates))
+
+        self.node.actor_call("game1", "fred", "actors_1", "TOKEN1", "move_to",
+            x=10, y=10)
+
+        MockTimer.fast_forward(0)
+
+        self.assertEquals(4, len(player1_ws.updates))
+        self.assertEquals(4, len(admin_ws.updates))
+
+

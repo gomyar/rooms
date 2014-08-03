@@ -59,9 +59,10 @@ if __name__ == "__main__":
         dbase = MongoDBase()
         dbase.init_mongo()
         master = Master(Container(dbase, None, None, None))
-        server = WSGIRPCServer(host, port, "assets/index.html")
-        server.add_controller("master", MasterController(master))
-        server.add_controller("player", PlayerController(master))
+        server = WSGIRPCServer(host, port, "assets/index.html",
+            access_control_header="*")
+        server.add_controller("master_control", MasterController(master))
+        server.add_controller("master_game", PlayerController(master))
         # dev server serves game files:
         server.add_file_root("assets", os.path.join(options.game, "assets"))
         server.add_file_root("maps", os.path.join(options.game, "maps"))

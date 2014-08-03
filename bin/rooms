@@ -75,13 +75,14 @@ if __name__ == "__main__":
         node.container = container
         node.load_scripts(os.path.join(options.game, "scripts"))
 
-        server = WSGIRPCServer(host, port, "assets/index.html")
+        server = WSGIRPCServer(host, port, "assets/index.html",
+            access_control_header="*")
         # master routes
-        server.add_controller("master", MasterController(master))
-        server.add_controller("player", PlayerController(master))
+        server.add_controller("master_control", MasterController(master))
+        server.add_controller("master_game", PlayerController(master))
         # node routes
-        server.add_controller("node", NodeController(node))
-        server.add_controller("game", GameController(node))
+        server.add_controller("node_control", NodeController(node))
+        server.add_controller("node_game", GameController(node))
         # dev server serves game files:
         server.add_file_root("assets", os.path.join(options.game, "assets"))
         server.add_file_root("maps", os.path.join(options.game, "maps"))

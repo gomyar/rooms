@@ -1,4 +1,6 @@
 
+ - node need to deactivate if all players have disconnected
+
  - add master_domain to master and node
 
  - node polls dbase for actors entering rooms (mongo query-update)

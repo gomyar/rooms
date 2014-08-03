@@ -45,6 +45,10 @@ class RegisteredNode(object):
         return self.rpc_conn.call("request_token", username=username,
             game_id=game_id)
 
+    def request_admin_token(self, game_id, room_id):
+        return self.rpc_conn.call("request_admin_token", game_id=game_id,
+            room_id=room_id)
+
     def actor_enters_node(self, actor_id):
         return self.rpc_conn.call("actor_enters_node", actor_id=actor_id)
 
@@ -133,6 +137,10 @@ class MasterController(object):
     def report_load_stats(self, host, port, server_load, node_info):
         return self.master.report_load_stats(host, port, server_load, node_info)
 
+    @request
+    def request_admin_token(self, game_id, room_id):
+        return self.master.request_admin_token(game_id, room_id)
+
 
 class PlayerController(object):
     def __init__(self, master):
@@ -208,7 +216,7 @@ class Master(object):
             self.rooms.items() if room.node != (host, port)])
 
     def _create_rpc_conn(self, host, port):
-        return WSGIRPCClient(host, port, 'node')
+        return WSGIRPCClient(host, port, 'node_control')
 
     def all_nodes(self):
         return [{'host': node.host, 'port': node.port,
@@ -258,6 +266,11 @@ class Master(object):
             "url": "http://%s:%s/assets/index.html?"
             "token=%s&game_id=%s&username=%s" % (node.host, node.port, token,
                 game_id, username)}
+
+    def request_admin_token(self, game_id, room_id):
+        node = self._get_node_for_room(game_id, room_id)
+        token = node.request_admin_token(game_id, room_id)
+        return {"token": token, "node": (node.host, node.port)}
 
     def _check_can_join(self, username, game_id):
         if self.container.player_exists(username, game_id):

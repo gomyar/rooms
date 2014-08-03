@@ -60,7 +60,7 @@ class MasterTest(unittest.TestCase):
     def testCreateRPCNodeConn(self):
         self.master = Master(self.container)
         conn = self.master._create_rpc_conn("10.10.10.1", 8000)
-        self.assertEquals("node", conn.namespace)
+        self.assertEquals("node_control", conn.namespace)
         self.assertEquals("10.10.10.1", conn.host)
         self.assertEquals(8000, conn.port)
 

@@ -35,35 +35,42 @@ div.pageheader div.link
     padding-top : 12px;
 }
 
+div.pageheader div.link:hover
+{
+    background-color : lightblue;
+}
+
 div.tableheader
 {
     font-weight : bold;
 }
+
+
+/* nodes.html */
 
 div.node
 {
     background-color : lightblue;
 }
 
-div.node div.hostname
+div.node div
 {
     margin : 10px;    
     display : inline-block;
+}
+
+div.node div.hostname
+{
     width : 200px;
 }
 
 div.node div.load
 {
-    margin : 10px;    
-    display : inline-block;
     width : 50px;
 }
 
 div.node div.shownode
 {
-    margin : 10px;    
-    border : 1px solid black;
-    display : inline-block;
 }
 
 div.button
@@ -81,4 +88,45 @@ div.button:hover
 {
     background-color : lightgreen;
     cursor : pointer;
+}
+
+/* rooms.html */
+
+div.room_info
+{
+    border : 1px solid black;
+    background-color : lightgreen;
+}
+
+div.room_info div
+{
+    margin : 10px;
+    display : inline-block;
+}
+
+div.room_info div.gameid
+{
+    width : 200px;
+}
+
+div.room_info div.roomid
+{
+    width : 100px;
+}
+
+/* game screen */
+div.gameview
+{
+    position : absolute;
+    width : auto;
+    height : auto;
+    top : 100;
+    bottom : 10;
+    left : 10;
+    right : 10;
+}
+
+canvas#screen
+{
+    background-color : black;
 }

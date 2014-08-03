@@ -1,3 +1,14 @@
 <div>
     All Rooms on node {{ nodeHost }} - {{ nodePort }}
+
+    <div class="node tableheader">
+        <div class="hostname">Game</div>
+        <div class="load">Room</div>
+    </div>
+ 
+    <div class="room_info" ng-repeat="room in rooms">
+        <div class="gameid">{{ room.game_id }}</div>
+        <div class="roomid">{{ room.room_id }}</div>
+        <div class="button" ng-click="rooms.select(room)">Connect</div>
+    </div>
 </div>

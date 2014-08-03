@@ -275,4 +275,40 @@ class RPCTest(unittest.TestCase):
         self.assertEquals(("value1", "value2", "howdy", "there"),
             self.mock_controller.called)
 
+    def testAccesControlAllowOrigin(self):
+        self.mock_controller = MockController()
+
+        self.rpc_server = WSGIRPCServer("10.10.10.1", 8888,
+            access_control_header="http://foreign.domain.com")
+        self.rpc_server.add_controller("controller1", self.mock_controller)
+
+        result = self.rpc_server.handle({'PATH_INFO':
+                '/controller1/urlbased/value1/value2',
+            'wsgi.input': StringIO("kwarg1=howdy&kwarg2=there")},
+            self._server_response)
+
+        self.assertEquals('200 OK', self._server_code)
+        self.assertEquals([
+            ('content-type', 'application/json'),
+            ('content-length', 13),
+            ('Access-Control-Allow-Origin', 'http://foreign.domain.com'),
+            ], self._server_lines)
+        self.assertEquals('{"result": 1}', result)
+
+    def testAccessControlOnFileRoots(self):
+        self.rpc_server = WSGIRPCServer("10.10.10.1", 8888,
+            access_control_header="http://foreign.domain.com")
+        self.rpc_server.add_file_root("/assets", os.path.join(
+            os.path.dirname(__file__), "assets/test/assets1"))
+
+        result = self.rpc_server.handle({'PATH_INFO': '/assets/test.html',
+            'wsgi.input': StringIO("")},
+            self._server_response)
+
+        self.assertEquals('200 OK', self._server_code)
+        self.assertEquals([('content-type', ('text/html', None)),
+            ('Access-Control-Allow-Origin', 'http://foreign.domain.com')],
+            self._server_lines)
+        self.assertEquals(["<html>test</html>\n"], result)
+
 

@@ -61,17 +61,6 @@ class WSGIRPCClient(object):
             raise
 
 
-def _json_return(response, returned):
-    if returned != None:
-        returned = json.dumps(returned)
-    else:
-        returned = "[]"
-    response('200 OK', [
-        ('content-type', 'application/json'),
-        ('content-length', len(returned)),
-    ])
-    return returned
-
 
 def request(func):
     @wraps(func)
@@ -92,10 +81,11 @@ def websocket(func):
 
 
 class WSGIRPCServer(object):
-    def __init__(self, host, port, indexpath=None):
+    def __init__(self, host, port, indexpath=None, access_control_header=None):
         self.host = host
         self.port = port
         self.indexpath = indexpath
+        self.access_control_header = access_control_header
         self.controllers = dict()
         self.file_roots = {
             "rpc": os.path.join(os.path.dirname(__file__), "assets/rpc"),
@@ -139,7 +129,7 @@ class WSGIRPCServer(object):
                 methods = {}
                 for name, controller in self.controllers.items():
                     methods[name] = self.controller_methods(name)
-                return _json_return(response, methods)
+                return self._json_return(response, methods)
             if path[0] in self.controllers:
                 controller = self.controllers[path[0]]
                 func = getattr(controller, path[1], None)
@@ -147,12 +137,12 @@ class WSGIRPCServer(object):
                     params = dict(urlparse.parse_qsl(
                         environ['wsgi.input'].read()))
                     returned = func(*(path[2:]), **params)
-                    return _json_return(response, returned)
+                    return self._json_return(response, returned)
                 if func and getattr(func, "is_websocket", False):
                     ws = environ["wsgi.websocket"]
                     params = dict(urlparse.parse_qsl(environ['QUERY_STRING']))
                     returned = func(ws, *(path[2:]), **params)
-                    return _json_return(response, returned)
+                    return self._json_return(response, returned)
             if path[0] in self.file_roots:
                 return self.www_file(self.file_roots[path[0]], path[1:],
                     response)
@@ -190,9 +180,28 @@ class WSGIRPCServer(object):
     def www_file(self, root, path, response):
         filepath = os.path.join(root, *path)
         if os.path.exists(filepath):
-            response('200 OK', [('content-type', guess_type(filepath))])
+            headers = [('content-type', guess_type(filepath))]
+            self._add_optional_headers(headers)
+            response('200 OK', headers)
             return [open(filepath).read()]
         else:
             response('404 Not Found', [])
             return "File Not Found: %s" % ("/".join(path),)
 
+    def _json_return(self, response, returned):
+        if returned != None:
+            returned = json.dumps(returned)
+        else:
+            returned = "[]"
+        headers = [
+            ('content-type', 'application/json'),
+            ('content-length', len(returned)),
+        ]
+        self._add_optional_headers(headers)
+        response('200 OK', headers)
+        return returned
+
+    def _add_optional_headers(self, headers):
+        if self.access_control_header:
+            headers.append(('Access-Control-Allow-Origin',
+                self.access_control_header))
