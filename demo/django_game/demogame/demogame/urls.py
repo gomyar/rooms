@@ -6,8 +6,6 @@ admin.autodiscover()
 from django.contrib.auth.views import login
 from django.contrib.auth.views import logout_then_login
 
-import rooms_admin
-
 
 urlpatterns = patterns('',
     # Examples:
@@ -16,6 +14,7 @@ urlpatterns = patterns('',
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^rooms_admin/', include('rooms_admin.urls')),
+    url(r'^rooms_demo/', include('rooms_demo.urls')),
 
     url(r'^accounts/login/$', login, name='account_login'),
     url(r'^accounts/logout/$', logout_then_login, name='account_logout'),

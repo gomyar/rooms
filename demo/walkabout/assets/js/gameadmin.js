@@ -2,8 +2,7 @@
 var gameAdminControllers = angular.module("gameAdminControllers", []);
 
 gameAdminControllers.controller("AdminCtrl", ['$scope', '$http', '$location',
-        '$cookieStore',
-    function($scope, $http, $location, $cookieStore) {
+    function($scope, $http, $location) {
         $http.get("/master_control/all_games").success(function(data) {
             $scope.games = data;
             $scope.games.select = function(game) {
@@ -11,11 +10,7 @@ gameAdminControllers.controller("AdminCtrl", ['$scope', '$http', '$location',
                 $http.post("/master_game/join_game/" + $scope.username + "/" + game.game_id + "/" + $scope.room_id).success(function(data) {
                     console.log("Joined game successfully");
                     console.log(data);
-                    $cookieStore.put('token', data.token);
-                    $cookieStore.put('username', $scope.username);
-                    $cookieStore.put('room_id', $scope.room_id);
-                    $cookieStore.put('game_id', game.game_id);
-                    $location.path('/play');
+                    $location.path('/play/'+data.token+'/'+$scope.username+'/'+$scope.room_id+'/'+game.game_id);
                 });
             };
         });

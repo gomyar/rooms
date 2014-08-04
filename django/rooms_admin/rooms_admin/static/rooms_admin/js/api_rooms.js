@@ -124,6 +124,7 @@ api_rooms.connect = function(game_id, username, token, custom_callback)
     api_rooms.socket.onerror = api_rooms.onclose;
 
     api_rooms.custom_callback = custom_callback;
+
 }
 
 api_rooms.connect = function(username, game_id)
@@ -137,6 +138,7 @@ api_rooms.connect = function(username, game_id)
 api_rooms.admin_connect = function(host, port, token, custom_callback)
 {
     console.log("Connecting to : "+ host + ":" + port + " " + token);
+    api_rooms.actors = {};
     api_rooms.game_id = null;
     api_rooms.username = 'admin';
     api_rooms.token = token;
@@ -148,6 +150,7 @@ api_rooms.admin_connect = function(host, port, token, custom_callback)
     api_rooms.socket.onerror = api_rooms.onclose;
 
     api_rooms.custom_callback = custom_callback;
+
 }
 
 

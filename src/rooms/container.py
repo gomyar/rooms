@@ -98,11 +98,20 @@ class Container(object):
     def players_in_game(self, game_id):
         return self._find_players(game_id=game_id)
 
+    def all_players_for(self, username):
+        return self._find_players(username=username)
+
     def all_players(self):
         return self._find_players()
 
     def _find_players(self, **kwargs):
-        player_dicts = self.dbase.filter("actors", __type__="PlayerActor",
+        return self._find_objects("actors", "PlayerActor", **kwargs)
+
+    def _find_games(self, **kwargs):
+        return self._find_objects("games", "Game", **kwargs)
+
+    def _find_objects(self, collection, object_type, **kwargs):
+        player_dicts = self.dbase.filter(collection, __type__=object_type,
             **kwargs)
         players = [self._decode_enc_dict(enc_dict) for enc_dict in player_dicts]
         return players
@@ -125,6 +134,9 @@ class Container(object):
         game_dicts = self.dbase.filter("games")
         games = [self._decode_enc_dict(enc_dict) for enc_dict in game_dicts]
         return games
+
+    def games_owned_by(self, username):
+        return self._find_games(owner_id=username)
 
     def create_player(self, room, actor_type, script, username, game_id):
         player = PlayerActor(room, actor_type, script, username,

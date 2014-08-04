@@ -10,6 +10,7 @@ from rooms.rpc import WSGIRPCServer
 from rooms.rpc import WSGIRPCClient
 from rooms.rpc import request
 from rooms.rpc import websocket
+from rooms.views import jsonview
 from rooms.timer import Timer
 
 import logging
@@ -162,6 +163,14 @@ class PlayerController(object):
     def game_status(self, ws, game_id):
         return self.master.game_status(ws, game_id)
 
+    @request
+    def all_players_for(self, username):
+        return self.master.all_players_for(username)
+
+    @request
+    def all_managed_games_for(self, username):
+        return self.master.all_managed_games_for(username)
+
 
 class Master(object):
     NODE_NOMINAL = 0.5
@@ -246,6 +255,12 @@ class Master(object):
             "url": "http://%s:%s/assets/index.html?"
             "token=%s&game_id=%s&username=%s" % (node.host, node.port, token,
                 game_id, username)}
+
+    def all_players_for(self, username):
+        return jsonview(self.container.all_players_for(username))
+
+    def all_managed_games_for(self, username):
+        return jsonview(self.container.games_owned_by(username))
 
     def _check_game_exists(self, game_id):
         if not self.container.game_exists(game_id):

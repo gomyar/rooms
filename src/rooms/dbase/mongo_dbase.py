@@ -11,10 +11,12 @@ class MongoDBase(object):
         self.host = host
         self.port = port
         self.dbname = dbname
-        self._mongo_connection = None
+
+    def mongo_connection(self):
+        return Connection(self.host, self.port)
 
     def db(self):
-        return getattr(self._mongo_connection, self.dbname)
+        return getattr(self.mongo_connection(), self.dbname)
 
     def _collection(self, name):
         return getattr(self.db(), name)
@@ -94,11 +96,11 @@ class MongoDBase(object):
                 collection_name, obj._id, remove_key)
 
     def init_mongo(self):
-        self._mongo_connection = Connection(self.host, self.port)
+        pass
 
     def drop_collection(self, collection_id):
         self.db().drop_collection(collection_id)
 
     def drop_database(self):
         ''' Careful now '''
-        self._mongo_connection.drop_database(self.dbname)
+        self.mongo_connection().drop_database(self.dbname)

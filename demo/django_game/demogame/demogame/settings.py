@@ -37,6 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rooms_admin',
+    'rooms_demo',
 )
 
 MIDDLEWARE_CLASSES = (

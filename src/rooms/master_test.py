@@ -524,3 +524,22 @@ class MasterTest(unittest.TestCase):
             ('deactivate_room', {'game_id': 'games_0', 'room_id': 'room2'}),
             ]
         , self.rpc_conn.called)
+
+    def testAllGamesForPlayer(self):
+        self.master.register_node("10.10.10.1", 8000)
+
+        game_id = self.master.create_game("bob")
+        game = self.container.load_game('games_0')
+        self.assertEquals("games_0", game_id)
+        self.master.join_game("ned", "games_0", "room1")
+
+        self.assertEquals("games_0",
+            self.master.all_managed_games_for("bob")[0].game_id)
+
+    def testAllPlayersForPlayer(self):
+        player = PlayerActor(
+            MockRoom("game1", "room1"), 'player', MockScript(), "bob")
+        self.container.save_actor(player)
+
+        self.assertEquals([], self.master.all_players_for("ned"))
+        self.assertEquals("bob", self.master.all_players_for("bob")[0].username)

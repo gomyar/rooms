@@ -317,7 +317,6 @@ gui.real_y = function(canvas_y)
 
 gui.draw = function()
 {
-    console.log("Drawing");
     gui.redraw_timeout = null;
     gui.ctx.fillStyle = "rgb(0,0,0)";
     gui.ctx.clearRect(0, 0, gui.canvas.width, gui.canvas.height);
@@ -345,7 +344,6 @@ gui.draw = function()
     // Draw actors
     for (var actor_id in api_rooms.actors)
     {
-        console.log("drawing actor: "+actor_id);
         var actor = api_rooms.actors[actor_id];
         if (!gui.should_draw_actor(actor))
             continue;
@@ -398,13 +396,12 @@ gui.draw_path = function(ctx, path)
 
 gui.draw_player_actor = function(ctx, actor)
 {
-    console.log("drawing player");
-    gui.draw_text_centered(0, - 17, actor.name, "white");
+    gui.draw_text_centered(0, - 17, actor.username, "green");
 
     if (actor.health)
         gui.draw_health(ctx, actor);
 
-    ctx.strokeStyle = "rgb(255,255,255)";
+    ctx.strokeStyle = "rgb(0,255,0)";
     ctx.beginPath();
     ctx.arc(0, 0,10,0,Math.PI*2);
     ctx.closePath();
@@ -415,13 +412,12 @@ gui.draw_npc_actor = function(ctx, actor)
 {
 //    console.log("Drawing npc at "+actor.x() +","+actor.y());
  //   console.log("Drawing real at "+gui.canvas_x(actor.x()) +","+gui.canvas_y(actor.y()));
-    console.log("drawing npc");
-    gui.draw_text_centered(0, - 17, actor.name, "white");
+    gui.draw_text_centered(0, - 17, actor.actor_type, "white");
 
     if (actor.health)
         gui.draw_health(ctx, actor);
 
-    ctx.strokeStyle = "rgb(0,0,255)";
+    ctx.strokeStyle = "rgb(255,255,255)";
     ctx.beginPath();
     ctx.arc(0, 0,10,0,Math.PI*2);
     ctx.closePath();
@@ -439,7 +435,6 @@ gui.draw_health = function(ctx, actor)
 
 gui.draw_actor = function(actor)
 {
-    console.log("draw me actor");
     try{
         if (actor.actor_type == 'player')
             gui.draw_player_actor(gui.ctx, actor);
