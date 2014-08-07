@@ -1,4 +1,5 @@
 
+ - investigate using MongoClient instead of Connection
  - game client broken
 
  - expose all actor state to admin

@@ -534,7 +534,7 @@ class MasterTest(unittest.TestCase):
         self.master.join_game("ned", "games_0", "room1")
 
         self.assertEquals("games_0",
-            self.master.all_managed_games_for("bob")[0].game_id)
+            self.master.all_managed_games_for("bob")[0]['game_id'])
 
     def testAllPlayersForPlayer(self):
         player = PlayerActor(
@@ -542,4 +542,4 @@ class MasterTest(unittest.TestCase):
         self.container.save_actor(player)
 
         self.assertEquals([], self.master.all_players_for("ned"))
-        self.assertEquals("bob", self.master.all_players_for("bob")[0].username)
+        self.assertEquals("bob", self.master.all_players_for("bob")[0]['username'])

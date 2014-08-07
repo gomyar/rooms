@@ -1,5 +1,5 @@
 
-from pymongo import Connection
+from pymongo import MongoClient
 from pymongo.helpers import bson
 
 import logging
@@ -11,12 +11,10 @@ class MongoDBase(object):
         self.host = host
         self.port = port
         self.dbname = dbname
-
-    def mongo_connection(self):
-        return Connection(self.host, self.port)
+        self.client = MongoClient(host, port)
 
     def db(self):
-        return getattr(self.mongo_connection(), self.dbname)
+        return getattr(self.client, self.dbname)
 
     def _collection(self, name):
         return getattr(self.db(), name)
@@ -103,4 +101,4 @@ class MongoDBase(object):
 
     def drop_database(self):
         ''' Careful now '''
-        self.mongo_connection().drop_database(self.dbname)
+        self.client.drop_database(self.dbname)

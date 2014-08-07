@@ -137,6 +137,7 @@ class NodeTest(unittest.TestCase):
             {'actors': [('actors_0',
               {u'actor_id': u'actors_0',
                u'actor_type': u'player',
+               u'game_id': u'game1',
                u'state': {},
                u'username': u'bob',
                u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
