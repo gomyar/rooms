@@ -17,3 +17,6 @@ class ScriptTest(unittest.TestCase):
 
     def testNoProblemIfNoScriptLoaded(self):
         self.assertEquals(None, self.script.call("nonexistant"))
+
+    def testInspect(self):
+        self.assertEquals({}, self.script.inspect())

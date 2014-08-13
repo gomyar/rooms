@@ -1,5 +1,6 @@
 
 import os
+import inspect
 
 
 class Script(object):
@@ -19,6 +20,18 @@ class Script(object):
     def has_method(self, method):
         return self.script_module and hasattr(self.script_module, method)
 
+    def inspect(self):
+        methods = {}
+        for field, func in inspect.getmembers(self.script_module, \
+                predicate=inspect.isfunction):
+            argspec = inspect.getargspec(func)
+            methods[field] = {'args': argspec.args,
+                'doc': func.__doc__ or "",
+                'type': 'request'}
+        return methods
+
+
+
 
 class NullScript(Script):
     def __init__(self):
@@ -29,3 +42,6 @@ class NullScript(Script):
 
     def has_method(self, method):
         return False
+
+    def inspect(self):
+        return {}

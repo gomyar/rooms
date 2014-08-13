@@ -1,5 +1,6 @@
 
 import unittest
+import os
 
 from rooms.master import Master
 from rooms.master import RegisteredNode
@@ -18,8 +19,8 @@ class MockNodeRpcClient(object):
     def __init__(self):
         self.called = []
 
-    def player_joins(self, username, game_id, room_id):
-        self.called.append(('player_joins', username, game_id, room_id))
+    def player_joins(self, username, game_id, room_id, param=None):
+        self.called.append(('player_joins', username, game_id, room_id, param))
         return "TOKEN"
 
     def manage_room(self, game_id, room_id):
@@ -543,3 +544,11 @@ class MasterTest(unittest.TestCase):
 
         self.assertEquals([], self.master.all_players_for("ned"))
         self.assertEquals("bob", self.master.all_players_for("bob")[0]['username'])
+
+    def testLoadScriptsFromPath(self):
+        script_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+            "test_scripts")
+        self.master.load_scripts(script_path)
+
+        self.assertEquals("loaded", self.master.scripts['basic_actor'].call("test"))
+        self.assertEquals({}, self.master.inspect_script("basic_actor"))

@@ -3,7 +3,6 @@ import uuid
 import gevent
 from gevent.queue import Queue
 import json
-import imp
 import os
 from urllib2 import HTTPError
 
@@ -16,6 +15,7 @@ from rooms.rpc import RPCWaitException
 from rooms.room import Room
 from rooms.script import Script
 from rooms.script import NullScript
+from rooms.scriptset import ScriptSet
 from rooms.views import jsonview
 from rooms.timer import Timer
 
@@ -121,21 +121,13 @@ class Node(object):
         self.master_player_conn = WSGIRPCClient(master_host, master_port,
             'master_game')
 
-        self.scripts = dict()
+        self.scripts = ScriptSet()
         self.container = None
         self.room_factory = None
         self._report_gthread = None
 
     def load_scripts(self, script_path):
-        for py_file in self._list_scripts(script_path):
-            script_name = os.path.splitext(py_file)[0]
-            self.scripts[script_name] = Script(script_name,
-                imp.load_source("rooms.scripts" + script_name,
-                os.path.join(script_path, py_file)))
-
-    def _list_scripts(self, script_path):
-        return [path for path in os.listdir(script_path) if \
-            path.endswith(".py") and path!= "__init__.py"]
+        self.scripts.load_scripts(script_path)
 
     def connect_to_master(self):
         self.master_conn.call("register_node", host=self.host, port=self.port)
@@ -197,13 +189,14 @@ class Node(object):
         self.rooms[game_id, room_id] = room
         room.kick()
 
-    def player_joins(self, username, game_id, room_id):
+    def player_joins(self, username, game_id, room_id, **kwargs):
         room = self.rooms[game_id, room_id]
         player_actor = self.container.create_player(room, "player",
             self.scripts['player_script'], username, game_id)
         player_conn = self._create_player_conn(player_actor)
         room.put_actor(player_actor)
-        self.scripts['player_script'].call("player_joins", player_actor, room)
+        self.scripts['player_script'].call("player_joins", player_actor,
+            **kwargs)
         return player_conn.token
 
     def _create_player_conn(self, player_actor):

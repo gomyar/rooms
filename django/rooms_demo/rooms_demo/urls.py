@@ -3,7 +3,11 @@ from django.conf.urls import patterns, include, url
 urlpatterns = patterns('rooms_demo.views',
     url(r'^$', 'index', name='rooms_demo_index'),
 
-    url(r'^all_games', 'all_games', name='rooms_all_games'),
     url(r'^playing_games', 'playing_games', name='rooms_playing_games'),
     url(r'^managed_games', 'managed_games', name='rooms_managed_games'),
+
+    url(r'^create_game', 'create_game', name='rooms_create_game'),
+
+    url(r'^game_create_params', 'game_create_params',
+        name='rooms_game_create_params'),
 )

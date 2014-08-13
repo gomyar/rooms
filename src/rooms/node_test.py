@@ -76,7 +76,7 @@ class NodeTest(unittest.TestCase):
         self.assertEquals(1, len(self.node.player_connections))
         self.assertEquals(1, len(self.node.rooms["game1", "room1"].actors))
         self.assertEquals([
-            ("player_joins", (player_actor, room), {})
+            ("player_joins", (player_actor,), {})
         ], self.player_script.called)
 
     def testManageNonExistantRoom(self):

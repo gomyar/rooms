@@ -37,3 +37,20 @@ def playing_games(request):
 def managed_games(request):
     return rpc_player.call("all_managed_games_for",
         username=request.user.username)
+
+
+@login_required
+@responsejson
+def create_game(request):
+    return rpc_player.call("create_game", owner_id=request.user.username)
+
+
+@login_required
+@responsejson
+def game_create_params(request):
+    script = rpc_master.call("inspect_script", script_name="player_script")
+    player_script = script.get("player_joins", {})
+    if player_script:
+        return player_script['args'][1:]
+    else:
+        return dict()

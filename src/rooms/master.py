@@ -12,6 +12,7 @@ from rooms.rpc import request
 from rooms.rpc import websocket
 from rooms.views import jsonview
 from rooms.timer import Timer
+from rooms.scriptset import ScriptSet
 
 import logging
 log = logging.getLogger("rooms.master")
@@ -142,6 +143,10 @@ class MasterController(object):
     def request_admin_token(self, game_id, room_id):
         return self.master.request_admin_token(game_id, room_id)
 
+    @request
+    def inspect_script(self, script_name):
+        return self.master.inspect_script(script_name)
+
 
 class PlayerController(object):
     def __init__(self, master):
@@ -185,6 +190,7 @@ class Master(object):
         self.container = container
         self._cleanup_gthread = None
         self.running = True
+        self.scripts = ScriptSet()
 
     def start(self):
         self._cleanup_gthread = gevent.spawn(self._run_cleanup)
@@ -243,14 +249,14 @@ class Master(object):
     def create_game(self, owner_id):
         return self.container.create_game(owner_id).game_id
 
-    def join_game(self, username, game_id, room_id):
+    def join_game(self, username, game_id, room_id, **kwargs):
         ''' PlayerActor joins a game - player object created.
             script player_joins() is called on node.'''
         self._check_game_exists(game_id)
         self._check_can_join(username, game_id)
 
         node = self._get_node_for_room(game_id, room_id)
-        token = node.player_joins(username, game_id, room_id)
+        token = node.player_joins(username, game_id, room_id, **kwargs)
         return {"token": token, "node": (node.host, node.port),
             "url": "http://%s:%s/assets/index.html?"
             "token=%s&game_id=%s&username=%s" % (node.host, node.port, token,
@@ -384,3 +390,9 @@ class Master(object):
                 node.deactivate_room(game_id, room_id)
                 # comment this guy out to simulate walking into offline
                 self.rooms.pop((game_id, room_id))
+
+    def load_scripts(self, script_path):
+        self.scripts.load_scripts(script_path)
+
+    def inspect_script(self, script_name):
+        return self.scripts.inspect_script(script_name)

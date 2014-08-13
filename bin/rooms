@@ -71,6 +71,7 @@ if __name__ == "__main__":
             "maps")), node)
         container = Container(dbase, geography, node, room_factory)
         master = Master(container)
+        master.load_scripts(os.path.join(options.game, "scripts"))
 
         node.container = container
         node.load_scripts(os.path.join(options.game, "scripts"))
