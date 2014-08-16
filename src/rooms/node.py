@@ -58,8 +58,8 @@ class NodeController(object):
         return self.node.manage_room(game_id, room_id)
 
     @request
-    def player_joins(self, username, game_id, room_id):
-        return self.node.player_joins(username, game_id, room_id)
+    def player_joins(self, username, game_id, room_id, **kwargs):
+        return self.node.player_joins(username, game_id, room_id, **kwargs)
 
     @request
     def request_token(self, username, game_id):

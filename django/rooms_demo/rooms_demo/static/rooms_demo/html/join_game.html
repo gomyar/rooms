@@ -1,6 +1,9 @@
 <div>
     <h2>Join Game</h2>
 
-    <input ng-model="create_params[key]" ng-repeat="(key, param) in create_params" value="{{param}}"></input>
+    <div class="joinparams" ng-repeat="(key, param) in create_params" >
+        <div class="name">{{key}}</div>
+        <input ng-model="create_params[key]"></input>
+    </div>
     <input name="Join" type="button" value="Join" ng-click="player_join_game()"></input>
 </div>

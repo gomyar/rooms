@@ -7,13 +7,6 @@ rooms_demo.controller("GamesCtrl", ['$scope', '$http', '$location',
         $scope.playing_games = [];
         $scope.managed_games = [];
         $scope.games = {};
-        $scope.create_params = {};
-        $http.get("/rooms_demo/game_create_params").success(function(data) {
-            console.log("Got params");
-            console.log(data);
-            for (var key in data)
-                $scope.create_params[data[key]] = "";
-        });
         $scope.games.create = function(data) {
             console.log("Create");
             $location.path("/create_game");
@@ -70,12 +63,19 @@ rooms_demo.controller("JoinGameCtrl", ['$scope', '$http', '$location',
     function($scope, $http, $location, $routeParams) {
         $scope.game_id = $routeParams.game_id;
         $scope.player_join_game = function(data) {
-            $http.post("/rooms_demo/join_game/" + $scope.game_id).success(
+            $http.post("/rooms_demo/join_game/" + $scope.game_id, $scope.create_params).success(
                 function(data) {
                     console.log("Joined");
                 }
             );
         };
+        $scope.create_params = {};
+        $http.get("/rooms_demo/game_create_params").success(function(data) {
+            console.log("Got params");
+            console.log(data);
+            for (var key in data)
+                $scope.create_params[data[key]] = "";
+        });
     }]);
 
 

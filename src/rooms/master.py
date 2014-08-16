@@ -34,9 +34,9 @@ class RegisteredNode(object):
         return rhs and type(rhs) is RegisteredNode and \
             self.host == rhs.host and self.port == rhs.port
 
-    def player_joins(self, username, game_id, room_id):
+    def player_joins(self, username, game_id, room_id, **kwargs):
         return self.rpc_conn.call("player_joins", username=username,
-            game_id=game_id, room_id=room_id)
+            game_id=game_id, room_id=room_id, **kwargs)
 
     def manage_room(self, game_id, room_id):
         self.rpc_conn.call("manage_room", game_id=game_id,

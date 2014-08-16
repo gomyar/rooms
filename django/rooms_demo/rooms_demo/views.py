@@ -49,7 +49,7 @@ def create_game(request):
 @responsejson
 def join_game(request, game_id):
     return rpc_player.call("join_game", username=request.user.username,
-        game_id=game_id)
+        game_id=game_id, **(json.loads(request.body)))
 
 
 @login_required
