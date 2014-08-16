@@ -19,4 +19,6 @@ class ScriptTest(unittest.TestCase):
         self.assertEquals(None, self.script.call("nonexistant"))
 
     def testInspect(self):
-        self.assertEquals({}, self.script.inspect())
+        self.assertEquals({
+            'script_call': {'args': ['field'], 'doc': '', 'type': 'request'}},
+            self.script.inspect())

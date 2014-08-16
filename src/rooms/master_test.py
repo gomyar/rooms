@@ -36,6 +36,8 @@ class MasterTest(unittest.TestCase):
 
         self.master = Master(self.container)
         self.master._create_rpc_conn = lambda h, p: self.rpc_conn
+        self.master.scripts['game_script'] = MockScript(
+            expect={"start_room": "room1"})
         MockTimer.setup_mock()
 
     def tearDown(self):
@@ -90,7 +92,7 @@ class MasterTest(unittest.TestCase):
         self.master.nodes['10.10.10.1', 8000].client = self.rpc_conn
 
         self.assertEquals({}, self.container.dbase.dbases['actors'])
-        node = self.master.join_game("bob", "games_0", "room1")
+        node = self.master.join_game("bob", "games_0")
         self.assertEquals({'node': ("10.10.10.1", 8000), 'token': 'TOKEN',
             'url': 'http://10.10.10.1:8000/assets/index.html?token=TOKEN&game_id=games_0&username=bob'},
             node)
@@ -103,8 +105,8 @@ class MasterTest(unittest.TestCase):
 
     def testJoinGameNonexistant(self):
         self.master.register_node("10.10.10.1", 8000)
-        self.assertRaises(Exception, self.master.join_game, "bob", "nonexistant",
-            "room1")
+        self.assertRaises(Exception, self.master.join_game, "bob",
+            "nonexistant")
 
     def testPlayersInGame(self):
         self.container.save_actor(PlayerActor(
@@ -159,7 +161,7 @@ class MasterTest(unittest.TestCase):
     def testJoinGameNoNodes(self):
         self.master.create_game("bob")
         self.assertRaises(RPCWaitException, self.master.join_game, "bob",
-            "games_0", "room1")
+            "games_0")
 
     def testJoinGamePlayerAlreadyJoined(self):
         self.master.register_node("10.10.10.1", 8000)
@@ -170,17 +172,16 @@ class MasterTest(unittest.TestCase):
         self.container.save_actor(PlayerActor(
             MockRoom("games_0", "room1"), 'player', MockScript(), "bob"))
 
-        self.assertRaises(RPCException, self.master.join_game, "bob", "games_0",
-            "room1")
+        self.assertRaises(RPCException, self.master.join_game, "bob", "games_0")
 
     def testJoinGameTwoGamesTwoNodes(self):
         self.master.register_node("10.10.10.1", 8000)
         game_1 = self.master.create_game("bob")
-        node1 = self.master.join_game("bob", "games_0", "room1")
+        node1 = self.master.join_game("bob", "games_0")
 
         self.master.register_node("10.10.10.2", 8000)
         game_2 = self.master.create_game("bob")
-        node2 = self.master.join_game("bob", "games_1", "room1")
+        node2 = self.master.join_game("bob", "games_1")
 
         self.assertEquals({'node': ("10.10.10.1", 8000), 'token': 'TOKEN',
             'url': 'http://10.10.10.1:8000/assets/index.html?token=TOKEN&game_id=games_0&username=bob'},
@@ -211,7 +212,7 @@ class MasterTest(unittest.TestCase):
 
         # receieve room request - send wait response
         self.assertRaises(RPCWaitException, self.master.join_game,
-            "bob", "games_0", "room1")
+            "bob", "games_0")
 
         # wait until room becomes available (from node)
         self.master.deregister_node("10.10.10.1", 8000)
@@ -224,7 +225,7 @@ class MasterTest(unittest.TestCase):
             self.master.rooms['games_0', 'room2'].room_id)
 
         # receive room request - normal room manage
-        self.master.join_game("bob", "games_0", "room1")
+        self.master.join_game("bob", "games_0")
 
         self.assertEquals(('20.20.20.2', 8000),
             self.master.rooms['games_0', 'room1'].node)
@@ -270,7 +271,7 @@ class MasterTest(unittest.TestCase):
         self.master.register_node("10.10.10.1", 8000)
         self.master.register_node("10.10.10.2", 8000)
 
-        self.master.join_game("bob", "games_0", "room1")
+        self.master.join_game("bob", "games_0")
 
         self.assertEquals([
             ('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
@@ -290,8 +291,8 @@ class MasterTest(unittest.TestCase):
         self.master.register_node("10.10.10.1", 8000)
         self.master.register_node("10.10.10.2", 8000)
 
-        self.master.join_game("bob", "games_0", "room1")
-        self.master.join_game("ned", "games_0", "room1")
+        self.master.join_game("bob", "games_0")
+        self.master.join_game("ned", "games_0")
 
         self.assertEquals(('10.10.10.2', 8000),
             self.master.rooms['games_0', 'room1'].node)
@@ -313,7 +314,7 @@ class MasterTest(unittest.TestCase):
 
         self.master.register_node("10.10.10.1", 8000)
 
-        self.master.join_game("bob", "games_0", "room1")
+        self.master.join_game("bob", "games_0")
 
         self.assertEquals({'node': ['10.10.10.1', 8000], 'token': 'TOKEN'},
             self.master.actor_entered("games_0", "room1", "actor1", True, "bob"))
@@ -362,7 +363,7 @@ class MasterTest(unittest.TestCase):
 
         self.master.register_node("10.10.10.1", 8000)
 
-        self.master.join_game("bob", "games_0", "room1")
+        self.master.join_game("bob", "games_0")
 
         self.master.rooms["games_0", "room1"].online = False
 
@@ -382,7 +383,7 @@ class MasterTest(unittest.TestCase):
 
         self.master.register_node("10.10.10.1", 8000)
 
-        self.master.join_game("bob", "games_0", "room1")
+        self.master.join_game("bob", "games_0")
 
         self.master.rooms["games_0", "room1"].online = False
 
@@ -404,46 +405,50 @@ class MasterTest(unittest.TestCase):
             self.master.nodes["10.10.10.1", 8000].server_load())
 
     def testReportConnectedPlayers(self):
+        self.master.scripts['game_script'].expect = {"start_room": "map1.room2"}
         self.master.create_game("bob")
 
         self.master.register_node("10.10.10.1", 8000)
         self.master.register_node("10.10.10.2", 8000)
 
-        self.master.join_game("bob", "games_0", "room1")
-        self.master.join_game("ned", "games_0", "room2")
+        self.master.join_game("bob", "games_0")
+        self.master.scripts['game_script'].expect = {"start_room": "map1.room1"}
+        self.master.join_game("ned", "games_0")
 
         self.master.report_load_stats("10.10.10.1", 8000, 0.5,
-            '{"games_0.room2": {"connected_players": 1}}')
+            '{"games_0.map1.room2": {"connected_players": 1}}')
 
         self.assertEquals(0,
-            self.master.rooms["games_0", "room1"].connected_players)
+            self.master.rooms["games_0", "map1.room1"].connected_players)
         self.assertEquals(1,
-            self.master.rooms["games_0", "room2"].connected_players)
+            self.master.rooms["games_0", "map1.room2"].connected_players)
 
 
     def testRoomOfflineQueueRoomRequests(self):
+        self.master.scripts['game_script'].expect = {"start_room": "map1.room1"}
         self.assertEquals("games_0", self.master.create_game("bob"))
 
         self.master.register_node("10.10.10.1", 8000)
 
-        self.master.request_room("games_0", "room1")
-        self.master.request_room("games_0", "room2")
+        self.master.request_room("games_0", "map1.room1")
+        self.master.request_room("games_0", "map1.room2")
 
-        self.master.rooms["games_0", "room1"].online = False
+        self.master.rooms["games_0", "map1.room1"].online = False
 
         # receieve room request - send wait response
         self.assertRaises(RPCWaitException, self.master.join_game,
-            "bob", "games_0", "room1")
+            "bob", "games_0")
 
         self.container.save_actor(PlayerActor(
-            MockRoom("games_0", "room1"), 'player', MockScript(), "bob"))
+            MockRoom("games_0", "map1.room1"), 'player', MockScript(), "bob"))
         self.assertRaises(RPCWaitException, self.master.player_connects,
             "bob", "games_0")
 
-        self.master.join_game("ned", "games_0", "room2")
+        self.master.scripts['game_script'].expect = {"start_room": "map1.room2"}
+        self.master.join_game("ned", "games_0")
 
         self.container.save_actor(PlayerActor(
-            MockRoom("games_0", "room2"), 'player', MockScript(), "ned"))
+            MockRoom("games_0", "map1.room2"), 'player', MockScript(), "ned"))
         self.master.player_connects("ned", "games_0")
 
     def testRoomManagerRemovesUnneededRoomsOnBusyNodes(self):
@@ -532,7 +537,7 @@ class MasterTest(unittest.TestCase):
         game_id = self.master.create_game("bob")
         game = self.container.load_game('games_0')
         self.assertEquals("games_0", game_id)
-        self.master.join_game("ned", "games_0", "room1")
+        self.master.join_game("ned", "games_0")
 
         self.assertEquals("games_0",
             self.master.all_managed_games_for("bob")[0]['game_id'])
@@ -551,4 +556,9 @@ class MasterTest(unittest.TestCase):
         self.master.load_scripts(script_path)
 
         self.assertEquals("loaded", self.master.scripts['basic_actor'].call("test"))
-        self.assertEquals({}, self.master.inspect_script("basic_actor"))
+        self.assertEquals(
+            {'move_to':
+                {'args': ['actor', 'x', 'y'], 'doc': '', 'type': 'request'},
+            'ping': {'args': ['actor'], 'doc': '', 'type': 'request'},
+            'test': {'args': [], 'doc': '', 'type': 'request'}}
+        , self.master.inspect_script("basic_actor"))

@@ -16,7 +16,12 @@ class ScriptSetTest(unittest.TestCase):
         self.scriptset.load_scripts(script_path)
 
         self.assertEquals("loaded", self.scriptset.scripts['basic_actor'].call("test"))
-        self.assertEquals({}, self.scriptset.inspect_script("basic_actor"))
+        self.assertEquals({
+            'move_to':
+                {'args': ['actor', 'x', 'y'], 'doc': '', 'type': 'request'},
+            'ping': {'args': ['actor'], 'doc': '', 'type': 'request'},
+            'test': {'args': [], 'doc': '', 'type': 'request'}},
+            self.scriptset.inspect_script("basic_actor"))
 
     def testNullScript(self):
         self.assertEquals(NullScript, type(self.scriptset['nonexist']))

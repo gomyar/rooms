@@ -3,8 +3,8 @@
     <div class="gamelist">
         <div class="game" ng-repeat="game in managed_games">
             <div>{{ game.game_id }}</div>
-            <input ng-model="create_params[key]" ng-repeat="(key, param) in create_params" value="{{param}}"></input>
-            <input name="join_game" type="button" ng-click="games.join_game()" value="Join"></input>
+            <div>{{ game.owner_id }}</div>
+            <input name="join_game" type="button" ng-click="games.join_game(game.game_id)" value="Join"></input>
         </div>
     </div>
 

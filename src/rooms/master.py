@@ -157,8 +157,8 @@ class PlayerController(object):
         return self.master.create_game(owner_id)
 
     @request
-    def join_game(self, username, game_id, room_id):
-        return self.master.join_game(username, game_id, room_id)
+    def join_game(self, username, game_id, **kwargs):
+        return self.master.join_game(username, game_id, **kwargs)
 
     @request
     def player_connects(self, username, game_id):
@@ -249,12 +249,13 @@ class Master(object):
     def create_game(self, owner_id):
         return self.container.create_game(owner_id).game_id
 
-    def join_game(self, username, game_id, room_id, **kwargs):
+    def join_game(self, username, game_id, **kwargs):
         ''' PlayerActor joins a game - player object created.
             script player_joins() is called on node.'''
         self._check_game_exists(game_id)
         self._check_can_join(username, game_id)
 
+        room_id = self.scripts['game_script'].call("start_room", **kwargs)
         node = self._get_node_for_room(game_id, room_id)
         token = node.player_joins(username, game_id, room_id, **kwargs)
         return {"token": token, "node": (node.host, node.port),

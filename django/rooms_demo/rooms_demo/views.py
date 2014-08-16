@@ -47,6 +47,13 @@ def create_game(request):
 
 @login_required
 @responsejson
+def join_game(request, game_id):
+    return rpc_player.call("join_game", username=request.user.username,
+        game_id=game_id)
+
+
+@login_required
+@responsejson
 def game_create_params(request):
     script = rpc_master.call("inspect_script", script_name="player_script")
     player_script = script.get("player_joins", {})

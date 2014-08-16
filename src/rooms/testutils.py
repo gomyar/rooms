@@ -129,13 +129,15 @@ class MockGame(object):
 
 
 class MockScript(object):
-    def __init__(self):
+    def __init__(self, expect=None):
         self.called = []
         self.script_name = "mock_script"
+        self.expect = expect or {}
 
     def call(self, method, *args, **kwargs):
         print "Script called: %s(%s, %s)" % (method, args, kwargs)
         self.called.append((method, args, kwargs))
+        return self.expect.get(method)
 
     def has_method(self, method):
         return True
