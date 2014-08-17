@@ -11,6 +11,8 @@ api_rooms.actors = {};
 api_rooms.socket = null;
 
 api_rooms.master_url = "http://localhost:9999";
+// need a setting for this
+api_rooms.map_url = "http://localhost:8000/static/rooms_demo/maps";
 
 
 api_rooms.Actor = function(actor)
@@ -139,7 +141,7 @@ api_rooms.request_connection = function()
 
 api_rooms.connect_node = function()
 {
-    api_rooms.socket = new WebSocket("ws://" + api_rooms.node_host + ":" + api_rooms.node_port + "/game/player_connects/" + api_rooms.game_id + "/" + api_rooms.username + "/" + api_rooms.token);
+    api_rooms.socket = new WebSocket("ws://" + api_rooms.node_host + ":" + api_rooms.node_port + "/node_game/player_connects/" + api_rooms.game_id + "/" + api_rooms.username + "/" + api_rooms.token);
     api_rooms.socket.onmessage = api_rooms.message_callback;
     api_rooms.socket.onopen = api_rooms.onopen;
     api_rooms.socket.onclose = api_rooms.onclose;
@@ -176,7 +178,7 @@ api_rooms.load_room_map = function(room_id)
     var map_id = room_id.split('.')[0];
     var room_key = room_id.split('.')[1];
 
-    api_rooms.service_call(api_rooms.master_url + "/maps/" + map_id + ".json", {}, function(map_data){
+    api_rooms.service_call(api_rooms.map_url + "/" + map_id + ".json", {}, function(map_data){
         api_rooms.room = map_data.rooms[room_key];        
         api_rooms.game_callback({
             "command": "map_loaded",
@@ -228,7 +230,7 @@ api_rooms.message_callback = function(msgevent)
 // *** API Calls
 api_rooms.call_command = function(actor_id, command, args, callback)
 {
-    api_rooms.service_call("/game/actor_call/" + api_rooms.game_id + "/" + api_rooms.username + "/" + actor_id + "/" + api_rooms.token + "/" + command, args, callback);
+    api_rooms.service_call("http://" + api_rooms.node_host + ":" + api_rooms.node_port + "/node_game/actor_call/" + api_rooms.game_id + "/" + api_rooms.username + "/" + actor_id + "/" + api_rooms.token + "/" + command, args, callback);
 }
 
 api_rooms.actor_request = function(actor_id, command, args, callback)

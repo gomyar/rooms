@@ -60,8 +60,7 @@ if __name__ == "__main__":
         dbase.init_mongo()
         master = Master(Container(dbase, None, None, None))
         master.load_scripts(os.path.join(options.game, "scripts"))
-        server = WSGIRPCServer(host, port, "assets/index.html",
-            access_control_header="*")
+        server = WSGIRPCServer(host, port, access_control_header="*")
         server.add_controller("master_control", MasterController(master))
         server.add_controller("master_game", PlayerController(master))
         # dev server serves game files:

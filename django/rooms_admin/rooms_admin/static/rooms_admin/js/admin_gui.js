@@ -462,11 +462,16 @@ gui.actorRedraw = function()
     for (var i in api_rooms.actors)
     {
         var actor = api_rooms.actors[i];
-        if (actor.end_time() > until_time)
-            until_time = actor.end_time()
+        if (actor.vector.end_time * 1000 > until_time)
+        {
+            until_time = actor.vector.end_time * 1000
+        }
     }
     if (until_time > api_rooms.get_now())
+    {
+        console.log("optionalRedraw() until " + new Date(until_time));
         gui.optionalRedraw(until_time);
+    }
 }
 
 gui.requestRedraw = function()

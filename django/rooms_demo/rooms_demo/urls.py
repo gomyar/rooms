@@ -12,4 +12,5 @@ urlpatterns = patterns('rooms_demo.views',
         name='rooms_game_create_params'),
 
     url(r'^join_game/(?P<game_id>.*)', 'join_game', name='rooms_join_game'),
+    url(r'^player_connects/(?P<username>.*)/(?P<game_id>.*)', 'player_connects', name='rooms_player_connects'),
 )

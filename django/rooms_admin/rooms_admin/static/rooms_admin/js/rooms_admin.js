@@ -77,6 +77,10 @@ function game_callback(msg)
     {
         console.log("Loaded map");
     }
+    if (msg.command == "actor_update")
+    {
+        gui.actorRedraw();
+    }
 }
 
 

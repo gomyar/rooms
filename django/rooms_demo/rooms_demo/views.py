@@ -17,13 +17,15 @@ rpc_master = WSGIRPCClient(settings.MASTER_HOST, settings.MASTER_PORT,
 
 def responsejson(func):
     def call(request, *args, **kwargs):
-        return HttpResponse(json.dumps(func(request, *args, **kwargs)))
+        return HttpResponse(json.dumps(func(request, *args, **kwargs)),
+            content_type="application/json")
     return call
 
 
 @login_required
 def index(request):
-    return render_to_response("rooms_demo/index.html")
+    return render_to_response("rooms_demo/index.html",
+        dict(username=request.user.username))
 
 
 @login_required
@@ -50,6 +52,15 @@ def create_game(request):
 def join_game(request, game_id):
     return rpc_player.call("join_game", username=request.user.username,
         game_id=game_id, **(json.loads(request.body)))
+
+
+@login_required
+@responsejson
+def player_connects(request, username, game_id):
+    if username != request.user.username:
+        raise Exception("Oddness in the API that needs cleaning up")
+    return rpc_player.call("player_connects", username=request.user.username,
+        game_id=game_id)
 
 
 @login_required

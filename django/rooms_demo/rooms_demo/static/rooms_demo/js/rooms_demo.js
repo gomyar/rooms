@@ -16,6 +16,10 @@ rooms_demo.controller("GamesCtrl", ['$scope', '$http', '$location',
             console.log($scope.create_params);
             $location.path("/join_game/" + game_id);
         };
+        $scope.games.play_game = function(game_id) {
+            console.log("Playing");
+            $location.path("/play_game/" + game_id);
+        };
         $http.get("/rooms_demo/playing_games").success(function(data) {
             $scope.playing_games = data;
             $scope.playing_games.select = function(game) {
@@ -79,6 +83,15 @@ rooms_demo.controller("JoinGameCtrl", ['$scope', '$http', '$location',
     }]);
 
 
+rooms_demo.controller("PlayGameCtrl", ['$scope', '$http', '$location',
+        '$routeParams',
+    function($scope, $http, $location, $routeParams) {
+        $scope.game_id = $routeParams.game_id;
+        init_game($scope.game_id, username);
+    }]);
+
+
+
 rooms_demo.config(['$routeProvider',
     function($routeProvider) {
         $routeProvider.
@@ -93,6 +106,10 @@ rooms_demo.config(['$routeProvider',
             when('/join_game/:game_id', {
                 templateUrl: '/static/rooms_demo/html/join_game.html',
                 controller: 'JoinGameCtrl'
+            }).
+            when('/play_game/:game_id', {
+                templateUrl: '/static/rooms_demo/html/play_game.html',
+                controller: 'PlayGameCtrl'
             }).
             otherwise({
                 redirectTo: '/games'

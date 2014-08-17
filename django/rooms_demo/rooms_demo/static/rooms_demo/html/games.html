@@ -12,6 +12,7 @@
     <div class="gamelist">
         <div class="game" ng-repeat="game in playing_games">
             <div>{{ game.game_id }} - owned by {{ game.owner_id }}</div>
+            <input name="play_game" type="button" ng-click="games.play_game(game.game_id)" value="play"></input>
         </div>
     </div>
 

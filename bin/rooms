@@ -76,8 +76,7 @@ if __name__ == "__main__":
         node.container = container
         node.load_scripts(os.path.join(options.game, "scripts"))
 
-        server = WSGIRPCServer(host, port, "assets/index.html",
-            access_control_header="*")
+        server = WSGIRPCServer(host, port, access_control_header="*")
         # master routes
         server.add_controller("master_control", MasterController(master))
         server.add_controller("master_game", PlayerController(master))
