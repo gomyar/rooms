@@ -5,6 +5,7 @@ rooms_demo.controller("GamesCtrl", ['$scope', '$http', '$location',
     function($scope, $http, $location) {
         console.log("Show Games");         
         $scope.playing_games = [];
+        $scope.available_games = [];
         $scope.managed_games = [];
         $scope.games = {};
         $scope.games.create = function(data) {
@@ -20,10 +21,21 @@ rooms_demo.controller("GamesCtrl", ['$scope', '$http', '$location',
             console.log("Playing");
             $location.path("/play_game/" + game_id);
         };
+        $scope.games.end_game = function(game_id) {
+            console.log("ending");
+            alert("Ending game: "+game_id+ " (unimplemented)");
+        };
         $http.get("/rooms_demo/playing_games").success(function(data) {
             $scope.playing_games = data;
             $scope.playing_games.select = function(game) {
                 console.log("Selected playing" + game);
+                console.log(game);
+            };
+        });
+        $http.get("/rooms_demo/available_games").success(function(data) {
+            $scope.available_games = data;
+            $scope.available_games.select = function(game) {
+                console.log("Selected available" + game);
                 console.log(game);
             };
         });

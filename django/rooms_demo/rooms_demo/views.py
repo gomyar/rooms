@@ -43,6 +43,17 @@ def managed_games(request):
 
 @login_required
 @responsejson
+def available_games(request):
+    players = rpc_player.call("all_players_for", username=request.user.username)
+    playing_games = [player['game_id'] for player in players]
+    all_games = rpc_master.call("all_games")
+    avail_games = [game for game in all_games if game['game_id'] not \
+        in playing_games]
+    return avail_games
+
+
+@login_required
+@responsejson
 def create_game(request):
     return rpc_player.call("create_game", owner_id=request.user.username)
 

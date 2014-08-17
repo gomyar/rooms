@@ -5,6 +5,7 @@ urlpatterns = patterns('rooms_demo.views',
 
     url(r'^playing_games', 'playing_games', name='rooms_playing_games'),
     url(r'^managed_games', 'managed_games', name='rooms_managed_games'),
+    url(r'^available_games', 'available_games', name='rooms_available_games'),
 
     url(r'^create_game', 'create_game', name='rooms_create_game'),
 
