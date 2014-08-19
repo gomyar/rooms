@@ -14,6 +14,7 @@ from rooms.testutils import MockTimer
 from rooms.testutils import MockActor
 from rooms.testutils import MockDbase
 from rooms.testutils import MockScript
+from rooms.testutils import MockIDFactory
 from rooms.actor import Actor
 
 
@@ -30,6 +31,10 @@ class ContainerTest(unittest.TestCase):
             self.mock_room_factory)
         self.node.container = self.container
         MockTimer.setup_mock()
+        MockIDFactory.setup_mock()
+
+    def tearDown(self):
+        MockIDFactory.teardown_mock()
 
     def testSaveGame(self):
         self.game = Game("bob")
@@ -43,7 +48,7 @@ class ContainerTest(unittest.TestCase):
 
     def testSavePlayer(self):
         self.player = PlayerActor(self.room2, "player", MockScript(),
-            "bob", game_id="games_0", actor_id="actors_0")
+            "bob", game_id="games_0", actor_id="id1")
 
         self.assertFalse(self.container.player_exists("bob", "games_0"))
         self.container.save_player(self.player)
@@ -51,7 +56,7 @@ class ContainerTest(unittest.TestCase):
 
         self.assertEquals({'actors_0': {u'__type__': u'PlayerActor',
               '_id': 'actors_0',
-              u'actor_id': u'actors_0',
+              u'actor_id': u'id1',
               u'actor_type': u'player',
               u'game_id': u'games_0',
               u'path': [],
@@ -74,9 +79,9 @@ class ContainerTest(unittest.TestCase):
             , self.dbase.dbases['actors'])
 
     def testLoadPlayer(self):
-        self.dbase.dbases['actors'] = {'actors_0': {u'__type__': u'PlayerActor',
-            '_id': 'actors_0',
-            u'actor_id': u'actors_0',
+        self.dbase.dbases['actors'] = {'id1': {u'__type__': u'PlayerActor',
+            '_id': 'id1',
+            u'actor_id': u'id1',
             u'actor_type': u'player',
             u'game_id': u'games_1',
             u'script_name': u'mock_script',
@@ -95,7 +100,7 @@ class ContainerTest(unittest.TestCase):
         player = self.container.load_player("ned", "games_1")
 
         self.assertEquals("rooms_10", player.room_id)
-        self.assertEquals("actors_0", player._id)
+        self.assertEquals("id1", player._id)
 
         self.assertRaises(Exception,
             self.container.load_player, "ned", "nonexistant")
@@ -162,10 +167,10 @@ class ContainerTest(unittest.TestCase):
         self.container.save_room(room)
         room_dict = self.dbase.dbases['rooms']['rooms_0']
         self.assertEquals('room1', room_dict['room_id'])
-        actor_dict = self.dbase.dbases['actors'][actor.actor_id]
+        actor_dict = self.dbase.dbases['actors']["actors_0"]
         self.assertEquals({u'__type__': u'Actor',
             '_id': 'actors_0',
-            u'actor_id': None,
+            u'actor_id': "id1",
             u'actor_type': u'mock_actor',
             u'game_id': u'game1',
             u'path': [],
@@ -198,7 +203,7 @@ class ContainerTest(unittest.TestCase):
         self.container.save_actor(actor)
         self.assertEquals({u'__type__': u'Actor',
             '_id': 'actors_0',
-            u'actor_id': None,
+            u'actor_id': "id1",
             u'actor_type': u'mock_actor',
             u'game_id': u'games_0',
             u'path': [],
@@ -256,7 +261,7 @@ class ContainerTest(unittest.TestCase):
 
         loaded = self.container.load_player("bob", "game1")
         self.assertTrue(loaded.is_player)
-        loaded_actor = self.container.load_actor("actors_1")
+        loaded_actor = self.container.load_actor("id1")
         self.assertFalse(loaded_actor.is_player)
 
     def testLoadPlayerOnly(self):

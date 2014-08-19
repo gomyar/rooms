@@ -16,6 +16,7 @@ from rooms.testutils import MockTimer
 from rooms.testutils import MockWebsocket
 from rooms.testutils import MockActor
 from rooms.testutils import MockRoomFactory
+from rooms.testutils import MockIDFactory
 from rooms.rpc import RPCException
 from rooms.rpc import RPCWaitException
 from rooms.position import Position
@@ -45,9 +46,11 @@ class NodeTest(unittest.TestCase):
         self.node.container = self.container
         self.container.node = self.node
         MockTimer.setup_mock()
+        MockIDFactory.setup_mock()
 
     def tearDown(self):
         MockTimer.teardown_mock()
+        MockIDFactory.teardown_mock()
 
     def testManageRoom(self):
         mock_script = MockScript()
@@ -68,7 +71,7 @@ class NodeTest(unittest.TestCase):
         token = self.node.player_joins("ned", "game1", "room1")
         self.assertEquals("TOKEN1", token)
 
-        player_actor = self.node.rooms['game1', 'room1'].actors['actors_0']
+        player_actor = self.node.rooms['game1', 'room1'].actors['id1']
         room = self.node.rooms['game1', 'room1']
         self.assertEquals("ned", player_actor.username)
         self.assertEquals("room1", player_actor.room_id)
@@ -134,8 +137,8 @@ class NodeTest(unittest.TestCase):
         self.container.save_actor(self.player1)
         self.node.manage_room("game1", "room1")
         self.assertEquals([
-            {'actors': [('actors_0',
-              {u'actor_id': u'actors_0',
+            {'actors': [('id1',
+              {u'actor_id': u'id1',
                u'actor_type': u'player',
                u'game_id': u'game1',
                u'state': {},
@@ -194,7 +197,7 @@ class NodeTest(unittest.TestCase):
         self.node.player_joins("bob", "game1", "room1")
 
         room1 = self.node.rooms["game1", "room1"]
-        player_actor = room1.actors['actors_0']
+        player_actor = room1.actors['id1']
         player_actor.script = MockScript()
         self.node.actor_call("game1", "bob", "player1", "TOKEN1",
             "do_something")
@@ -235,11 +238,11 @@ class NodeTest(unittest.TestCase):
         actor._game_id = "game1"
         self.container.save_actor(actor)
 
-        self.node.actor_enters_node("actors_0")
+        self.node.actor_enters_node("id1")
 
         room = self.node.rooms['game1', 'room1']
-        self.assertEquals(actor.actor_id, room.actors['actors_0'].actor_id)
-        self.assertEquals(actor.room_id, room.actors['actors_0'].room_id)
+        self.assertEquals(actor.actor_id, room.actors['id1'].actor_id)
+        self.assertEquals(actor.room_id, room.actors['id1'].room_id)
 
     def testActorEntersDeactivatedRoom(self):
         self.node.manage_room("game1", "room1")
@@ -253,7 +256,7 @@ class NodeTest(unittest.TestCase):
         room.online = False
 
         try:
-            self.node.actor_enters_node("actors_0")
+            self.node.actor_enters_node("id1")
             self.fail("Should have thrown")
         except RPCWaitException, rpcwe:
             self.assertEquals("Room offline game1-room1", str(rpcwe))
@@ -268,10 +271,10 @@ class NodeTest(unittest.TestCase):
             self.node.player_joins("ned", "game1", "room1"))
 
         self.assertEquals(PlayerActor,
-            type(self.node.rooms['game1', 'room1'].actors['actors_0']))
+            type(self.node.rooms['game1', 'room1'].actors['id1']))
         self.assertEquals("ned",
-            self.node.rooms['game1', 'room1'].actors['actors_0'].username)
-        self.assertEquals("actors_0",
+            self.node.rooms['game1', 'room1'].actors['id1'].username)
+        self.assertEquals("id1",
             self.node.player_connections['ned', 'game1'].actor.actor_id)
 
     def testRoomManagedWithPlayerActorsPlayerConnectionsCreated(self):
@@ -285,10 +288,10 @@ class NodeTest(unittest.TestCase):
         self.assertEquals(1, len(self.node.player_connections))
 
         self.assertEquals(PlayerActor,
-            type(self.node.rooms['game1', 'room1'].actors['actors_0']))
+            type(self.node.rooms['game1', 'room1'].actors['id1']))
         self.assertEquals("bob",
-            self.node.rooms['game1', 'room1'].actors['actors_0'].username)
-        self.assertEquals("actors_0",
+            self.node.rooms['game1', 'room1'].actors['id1'].username)
+        self.assertEquals("id1",
             self.node.player_connections['bob', 'game1'].actor.actor_id)
 
     def testLoadScriptsFromPath(self):
@@ -310,7 +313,7 @@ class NodeTest(unittest.TestCase):
 
         # assert player actors in room
         room = self.node.rooms["game1", "room1"]
-        actor = room.actors['actors_0']
+        actor = room.actors['id1']
         self.assertEquals("bob", actor.username)
 
         # assert player connections exist
@@ -329,7 +332,7 @@ class NodeTest(unittest.TestCase):
 
         # assert player actors in room
         room = self.node.rooms["game1", "room2"]
-        actor = room.actors['actors_0']
+        actor = room.actors['id1']
         self.assertEquals("bob", actor.username)
 
         # assert player connections exist

@@ -3,6 +3,7 @@ import gevent
 
 from rooms.testutils import MockRpcClient, MockContainer, MockTimer
 from rooms.testutils import MockWebsocket, MockGeog, MockScript
+from rooms.testutils import MockIDFactory
 from rooms.node import Node
 from rooms.room import Room
 from rooms.player import PlayerActor
@@ -42,6 +43,7 @@ class SystemTest(unittest.TestCase):
         self.node.container = self.container
 
         MockTimer.setup_mock()
+        MockIDFactory.setup_mock()
 
     # script function
     def move_to(self, actor, x, y):
@@ -57,6 +59,7 @@ class SystemTest(unittest.TestCase):
 
     def tearDown(self):
         MockTimer.teardown_mock()
+        MockIDFactory.teardown_mock()
 
     def testPlayerReceviesUpdatesFromRoom(self):
         self.node.manage_room("game1", "room1")
@@ -76,16 +79,12 @@ class SystemTest(unittest.TestCase):
         self.assertEquals(4, len(player1_ws.updates))
         self.assertEquals("sync", player1_ws.updates[0]['command'])
         self.assertEquals("actor_update", player1_ws.updates[1]['command'])
-        self.assertEquals("ned", player1_ws.updates[1]['data']['username'])
         self.assertEquals("actor_update", player1_ws.updates[2]['command'])
-        self.assertEquals("fred", player1_ws.updates[2]['data']['username'])
 
         self.assertEquals(4, len(player2_ws.updates))
         self.assertEquals("sync", player2_ws.updates[0]['command'])
         self.assertEquals("actor_update", player2_ws.updates[1]['command'])
-        self.assertEquals("ned", player1_ws.updates[1]['data']['username'])
         self.assertEquals("actor_update", player2_ws.updates[2]['command'])
-        self.assertEquals("fred", player1_ws.updates[2]['data']['username'])
 
         self.node.actor_call("game1", "fred", "actors_1", "TOKEN1", "move_to",
             x=10, y=10)
@@ -190,13 +189,13 @@ class SystemTest(unittest.TestCase):
         self.node.player_joins("ned", "game1", "room1")
 
         # connect player
-        ned_actor = self.node.rooms['game1', 'room1'].actors['actors_1']
+        ned_actor = self.node.rooms['game1', 'room1'].actors['id1']
 
         # assert actor moves and player is updated
         self.node.move_actor_room(ned_actor, "game1", "room2", Position(5, 5))
         # player is saved immediately, actor is put on save queue
         room2 = self.node.rooms["game1", "room2"]
-        self.assertEquals(ned_actor, room2.actors["actors_1"])
+        self.assertEquals(ned_actor, room2.actors["id1"])
         self.assertEquals(room2, ned_actor.room)
         self.assertEquals({}, self.room1.actors)
         self.assertEquals(Position(5, 5), ned_actor.position)
@@ -218,7 +217,7 @@ class SystemTest(unittest.TestCase):
         self.node.player_joins("ned", "game1", "room1")
 
         # connect player
-        ned_actor = self.node.rooms['game1', 'room1'].actors['actors_1']
+        ned_actor = self.node.rooms['game1', 'room1'].actors['id1']
         player_conn = self.node.player_connections['ned', 'game1']
         queue = player_conn.new_queue()
 
@@ -229,7 +228,7 @@ class SystemTest(unittest.TestCase):
         self.assertEquals("ned",
             self.container.dbase.dbases['actors']['actors_1']['username'])
 
-        self.assertEquals({'actor_id': 'actors_1', 'command': 'remove_actor'},
+        self.assertEquals({'actor_id': 'id1', 'command': 'remove_actor'},
             queue.get())
         self.assertEquals({'node': ['10.10.10.2', 8000], 'token': 'TOKEN2',
             'command': 'redirect'}, queue.get())
@@ -283,12 +282,12 @@ class SystemTest(unittest.TestCase):
         MockTimer.fast_forward(0)
 
         room = self.node.rooms["game1", "room1"]
-        fred_actor = room.actors["actors_1"]
+        fred_actor = room.actors["id1"]
         self.node.actor_removed(room, fred_actor)
 
         MockTimer.fast_forward(0)
 
-        self.assertEquals({"command": "remove_actor", "actor_id": "actors_1"},
+        self.assertEquals({"command": "remove_actor", "actor_id": "id1"},
             player2_ws.updates[-1])
 
     def testAdminConnection(self):

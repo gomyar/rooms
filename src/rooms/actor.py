@@ -7,6 +7,7 @@ from rooms.position import Position
 from rooms.vector import create_vector, Vector
 from rooms.vector import time_to_position
 from rooms.timer import Timer
+from rooms.utils import IDFactory
 
 import logging
 log = logging.getLogger("rooms.actor")
@@ -29,7 +30,7 @@ class Actor(object):
     def __init__(self, room, actor_type, script, username=None,
             actor_id=None, room_id=None, game_id=None):
         self.room = room
-        self._actor_id = actor_id
+        self.actor_id = actor_id or IDFactory.create_id()
         self._room_id = room_id
         self._game_id = game_id
         self.actor_type = actor_type
@@ -47,10 +48,6 @@ class Actor(object):
     def __repr__(self):
         return "<Actor %s %s in %s-%s owned by %s>" % (self.actor_type,
             self.actor_id, self.room_id, self.game_id, self.username)
-
-    @property
-    def actor_id(self):
-        return self._actor_id or getattr(self, "_id", None)
 
     @property
     def room_id(self):

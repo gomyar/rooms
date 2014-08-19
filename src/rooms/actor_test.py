@@ -5,6 +5,7 @@ from rooms.actor import Actor
 from rooms.position import Position
 from rooms.testutils import MockRoom
 from rooms.testutils import MockTimer
+from rooms.testutils import MockIDFactory
 from rooms.timer import Timer
 from rooms.vector import Vector
 from rooms.room import Door
@@ -15,6 +16,7 @@ from rooms.script import Script
 class ActorTest(unittest.TestCase):
     def setUp(self):
         MockTimer.setup_mock()
+        MockIDFactory.setup_mock()
         self.mock_room = MockRoom("game1", "room1")
         self.actor = Actor(self.mock_room, "mock_actor", Script("actor_script",
             ActorTest))
@@ -23,6 +25,7 @@ class ActorTest(unittest.TestCase):
 
     def tearDown(self):
         MockTimer.teardown_mock()
+        MockIDFactory.teardown_mock()
 
     @staticmethod
     def kickoff(actor):
@@ -39,15 +42,11 @@ class ActorTest(unittest.TestCase):
 
     def testActorId(self):
         actor1 = Actor(self.mock_room, "mock_actor", "rooms.actor_test", None)
-        self.assertEquals(None, actor1.actor_id)
+        self.assertEquals("id2", actor1.actor_id)
 
         actor2 = Actor(self.mock_room, "mock_actor", "rooms.actor_test",
             actor_id="actor2")
         self.assertEquals("actor2", actor2.actor_id)
-
-        actor1 = Actor(self.mock_room, "mock_actor", "rooms.actor_test")
-        actor1._id = "actor3"
-        self.assertEquals("actor3", actor1.actor_id)
 
     def testKickoff(self):
         self.actor.kick()

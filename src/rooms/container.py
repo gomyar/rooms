@@ -86,7 +86,7 @@ class Container(object):
             __type__="PlayerActor")
 
     def load_actor(self, actor_id):
-        return self._load_object(actor_id, "actors")
+        return self._load_filter_one("actors", actor_id=actor_id)
 
     def save_player(self, player):
         self._save_object(player, "actors")

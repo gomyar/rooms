@@ -9,6 +9,7 @@ from rooms.testutils import MockGeog
 from rooms.testutils import MockNode
 from rooms.testutils import MockActor
 from rooms.testutils import MockContainer
+from rooms.testutils import MockIDFactory
 from rooms.geography.basic_geography import BasicGeography
 from rooms.player import PlayerActor
 from rooms.script import Script
@@ -24,6 +25,10 @@ class RoomTest(unittest.TestCase):
             self.node)
         self.geography = MockGeog()
         self.room.geography = self.geography
+        MockIDFactory.setup_mock()
+
+    def tearDown(self):
+        MockIDFactory.teardown_mock()
 
     @staticmethod
     def created(actor):
@@ -42,7 +47,7 @@ class RoomTest(unittest.TestCase):
         self.assertFalse(actor._script_gthread is None)
         self.assertEquals(RoomTest.created, actor.script.script_module.created)
         self.assertEquals(self.room, actor.room)
-        self.assertEquals(actor, self.room.actors['actors_0'])
+        self.assertEquals(actor, self.room.actors['id1'])
         self.assertEquals(None, actor.username)
 
         self.player = PlayerActor(self.room, "player", "rooms.room_test", "bob")

@@ -9,6 +9,7 @@ from rooms.actor import Actor
 from rooms.position import Position
 from rooms.timer import Timer
 from rooms.container import Container
+from rooms.utils import IDFactory
 
 
 class MockContainer(Container):
@@ -255,3 +256,20 @@ class MockRoomFactory(object):
 
     def create(self, room_id, game_id):
         return self.room
+
+
+class MockIDFactory(IDFactory):
+    def __init__(self):
+        self.index = 0
+
+    @staticmethod
+    def setup_mock():
+        IDFactory._instance = MockIDFactory()
+
+    @staticmethod
+    def teardown_mock():
+        IDFactory._instance = IDFactory()
+
+    def _create_id(self):
+        self.index += 1
+        return "id%s" % self.index
