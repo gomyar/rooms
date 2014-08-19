@@ -24,3 +24,6 @@ class Position(object):
         depth = self.z - position.z
         return math.sqrt(math.pow(width, 2) + math.pow(height, 2) + \
             math.pow(depth, 2))
+
+    def add_coords(self, x, y, z=0):
+        return Position(self.x + x, self.y + y, self.z + z)

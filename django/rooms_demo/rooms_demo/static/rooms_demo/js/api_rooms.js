@@ -5,14 +5,10 @@ api_rooms.server_time = 0;
 api_rooms.local_time = 0;
 api_rooms.token = "";
 
-api_rooms.room = { topleft: {'x': 0, 'y': 0, 'z': 0}, bottomright: {'x': 0, 'y': 0, 'z': 0}, map_objects: [] };
-
 api_rooms.actors = {};
 api_rooms.socket = null;
 
 api_rooms.master_url = "http://localhost:9999";
-// need a setting for this
-api_rooms.map_url = "http://localhost:8000/static/rooms_demo/maps";
 
 
 api_rooms.Actor = function(actor)
@@ -170,24 +166,8 @@ api_rooms.admin_connect = function(host, port, token, game_callback)
 api_rooms.command_sync = function(message)
 {
     api_rooms.set_now(message.data.now);
-    api_rooms.load_room_map(message.data.room_id);
 }
 
-api_rooms.load_room_map = function(room_id)
-{
-    var map_id = room_id.split('.')[0];
-    var room_key = room_id.split('.')[1];
-
-    api_rooms.service_call(api_rooms.map_url + "/" + map_id + ".json", {}, function(map_data){
-        api_rooms.room = map_data.rooms[room_key];        
-        api_rooms.game_callback({
-            "command": "map_loaded",
-            "room_id": room_id,
-            "map_id": map_id,
-            "room_key": room_key,
-            "map_data": map_data});
-    });
-}
 
 api_rooms.command_actor_update = function(message)
 {

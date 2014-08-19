@@ -31,6 +31,7 @@ function init_game(game_id, username)
         gui.initCanvas($("#screen")[0]);
 
         $("#screen").click(canvas_clicked);
+        $("#screen").mousemove(canvas_mousemove);
         api_rooms.connect("http://" + window.location.hostname +":"+ window.location.port +"/rooms_demo", game_id, username, api_callback);
 
         $(window).bind('beforeunload', function(){
@@ -51,6 +52,24 @@ canvas_clicked = function(e)
         api_rooms.call_command(player_actor.actor_id, "exit_through_door", { exit_room_id: gui.door_hovered.exit_room_id });
     else
         api_rooms.call_command(player_actor.actor_id, "move_to", { x: click_x, y: click_y });
+}
+
+
+canvas_mousemove = function(e)
+{
+    var click_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
+    var click_y = gui.real_y((e.clientY - $(gui.canvas).offset().top));
+
+    gui.actor_hovered = gui_actors.actor_at(click_x, click_y);
+    gui.door_hovered = gui_room.door_at(click_x, click_y);
+
+    if (gui.door_hovered || gui.actor_hovered)
+        $(gui.canvas).css('cursor', 'pointer');
+    else
+        $(gui.canvas).css('cursor', 'auto');
+
+    gui.debug.mouse_at = [click_x, click_y];
+    gui.requestRedraw();
 }
 
 

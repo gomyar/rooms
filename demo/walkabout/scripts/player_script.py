@@ -2,7 +2,7 @@
 from rooms.position import Position
 
 
-def player_joins(player_actor, something, other=None, aelse="2"):
+def player_joins(player_actor):
     print "Creating walker"
     player_actor.speed = 100
 

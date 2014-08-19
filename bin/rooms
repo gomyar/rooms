@@ -26,7 +26,7 @@ from rooms.rpc import WSGIRPCServer
 
 import logging
 import logging.config
-log = logging.getLogger("rooms.master")
+log = logging.getLogger("rooms")
 
 
 if __name__ == "__main__":
@@ -93,7 +93,7 @@ if __name__ == "__main__":
         if options.backdoor:
             log.debug("Starting backdoor server on port 3000")
             backdoor = gevent.backdoor.BackdoorServer(('127.0.0.1', 3000),
-                locals=dict(master=master))
+                locals=dict(master=master, node=node))
             backdoor.start()
 
         node.connect_to_master()

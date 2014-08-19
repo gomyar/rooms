@@ -82,6 +82,7 @@ rooms_demo.controller("JoinGameCtrl", ['$scope', '$http', '$location',
             $http.post("/rooms_demo/join_game/" + $scope.game_id, $scope.create_params).success(
                 function(data) {
                     console.log("Joined");
+                    $location.path("/rooms_demo/games");
                 }
             );
         };
