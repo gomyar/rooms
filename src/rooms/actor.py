@@ -8,22 +8,10 @@ from rooms.vector import create_vector, Vector
 from rooms.vector import time_to_position
 from rooms.timer import Timer
 from rooms.utils import IDFactory
+from rooms.state import State
 
 import logging
 log = logging.getLogger("rooms.actor")
-
-
-class State(dict):
-    def __init__(self, actor):
-        super(State, self).__init__()
-        self.__dict__['actor'] = actor
-
-    def __getattr__(self, name):
-        return self.get(name, None)
-
-    def __setattr__(self, name, value):
-        self[name] = value
-        self.actor._send_update()
 
 
 class Actor(object):
@@ -34,7 +22,8 @@ class Actor(object):
         self._room_id = room_id
         self._game_id = game_id
         self.actor_type = actor_type
-        self.state = State(self)
+        self.state = State()
+        self.state._set_actor(self)
         self.path = []
         self.vector = create_vector(Position(0, 0), Position(0, 0))
         self.script = script
