@@ -97,9 +97,10 @@ rooms_demo.controller("JoinGameCtrl", ['$scope', '$http', '$location',
 
 
 rooms_demo.controller("PlayGameCtrl", ['$scope', '$http', '$location',
-        '$routeParams',
-    function($scope, $http, $location, $routeParams) {
+        '$routeParams', '$rootScope',
+    function($scope, $http, $location, $routeParams, $rootScope) {
         $scope.game_id = $routeParams.game_id;
+        $rootScope.logmessages = [];
         init_game($scope.game_id, username);
     }]);
 

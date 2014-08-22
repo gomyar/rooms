@@ -3,6 +3,7 @@ var image_map = {
     'player': '/static/rooms_demo/images/character_models/player.png',
     'npc': '/static/rooms_demo/images/character_models/npc.png'
 }
+var rootVars = null;
 
 perform_get = function(url, callback, onerror)
 {
@@ -82,7 +83,13 @@ function api_callback(message)
     {
         var player_actors = api_rooms.player_actors();
         if (player_actors.length > 0)
+        {
             gui.following_actor = player_actors[0];
+            var scope = angular.element($("#logwindow")).scope();
+            scope.$apply(function() {
+                scope.logmessages = gui.following_actor.state.log;
+            });
+        }
         gui.requestRedraw();
     }
     if (message.command == "sync")
