@@ -17,6 +17,7 @@ class JsonView(object):
             Position=self.view_position,
             Game=self.view_game,
             SyncDict=self.view_syncdict,
+            SyncList=self.view_synclist,
         )
 
     @staticmethod
@@ -59,3 +60,7 @@ class JsonView(object):
 
     def view_syncdict(self, syncdict):
         return syncdict._data
+
+    def view_synclist(self, synclist):
+        return synclist._data
+

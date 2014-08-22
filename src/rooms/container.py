@@ -8,6 +8,7 @@ from rooms.actor import Actor
 from rooms.script import Script
 from rooms.vector import Vector
 from rooms.state import SyncDict
+from rooms.state import SyncList
 
 import logging
 log = logging.getLogger("rooms.container")
@@ -28,6 +29,7 @@ class Container(object):
             Actor=self._serialize_actor,
             Vector=self._serialize_vector,
             SyncDict=self._serialize_syncdict,
+            SyncList=self._serialize_synclist,
         )
         self.builders = dict(
             Game=self._build_game,
@@ -38,6 +40,7 @@ class Container(object):
             Actor=self._build_actor,
             Vector=self._build_vector,
             SyncDict=self._build_syncdict,
+            SyncList=self._build_synclist,
         )
 
     def load_room(self, game_id, room_id):
@@ -318,3 +321,12 @@ class Container(object):
         syncdict = SyncDict()
         syncdict._data = data
         return syncdict
+
+    # SyncList
+    def _serialize_synclist(self, synclist):
+        return dict(data=list(synclist._data))
+
+    def _build_synclist(self, data):
+        synclist = SyncList()
+        synclist._data = data['data']
+        return synclist
