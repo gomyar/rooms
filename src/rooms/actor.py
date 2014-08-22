@@ -8,7 +8,7 @@ from rooms.vector import create_vector, Vector
 from rooms.vector import time_to_position
 from rooms.timer import Timer
 from rooms.utils import IDFactory
-from rooms.state import State
+from rooms.state import SyncDict
 
 import logging
 log = logging.getLogger("rooms.actor")
@@ -22,7 +22,7 @@ class Actor(object):
         self._room_id = room_id
         self._game_id = game_id
         self.actor_type = actor_type
-        self.state = State()
+        self.state = SyncDict()
         self.state._set_actor(self)
         self.path = []
         self.vector = create_vector(Position(0, 0), Position(0, 0))

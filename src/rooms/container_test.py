@@ -64,6 +64,7 @@ class ContainerTest(unittest.TestCase):
               u'script_name': u'mock_script',
               u'speed': 1.0,
               u'state': {},
+              u'state': {u'__type__': u'SyncDict'},
               u'username': u'bob',
               u'vector': {u'__type__': u'Vector',
                           u'end_pos': {u'__type__': u'Position',
@@ -128,7 +129,8 @@ class ContainerTest(unittest.TestCase):
             "actor_type": "test", "model_type": "model",
             "speed": 1.0,
             "username": "ned",
-            "state": {}, "path": [], "vector": {"__type__": "Vector",
+            'state': {u'__type__': u'SyncDict'},
+            "path": [], "vector": {"__type__": "Vector",
             "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
             "start_time": 0,
             "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
@@ -178,7 +180,7 @@ class ContainerTest(unittest.TestCase):
             u'room_id': u'room1',
             u'script_name': u'mock_script',
             u'speed': 1.0,
-            u'state': {},
+            u'state': {u'__type__': u'SyncDict'},
             u'vector': {u'__type__': u'Vector',
                         u'end_pos': {u'__type__': u'Position',
                                     u'x': 0.0,
@@ -211,7 +213,7 @@ class ContainerTest(unittest.TestCase):
             u'room_id': u'room2',
             u'script_name': u'mock_script',
             u'speed': 1.0,
-            u'state': {},
+            u'state': {u'__type__': u'SyncDict'},
             u'vector': {u'__type__': u'Vector',
                         u'end_pos': {u'__type__': u'Position',
                                     u'x': 0.0,
@@ -227,7 +229,7 @@ class ContainerTest(unittest.TestCase):
 
         actor.state.testme = "value1"
         self.container.save_actor(actor)
-        self.assertEquals({u'testme': u'value1'},
+        self.assertEquals({u'__type__': u'SyncDict', u'testme': u'value1'},
             self.dbase.dbases['actors']['actors_0']['state'])
 
         actor.room = None

@@ -5,6 +5,17 @@ from rooms.position import Position
 def player_joins(player_actor):
     print "Creating walker"
     player_actor.speed = 100
+    player_actor.state.log = [
+        "stuff",
+        "n",
+        "junk",
+    ]
+    player_actor.state.inventory = {
+        "cakes": 10,
+        "pancakes": 12,
+        "syrup": 1,
+        "salt": 15,
+    }
 
 
 def move_to(actor, x, y):

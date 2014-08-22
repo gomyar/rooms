@@ -7,6 +7,7 @@ from rooms.position import Position
 from rooms.actor import Actor
 from rooms.script import Script
 from rooms.vector import Vector
+from rooms.state import SyncDict
 
 import logging
 log = logging.getLogger("rooms.container")
@@ -26,6 +27,7 @@ class Container(object):
             Position=self._serialize_position,
             Actor=self._serialize_actor,
             Vector=self._serialize_vector,
+            SyncDict=self._serialize_syncdict,
         )
         self.builders = dict(
             Game=self._build_game,
@@ -35,6 +37,7 @@ class Container(object):
             Position=self._build_position,
             Actor=self._build_actor,
             Vector=self._build_vector,
+            SyncDict=self._build_syncdict,
         )
 
     def load_room(self, game_id, room_id):
@@ -284,6 +287,7 @@ class Container(object):
             data['username'], actor_id=data['actor_id'],
             room_id=data['room_id'], game_id=data['game_id'])
         actor.state = data['state']
+        actor.state._set_actor(actor)
         actor.path = data['path']
         actor.vector = data['vector']
         actor.speed = data['speed']
@@ -305,3 +309,12 @@ class Container(object):
     def _build_vector(self, data):
         return Vector(data['start_pos'], data['start_time'], data['end_pos'],
             data['end_time'])
+
+    # SyncDict
+    def _serialize_syncdict(self, syncdict):
+        return dict(syncdict._data)
+
+    def _build_syncdict(self, data):
+        syncdict = SyncDict()
+        syncdict._data = data
+        return syncdict
