@@ -1,6 +1,4 @@
 
- - state object for actor logs
-
  - state object sends diff for all changes made
 
  - DictState ListState InventoryState

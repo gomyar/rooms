@@ -3,7 +3,7 @@
     <canvas id="screen"></canvas>
     <div id="logwindow">
         <ul>
-            <li ng-repeat="logmsg in logmessages">{{ logmsg }}</li>
+            <li ng-repeat="logmsg in logmessages track by $index">{{ logmsg }}</li>
         </ul>
     </div>
 </div>

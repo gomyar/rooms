@@ -87,7 +87,7 @@ class ContainerTest(unittest.TestCase):
             u'game_id': u'games_1',
             u'script_name': u'mock_script',
             u'room_id': u'rooms_10',
-            "state": {},
+            "state": {"__type__": "SyncDict"},
             "path": [],
             "speed": 1.0,
             "vector": {"__type__": "Vector",
@@ -102,6 +102,7 @@ class ContainerTest(unittest.TestCase):
 
         self.assertEquals("rooms_10", player.room_id)
         self.assertEquals("id1", player._id)
+        self.assertEquals(player, player.state._actor)
 
         self.assertRaises(Exception,
             self.container.load_player, "ned", "nonexistant")

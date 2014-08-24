@@ -242,6 +242,7 @@ class Container(object):
             data['username'], game_id=data['game_id'], actor_id=data['actor_id'],
             room_id=data['room_id'])
         player.state = data['state']
+        player.state._set_actor(player)
         player.path = data['path']
         player.vector = data['vector']
         player.speed = data['speed']
