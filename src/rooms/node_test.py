@@ -299,7 +299,7 @@ class NodeTest(unittest.TestCase):
             "test_scripts")
         self.node.load_scripts(script_path)
 
-        self.assertEquals("loaded", self.node.scripts['basic_actor'].call("test"))
+        self.assertEquals("loaded", self.node.scripts['basic_actor'].call("test", MockActor()))
 
     def testManageRoomWithPlayersAlreadyCreated(self):
         # save player

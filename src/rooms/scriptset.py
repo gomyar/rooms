@@ -1,5 +1,6 @@
 
 import os
+import sys
 import imp
 
 from rooms.script import Script
@@ -11,6 +12,7 @@ class ScriptSet(object):
         self.scripts = dict()
 
     def load_scripts(self, script_path):
+        sys.path.append(script_path)
         for py_file in self._list_scripts(script_path):
             script_name = os.path.splitext(py_file)[0]
             self.scripts[script_name] = Script(script_name,

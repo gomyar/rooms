@@ -231,8 +231,8 @@ class MockTimer(Timer):
 
 class MockActor(Actor):
     def __init__(self, actor_id=None):
-        super(MockActor, self).__init__(None, "mock_actor", MockScript(),
-            actor_id=actor_id)
+        super(MockActor, self).__init__(MockRoom("mock_game_1", "mock_room_1"),
+            "mock_actor", MockScript(), actor_id=actor_id)
 
     def script_call(self, method, *args):
         self.script.call(method, *args)

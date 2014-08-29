@@ -11,6 +11,7 @@ from rooms.testutils import MockContainer
 from rooms.testutils import MockRpcClient
 from rooms.testutils import MockGame
 from rooms.testutils import MockRoom
+from rooms.testutils import MockActor
 from rooms.testutils import MockScript
 from rooms.testutils import MockTimer
 
@@ -555,10 +556,10 @@ class MasterTest(unittest.TestCase):
             "test_scripts")
         self.master.load_scripts(script_path)
 
-        self.assertEquals("loaded", self.master.scripts['basic_actor'].call("test"))
+        self.assertEquals("loaded", self.master.scripts['basic_actor'].call("test", MockActor()))
         self.assertEquals(
             {'move_to':
                 {'args': ['actor', 'x', 'y'], 'doc': '', 'type': 'request'},
             'ping': {'args': ['actor'], 'doc': '', 'type': 'request'},
-            'test': {'args': [], 'doc': '', 'type': 'request'}}
+            'test': {'args': ['actor'], 'doc': '', 'type': 'request'}}
         , self.master.inspect_script("basic_actor"))

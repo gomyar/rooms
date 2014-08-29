@@ -1,5 +1,6 @@
 
 from rooms.position import Position
+import import_library
 
 
 def move_to(actor, x, y):
@@ -11,5 +12,6 @@ def ping(actor):
         actor._send_update({"count": i})
         actor.sleep(1)
 
-def test():
+def test(actor):
+    import_library.do_something(actor)
     return "loaded"
