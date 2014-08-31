@@ -1,6 +1,27 @@
 
 import os
 import inspect
+from functools import wraps
+
+
+def command(func):
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        return func(*args, **kwargs)
+    wrapped.is_command = True
+    wrapped.args = inspect.getargspec(func).args
+    return wrapped
+
+
+def request(func):
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        return func(*args, **kwargs)
+    wrapped.is_request = True
+    wrapped.args = inspect.getargspec(func).args
+    return wrapped
+
+
 
 
 class Script(object):
