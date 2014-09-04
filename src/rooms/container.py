@@ -10,6 +10,7 @@ from rooms.vector import Vector
 from rooms.state import SyncDict
 from rooms.state import SyncList
 from rooms.item_registry import Item
+from rooms.item_registry import ItemRegistry
 
 import logging
 log = logging.getLogger("rooms.container")
@@ -21,6 +22,7 @@ class Container(object):
         self.geography = geography
         self.node = node
         self.room_factory = room_factory
+        self.item_registry = ItemRegistry(self)
         self.serializers = dict(
             Game=self._serialize_game,
             PlayerActor=self._serialize_player,
@@ -102,6 +104,13 @@ class Container(object):
 
     def save_item(self, item):
         self._save_object(item, "itemregistry")
+
+    def load_item(self, category, item_type):
+        return self._load_filter_one("itemregistry", category=category,
+            item_type=item_type)
+
+    def load_all_items(self, category):
+        return self._load_filter("itemregistry", category=category)
 
     def player_exists(self, username, game_id):
         return self.dbase.object_exists("actors", username=username,
@@ -223,10 +232,13 @@ class Container(object):
 
     # Game
     def _serialize_game(self, game):
-        return dict(owner_id=game.owner_id)
+        return dict(owner_id=game.owner_id, name=game.name,
+            description=game.description)
 
     def _build_game(self, data):
-        return Game(data['owner_id'])
+        game = Game(data['owner_id'], data.get("name"), data.get("description"))
+        game.item_registry = self.item_registry
+        return game
 
     # Position
     def _serialize_position(self, position):
