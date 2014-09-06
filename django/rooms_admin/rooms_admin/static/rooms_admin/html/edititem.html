@@ -1,0 +1,20 @@
+<div>
+    <div class="itemcreate">
+        <div class="button" ng-click="items.create()">Create</div>
+    </div>
+    <div class="itemform">
+        <div class="field">
+            <div class="label">Category:</div><input type="text" ng-model="category" required />
+            <div class="label">Item Type:</div><input type="text" ng-model="item_type" required />
+        </div>
+        <div class="field" ng-repeat="(name, value) in data">
+            <input id="{{ name }}_field" type="text" ng-model="name" />
+            <input id="{{ name }}_value" type="text" ng-model="value" />
+        </div>    
+        <br />
+
+
+        <div class="button" ng-click="item_save()">Save</div>
+        <div class="button" ng-click="item_cancel()">Cancel</div>
+    </div>
+</div>

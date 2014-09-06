@@ -4,7 +4,7 @@ class ItemRegistry(object):
     def __init__(self, container):
         self._container = container
 
-    def add_item(self, category, item_type, data):
+    def save_item(self, category, item_type, data):
         self._container.save_item(Item(category, item_type, data))
 
     def get_item(self, category, item_type):

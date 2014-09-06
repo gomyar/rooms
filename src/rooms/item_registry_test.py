@@ -13,7 +13,7 @@ class ItemRegistryTest(unittest.TestCase):
         self.registry = ItemRegistry(self.container)
 
     def testRegistry(self):
-        self.registry.add_item("general", "cup", dict(size="medium"))
+        self.registry.save_item("general", "cup", dict(size="medium"))
 
         self.assertEquals({
             "__type__": "Item",
@@ -28,9 +28,9 @@ class ItemRegistryTest(unittest.TestCase):
         self.assertEquals([cup], self.registry.all_items("general"))
 
     def testAllItems(self):
-        self.registry.add_item("general", "cup", dict(size="medium"))
-        self.registry.add_item("general", "saucer", dict(size="medium"))
-        self.registry.add_item("specific", "spoon", dict(size="medium"))
+        self.registry.save_item("general", "cup", dict(size="medium"))
+        self.registry.save_item("general", "saucer", dict(size="medium"))
+        self.registry.save_item("specific", "spoon", dict(size="medium"))
 
         cup = Item("general", "cup", dict(size="medium"))
         saucer = Item("general", "saucer", dict(size="medium"))

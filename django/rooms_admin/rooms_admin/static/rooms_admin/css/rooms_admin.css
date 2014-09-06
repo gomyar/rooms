@@ -82,6 +82,7 @@ div.button
     background-color : green;
     min-width : 50px;
     text-align : center;
+    width : 100px;
 }
     
 div.button:hover
@@ -114,6 +115,90 @@ div.room_info div.roomid
     width : 100px;
 }
 
+
+/* items.html */
+
+div.item
+{
+    background-color : lightblue;
+}
+
+div.item div
+{
+    margin : 10px;    
+    display : inline-block;
+}
+
+div.item div.category
+{
+    width : 200px;
+}
+
+div.item div.item_type
+{
+    width : 150px;
+}
+
+div.itemcreate
+{
+    width : 100px;
+    margin : 5px;
+}
+
+
+/* edititem.html */
+
+div.itemform
+{
+    background-color : lightblue;
+}
+
+div.itemform
+{
+    padding : 10px;
+    width : 420px;
+}
+
+div.itemform div
+{
+    margin : 2px;    
+    display : inline-block;
+}
+
+div.itemform div.field
+{
+    width : 400px;
+    display : block;
+}
+
+div.itemform div.field div.label
+{
+    width : 170px;
+}
+
+
+div.itemform div.category
+{
+    width : 200px;
+}
+
+div.itemform div.item_type
+{
+    width : 150px;
+}
+
+div.itemsave
+{
+    width : 100px;
+    margin : 5px;
+}
+
+div.itemcancel
+{
+    width : 100px;
+    margin : 5px;
+}
+
 /* game screen */
 div.gameview
 {
@@ -130,3 +215,5 @@ canvas#screen
 {
     background-color : black;
 }
+
+

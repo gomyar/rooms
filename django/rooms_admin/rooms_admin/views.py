@@ -53,3 +53,13 @@ def request_admin_token(request):
     room_id = param['room_id']
     return rpc_master.call("request_admin_token", game_id=game_id,
         room_id=room_id)
+
+
+@permission_required("is_staff")
+@responsejson
+def save_item(request):
+    param = json.loads(request.body)
+    category = param.pop('category')
+    item_type = param.pop('item_type')
+    return rpc_master.call("save_item", category=category, item_type=item_type,
+        **param)

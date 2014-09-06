@@ -69,6 +69,45 @@ rooms_admin.controller("AdminGameClientCtrl", ['$scope', '$http', '$location',
     }]);
 
 
+rooms_admin.controller("ItemRegistryCtrl", ['$scope', '$http', '$location',
+        '$routeParams',
+    function($scope, $http, $location, $routeParams) {
+        $scope.items = [];
+        $scope.items.create = function() {
+            $location.path("/newitem");
+        };
+        console.log("Show items");
+    }]);
+
+
+rooms_admin.controller("NewItemCtrl", ['$scope', '$http', '$location',
+        '$routeParams',
+    function($scope, $http, $location, $routeParams) {
+        $scope.category = "new cateogry"; 
+        $scope.item_type = "new type"; 
+        $scope.data = {
+            "field1": "value1",
+            "field2": "value2"
+        };
+        $scope.item_save = function() {
+        var itemdata = $scope.data;
+        itemdata['category'] = $scope.category;
+        itemdata['item_type'] = $scope.item_type;
+        var token = $http.post("/rooms_admin/save_item/", itemdata
+            ).success(
+            function (data) {
+                console.log("saved item");
+            }
+            );
+
+           
+        };
+        $scope.item_cancel = function() {
+        };
+    }]);
+
+
+
 function game_callback(msg)
 {
     console.log("Recieved message:" + msg.command);
@@ -94,6 +133,18 @@ rooms_admin.config(['$routeProvider',
             when('/games', {
                 templateUrl: '/static/rooms_admin/html/games.html',
                 controller: 'GamesCtrl'
+            }).
+            when('/items', {
+                templateUrl: '/static/rooms_admin/html/items.html',
+                controller: 'ItemRegistryCtrl'
+            }).
+            when('/edititem/:category/:item_type', {
+                templateUrl: '/static/rooms_admin/html/edititem.html',
+                controller: 'EditItemCtrl'
+            }).
+            when('/newitem', {
+                templateUrl: '/static/rooms_admin/html/edititem.html',
+                controller: 'NewItemCtrl'
             }).
             when('/rooms_on_node/:nodeHost/:nodePort', {
                 templateUrl: '/static/rooms_admin/html/rooms.html',

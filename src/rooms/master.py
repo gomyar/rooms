@@ -147,6 +147,18 @@ class MasterController(object):
     def inspect_script(self, script_name):
         return self.master.inspect_script(script_name)
 
+    @request
+    def lookup_item(self, category, item_type):
+        self.master.lookup_item(self, category, item_type)
+
+    @request
+    def lookup_items_by_category(self, category):
+        self.master.lookup_items_by_category(self, category)
+
+    @request
+    def save_item(self, category, item_type, **data):
+        self.master.save_item(category, item_type, **data)
+
 
 class PlayerController(object):
     def __init__(self, master):
@@ -398,12 +410,13 @@ class Master(object):
     def inspect_script(self, script_name):
         return self.scripts.inspect_script(script_name)
 
-    def lookup_item(self, game_id, category, item_type):
-        game = self.container.load_game(game_id)
-        item = game.item_registry.get_item(category, item_type)
+    def lookup_item(self, category, item_type):
+        item = self.container.item_registry.get_item(category, item_type)
         return jsonview.view(item)
 
-    def lookup_items_by_category(self, game_id, category):
-        game = self.container.load_game(game_id)
-        items = game.item_registry.all_items(category)
+    def lookup_items_by_category(self, category):
+        items = self.container.item_registry.all_items(category)
         return jsonview.view(items)
+
+    def save_item(self, category, item_type, **data):
+        self.container.item_registry.save_item(category, item_type, data)

@@ -1,0 +1,15 @@
+<div>
+    <div class="itemcreate">
+        <div class="button" ng-click="items.create()">Create</div>
+    </div>
+    <div class="item tableheader">
+        <div class="category">Category</div>
+        <div class="item_type">Item Type</div>
+    </div>
+    <div class="item" ng-repeat="item in items track by $index">
+        <div class="category">{{ item.category}}</div>
+        <div class="item_type">{{ item.item_type }}</div>
+        <div class="showitem button" ng-click="items.select(item)">Edit</div>
+    </div>
+
+</div>
