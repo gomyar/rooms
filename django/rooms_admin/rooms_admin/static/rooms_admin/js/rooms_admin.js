@@ -72,9 +72,35 @@ rooms_admin.controller("AdminGameClientCtrl", ['$scope', '$http', '$location',
 rooms_admin.controller("ItemRegistryCtrl", ['$scope', '$http', '$location',
         '$routeParams',
     function($scope, $http, $location, $routeParams) {
-        $scope.items = [];
-        $scope.items.create = function() {
-            $location.path("/newitem");
+        $scope.items = [
+            {"category": "test", "item_type": "type"},
+            {"category": "test", "item_type": "type"},
+            {"category": "test", "item_type": "type"},
+            {"category": "test", "item_type": "type"}
+        ];
+        $scope.current = {
+            "category": "",
+            "item_type": "",
+            "fields" : [
+                {"name": "", "value": ""}
+            ]
+        };
+        $scope.new_field = function() {
+            $scope.current.fields[$scope.current.fields.length] = {"name": "", "value": ""}
+        };
+        $scope.delete_field = function(index) {
+            $scope.current.fields.splice(index, 1);
+        };
+        $http.get("/rooms_admin/all_items/").success(function(items) {
+            $scope.items = items;
+        });
+        $scope.item_save = function() {
+            var token = $http.post("/rooms_admin/save_item/", $scope.current 
+                ).success(
+                function (data) {
+                    console.log("saved item");
+                }
+            );
         };
         console.log("Show items");
     }]);
@@ -137,14 +163,6 @@ rooms_admin.config(['$routeProvider',
             when('/items', {
                 templateUrl: '/static/rooms_admin/html/items.html',
                 controller: 'ItemRegistryCtrl'
-            }).
-            when('/edititem/:category/:item_type', {
-                templateUrl: '/static/rooms_admin/html/edititem.html',
-                controller: 'EditItemCtrl'
-            }).
-            when('/newitem', {
-                templateUrl: '/static/rooms_admin/html/edititem.html',
-                controller: 'NewItemCtrl'
             }).
             when('/rooms_on_node/:nodeHost/:nodePort', {
                 templateUrl: '/static/rooms_admin/html/rooms.html',

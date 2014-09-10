@@ -58,8 +58,15 @@ def request_admin_token(request):
 @permission_required("is_staff")
 @responsejson
 def save_item(request):
-    param = json.loads(request.body)
-    category = param.pop('category')
-    item_type = param.pop('item_type')
+    params = json.loads(request.body)
+    for param in params:
+        category = param.pop('category')
+        item_type = param.pop('item_type')
     return rpc_master.call("save_item", category=category, item_type=item_type,
         **param)
+
+
+@permission_required("is_staff")
+@responsejson
+def all_items(request):
+    return rpc_master.call("all_items")

@@ -109,8 +109,11 @@ class Container(object):
         return self._load_filter_one("itemregistry", category=category,
             item_type=item_type)
 
-    def load_all_items(self, category):
+    def load_items_by_category(self, category):
         return self._load_filter("itemregistry", category=category)
+
+    def all_items(self):
+        return self._find_objects("itemregistry", "Item")
 
     def player_exists(self, username, game_id):
         return self.dbase.object_exists("actors", username=username,

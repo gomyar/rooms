@@ -148,12 +148,16 @@ class MasterController(object):
         return self.master.inspect_script(script_name)
 
     @request
+    def all_items(self):
+        self.master.all_items()
+
+    @request
     def lookup_item(self, category, item_type):
-        self.master.lookup_item(self, category, item_type)
+        self.master.lookup_item(category, item_type)
 
     @request
     def lookup_items_by_category(self, category):
-        self.master.lookup_items_by_category(self, category)
+        self.master.lookup_items_by_category(category)
 
     @request
     def save_item(self, category, item_type, **data):
@@ -412,11 +416,15 @@ class Master(object):
 
     def lookup_item(self, category, item_type):
         item = self.container.item_registry.get_item(category, item_type)
-        return jsonview.view(item)
+        return jsonview(item)
+
+    def all_items(self):
+        items = self.container.item_registry.all_items()
+        return jsonview(items)
 
     def lookup_items_by_category(self, category):
         items = self.container.item_registry.all_items(category)
-        return jsonview.view(items)
+        return jsonview(items)
 
     def save_item(self, category, item_type, **data):
         self.container.item_registry.save_item(category, item_type, data)

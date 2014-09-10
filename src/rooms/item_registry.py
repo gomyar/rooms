@@ -10,8 +10,11 @@ class ItemRegistry(object):
     def get_item(self, category, item_type):
         return self._container.load_item(category, item_type)
 
-    def all_items(self, category):
-        return self._container.load_all_items(category)
+    def items_by_category(self, category):
+        return self._container.load_items_by_category(category)
+
+    def all_items(self):
+        return self._container.all_items()
 
 
 class Item(object):
