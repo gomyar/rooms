@@ -77,7 +77,10 @@ if __name__ == "__main__":
         geography = BasicGeography()
         room_factory = RoomFactory(FileMapSource(os.path.join(options.game,
             "maps")), node)
-        container = Container(dbase, geography, node, room_factory)
+        item_registry = ItemRegistry()
+        item_registry.load_from_directory(options.game)
+        container = Container(dbase, geography, node, room_factory,
+            item_registry=item_registry)
         node.container = container
         server = WSGIRPCServer(host, port, access_control_header="*")
         server.add_controller("node_control", NodeController(node))

@@ -1,0 +1,9 @@
+{
+    "general": {
+        "cup": {"size": "medium"},
+        "saucer": {"size": "small"}
+    },
+    "specific": {
+        "spoon": {"size": "medium"}
+    }
+}

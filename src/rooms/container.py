@@ -9,20 +9,19 @@ from rooms.script import Script
 from rooms.vector import Vector
 from rooms.state import SyncDict
 from rooms.state import SyncList
-from rooms.item_registry import Item
-from rooms.item_registry import ItemRegistry
 
 import logging
 log = logging.getLogger("rooms.container")
 
 
 class Container(object):
-    def __init__(self, dbase, geography, node, room_factory):
+    def __init__(self, dbase, geography, node, room_factory,
+            item_registry=None):
         self.dbase = dbase
         self.geography = geography
         self.node = node
         self.room_factory = room_factory
-        self.item_registry = ItemRegistry(self)
+        self.item_registry = item_registry
         self.serializers = dict(
             Game=self._serialize_game,
             PlayerActor=self._serialize_player,
@@ -33,7 +32,6 @@ class Container(object):
             Vector=self._serialize_vector,
             SyncDict=self._serialize_syncdict,
             SyncList=self._serialize_synclist,
-            Item=self._serialize_item,
         )
         self.builders = dict(
             Game=self._build_game,
@@ -45,7 +43,6 @@ class Container(object):
             Vector=self._build_vector,
             SyncDict=self._build_syncdict,
             SyncList=self._build_synclist,
-            Item=self._build_item,
         )
 
     def load_room(self, game_id, room_id):
@@ -101,19 +98,6 @@ class Container(object):
 
     def save_player(self, player):
         self._save_object(player, "actors")
-
-    def save_item(self, item):
-        self._save_object(item, "itemregistry")
-
-    def load_item(self, category, item_type):
-        return self._load_filter_one("itemregistry", category=category,
-            item_type=item_type)
-
-    def load_items_by_category(self, category):
-        return self._load_filter("itemregistry", category=category)
-
-    def all_items(self):
-        return self._find_objects("itemregistry", "Item")
 
     def player_exists(self, username, game_id):
         return self.dbase.object_exists("actors", username=username,
@@ -352,11 +336,3 @@ class Container(object):
         synclist = SyncList()
         synclist._data = data['data']
         return synclist
-
-    # Item
-    def _serialize_item(self, item):
-        return dict(category=item.category, item_type=item.item_type,
-            data=item.data)
-
-    def _build_item(self, data):
-        return Item(data['category'], data['item_type'], data['data'])

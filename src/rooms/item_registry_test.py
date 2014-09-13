@@ -1,41 +1,35 @@
 
 import unittest
+import os
 
 from rooms.item_registry import ItemRegistry
 from rooms.item_registry import Item
-from rooms.game import Game
-from testutils import MockContainer
 
 
 class ItemRegistryTest(unittest.TestCase):
     def setUp(self):
-        self.container = MockContainer()
-        self.registry = ItemRegistry(self.container)
+        self.registry = ItemRegistry()
 
-    def testRegistry(self):
-        self.registry.save_item("general", "cup", dict(size="medium"))
+    def test_load(self):
+        self.registry.load_from_json(open(os.path.join(
+            os.path.dirname(__file__), "test_items", "cutlery_items.json")
+            ).read())
 
-        self.assertEquals({
-            "__type__": "Item",
-            "_id": "itemregistry_0",
-            "category": "general", "item_type": "cup",
-            "data": {"size": "medium"}},
-            self.container.dbase.dbases['itemregistry']["itemregistry_0"])
-
-        cup = Item("general", "cup", dict(size="medium"))
-        self.assertEquals(cup, self.registry.get_item("general", "cup"))
-
-        self.assertEquals([cup], self.registry.all_items("general"))
+        self.assertEquals(["cutlery"], self.registry.get_categories())
+        self.assertEquals(3, len(self.registry.items_by_category("cutlery")))
 
     def testAllItems(self):
-        self.registry.save_item("general", "cup", dict(size="medium"))
-        self.registry.save_item("general", "saucer", dict(size="medium"))
-        self.registry.save_item("specific", "spoon", dict(size="medium"))
+        self.registry.load_from_json(open(os.path.join(
+            os.path.dirname(__file__), "test_items",
+            "cutlery_categories.json")).read())
 
         cup = Item("general", "cup", dict(size="medium"))
-        saucer = Item("general", "saucer", dict(size="medium"))
+        saucer = Item("general", "saucer", dict(size="small"))
         spoon = Item("specific", "spoon", dict(size="medium"))
 
-        self.assertTrue(cup in self.registry.all_items("general"))
-        self.assertTrue(saucer in self.registry.all_items("general"))
-        self.assertEquals([spoon], self.registry.all_items("specific"))
+        self.assertTrue(cup in self.registry.items_by_category("general"))
+        self.assertTrue(saucer in self.registry.items_by_category("general"))
+        self.assertEquals([spoon], self.registry.items_by_category("specific"))
+
+        self.assertEquals([cup], self.registry.items_by_category("general",
+            size="medium"))

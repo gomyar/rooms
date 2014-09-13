@@ -58,7 +58,10 @@ if __name__ == "__main__":
         host, port = options.address.split(":")
         dbase = MongoDBase()
         dbase.init_mongo()
-        master = Master(Container(dbase, None, None, None))
+        item_registry = ItemRegistry()
+        item_registry.load_from_directory(options.game)
+        master = Master(Container(dbase, None, None, None,
+            item_registry=item_registry))
         master.load_scripts(os.path.join(options.game, "scripts"))
         server = WSGIRPCServer(host, port, access_control_header="*")
         server.add_controller("master_control", MasterController(master))
