@@ -77,6 +77,8 @@ class NodeTest(unittest.TestCase):
         self.assertEquals("room1", player_actor.room_id)
         self.assertEquals("game1", player_actor.game_id)
         self.assertEquals(1, len(self.node.player_connections))
+        self.assertEquals(1, len(self.node.connections))
+        self.assertEquals("game1", self.node.connections['TOKEN1'].game_id)
         self.assertEquals(1, len(self.node.rooms["game1", "room1"].actors))
         self.assertEquals([
             ("player_joins", (player_actor,), {})
@@ -199,7 +201,7 @@ class NodeTest(unittest.TestCase):
         room1 = self.node.rooms["game1", "room1"]
         player_actor = room1.actors['id1']
         player_actor.script = MockScript()
-        self.node.actor_call("game1", "bob", "player1", "TOKEN1",
+        self.node.actor_call("game1", "TOKEN1", "player1",
             "do_something")
 
         # script calls happen on a gthread
@@ -223,10 +225,10 @@ class NodeTest(unittest.TestCase):
         pass
 
     def testInvalidToken(self):
-        self.node.player_connections['bob', 'game1'] = PlayerConnection('game1',
+        self.node.connections['BOBSTOKEN'] = PlayerConnection('game1',
             'bob', None, None, "BOBSTOKEN")
         try:
-            self.node.player_connects(None, 'game1', 'bob', 'WRONGTOKEN')
+            self.node.player_connects(None, 'game1', 'WRONGTOKEN')
         except Exception, e:
             self.assertEquals("Invalid token for player", str(e))
 

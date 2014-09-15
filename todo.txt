@@ -1,4 +1,12 @@
 
+ - sort out api_rooms.js
+   - stop sending username from client
+   - infer username from cookie
+   - cookie created by auth call on master
+     - basic auth just allows the username to be sent in plaintext
+
+ - add check for existing scripts (scripts which are assumed to exist: game_script.py player_script.py)
+
  - load rooms from map.json + state from db
 
  - state object sends diff for all changes made

@@ -28,8 +28,8 @@ class GameController(object):
         self.node = node
 
     @websocket
-    def player_connects(self, ws, game_id, username, token):
-        return self.node.player_connects(ws, game_id, username, token)
+    def player_connects(self, ws, game_id, token):
+        return self.node.player_connects(ws, game_id, token)
 
     @request
     def actor_call(self, game_id, username, actor_id, token, method, **kwargs):
@@ -115,6 +115,7 @@ class Node(object):
         self.master_port = master_port
         self.rooms = dict()
         self.player_connections = dict()
+        self.connections = dict()
         self.admin_connections = dict()
         self.master_conn = WSGIRPCClient(master_host, master_port,
             'master_control')
@@ -206,6 +207,7 @@ class Node(object):
                 player_actor.username, player_actor.room, player_actor,
                 self._create_token())
             self.player_connections[conn_key] = player_conn
+            self.connections[player_conn.token] = player_conn
         return self.player_connections[conn_key]
 
     def request_token(self, username, game_id):
@@ -218,11 +220,11 @@ class Node(object):
             ws.send(str(i))
             gevent.sleep(1)
 
-    def player_connects(self, ws, game_id, username, token):
-        log.debug("Player conects: %s-%s %s", username, game_id, token)
-        player_conn = self.player_connections[username, game_id]
-        if token != player_conn.token:
+    def player_connects(self, ws, game_id, token):
+        log.debug("Player conects: %s %s", game_id, token)
+        if token not in self.connections:
             raise Exception("Invalid token for player")
+        player_conn = self.connections[token]
         room = self.rooms[game_id, player_conn.room.room_id]
         queue = player_conn.new_queue()
         self._send_sync_to_websocket(ws, room)
@@ -251,10 +253,10 @@ class Node(object):
         return {"command": "sync", "data": {"now": Timer.now(),
             "room_id": room.room_id}}
 
-    def actor_call(self, game_id, username, actor_id, token, method, **kwargs):
-        player_conn = self.player_connections[username, game_id]
-        if token != player_conn.token:
-            raise Exception("Invalid token for player %s" % (username,))
+    def actor_call(self, game_id, token, actor_id, method, **kwargs):
+        if token not in self.connections:
+            raise Exception("Invalid token for player")
+        player_conn = self.connections[token]
         actor = player_conn.actor
         if actor.script.has_method(method):
             actor.script_call(method, actor, **kwargs)
