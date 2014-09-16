@@ -32,8 +32,8 @@ class GameController(object):
         return self.node.player_connects(ws, game_id, token)
 
     @request
-    def actor_call(self, game_id, username, actor_id, token, method, **kwargs):
-        return self.node.actor_call(game_id, username, actor_id, token, method,
+    def actor_call(self, game_id, token, actor_id, method, **kwargs):
+        return self.node.actor_call(game_id, token, actor_id, method,
             **kwargs)
 
     @websocket
@@ -227,7 +227,7 @@ class Node(object):
         player_conn = self.connections[token]
         room = self.rooms[game_id, player_conn.room.room_id]
         queue = player_conn.new_queue()
-        self._send_sync_to_websocket(ws, room)
+        self._send_sync_to_websocket(ws, room, player_conn.username)
         self._perform_ws_loop(player_conn, queue, ws)
 
     def _perform_ws_loop(self, player_conn, queue, ws):
@@ -242,16 +242,16 @@ class Node(object):
         finally:
             player_conn.queues.remove(queue)
 
-    def _send_sync_to_websocket(self, ws, room):
-        ws.send(json.dumps(self._sync_message(room)))
+    def _send_sync_to_websocket(self, ws, room, username):
+        ws.send(json.dumps(self._sync_message(room, username)))
         for actor in room.actors.values():
             ws.send(json.dumps(
                 {"command": "actor_update", "actor_id": actor.actor_id,
                 "data": jsonview(actor)}))
 
-    def _sync_message(self, room):
+    def _sync_message(self, room, username):
         return {"command": "sync", "data": {"now": Timer.now(),
-            "room_id": room.room_id}}
+            "username": username, "room_id": room.room_id}}
 
     def actor_call(self, game_id, token, actor_id, method, **kwargs):
         if token not in self.connections:
@@ -398,7 +398,8 @@ class Node(object):
                 actor.username)
             player_conn = self.player_connections[actor.username, game_id]
             player_conn.room = exit_room
-            player_conn.send_message(self._sync_message(exit_room))
+            player_conn.send_message(self._sync_message(exit_room,
+                player_conn.username))
             for actor in exit_room.actors.values():
                 player_conn.send_message({"command": "actor_update",
                     "actor_id": actor.actor_id, "data": jsonview(actor)})
@@ -425,5 +426,5 @@ class Node(object):
         admin_conn = self.admin_connections[token]
         log.debug("Admin conects: %s", token)
         queue = admin_conn.new_queue()
-        self._send_sync_to_websocket(ws, admin_conn.room)
+        self._send_sync_to_websocket(ws, admin_conn.room, "admin")
         self._perform_ws_loop(admin_conn, queue, ws)
