@@ -30,9 +30,12 @@ class Actor(object):
         self.speed = 1.0
         self.username = username
         self.is_player = False
+        self.docked = set()
+        self.docked_with = None
 
         self._script_gthread = None
         self._move_gthread = None
+        self._visible = True
 
     def __repr__(self):
         return "<Actor %s %s in %s-%s owned by %s>" % (self.actor_type,
@@ -115,7 +118,10 @@ class Actor(object):
 
     @property
     def position(self):
-        return self.vector.position()
+        if self.docked_with:
+            return self.docked_with.position
+        else:
+            return self.vector.position()
 
     @position.setter
     def position(self, pos):
@@ -123,3 +129,7 @@ class Actor(object):
 
     def enter(self, door):
         self.room.actor_enters(self, door)
+
+    def dock(self, actor):
+        self.docked.add(actor)
+        actor.docked_with = self
