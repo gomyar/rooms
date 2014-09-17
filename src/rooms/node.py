@@ -1,7 +1,6 @@
 
 import uuid
 import gevent
-from gevent.queue import Queue
 import json
 import os
 from urllib2 import HTTPError
@@ -18,6 +17,7 @@ from rooms.script import NullScript
 from rooms.scriptset import ScriptSet
 from rooms.views import jsonview
 from rooms.timer import Timer
+from rooms.player_connection import PlayerConnection
 
 import logging
 log = logging.getLogger("rooms.node")
@@ -80,31 +80,6 @@ class NodeController(object):
     @request
     def request_admin_token(self, game_id, room_id):
         return self.node.request_admin_token(game_id, room_id)
-
-
-class PlayerConnection(object):
-    def __init__(self, game_id, username, room, actor, token):
-        self.game_id = game_id
-        self.username = username
-        self.room = room
-        self.actor = actor
-        self.token = token
-        self.queues = []
-
-    def __repr__(self):
-        return "<PlayerConnection %s in %s-%s>" % (self.username,
-            self.game_id, self.room.room_id)
-
-    def new_queue(self):
-        queue = Queue()
-        self.queues.append(queue)
-        return queue
-
-    def send_message(self, message):
-        log.debug("PlayerConnection: sending message to %s queues: %s",
-            len(self.queues), message)
-        for queue in self.queues:
-            queue.put(message)
 
 
 class Node(object):
@@ -274,15 +249,13 @@ class Node(object):
         log.debug("Actor update for %s in %s", actor, room)
         for player_conn in self._connections_for(room):
             log.debug("Sending to : %s : %s", player_conn.username, actor)
-            player_conn.send_message({"command": "actor_update",
-                "actor_id": actor.actor_id, "data": jsonview(actor)})
+            player_conn.actor_update(actor)
 
     def actor_removed(self, room, actor):
         log.debug("Actor removed %s from %s", actor, room)
         for player_conn in self._connections_for(room):
             log.debug("Actor removed : %s : %s", player_conn.username, actor)
-            player_conn.send_message({"command": "remove_actor",
-                "actor_id": actor.actor_id})
+            player_conn.remove_actor(actor)
 
     def _request_player_connection(self, username, game_id):
         player = self._get_or_load_player(username, game_id)
@@ -356,8 +329,7 @@ class Node(object):
             log.debug("Got http error: %s", e)
             if actor.is_player:
                 conn = self.player_connections[actor.username, actor.game_id]
-                conn.send_message({"command": "redirect_to_master",
-                    "master": [self.master_host, self.master_port]})
+                conn.redirect_to_master(self.master_host, self.master_port)
                 self.player_connections.pop((actor.username,
                     actor.game_id))
             return
@@ -371,9 +343,8 @@ class Node(object):
             else:
                 log.debug("Redirecting to node: %s", response['node'])
                 conn = self.player_connections[actor.username, actor.game_id]
-                conn.send_message({"command": "redirect",
-                    "node": response['node'],
-                    "token": response['token']})
+                conn.redirect(response['node'][0], response['node'][1],
+                    response['token'])
                 self.player_connections.pop((actor.username,
                     actor.game_id))
 
@@ -401,8 +372,7 @@ class Node(object):
             player_conn.send_message(self._sync_message(exit_room,
                 player_conn.username))
             for actor in exit_room.actors.values():
-                player_conn.send_message({"command": "actor_update",
-                    "actor_id": actor.actor_id, "data": jsonview(actor)})
+                player_conn.actor_update(actor)
         else:
             log.debug("No connection for player %s-%s", game_id, actor.username)
 
