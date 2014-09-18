@@ -73,7 +73,7 @@ class RoomTest(unittest.TestCase):
 
     def testActorUpdate(self):
         self.actor = MockActor("actor1")
-        self.room.actor_update(self.actor)
+        self.room.actor_state_changed(self.actor)
 
         self.assertEquals([(self.room, self.actor)],
             self.node._updates)

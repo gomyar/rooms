@@ -21,7 +21,8 @@ class SystemTest(unittest.TestCase):
         self.mock_rpc = MockRpcClient()
         self.mock_player_rpc = MockRpcClient()
         self.node = Node("10.10.10.1", 8000, "master", 9000)
-        self.node._create_token = lambda: "TOKEN1"
+        self.node._create_token = self._mock_create_token
+        self._token_index = 0
         self.mock_script = MockScript()
         self.node.scripts["mock_script"] = self.mock_script
         self.node.scripts["player_script"] = Script("player_script", self)
@@ -44,6 +45,10 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.setup_mock()
         MockIDFactory.setup_mock()
+
+    def _mock_create_token(self):
+        self._token_index += 1
+        return "TOKEN%s" % (self._token_index,)
 
     # script function
     def move_to(self, actor, x, y):
@@ -70,9 +75,9 @@ class SystemTest(unittest.TestCase):
         player1_ws = MockWebsocket()
         player2_ws = MockWebsocket()
         player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
-            "game1", "TOKEN1")
+            "game1", "TOKEN2")
         player2_gthread = gevent.spawn(self.node.player_connects, player2_ws,
-            "game1", "TOKEN1")
+            "game1", "TOKEN3")
 
         MockTimer.fast_forward(0)
 
@@ -86,7 +91,7 @@ class SystemTest(unittest.TestCase):
         self.assertEquals("actor_update", player2_ws.updates[1]['command'])
         self.assertEquals("actor_update", player2_ws.updates[2]['command'])
 
-        self.node.actor_call("game1", "TOKEN1", "actors_1", "move_to",
+        self.node.actor_call("game1", "TOKEN2", "id1", "move_to",
             x=10, y=10)
 
         MockTimer.fast_forward(0)
@@ -104,9 +109,9 @@ class SystemTest(unittest.TestCase):
 
         player1_ws = MockWebsocket()
         player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
-            "game1", "TOKEN1")
+            "game1", "TOKEN2")
 
-        self.node.actor_call("game1", "TOKEN1", "player1", "ping")
+        self.node.actor_call("game1", "TOKEN2", "player1", "ping")
 
         MockTimer.fast_forward(1)
 
@@ -158,11 +163,11 @@ class SystemTest(unittest.TestCase):
 
         player1_ws = MockWebsocket()
         player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
-            "game1", "TOKEN1")
+            "game1", "TOKEN2")
 
         MockTimer.fast_forward(0)
 
-        self.node.actor_call("game1", "TOKEN1", "player1", "move_to",
+        self.node.actor_call("game1", "TOKEN2", "player1", "move_to",
             x=10, y=10)
 
         MockTimer.fast_forward(0)
@@ -245,11 +250,11 @@ class SystemTest(unittest.TestCase):
         player1_ws_2 = MockWebsocket()
         player2_ws = MockWebsocket()
         player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
-            "game1", "TOKEN1")
+            "game1", "TOKEN2")
         player1_g2 = gevent.spawn(self.node.player_connects, player1_ws_2,
-            "game1", "TOKEN1")
+            "game1", "TOKEN2")
         player2_gthread = gevent.spawn(self.node.player_connects, player2_ws,
-            "game1", "TOKEN1")
+            "game1", "TOKEN3")
 
         MockTimer.fast_forward(0)
 
@@ -257,7 +262,7 @@ class SystemTest(unittest.TestCase):
         self.assertEquals(4, len(player1_ws_2.updates))
         self.assertEquals(4, len(player2_ws.updates))
 
-        self.node.actor_call("game1", "TOKEN1", "actors_1", "move_to",
+        self.node.actor_call("game1", "TOKEN2", "id1", "move_to",
             x=10, y=10)
 
         MockTimer.fast_forward(0)
@@ -298,7 +303,7 @@ class SystemTest(unittest.TestCase):
 
         player1_ws = MockWebsocket()
         player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
-            "game1", "TOKEN1")
+            "game1", "TOKEN2")
         admin_ws = MockWebsocket()
         admin_gthread = gevent.spawn(self.node.admin_connects, admin_ws,
             adm_token)
@@ -308,7 +313,7 @@ class SystemTest(unittest.TestCase):
         self.assertEquals(3, len(player1_ws.updates))
         self.assertEquals(3, len(admin_ws.updates))
 
-        self.node.actor_call("game1", "TOKEN1", "actors_1", "move_to",
+        self.node.actor_call("game1", "TOKEN2", "id1", "move_to",
             x=10, y=10)
 
         MockTimer.fast_forward(0)

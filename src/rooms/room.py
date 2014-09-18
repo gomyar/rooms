@@ -107,7 +107,7 @@ class Room(object):
         if position:
             actor.position = position
         actor.kick()
-        self.actor_update(actor)
+        self.actor_added(actor)
 
     def player_actors(self):
         return [a for a in self.actors.values() if a.is_player]
@@ -115,8 +115,14 @@ class Room(object):
     def find_path(self, from_pos, to_pos):
         return self.geography.find_path(self, from_pos, to_pos)
 
-    def actor_update(self, actor):
-        self.node.actor_update(self, actor)
+    def actor_state_changed(self, actor):
+        self.node.actor_state_changed(self, actor)
+
+    def actor_vector_changed(self, actor):
+        self.node.actor_vector_changed(self, actor)
+
+    def actor_added(self, actor):
+        self.node.actor_added(self, actor)
 
     def get_door(self, exit_room_id=None):
         for door in self.doors:

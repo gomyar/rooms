@@ -89,6 +89,12 @@ class MockRoom(object):
     def actor_update(self, actor):
         self._updates.append(actor)
 
+    def actor_vector_changed(self, actor):
+        self._updates.append(actor)
+
+    def actor_state_changed(self, actor):
+        self._updates.append(actor)
+
     def create_actor(self, actor_type, script_name, player=None):
         actor = MockActor("mock1")
         actor.room = self
@@ -121,6 +127,15 @@ class MockNode(object):
 
     def move_actor_room(self, actor, game_id, exit_room_id, exit_room_position):
         self._updates.append((actor, game_id, exit_room_id, exit_room_position))
+
+    def actor_added(self, room, actor):
+        self._updates.append((room, actor))
+
+    def actor_state_changed(self, room, actor):
+        self._updates.append((room, actor))
+
+    def actor_vector_changed(self, room, actor):
+        self._updates.append((room, actor))
 
 
 class MockGame(object):

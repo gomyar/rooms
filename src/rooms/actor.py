@@ -108,13 +108,16 @@ class Actor(object):
                 time_to_position(from_point, to_point, self.speed)
             self.vector = Vector(from_point, from_time, to_point, end_time)
             log.debug("Sending update for vector change: %s", self.vector)
-            self._send_update()
+            self._send_vector_changed()
             from_point = to_point
             from_time = end_time
             Timer.sleep_until(end_time)
 
-    def _send_update(self):
-        self.room.actor_update(self)
+    def _send_state_changed(self):
+        self.room.actor_state_changed(self)
+
+    def _send_vector_changed(self):
+        self.room.actor_vector_changed(self)
 
     @property
     def position(self):

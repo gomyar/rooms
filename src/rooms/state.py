@@ -34,7 +34,7 @@ class SyncDict(object):
         if isinstance(value, (SyncDict, SyncList)):
             value._set_actor(self._actor)
         self._data[name] = value
-        self._actor._send_update()
+        self._actor._send_state_changed()
 
     def keys(self):
         return self._data.keys()
@@ -58,7 +58,7 @@ class SyncList(object):
 
     def append(self, item):
         self._data.append(item)
-        self._actor._send_update()
+        self._actor._send_state_changed()
 
     def __len__(self):
         return len(self._data)
@@ -68,7 +68,7 @@ class SyncList(object):
 
     def __setitem__(self, index, value):
         self._data[index] = value
-        self._actor._send_update()
+        self._actor._send_state_changed()
 
     def _set_actor(self, actor):
         self._actor = actor

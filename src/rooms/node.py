@@ -245,6 +245,15 @@ class Node(object):
             conn.room == room]
         return player_conns + admin_conns
 
+    def actor_added(self, room, actor):
+        self.actor_update(room, actor)
+
+    def actor_state_changed(self, room, actor):
+        self.actor_update(room, actor)
+
+    def actor_vector_changed(self, room, actor):
+        self.actor_update(room, actor)
+
     def actor_update(self, room, actor):
         log.debug("Actor update for %s in %s", actor, room)
         for player_conn in self._connections_for(room):

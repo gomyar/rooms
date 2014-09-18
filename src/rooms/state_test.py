@@ -9,7 +9,7 @@ class MockActor(object):
     def __init__(self):
         self.updates = 0
 
-    def _send_update(self):
+    def _send_state_changed(self):
         self.updates += 1
 
 
