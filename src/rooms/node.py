@@ -202,7 +202,7 @@ class Node(object):
         player_conn = self.connections[token]
         room = self.rooms[game_id, player_conn.room.room_id]
         queue = player_conn.new_queue()
-        self._send_sync_to_websocket(ws, room, player_conn.username)
+        player_conn.send_sync_to_websocket(ws, room, player_conn.username)
         self._perform_ws_loop(player_conn, queue, ws)
 
     def _perform_ws_loop(self, player_conn, queue, ws):
@@ -216,17 +216,6 @@ class Node(object):
                     connected = False
         finally:
             player_conn.queues.remove(queue)
-
-    def _send_sync_to_websocket(self, ws, room, username):
-        ws.send(json.dumps(self._sync_message(room, username)))
-        for actor in room.actors.values():
-            ws.send(json.dumps(
-                {"command": "actor_update", "actor_id": actor.actor_id,
-                "data": jsonview(actor)}))
-
-    def _sync_message(self, room, username):
-        return {"command": "sync", "data": {"now": Timer.now(),
-            "username": username, "room_id": room.room_id}}
 
     def actor_call(self, game_id, token, actor_id, method, **kwargs):
         if token not in self.connections:
@@ -249,10 +238,12 @@ class Node(object):
         self.actor_update(room, actor)
 
     def actor_state_changed(self, room, actor):
-        self.actor_update(room, actor)
+        if actor.visible:
+            self.actor_update(room, actor)
 
     def actor_vector_changed(self, room, actor):
-        self.actor_update(room, actor)
+        if actor.visible:
+            self.actor_update(room, actor)
 
     def actor_update(self, room, actor):
         log.debug("Actor update for %s in %s", actor, room)
@@ -265,6 +256,12 @@ class Node(object):
         for player_conn in self._connections_for(room):
             log.debug("Actor removed : %s : %s", player_conn.username, actor)
             player_conn.remove_actor(actor)
+
+    def actor_becomes_visible(self, room, actor):
+        self.actor_update(room, actor)
+
+    def actor_becomes_invisible(self, room, actor):
+        self.actor_removed(room, actor)
 
     def _request_player_connection(self, username, game_id):
         player = self._get_or_load_player(username, game_id)
@@ -378,8 +375,7 @@ class Node(object):
                 actor.username)
             player_conn = self.player_connections[actor.username, game_id]
             player_conn.room = exit_room
-            player_conn.send_message(self._sync_message(exit_room,
-                player_conn.username))
+            player_conn.send_sync(exit_room)
             for actor in exit_room.actors.values():
                 player_conn.actor_update(actor)
         else:
@@ -405,5 +401,5 @@ class Node(object):
         admin_conn = self.admin_connections[token]
         log.debug("Admin conects: %s", token)
         queue = admin_conn.new_queue()
-        self._send_sync_to_websocket(ws, admin_conn.room, "admin")
+        admin_conn.send_sync_to_websocket(ws, admin_conn.room, "admin")
         self._perform_ws_loop(admin_conn, queue, ws)

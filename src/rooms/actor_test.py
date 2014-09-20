@@ -140,7 +140,10 @@ class ActorTest(unittest.TestCase):
         self.actor2.state.log = []
         self.actor2.room = self.mock_room
 
-        self.actor.dock(self.actor2)
+        self.actor2.dock_with(self.actor)
+
+        self.assertEquals(set([self.actor2]), self.actor.docked_actors)
+        self.assertEquals(self.actor, self.actor2.docked_with)
 
         self.assertEquals(Position(0, 0), self.actor.position)
 
@@ -150,3 +153,33 @@ class ActorTest(unittest.TestCase):
 
         self.assertEquals(Position(1.0, 0), self.actor.position)
         self.assertEquals(Position(1.0, 0), self.actor2.position)
+
+    def testVisible(self):
+        self.actor.visible = True
+        self.assertEquals([], self.mock_room._update_invisible)
+        self.assertEquals([], self.mock_room._update_visible)
+
+        self.actor.visible = False
+        self.assertEquals([self.actor], self.mock_room._update_invisible)
+
+        self.actor.visible = True
+        self.assertEquals([self.actor], self.mock_room._update_visible)
+
+    def testDockingUpdates(self):
+        self.actor2 = Actor(self.mock_room, "mock_actor", Script("actor_script",
+            ActorTest))
+
+        self.actor2.dock_with(self.actor)
+
+        self.assertEquals([self.actor, self.actor2, self.actor],
+            self.mock_room._updates)
+        self.assertEquals([self.actor2], self.mock_room._update_invisible)
+        self.assertEquals([], self.mock_room._update_visible)
+
+        self.actor2.undock()
+
+        self.assertEquals([self.actor, self.actor2, self.actor,
+            self.actor, self.actor2],
+            self.mock_room._updates)
+        self.assertEquals([self.actor2], self.mock_room._update_invisible)
+        self.assertEquals([self.actor2], self.mock_room._update_visible)

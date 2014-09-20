@@ -74,6 +74,8 @@ class MockRoom(object):
         self.room_id = room_id
         self.game_id = game_id
         self._updates = []
+        self._update_invisible = []
+        self._update_visible = []
         self.actors = dict()
         self.topleft = Position(0, 0)
         self.bottomright = Position(10, 10)
@@ -94,6 +96,12 @@ class MockRoom(object):
 
     def actor_state_changed(self, actor):
         self._updates.append(actor)
+
+    def actor_becomes_invisible(self, actor):
+        self._update_invisible.append(actor)
+
+    def actor_becomes_visible(self, actor):
+        self._update_visible.append(actor)
 
     def create_actor(self, actor_type, script_name, player=None):
         actor = MockActor("mock1")
@@ -117,6 +125,8 @@ class MockNode(object):
     def __init__(self):
         self._updates = []
         self._removals = []
+        self._invisible = []
+        self._visible = []
         self.scripts = {}
 
     def actor_update(self, room, actor):
@@ -136,6 +146,12 @@ class MockNode(object):
 
     def actor_vector_changed(self, room, actor):
         self._updates.append((room, actor))
+
+    def actor_becomes_visible(self, room, actor):
+        self._visible.append((room, actor))
+
+    def actor_becomes_invisible(self, room, actor):
+        self._invisible.append((room, actor))
 
 
 class MockGame(object):

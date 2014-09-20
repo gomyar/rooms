@@ -124,6 +124,12 @@ class Room(object):
     def actor_added(self, actor):
         self.node.actor_added(self, actor)
 
+    def actor_becomes_visible(self, actor):
+        self.node.actor_becomes_visible(self, actor)
+
+    def actor_becomes_invisible(self, actor):
+        self.node.actor_becomes_invisible(self, actor)
+
     def get_door(self, exit_room_id=None):
         for door in self.doors:
             if door.exit_room_id == exit_room_id:

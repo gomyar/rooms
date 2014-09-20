@@ -1,4 +1,6 @@
 
+import json
+
 from gevent.queue import Queue
 from rooms.views import jsonview
 from rooms.timer import Timer
@@ -50,3 +52,14 @@ class PlayerConnection(object):
     def send_sync(self, room):
         self.send_message({"command": "sync", "data": {"now": Timer.now(),
             "username": self.username, "room_id": room.room_id}})
+
+    def send_sync_to_websocket(self, ws, room, username):
+        ws.send(json.dumps(self._sync_message(room, username)))
+        for actor in room.actors.values():
+            ws.send(json.dumps(
+                {"command": "actor_update", "actor_id": actor.actor_id,
+                "data": jsonview(actor)}))
+
+    def _sync_message(self, room, username):
+        return {"command": "sync", "data": {"now": Timer.now(),
+            "username": username, "room_id": room.room_id}}

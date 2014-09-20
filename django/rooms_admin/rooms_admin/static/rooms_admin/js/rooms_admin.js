@@ -146,6 +146,10 @@ function game_callback(msg)
     {
         gui.actorRedraw();
     }
+    if (msg.command == "remove_actor")
+    {
+        gui.actorRedraw();
+    }
 }
 
 

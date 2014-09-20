@@ -30,7 +30,7 @@ class Actor(object):
         self.speed = 1.0
         self.username = username
         self.is_player = False
-        self.docked = set()
+        self.docked_actors = set()
         self.docked_with = None
 
         self._script_gthread = None
@@ -133,6 +133,34 @@ class Actor(object):
     def enter(self, door):
         self.room.actor_enters(self, door)
 
-    def dock(self, actor):
-        self.docked.add(actor)
-        actor.docked_with = self
+    def dock_with(self, actor):
+        if self.docked_with:
+            self.undock()
+        actor.docked_actors.add(self)
+        self.docked_with = actor
+        self.visible = False
+        self._send_state_changed()
+        actor._send_state_changed()
+
+    def undock(self):
+        if self.docked_with:
+            self.docked_with.docked_actors.remove(self)
+            self.docked_with._send_state_changed()
+            self.docked_with = None
+            self._send_state_changed()
+            self.visible = True
+
+
+    @property
+    def visible(self):
+        return self._visible
+
+    @visible.setter
+    def visible(self, isvisible):
+        if isvisible == self._visible:
+            return
+        self._visible = isvisible
+        if isvisible:
+            self.room.actor_becomes_visible(self)
+        else:
+            self.room.actor_becomes_invisible(self)

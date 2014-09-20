@@ -45,7 +45,8 @@ class JsonView(object):
             actor_type=actor.actor_type,
             username=actor.username,
             docked_with=actor.docked_with.actor_id if \
-                actor.docked_with else None
+                actor.docked_with else None,
+            docked_actors=list(actor.docked_actors),
         )
 
     def view_state(self, state):

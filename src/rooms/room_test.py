@@ -73,10 +73,18 @@ class RoomTest(unittest.TestCase):
 
     def testActorUpdate(self):
         self.actor = MockActor("actor1")
-        self.room.actor_state_changed(self.actor)
 
+        self.room.actor_state_changed(self.actor)
         self.assertEquals([(self.room, self.actor)],
             self.node._updates)
+
+        self.room.actor_becomes_invisible(self.actor)
+        self.assertEquals([(self.room, self.actor)],
+            self.node._invisible)
+
+        self.room.actor_becomes_visible(self.actor)
+        self.assertEquals([(self.room, self.actor)],
+            self.node._visible)
 
     def testActorEnterDoor(self):
         self.door = Door("room2", Position(5, 5), Position(10, 10))

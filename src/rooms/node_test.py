@@ -146,6 +146,7 @@ class NodeTest(unittest.TestCase):
                u'state': {},
                u'username': u'bob',
                u'docked_with': None,
+               u'docked_actors': [],
                u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
                            u'end_time': 0.0,
                            u'start_pos': {u'x': 0.0,
@@ -530,3 +531,23 @@ class NodeTest(unittest.TestCase):
         room1 = self.node.rooms["game1", "map1.room1"]
         self.assertEquals(room1, self.node.admin_connections[token].room)
         self.assertEquals(1, len(self.node._connections_for(room1)))
+
+    def testPropagateActorEvents(self):
+        self.node.manage_room("game1", "room1")
+        token = self.node.player_joins("ned", "game1", "room1")
+        queue = self.node.connections[token].new_queue()
+        actor = self.node.connections[token].actor
+
+        self.assertTrue(queue.empty())
+
+        actor.state.something = "value"
+        self.assertEquals('actor_update', queue.get()['command'])
+
+        actor.visible = False
+        self.assertEquals('remove_actor', queue.get()['command'])
+
+        actor.state.something = "value"
+        self.assertTrue(queue.empty())
+
+        actor.visible = True
+        self.assertEquals('actor_update', queue.get()['command'])
