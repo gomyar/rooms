@@ -147,6 +147,7 @@ class NodeTest(unittest.TestCase):
                u'username': u'bob',
                u'docked_with': None,
                u'docked_actors': [],
+               u'visible': True,
                u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
                            u'end_time': 0.0,
                            u'start_pos': {u'x': 0.0,

@@ -4,7 +4,9 @@ var api_rooms = {};
 api_rooms.server_time = 0;
 api_rooms.local_time = 0;
 api_rooms.token = "";
+api_rooms.username = "";
 
+// Remove me
 api_rooms.room = { topleft: {'x': 0, 'y': 0, 'z': 0}, bottomright: {'x': 0, 'y': 0, 'z': 0}, map_objects: [] };
 
 api_rooms.actors = {};
@@ -115,11 +117,10 @@ api_rooms.onerror = function()
     console.log("Connection error");
 }
 
-api_rooms.connect = function(server_url, game_id, username, callback)
+api_rooms.connect = function(master_url, game_id, callback)
 {
     api_rooms.game_id = game_id;
-    api_rooms.username = username;
-    api_rooms.master_url = server_url;
+    api_rooms.master_url = master_url;
     api_rooms.game_callback = callback;
 
     api_rooms.request_connection();
@@ -127,7 +128,7 @@ api_rooms.connect = function(server_url, game_id, username, callback)
 
 api_rooms.request_connection = function()
 {
-    api_rooms.service_call(api_rooms.master_url + "/player_connects/" + api_rooms.username + "/" + api_rooms.game_id, {},
+    api_rooms.service_call(api_rooms.master_url + "/player_connects", {"game_id": api_rooms.game_id},
             function(data) {
                 api_rooms.node_host = data.node[0];
                 api_rooms.node_port = data.node[1];
@@ -139,7 +140,7 @@ api_rooms.request_connection = function()
 
 api_rooms.connect_node = function()
 {
-    api_rooms.socket = new WebSocket("ws://" + api_rooms.node_host + ":" + api_rooms.node_port + "/game/player_connects/" + api_rooms.game_id + "/" + api_rooms.username + "/" + api_rooms.token);
+    api_rooms.socket = new WebSocket("ws://" + api_rooms.node_host + ":" + api_rooms.node_port + "/node_game/player_connects/" + api_rooms.game_id + "/" + api_rooms.token);
     api_rooms.socket.onmessage = api_rooms.message_callback;
     api_rooms.socket.onopen = api_rooms.onopen;
     api_rooms.socket.onclose = api_rooms.onclose;
@@ -151,7 +152,6 @@ api_rooms.admin_connect = function(host, port, token, game_callback)
     console.log("Connecting to : "+ host + ":" + port + " " + token);
     api_rooms.actors = {};
     api_rooms.game_id = null;
-    api_rooms.username = 'admin';
     api_rooms.token = token;
 
     api_rooms.socket = new WebSocket("ws://"+host+":"+port+"/node_game/admin_connects/"+token);
@@ -168,24 +168,9 @@ api_rooms.admin_connect = function(host, port, token, game_callback)
 api_rooms.command_sync = function(message)
 {
     api_rooms.set_now(message.data.now);
-    api_rooms.load_room_map(message.data.room_id);
+    api_rooms.username = message.data.username;
 }
 
-api_rooms.load_room_map = function(room_id)
-{
-    var map_id = room_id.split('.')[0];
-    var room_key = room_id.split('.')[1];
-
-    api_rooms.service_call(api_rooms.master_url + "/maps/" + map_id + ".json", {}, function(map_data){
-        api_rooms.room = map_data.rooms[room_key];        
-        api_rooms.game_callback({
-            "command": "map_loaded",
-            "room_id": room_id,
-            "map_id": map_id,
-            "room_key": room_key,
-            "map_data": map_data});
-    });
-}
 
 api_rooms.command_actor_update = function(message)
 {
@@ -203,16 +188,10 @@ api_rooms.command_remove_actor = function(message)
     delete api_rooms.actors[message.actor_id];
 }
 
-api_rooms.command_moved_node = function(message)
-{
-    window.location = "http://"+message.node[0]+":"+message.node[1]+"/assets/index.html?token="+message.token+"&game_id="+api_rooms.game_id+"&username="+api_rooms.username;
-}
-
 api_rooms.commands = {
     "sync": api_rooms.command_sync,
     "actor_update": api_rooms.command_actor_update,
-    "remove_actor": api_rooms.command_remove_actor,
-    "redirect": api_rooms.command_moved_node
+    "remove_actor": api_rooms.command_remove_actor
 };
 
 api_rooms.message_callback = function(msgevent)
@@ -228,7 +207,7 @@ api_rooms.message_callback = function(msgevent)
 // *** API Calls
 api_rooms.call_command = function(actor_id, command, args, callback)
 {
-    api_rooms.service_call("/game/actor_call/" + api_rooms.game_id + "/" + api_rooms.username + "/" + actor_id + "/" + api_rooms.token + "/" + command, args, callback);
+    api_rooms.service_call("http://" + api_rooms.node_host + ":" + api_rooms.node_port + "/node_game/actor_call/" + api_rooms.game_id + "/" + api_rooms.token + "/" + actor_id + "/" + command, args, callback);
 }
 
 api_rooms.actor_request = function(actor_id, command, args, callback)

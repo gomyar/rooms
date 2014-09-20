@@ -18,6 +18,7 @@ from rooms.scriptset import ScriptSet
 from rooms.views import jsonview
 from rooms.timer import Timer
 from rooms.player_connection import PlayerConnection
+from rooms.player_connection import AdminConnection
 
 import logging
 log = logging.getLogger("rooms.node")
@@ -134,13 +135,16 @@ class Node(object):
         if self._report_gthread:
             self._report_gthread.kill()
         self.master_conn.call("offline_node", host=self.host, port=self.port)
+        self.save_all()
+        self.master_conn.call("deregister_node", host=self.host,
+            port=self.port)
+
+    def save_all(self):
         for (game_id, room_id), room in self.rooms.items():
             for actor in room.actors.values():
                 actor._kill_gthreads()
                 self.container.save_actor(actor)
             self.container.save_room(room)
-        self.master_conn.call("deregister_node", host=self.host,
-            port=self.port)
 
     def all_rooms(self):
         return [{"game_id": room.game_id, "room_id": room.room_id,
@@ -238,30 +242,26 @@ class Node(object):
         self.actor_update(room, actor)
 
     def actor_state_changed(self, room, actor):
-        if actor.visible:
-            self.actor_update(room, actor)
+        self.actor_update(room, actor)
 
     def actor_vector_changed(self, room, actor):
-        if actor.visible:
-            self.actor_update(room, actor)
+        self.actor_update(room, actor)
 
     def actor_update(self, room, actor):
-        log.debug("Actor update for %s in %s", actor, room)
         for player_conn in self._connections_for(room):
-            log.debug("Sending to : %s : %s", player_conn.username, actor)
             player_conn.actor_update(actor)
 
     def actor_removed(self, room, actor):
-        log.debug("Actor removed %s from %s", actor, room)
         for player_conn in self._connections_for(room):
-            log.debug("Actor removed : %s : %s", player_conn.username, actor)
-            player_conn.remove_actor(actor)
+            player_conn.actor_removed(actor)
 
     def actor_becomes_visible(self, room, actor):
-        self.actor_update(room, actor)
+        for player_conn in self._connections_for(room):
+            player_conn.actor_becomes_visible(actor)
 
     def actor_becomes_invisible(self, room, actor):
-        self.actor_removed(room, actor)
+        for player_conn in self._connections_for(room):
+            player_conn.actor_becomes_invisible(actor)
 
     def _request_player_connection(self, username, game_id):
         player = self._get_or_load_player(username, game_id)
@@ -393,7 +393,7 @@ class Node(object):
     def request_admin_token(self, game_id, room_id):
         room = self.rooms[game_id, room_id]
         token = self._create_token()
-        self.admin_connections[token] = PlayerConnection(game_id, "admin",
+        self.admin_connections[token] = AdminConnection(game_id, "admin",
             room, None, token)
         return token
 

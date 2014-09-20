@@ -150,6 +150,10 @@ function game_callback(msg)
     {
         gui.actorRedraw();
     }
+    if (msg.command == "sync")
+    {
+        console.log("Load map: " + msg.data.map_url);
+    }
 }
 
 

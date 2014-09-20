@@ -61,6 +61,10 @@ class Container(object):
     def save_room(self, room):
         self._save_object(room, "rooms")
 
+    def save_actors(self, actors):
+        for actor in actors:
+            self.save_actor(actor)
+
     def create_room(self, game_id, room_id):
         if self.room_exists(game_id, room_id):
             raise Exception("Room %s %s already exists" % (game_id, room_id))

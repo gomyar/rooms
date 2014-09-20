@@ -106,6 +106,7 @@ if __name__ == "__main__":
         server.serve_forever()
     except KeyboardInterrupt, ke:
         log.debug("Master stopped")
+        node.save_all()
         master.shutdown()
     except:
         log.exception("Exception starting server")

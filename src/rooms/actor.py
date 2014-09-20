@@ -159,8 +159,9 @@ class Actor(object):
     def visible(self, isvisible):
         if isvisible == self._visible:
             return
-        self._visible = isvisible
         if isvisible:
+            self._visible = isvisible
             self.room.actor_becomes_visible(self)
         else:
             self.room.actor_becomes_invisible(self)
+            self._visible = isvisible
