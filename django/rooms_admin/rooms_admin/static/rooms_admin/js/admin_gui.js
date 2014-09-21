@@ -419,12 +419,16 @@ gui.draw_npc_actor = function(ctx, actor)
 {
 //    console.log("Drawing npc at "+actor.x() +","+actor.y());
  //   console.log("Drawing real at "+gui.canvas_x(actor.x()) +","+gui.canvas_y(actor.y()));
-    gui.draw_text_centered(0, - 17, actor.actor_type, "white");
+    var textcolor = actor.visible ? "white" : "gray";
+    gui.draw_text_centered(0, - 17, actor.actor_type, textcolor);
 
     if (actor.health)
         gui.draw_health(ctx, actor);
 
-    ctx.strokeStyle = "rgb(255,255,255)";
+    if (actor.visible)
+        ctx.strokeStyle = "rgb(255,255,255)";
+    else
+        ctx.strokeStyle = "rgb(100,100,100)";
     ctx.beginPath();
     ctx.arc(0, 0,10,0,Math.PI*2);
     ctx.closePath();

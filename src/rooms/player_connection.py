@@ -74,6 +74,12 @@ class AdminConnection(PlayerConnection):
     def actor_becomes_invisible(self, actor):
         self.actor_update(actor)
 
+    def send_sync_to_websocket(self, ws, room, username):
+        ws.send(json.dumps(self._sync_message(room)))
+        for actor in room.actors.values():
+            ws.send(json.dumps({"command": "actor_update",
+                "actor_id": actor.actor_id, "data": jsonview(actor)}))
+
     def _sync_message(self, room):
         sync_msg = super(AdminConnection, self)._sync_message(room)
         sync_msg['map_url'] = "http://mapurl"
