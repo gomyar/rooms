@@ -317,6 +317,7 @@ gui.real_y = function(canvas_y)
 
 gui.draw = function()
 {
+    console.log("Drawing");
     gui.redraw_timeout = null;
     gui.ctx.fillStyle = "rgb(0,0,0)";
     gui.ctx.clearRect(0, 0, gui.canvas.width, gui.canvas.height);
@@ -364,9 +365,15 @@ gui.draw = function()
     gui.draw_text_centered(50, 80, "Zoom:" + Math.round(gui.zoom*100)/100, "white");
 
 
+    console.log("finished draw");
     var nowish = api_rooms.get_now();
+    console.log("nowish = " + new Date(nowish));
+    console.log("gui.redraw_until=" + new Date(gui.redraw_until));
     if (nowish < gui.redraw_until)
+    {
+        console.log("requesting redraw");
         gui.requestRedraw();
+    }
 }
 
 
@@ -446,39 +453,16 @@ gui.draw_actor = function(actor)
     }
 }
 
-// -------- Util functions
-gui.optionalRedraw = function(until_time)
+gui.requestRedraw = function(redraw_until)
 {
-    if (gui.redraw_until <= until_time)
-    {
-        gui.redraw_until = until_time;
-        gui.requestRedraw();
-    }
-}
-
-gui.actorRedraw = function()
-{
-    var until_time = api_rooms.get_now();
-    for (var i in api_rooms.actors)
-    {
-        var actor = api_rooms.actors[i];
-        if (actor.vector.end_time * 1000 > until_time)
-        {
-            until_time = actor.vector.end_time * 1000
-        }
-    }
-    if (until_time > api_rooms.get_now())
-    {
-        console.log("optionalRedraw() until " + new Date(until_time));
-        gui.optionalRedraw(until_time);
-    }
-}
-
-gui.requestRedraw = function()
-{
+    if (redraw_until == null)
+        redraw_until = api_rooms.get_now() + 150;
+    if (gui.redraw_until == null || gui.redraw_until < redraw_until)
+        gui.redraw_until = redraw_until;
     if (gui.redraw_timeout == null)
         gui.redraw_timeout = setTimeout(gui.draw, 50);
 }
+
 
 gui.draw_rect = function(x, y, width, height, color)
 {

@@ -80,7 +80,6 @@ api_rooms.set_now = function(now_time)
 {
     api_rooms.server_time = now_time * 1000;
     api_rooms.local_time = new Date().getTime();
-    gui.redraw_until = api_rooms.get_now();
     console.log("Server time : "+new Date(api_rooms.server_time));
     console.log("Local time : "+new Date(api_rooms.local_time));
 }

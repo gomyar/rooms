@@ -28,8 +28,6 @@ class PlayerConnection(object):
         return queue
 
     def send_message(self, message):
-        log.debug("PlayerConnection: sending message to %s queues: %s",
-            len(self.queues), message)
         for queue in self.queues:
             queue.put(message)
 
@@ -80,3 +78,11 @@ class AdminConnection(PlayerConnection):
         sync_msg = super(AdminConnection, self)._sync_message(room)
         sync_msg['map_url'] = "http://mapurl"
         return sync_msg
+
+    def actor_update(self, actor):
+        self.send_message({"command": "actor_update",
+            "actor_id": actor.actor_id, "data": jsonview(actor)})
+
+    def actor_removed(self, actor):
+        self.send_message({"command": "remove_actor",
+            "actor_id": actor.actor_id})

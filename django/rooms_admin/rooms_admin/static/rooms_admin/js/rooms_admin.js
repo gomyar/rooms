@@ -144,17 +144,58 @@ function game_callback(msg)
     }
     if (msg.command == "actor_update")
     {
-        gui.actorRedraw();
+        var end_time = api_rooms.actors[msg.data.actor_id].vector.end_time * 1000;
+        console.log("end time: " + end_time);
+        gui.requestRedraw();
     }
     if (msg.command == "remove_actor")
     {
-        gui.actorRedraw();
+        gui.requestRedraw();
     }
     if (msg.command == "sync")
     {
         console.log("Load map: " + msg.data.map_url);
+        load_room(msg.data.room_id);
+        gui.requestRedraw();
     }
 }
+
+
+perform_get = function(url, callback, onerror)
+{
+    $.ajax({
+        'url': url,
+        'success': function(data) {
+            if (callback != null)
+                callback(data);
+        },
+        'error': function(jqXHR, errorText) {
+            console.log("Error calling "+url+" : "+errorText);
+            if (onerror)
+                onerror(errorText, jqXHR);
+        },
+        'type': 'GET'
+    });
+}
+
+function load_room(room_id)
+{
+    var map_id = room_id.split('.')[0];
+    var map_room_id = room_id.split('.')[1];
+
+    // TODO: Might send this right through the admin api
+    perform_get("/static/helios_game/maps/" + map_id + ".json",
+        function(data){ show_room(data, map_room_id);},
+        function(errTxt, jqXHR){ alert("Error loading room: "+errTxt);});
+}
+
+
+function show_room(data, map_room_id)
+{
+    api_rooms.room = data['rooms'][map_room_id];
+    gui.requestRedraw();
+}
+
 
 
 rooms_admin.config(['$routeProvider',

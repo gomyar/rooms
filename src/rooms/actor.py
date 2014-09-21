@@ -107,7 +107,6 @@ class Actor(object):
             end_time = from_time + \
                 time_to_position(from_point, to_point, self.speed)
             self.vector = Vector(from_point, from_time, to_point, end_time)
-            log.debug("Sending update for vector change: %s", self.vector)
             self._send_vector_changed()
             from_point = to_point
             from_time = end_time

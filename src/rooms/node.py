@@ -200,7 +200,7 @@ class Node(object):
             gevent.sleep(1)
 
     def player_connects(self, ws, game_id, token):
-        log.debug("Player conects: %s %s", game_id, token)
+        log.debug("Player connects: %s %s", game_id, token)
         if token not in self.connections:
             raise Exception("Invalid token for player")
         player_conn = self.connections[token]
@@ -214,7 +214,6 @@ class Node(object):
             connected = True
             while connected:
                 message = queue.get()
-                log.debug("Websocket message: %s", message)
                 ws.send(json.dumps(jsonview(message)))
                 if message.get("command") in ['disconnect', 'redirect']:
                     connected = False
