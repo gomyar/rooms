@@ -41,6 +41,10 @@ class GameController(object):
     def admin_connects(self, ws, token):
         return self.node.admin_connects(ws, token)
 
+    @request
+    def admin_map(self, token, map_id):
+        return self.node.admin_map(token, map_id)
+
 
 class NodeController(object):
     def __init__(self, node):
@@ -402,3 +406,9 @@ class Node(object):
         queue = admin_conn.new_queue()
         admin_conn.send_sync_to_websocket(ws, admin_conn.room, "admin")
         self._perform_ws_loop(admin_conn, queue, ws)
+
+    def admin_map(self, token, map_id):
+        if token not in self.admin_connections:
+            raise Exception("Not authorized")
+        admin_conn = self.admin_connections[token]
+        return self.room_factory.load_map(map_id)

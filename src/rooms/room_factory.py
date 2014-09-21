@@ -30,12 +30,15 @@ class RoomFactory(object):
 
     def create(self, game_id, room_id):
         map_id, map_room_id = room_id.split('.')
-        map_json = self.map_source.load_map(map_id)
+        map_json = self.load_map(map_id)
         self.positioning = map_json.get("positioning", RoomFactory.POS_ABS)
         if map_room_id not in map_json['rooms']:
             raise Exception("No room %s in map %s" % (map_room_id, map_id))
         return self._create_room(map_json['rooms'][map_room_id], game_id,
             room_id)
+
+    def load_map(self, map_id):
+        return self.map_source.load_map(map_id)
 
     def _create_room(self, room_json, game_id, room_id):
         room = Room(game_id, room_id, self._create_pos(room_json['topleft']),

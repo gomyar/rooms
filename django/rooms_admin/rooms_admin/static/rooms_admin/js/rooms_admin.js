@@ -136,8 +136,6 @@ rooms_admin.controller("NewItemCtrl", ['$scope', '$http', '$location',
 
 function game_callback(msg)
 {
-    console.log("Recieved message:" + msg.command);
-    console.log(msg);
     if (msg.command == "map_loaded")
     {
         console.log("Loaded map");
@@ -145,7 +143,6 @@ function game_callback(msg)
     if (msg.command == "actor_update")
     {
         var end_time = api_rooms.actors[msg.data.actor_id].vector.end_time * 1000;
-        console.log("end time: " + end_time);
         gui.requestRedraw();
     }
     if (msg.command == "remove_actor")
@@ -154,7 +151,6 @@ function game_callback(msg)
     }
     if (msg.command == "sync")
     {
-        console.log("Load map: " + msg.data.map_url);
         load_room(msg.data.room_id);
         gui.requestRedraw();
     }
@@ -184,7 +180,7 @@ function load_room(room_id)
     var map_room_id = room_id.split('.')[1];
 
     // TODO: Might send this right through the admin api
-    perform_get("/static/helios_game/maps/" + map_id + ".json",
+    perform_get("http://" + api_rooms.node_host + ":" + api_rooms.node_port + "/node_game/admin_map/" + api_rooms.token + "/" + map_id,
         function(data){ show_room(data, map_room_id);},
         function(errTxt, jqXHR){ alert("Error loading room: "+errTxt);});
 }

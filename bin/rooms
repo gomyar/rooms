@@ -70,6 +70,7 @@ if __name__ == "__main__":
         node = Node(host, port, host, port)
         room_factory = RoomFactory(FileMapSource(os.path.join(options.game,
             "maps")), node)
+        node.room_factory = room_factory
         item_registry = ItemRegistry()
         item_registry.load_from_directory(options.game)
         container = Container(dbase, geography, node, room_factory,

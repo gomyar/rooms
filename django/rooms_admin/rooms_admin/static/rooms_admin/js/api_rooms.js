@@ -13,6 +13,8 @@ api_rooms.actors = {};
 api_rooms.socket = null;
 
 api_rooms.master_url = "http://localhost:9999";
+api_rooms.node_host = null;
+api_rooms.node_port = null;
 
 
 api_rooms.Actor = function(actor)
@@ -152,6 +154,8 @@ api_rooms.admin_connect = function(host, port, token, game_callback)
     api_rooms.actors = {};
     api_rooms.game_id = null;
     api_rooms.token = token;
+    api_rooms.node_host = host;
+    api_rooms.node_port = port;
 
     api_rooms.socket = new WebSocket("ws://"+host+":"+port+"/node_game/admin_connects/"+token);
     api_rooms.socket.onmessage = api_rooms.message_callback;

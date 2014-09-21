@@ -151,7 +151,6 @@ gui.canvas_clicked = function(e)
         }
         else if (actors.length == 1)
         {
-            console.log("Selecting  ");
             gui.select_actor(actors[0]);
             $('.selected_actor_list').remove();
             gui.requestRedraw();
@@ -249,7 +248,6 @@ gui.show_selected_actor_list = function(actors)
 
 gui.resetCanvas = function()
 {
-    console.log("Resetting canvas");
     gui.canvas.width = $("#screen").parent().width();
     gui.canvas.height = $("#screen").parent().height();
     gui.ctx=gui.canvas.getContext("2d");
@@ -317,7 +315,6 @@ gui.real_y = function(canvas_y)
 
 gui.draw = function()
 {
-    console.log("Drawing");
     gui.redraw_timeout = null;
     gui.ctx.fillStyle = "rgb(0,0,0)";
     gui.ctx.clearRect(0, 0, gui.canvas.width, gui.canvas.height);
@@ -365,15 +362,9 @@ gui.draw = function()
     gui.draw_text_centered(50, 80, "Zoom:" + Math.round(gui.zoom*100)/100, "white");
 
 
-    console.log("finished draw");
     var nowish = api_rooms.get_now();
-    console.log("nowish = " + new Date(nowish));
-    console.log("gui.redraw_until=" + new Date(gui.redraw_until));
     if (nowish < gui.redraw_until)
-    {
-        console.log("requesting redraw");
         gui.requestRedraw();
-    }
 }
 
 
@@ -417,8 +408,6 @@ gui.draw_player_actor = function(ctx, actor)
 
 gui.draw_npc_actor = function(ctx, actor)
 {
-//    console.log("Drawing npc at "+actor.x() +","+actor.y());
- //   console.log("Drawing real at "+gui.canvas_x(actor.x()) +","+gui.canvas_y(actor.y()));
     var textcolor = actor.visible ? "white" : "gray";
     gui.draw_text_centered(0, - 17, actor.actor_type, textcolor);
 
