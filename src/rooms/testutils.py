@@ -91,7 +91,7 @@ class MockRoom(object):
     def actor_update(self, actor):
         self._updates.append(actor)
 
-    def actor_vector_changed(self, actor):
+    def actor_vector_changed(self, actor, previous_vector):
         self._updates.append(actor)
 
     def actor_state_changed(self, actor):

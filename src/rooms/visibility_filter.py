@@ -10,7 +10,7 @@ class VisibilityFilter(object):
     def remove_listener(self, listener):
         self.listeners.remove(listener)
 
-    def actor_vector_changed(self, actor):
+    def actor_vector_changed(self, actor, previous_vector):
         ''' Called when actor vector changes '''
         for listener in self.listeners:
             listener.actor_update(actor)

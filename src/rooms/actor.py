@@ -106,17 +106,15 @@ class Actor(object):
         for to_point in self.path[1:]:
             end_time = from_time + \
                 time_to_position(from_point, to_point, self.speed)
+            previous_vector = self.vector
             self.vector = Vector(from_point, from_time, to_point, end_time)
-            self._send_vector_changed()
+            self.room.actor_vector_changed(self, previous_vector)
             from_point = to_point
             from_time = end_time
             Timer.sleep_until(end_time)
 
     def _send_state_changed(self):
         self.room.actor_state_changed(self)
-
-    def _send_vector_changed(self):
-        self.room.actor_vector_changed(self)
 
     @property
     def position(self):

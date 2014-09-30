@@ -1,4 +1,6 @@
 
+ - add version tag + version number to setup.py
+
  - sort out api_rooms.js
    - stop sending username from client
    - infer username from cookie

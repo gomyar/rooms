@@ -245,10 +245,12 @@ class Node(object):
         self.actor_update(room, actor)
 
     def actor_state_changed(self, room, actor):
-        self.actor_update(room, actor)
+        for player_conn in self._connections_for(room):
+            player_conn.actor_state_changed(actor)
 
-    def actor_vector_changed(self, room, actor):
-        self.actor_update(room, actor)
+    def actor_vector_changed(self, room, actor, previous_vector):
+        for player_conn in self._connections_for(room):
+            player_conn.actor_vector_changed(actor, previous_vector)
 
     def actor_update(self, room, actor):
         for player_conn in self._connections_for(room):

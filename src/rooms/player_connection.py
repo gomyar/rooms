@@ -49,6 +49,12 @@ class PlayerConnection(object):
             self.send_message({"command": "remove_actor",
                 "actor_id": actor.actor_id})
 
+    def actor_state_changed(self, actor):
+        self.actor_update(actor)
+
+    def actor_vector_changed(self, actor, previous_vector):
+        self.actor_update(actor)
+
     def actor_becomes_visible(self, actor):
         self.actor_update(actor)
 

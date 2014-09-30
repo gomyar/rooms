@@ -118,8 +118,8 @@ class Room(object):
     def actor_state_changed(self, actor):
         self.node.actor_state_changed(self, actor)
 
-    def actor_vector_changed(self, actor):
-        self.node.actor_vector_changed(self, actor)
+    def actor_vector_changed(self, actor, previous_vector):
+        self.node.actor_vector_changed(self, actor, previous_vector)
 
     def actor_added(self, actor):
         self.node.actor_added(self, actor)
