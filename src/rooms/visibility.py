@@ -67,13 +67,14 @@ class Visibility(object):
         current_areas = set(self._find_areas(actor))
         # get all areas for previous vector
         previous_areas = set(self._find_areas_by_vector(previous_vector))
-        # get areas which have been added
-        added = current_areas.difference(previous_areas)
         # get areas which have been removed
         removed = previous_areas.difference(current_areas)
         # send remove to removed listeners
         for listener in self._get_listeners_for_areas(removed):
-            listener.actor_removed(actor)
+            # get all areas for listener
+            listener_areas = set(self._find_areas(listener.actor))
+            if not listener_areas.intersection(current_areas):
+                listener.actor_removed(actor)
         # send update to added listeners
         for listener in self._get_listeners_for_areas(current_areas):
             listener.actor_vector_changed(actor, previous_vector)

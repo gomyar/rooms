@@ -121,3 +121,22 @@ class VisibilityTest(unittest.TestCase):
         self.assertEquals([
             ("actor_removed", self.actor2)],
             self.connection.messages)
+
+    def testChangeVectorFromAreaToAreaButStillVisible(self):
+        # listening to both areas
+        self.actor.vector = Vector(Position(0, 0), 0, Position(10, 0), 10)
+
+        # two visible areas
+        self.visibility.add_visible_area(Position(0, 0), Position(5, 5))
+        self.visibility.add_visible_area(Position(5, 0), Position(10, 5))
+        self.visibility.add_listener(self.connection)
+
+        # move from one area to the next
+        self.actor2.vector = Vector(Position(0, 0), 0, Position(2, 0), 10)
+        previous_vector = Vector(Position(0, 0), 0, Position(6, 0), 10)
+
+        self.visibility.actor_vector_changed(self.actor2, previous_vector)
+
+        self.assertEquals([
+            ("actor_vector_changed", self.actor2, previous_vector)],
+            self.connection.messages)
