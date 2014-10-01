@@ -1,6 +1,7 @@
 
 from rooms.position import Position
 from rooms.actor import Actor
+from rooms.visibility import Visibility
 
 import logging
 log = logging.getLogger("rooms.room")
@@ -67,6 +68,8 @@ class Room(object):
         self.tags = []
         self.node = node
         self.online = True
+        self.visibility = Visibility()
+        self.visibility.add_visible_area(topleft, bottomright)
 
     def __repr__(self):
         return "<Room %s %s>" % (self.game_id, self.room_id)

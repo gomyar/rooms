@@ -189,6 +189,7 @@ class Node(object):
             player_conn = PlayerConnection(player_actor.game_id,
                 player_actor.username, player_actor.room, player_actor,
                 self._create_token())
+            player_actor.room.visibility.add_listener(player_conn)
             self.player_connections[conn_key] = player_conn
             self.connections[player_conn.token] = player_conn
         return self.player_connections[conn_key]
@@ -234,39 +235,42 @@ class Node(object):
         else:
             raise Exception("No such method %s" % (method,))
 
-    def _connections_for(self, room):
-        player_conns = [conn for conn in self.player_connections.values() if \
+    def _admin_connections_for(self, room):
+        return [conn for conn in self.admin_connections.values() if \
             conn.room == room]
-        admin_conns= [conn for conn in self.admin_connections.values() if \
-            conn.room == room]
-        return player_conns + admin_conns
 
     def actor_added(self, room, actor):
         self.actor_update(room, actor)
 
     def actor_state_changed(self, room, actor):
-        for player_conn in self._connections_for(room):
-            player_conn.actor_state_changed(actor)
+        room.visibility.actor_state_changed(actor)
+        for admin_conn in self._admin_connections_for(room):
+            admin_conn.actor_state_changed(actor)
 
     def actor_vector_changed(self, room, actor, previous_vector):
-        for player_conn in self._connections_for(room):
-            player_conn.actor_vector_changed(actor, previous_vector)
+        room.visibility.actor_vector_changed(actor, previous_vector)
+        for admin_conn in self._admin_connections_for(room):
+            admin_conn.actor_vector_changed(actor, previous_vector)
 
     def actor_update(self, room, actor):
-        for player_conn in self._connections_for(room):
-            player_conn.actor_update(actor)
+        room.visibility.actor_update(actor)
+        for admin_conn in self._admin_connections_for(room):
+            admin_conn.actor_update(actor)
 
     def actor_removed(self, room, actor):
-        for player_conn in self._connections_for(room):
-            player_conn.actor_removed(actor)
+        room.visibility.actor_removed(actor)
+        for admin_conn in self._admin_connections_for(room):
+            admin_conn.actor_removed(actor)
 
     def actor_becomes_visible(self, room, actor):
-        for player_conn in self._connections_for(room):
-            player_conn.actor_becomes_visible(actor)
+        room.visibility.actor_becomes_visible(actor)
+        for admin_conn in self._admin_connections_for(room):
+            admin_conn.actor_becomes_visible(actor)
 
     def actor_becomes_invisible(self, room, actor):
-        for player_conn in self._connections_for(room):
-            player_conn.actor_becomes_invisible(actor)
+        room.visibility.actor_becomes_invisible(actor)
+        for admin_conn in self._admin_connections_for(room):
+            admin_conn.actor_becomes_invisible(actor)
 
     def _request_player_connection(self, username, game_id):
         player = self._get_or_load_player(username, game_id)
@@ -312,8 +316,11 @@ class Node(object):
             raise RPCWaitException("Room offline %s-%s" % (game_id, room_id))
 
     def move_actor_room(self, actor, game_id, exit_room_id, exit_position):
-        gevent.spawn(self._move_actor_room, actor, game_id, exit_room_id,
-            exit_position).join()
+        gthread = gevent.spawn(self._move_actor_room, actor, game_id,
+            exit_room_id, exit_position)
+        gthread.join()
+        if gthread.exception:
+            raise gthread.exception
 
     def _move_actor_room(self, actor, game_id, exit_room_id, exit_position):
         log.debug("Moving actor %s to %s", actor, exit_room_id)
@@ -379,7 +386,9 @@ class Node(object):
             log.debug("Sending room sync for %s to %s-%s", exit_room, game_id,
                 actor.username)
             player_conn = self.player_connections[actor.username, game_id]
+            player_conn.room.visibility.remove_listener(player_conn)
             player_conn.room = exit_room
+            exit_room.visibility.add_listener(player_conn)
             player_conn.send_sync(exit_room)
             for actor in exit_room.actors.values():
                 player_conn.actor_update(actor)

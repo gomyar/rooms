@@ -36,9 +36,9 @@ class NodeTest(unittest.TestCase):
         self.node.scripts['game_script'] = self.game_script
         self.node.scripts['mock_script'] = self.mock_script
         self.node.master_conn = self.mock_rpc
-        self.room1 = Room("game1", "room1", Position(0, 0), Position(0, 0),
+        self.room1 = Room("game1", "room1", Position(0, 0), Position(10, 10),
             self.node)
-        self.room2 = Room("game1", "room2", Position(0, 0), Position(0, 0),
+        self.room2 = Room("game1", "room2", Position(0, 0), Position(10, 10),
             self.node)
         self.container = MockContainer(room_factory=MockRoomFactory(self.room2))
         self.container.save_room(self.room1)
@@ -357,10 +357,12 @@ class NodeTest(unittest.TestCase):
         player_conn = PlayerConnection("game1", "bob", room1, actor, "TOKEN1")
         self.node.player_connections['player1', 'game1'] = player_conn
         queue = player_conn.new_queue()
+        room1.visibility.add_listener(player_conn)
+        room2.visibility.add_listener(player_conn)
 
         self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
 
-        self.assertEquals("remove_actor", queue.get()['command'])
+        self.assertEquals("remove_actor", queue.get_nowait()['command'])
         #self.assertEquals({}, queue.get_nowait())
 
     def testStartReport(self):
@@ -531,7 +533,7 @@ class NodeTest(unittest.TestCase):
 
         room1 = self.node.rooms["game1", "map1.room1"]
         self.assertEquals(room1, self.node.admin_connections[token].room)
-        self.assertEquals(1, len(self.node._connections_for(room1)))
+        self.assertEquals(1, len(self.node._admin_connections_for(room1)))
 
     def testPropagateActorEvents(self):
         self.node.manage_room("game1", "room1")
@@ -542,13 +544,13 @@ class NodeTest(unittest.TestCase):
         self.assertTrue(queue.empty())
 
         actor.state.something = "value"
-        self.assertEquals('actor_update', queue.get()['command'])
+        self.assertEquals('actor_update', queue.get_nowait()['command'])
 
         actor.visible = False
-        self.assertEquals('remove_actor', queue.get()['command'])
+        self.assertEquals('remove_actor', queue.get_nowait()['command'])
 
         actor.state.something = "value"
         self.assertTrue(queue.empty())
 
         actor.visible = True
-        self.assertEquals('actor_update', queue.get()['command'])
+        self.assertEquals('actor_update', queue.get_nowait()['command'])

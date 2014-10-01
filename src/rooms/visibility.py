@@ -38,6 +38,9 @@ class Visibility(object):
     def add_listener(self, listener):
         self.listeners.add(listener)
 
+    def remove_listener(self, listener):
+        self.listeners.remove(listener)
+
     def actor_update(self, actor):
         for listener in self._get_listeners_for_areas(self._find_areas(actor)):
             listener.actor_update(actor)
