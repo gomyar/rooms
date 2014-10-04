@@ -1,5 +1,6 @@
 import unittest
 import gevent
+import os
 
 from rooms.testutils import MockRpcClient, MockContainer, MockTimer
 from rooms.testutils import MockWebsocket, MockGeog, MockScript
@@ -11,6 +12,8 @@ from rooms.position import Position
 from rooms.actor import Actor
 import rooms.actor
 from rooms.script import Script
+from rooms.room_factory import RoomFactory
+from rooms.room_factory import FileMapSource
 
 import logging
 log = logging.getLogger("rooms.test")
@@ -29,11 +32,14 @@ class SystemTest(unittest.TestCase):
         self.node.master_conn = self.mock_rpc
         self.node.master_player_conn = self.mock_player_rpc
 
-        self.room1 = Room("game1", "room1",
+        self.room1 = Room("game1", "map1.room1",
             Position(0, 0), Position(50, 50), self.node)
         self.room1.geography = MockGeog()
 
-        self.container = MockContainer()
+        self.container = MockContainer(
+            room_factory=RoomFactory(
+            FileMapSource(os.path.join(os.path.dirname(__file__),
+            "test_maps")), self.node))
         self.container.node = self.node
         self.container.save_room(self.room1)
 
@@ -67,10 +73,10 @@ class SystemTest(unittest.TestCase):
         MockIDFactory.teardown_mock()
 
     def testPlayerReceviesUpdatesFromRoom(self):
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        self.node.player_joins("fred", "game1", "room1")
-        self.node.player_joins("ned", "game1", "room1")
+        self.node.player_joins("fred", "game1", "map1.room1")
+        self.node.player_joins("ned", "game1", "map1.room1")
 
         player1_ws = MockWebsocket()
         player2_ws = MockWebsocket()
@@ -103,9 +109,9 @@ class SystemTest(unittest.TestCase):
 
     def testPingUpdatesStateSendsActorUpdate(self):
         # Internal only ?
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        self.node.player_joins("ned", "game1", "room1")
+        self.node.player_joins("ned", "game1", "map1.room1")
 
         player1_ws = MockWebsocket()
         player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
@@ -122,14 +128,14 @@ class SystemTest(unittest.TestCase):
         self.assertEquals(1, player1_ws.updates[4]['data']['state']['count'])
 
     def testInvalidToken(self):
-        self.room1 = Room("game1", "room1",
+        self.room1 = Room("game1", "map1.room1",
             Position(0, 0), Position(50, 50), self.node)
         self.room1.geography = MockGeog()
         self.container.save_room(self.room1)
 
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        self.node.player_joins("ned", "game1", "room1")
+        self.node.player_joins("ned", "game1", "map1.room1")
 
         player1_ws = MockWebsocket()
         player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
@@ -139,27 +145,27 @@ class SystemTest(unittest.TestCase):
             "player1", "TOKEN2", "ping")
 
     def testExceptionIfNoSuchMethod(self):
-        self.room1 = Room("game1", "room1",
+        self.room1 = Room("game1", "map1.room1",
             Position(0, 0), Position(50, 50), self.node)
         self.room1.geography = MockGeog()
         self.container.save_room(self.room1)
 
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        self.node.player_joins("ned", "game1", "room1")
+        self.node.player_joins("ned", "game1", "map1.room1")
 
         self.assertRaises(Exception, self.node.actor_call, "game1", "ned",
             "player1", "TOKEN2", "nonexistant")
 
     def testMultiPath(self):
-        self.room1 = Room("game1", "room1",
+        self.room1 = Room("game1", "map1.room1",
             Position(0, 0), Position(50, 50), self.node)
         self.room1.geography = MockGeog()
         self.container.save_room(self.room1)
 
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        self.node.player_joins("ned", "game1", "room1")
+        self.node.player_joins("ned", "game1", "map1.room1")
 
         player1_ws = MockWebsocket()
         player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
@@ -177,29 +183,29 @@ class SystemTest(unittest.TestCase):
             player1_ws.updates[3]['data']['vector']['end_pos'])
 
     def testMoveActorRoomSameNode(self):
-        self.room1 = Room("game1", "room1",
+        self.room1 = Room("game1", "map1.room1",
             Position(0, 0), Position(50, 50), self.node)
         self.room1.geography = MockGeog()
         self.container.save_room(self.room1)
-        self.room2 = Room("game1", "room2",
+        self.room2 = Room("game1", "map1.room2",
             Position(50, 0), Position(100, 50), self.node)
         self.room2.geography = MockGeog()
         self.container.save_room(self.room2)
 
         # add 2 rooms
-        self.node.manage_room("game1", "room1")
-        self.node.manage_room("game1", "room2")
+        self.node.manage_room("game1", "map1.room1")
+        self.node.manage_room("game1", "map1.room2")
 
         # add 1 player
-        self.node.player_joins("ned", "game1", "room1")
+        self.node.player_joins("ned", "game1", "map1.room1")
 
         # connect player
-        ned_actor = self.node.rooms['game1', 'room1'].actors['id1']
+        ned_actor = self.node.rooms['game1', 'map1.room1'].actors['id1']
 
         # assert actor moves and player is updated
-        self.node.move_actor_room(ned_actor, "game1", "room2", Position(5, 5))
+        self.node.move_actor_room(ned_actor, "game1", "map1.room2", Position(5, 5))
         # player is saved immediately, actor is put on save queue
-        room2 = self.node.rooms["game1", "room2"]
+        room2 = self.node.rooms["game1", "map1.room2"]
         self.assertEquals(ned_actor, room2.actors["id1"])
         self.assertEquals(room2, ned_actor.room)
         self.assertEquals({}, self.room1.actors)
@@ -216,18 +222,18 @@ class SystemTest(unittest.TestCase):
             "node": ["10.10.10.2", 8000], "token": "TOKEN2"}
 
         # add 1 room
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
         # add 1 player
-        self.node.player_joins("ned", "game1", "room1")
+        self.node.player_joins("ned", "game1", "map1.room1")
 
         # connect player
-        ned_actor = self.node.rooms['game1', 'room1'].actors['id1']
+        ned_actor = self.node.rooms['game1', 'map1.room1'].actors['id1']
         player_conn = self.node.player_connections['ned', 'game1']
         queue = player_conn.new_queue()
 
         # perform actor move
-        self.node.move_actor_room(ned_actor, "game1", "room2", Position(5, 5))
+        self.node.move_actor_room(ned_actor, "game1", "map1.room2", Position(5, 5))
 
         # player is saved
         self.assertEquals("ned",
@@ -241,10 +247,10 @@ class SystemTest(unittest.TestCase):
         self.assertEquals(Position(5, 5), ned_actor.position)
 
     def testMultiplePlayerConnections(self):
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        self.node.player_joins("fred", "game1", "room1")
-        self.node.player_joins("ned", "game1", "room1")
+        self.node.player_joins("fred", "game1", "map1.room1")
+        self.node.player_joins("ned", "game1", "map1.room1")
 
         player1_ws = MockWebsocket()
         player1_ws_2 = MockWebsocket()
@@ -272,10 +278,10 @@ class SystemTest(unittest.TestCase):
         self.assertEquals(5, len(player2_ws.updates))
 
     def testRemoveActorSignal(self):
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        self.node.player_joins("fred", "game1", "room1")
-        self.node.player_joins("ned", "game1", "room1")
+        self.node.player_joins("fred", "game1", "map1.room1")
+        self.node.player_joins("ned", "game1", "map1.room1")
 
         player1_ws = MockWebsocket()
         player2_ws = MockWebsocket()
@@ -286,7 +292,7 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(0)
 
-        room = self.node.rooms["game1", "room1"]
+        room = self.node.rooms["game1", "map1.room1"]
         fred_actor = room.actors["id1"]
         self.node.actor_removed(room, fred_actor)
 
@@ -296,10 +302,10 @@ class SystemTest(unittest.TestCase):
             player2_ws.updates[-1])
 
     def testAdminConnection(self):
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        self.node.player_joins("fred", "game1", "room1")
-        adm_token = self.node.request_admin_token("game1", "room1")
+        self.node.player_joins("fred", "game1", "map1.room1")
+        adm_token = self.node.request_admin_token("game1", "map1.room1")
 
         player1_ws = MockWebsocket()
         player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,

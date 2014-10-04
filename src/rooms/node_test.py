@@ -22,6 +22,8 @@ from rooms.rpc import RPCWaitException
 from rooms.position import Position
 from rooms.actor import Actor
 from rooms.node import PlayerConnection
+from rooms.room_factory import RoomFactory
+from rooms.room_factory import FileMapSource
 
 
 class NodeTest(unittest.TestCase):
@@ -36,13 +38,15 @@ class NodeTest(unittest.TestCase):
         self.node.scripts['game_script'] = self.game_script
         self.node.scripts['mock_script'] = self.mock_script
         self.node.master_conn = self.mock_rpc
-        self.room1 = Room("game1", "room1", Position(0, 0), Position(10, 10),
+        self.room1 = Room("game1", "map1.room1", Position(0, 0), Position(10, 10),
             self.node)
-        self.room2 = Room("game1", "room2", Position(0, 0), Position(10, 10),
+        self.room2 = Room("game1", "map1.room2", Position(0, 0), Position(10, 10),
             self.node)
-        self.container = MockContainer(room_factory=MockRoomFactory(self.room2))
+        self.container = MockContainer(
+            room_factory=RoomFactory(
+            FileMapSource(os.path.join(os.path.dirname(__file__),
+            "test_maps")), self.node))
         self.container.save_room(self.room1)
-#        self.container.save_room(self.room2)
         self.node.container = self.container
         self.container.node = self.node
         MockTimer.setup_mock()
@@ -58,7 +62,7 @@ class NodeTest(unittest.TestCase):
             "bob")
         self.container.save_actor(self.player1)
 
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
         self.assertEquals(1, len(self.node.rooms))
         self.assertEquals([], mock_script.called)
@@ -66,30 +70,29 @@ class NodeTest(unittest.TestCase):
         self.assertEquals([], mock_script.called)
 
     def testPlayerJoins(self):
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        token = self.node.player_joins("ned", "game1", "room1")
+        token = self.node.player_joins("ned", "game1", "map1.room1")
         self.assertEquals("TOKEN1", token)
 
-        player_actor = self.node.rooms['game1', 'room1'].actors['id1']
-        room = self.node.rooms['game1', 'room1']
+        player_actor = self.node.rooms['game1', 'map1.room1'].actors['id1']
+        room = self.node.rooms['game1', 'map1.room1']
         self.assertEquals("ned", player_actor.username)
-        self.assertEquals("room1", player_actor.room_id)
+        self.assertEquals("map1.room1", player_actor.room_id)
         self.assertEquals("game1", player_actor.game_id)
         self.assertEquals(1, len(self.node.player_connections))
         self.assertEquals(1, len(self.node.connections))
         self.assertEquals("game1", self.node.connections['TOKEN1'].game_id)
-        self.assertEquals(1, len(self.node.rooms["game1", "room1"].actors))
+        self.assertEquals(1, len(self.node.rooms["game1", "map1.room1"].actors))
         self.assertEquals([
             ("player_joins", (player_actor,), {})
         ], self.player_script.called)
 
     def testManageNonExistantRoom(self):
-        self.node.manage_room("game1", "room2")
+        self.node.manage_room("game1", "map1.room2")
         self.assertEquals(2, len(self.container.dbase.dbases['rooms']))
-        self.assertEquals([("room_created",
-            (self.room2,), {})],
-            self.game_script.called)
+        self.assertEquals("room_created",
+            self.game_script.called[0][0])
 
     def testConnectToMaster(self):
         self.node.connect_to_master()
@@ -99,11 +102,11 @@ class NodeTest(unittest.TestCase):
             self.mock_rpc.called)
 
     def testDeregister(self):
-        self.node.manage_room("game1", "room1")
-        self.node.manage_room("game1", "room2")
+        self.node.manage_room("game1", "map1.room1")
+        self.node.manage_room("game1", "map1.room2")
 
-        room1 = self.node.rooms["game1", "room1"]
-        room2 = self.node.rooms["game1", "room2"]
+        room1 = self.node.rooms["game1", "map1.room1"]
+        room2 = self.node.rooms["game1", "map1.room2"]
 
         room1.put_actor(Actor(room1, "mock1", self.mock_script))
         room2.put_actor(Actor(room2, "mock1", self.mock_script))
@@ -128,16 +131,16 @@ class NodeTest(unittest.TestCase):
         pass
 
     def testAllPlayers(self):
-        self.node.manage_room("game1", "room1")
-        token = self.node.player_joins("bob", "game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
+        token = self.node.player_joins("bob", "game1", "map1.room1")
         self.assertEquals([{'username': 'bob', 'game_id': 'game1',
-            'token': 'TOKEN1', 'room_id': 'room1'}], self.node.all_players())
+            'token': 'TOKEN1', 'room_id': 'map1.room1'}], self.node.all_players())
 
     def testAllRooms(self):
         self.player1 = PlayerActor(self.room1, "player", MockScript(),
             "bob")
         self.container.save_actor(self.player1)
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
         self.assertEquals([
             {'actors': [('id1',
               {u'actor_id': u'id1',
@@ -155,7 +158,7 @@ class NodeTest(unittest.TestCase):
                                           u'z': 0.0},
                            u'start_time': 0.0}})],
               'game_id': 'game1',
-              'room_id': 'room1'}],
+              'room_id': 'map1.room1'}],
             self.node.all_rooms())
 
     def testRequestToken(self):
@@ -163,19 +166,19 @@ class NodeTest(unittest.TestCase):
             "bob")
         self.container.save_actor(self.player1)
 
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
         token = self.node.request_token("bob", "game1")
         self.assertEquals("TOKEN1", token)
 
     def testRequestTokenInvalidPlayer(self):
-        self.node.manage_room("game1", "room_other")
+        self.node.manage_room("game1", "map1.room2")
         self.player1 = PlayerActor(self.room1, "player", MockScript(),
             "bob")
         self.container.save_actor(self.player1)
         self.assertRaises(RPCException, self.node.request_token, "bob", "game1")
 
     def testRequestTokenNoSuchPlayer(self):
-        self.node.manage_room("game1", "room_other")
+        self.node.manage_room("game1", "map1.room2")
         self.player1 = PlayerActor(self.room1, "player", MockScript(),
             "bob")
         self.container.save_actor(self.player1)
@@ -198,10 +201,10 @@ class NodeTest(unittest.TestCase):
         self.assertEquals([0, 1, 2, 3, 4, 5], ws.updates)
 
     def testActorCall(self):
-        self.node.manage_room("game1", "room1")
-        self.node.player_joins("bob", "game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
+        self.node.player_joins("bob", "game1", "map1.room1")
 
-        room1 = self.node.rooms["game1", "room1"]
+        room1 = self.node.rooms["game1", "map1.room1"]
         player_actor = room1.actors['id1']
         player_actor.script = MockScript()
         self.node.actor_call("game1", "TOKEN1", "player1",
@@ -236,49 +239,49 @@ class NodeTest(unittest.TestCase):
             self.assertEquals("Invalid token for player", str(e))
 
     def testActorEntered(self):
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
         actor = Actor(None, "test_actor", MockScript())
-        actor._room_id = "room1"
+        actor._room_id = "map1.room1"
         actor._game_id = "game1"
         self.container.save_actor(actor)
 
         self.node.actor_enters_node("id1")
 
-        room = self.node.rooms['game1', 'room1']
+        room = self.node.rooms['game1', 'map1.room1']
         self.assertEquals(actor.actor_id, room.actors['id1'].actor_id)
         self.assertEquals(actor.room_id, room.actors['id1'].room_id)
 
     def testActorEntersDeactivatedRoom(self):
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
         actor = Actor(None, "test_actor", MockScript())
-        actor._room_id = "room1"
+        actor._room_id = "map1.room1"
         actor._game_id = "game1"
         self.container.save_actor(actor)
 
-        room = self.node.rooms["game1", "room1"]
+        room = self.node.rooms["game1", "map1.room1"]
         room.online = False
 
         try:
             self.node.actor_enters_node("id1")
             self.fail("Should have thrown")
         except RPCWaitException, rpcwe:
-            self.assertEquals("Room offline game1-room1", str(rpcwe))
+            self.assertEquals("Room offline game1-map1.room1", str(rpcwe))
 
     def testPlayerJoinsActorCreatedConnectionCreated(self):
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        self.assertEquals(0, len(self.node.rooms['game1', 'room1'].actors))
+        self.assertEquals(0, len(self.node.rooms['game1', 'map1.room1'].actors))
         self.assertEquals(0, len(self.node.player_connections))
 
         self.assertEquals("TOKEN1",
-            self.node.player_joins("ned", "game1", "room1"))
+            self.node.player_joins("ned", "game1", "map1.room1"))
 
         self.assertEquals(PlayerActor,
-            type(self.node.rooms['game1', 'room1'].actors['id1']))
+            type(self.node.rooms['game1', 'map1.room1'].actors['id1']))
         self.assertEquals("ned",
-            self.node.rooms['game1', 'room1'].actors['id1'].username)
+            self.node.rooms['game1', 'map1.room1'].actors['id1'].username)
         self.assertEquals("id1",
             self.node.player_connections['ned', 'game1'].actor.actor_id)
 
@@ -287,15 +290,15 @@ class NodeTest(unittest.TestCase):
             "bob")
         self.container.save_actor(self.player1)
 
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        self.assertEquals(1, len(self.node.rooms['game1', 'room1'].actors))
+        self.assertEquals(1, len(self.node.rooms['game1', 'map1.room1'].actors))
         self.assertEquals(1, len(self.node.player_connections))
 
         self.assertEquals(PlayerActor,
-            type(self.node.rooms['game1', 'room1'].actors['id1']))
+            type(self.node.rooms['game1', 'map1.room1'].actors['id1']))
         self.assertEquals("bob",
-            self.node.rooms['game1', 'room1'].actors['id1'].username)
+            self.node.rooms['game1', 'map1.room1'].actors['id1'].username)
         self.assertEquals("id1",
             self.node.player_connections['bob', 'game1'].actor.actor_id)
 
@@ -314,10 +317,10 @@ class NodeTest(unittest.TestCase):
         self.container.save_actor(self.player1)
 
         # manage room
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
         # assert player actors in room
-        room = self.node.rooms["game1", "room1"]
+        room = self.node.rooms["game1", "map1.room1"]
         actor = room.actors['id1']
         self.assertEquals("bob", actor.username)
 
@@ -333,10 +336,10 @@ class NodeTest(unittest.TestCase):
         self.container.save_actor(self.player1)
 
         # manage room
-        self.node.manage_room("game1", "room2")
+        self.node.manage_room("game1", "map1.room2")
 
         # assert player actors in room
-        room = self.node.rooms["game1", "room2"]
+        room = self.node.rooms["game1", "map1.room2"]
         actor = room.actors['id1']
         self.assertEquals("bob", actor.username)
 
@@ -346,12 +349,12 @@ class NodeTest(unittest.TestCase):
 
     def testActorMovesRoom(self):
         # manage room2
-        self.node.manage_room("game1", "room1")
-        self.node.manage_room("game1", "room2")
+        self.node.manage_room("game1", "map1.room1")
+        self.node.manage_room("game1", "map1.room2")
 
         # assert player actors in room2
-        room1 = self.node.rooms["game1", "room1"]
-        room2 = self.node.rooms["game1", "room2"]
+        room1 = self.node.rooms["game1", "map1.room1"]
+        room2 = self.node.rooms["game1", "map1.room2"]
         actor = room1.create_actor("npc", "mock_script")
 
         player_conn = PlayerConnection("game1", "bob", room1, actor, "TOKEN1")
@@ -360,7 +363,7 @@ class NodeTest(unittest.TestCase):
         room1.visibility.add_listener(player_conn)
         room2.visibility.add_listener(player_conn)
 
-        self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
+        self.node._move_actor_room(actor, "game1", "map1.room2", Position(10, 10))
 
         self.assertEquals("remove_actor", queue.get_nowait()['command'])
         #self.assertEquals({}, queue.get_nowait())
@@ -391,7 +394,7 @@ class NodeTest(unittest.TestCase):
             ]
         , self.mock_rpc.called)
 
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
         MockTimer.fast_forward(5)
 
@@ -404,7 +407,7 @@ class NodeTest(unittest.TestCase):
                     'node_info': '{}'}),
             ('report_load_stats',
                 {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.01,
-                    'node_info': '{"game1.room1": {"connected_players": 0}}'}),
+                    'node_info': '{"game1.map1.room1": {"connected_players": 0}}'}),
             ]
         , self.mock_rpc.called)
 
@@ -412,9 +415,9 @@ class NodeTest(unittest.TestCase):
         self.mock_rpc.exceptions['actor_entered'] = HTTPError("/actor_enters",
             503, "Service Unavailable", {"retry-after": "3"}, None)
 
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        room1 = self.node.rooms["game1", "room1"]
+        room1 = self.node.rooms["game1", "map1.room1"]
         actor = room1.create_actor("npc", "mock_script")
 
         self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
@@ -423,9 +426,9 @@ class NodeTest(unittest.TestCase):
         self.mock_rpc.exceptions['actor_entered'] = HTTPError("/actor_enters",
             500, "Random Error", {}, None)
 
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        room1 = self.node.rooms["game1", "room1"]
+        room1 = self.node.rooms["game1", "map1.room1"]
         actor = room1.create_actor("npc", "mock_script")
 
         self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
@@ -436,14 +439,14 @@ class NodeTest(unittest.TestCase):
         self.mock_rpc.exceptions['actor_entered'] = HTTPError("/actor_enters",
             503, "Service Unavailable", {"retry-after": "3"}, None)
 
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        room1 = self.node.rooms["game1", "room1"]
+        room1 = self.node.rooms["game1", "map1.room1"]
         actor = room1.create_actor("npc", "mock_script")
 
         self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
 
-        room1 = self.node.rooms["game1", "room1"]
+        room1 = self.node.rooms["game1", "map1.room1"]
         actor = PlayerActor(room1, "player", MockScript(), "bob", "actor1",
             "game1")
         self.room1.put_actor(actor)
@@ -461,14 +464,14 @@ class NodeTest(unittest.TestCase):
     def testHandleAnyExceptionOnPlayerActorEnters(self):
         self.mock_rpc.exceptions['actor_entered'] = Exception("anything")
 
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        room1 = self.node.rooms["game1", "room1"]
+        room1 = self.node.rooms["game1", "map1.room1"]
         actor = room1.create_actor("npc", "mock_script")
 
         self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
 
-        room1 = self.node.rooms["game1", "room1"]
+        room1 = self.node.rooms["game1", "map1.room1"]
         actor = PlayerActor(room1, "player", MockScript(), "bob", "actor1",
             "game1")
         self.room1.put_actor(actor)
@@ -487,9 +490,9 @@ class NodeTest(unittest.TestCase):
         self.mock_rpc.expect['actor_entered'] = {"node": ["10.10.10.1", 8000],
             "token": "TOKEN1"}
 
-        self.node.manage_room("game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
 
-        room1 = self.node.rooms["game1", "room1"]
+        room1 = self.node.rooms["game1", "map1.room1"]
         actor = PlayerActor(room1, "player", MockScript(), "bob", "actor1",
             "game1")
         self.room1.put_actor(actor)
@@ -505,11 +508,11 @@ class NodeTest(unittest.TestCase):
             queue.get_nowait())
 
     def testDeactivateRoom(self):
-        self.node.manage_room("game1", "room1")
-        self.node.manage_room("game1", "room2")
+        self.node.manage_room("game1", "map1.room1")
+        self.node.manage_room("game1", "map1.room2")
 
-        room1 = self.node.rooms["game1", "room1"]
-        room2 = self.node.rooms["game1", "room2"]
+        room1 = self.node.rooms["game1", "map1.room1"]
+        room2 = self.node.rooms["game1", "map1.room2"]
         actor1 = room1.create_actor("npc",
             "mock_script")
         actor2 = room2.create_actor("npc",
@@ -518,9 +521,9 @@ class NodeTest(unittest.TestCase):
         # expecting saves so blank dbase
         self.container.dbase.dbases = {}
 
-        self.node.deactivate_room("game1", "room2")
+        self.node.deactivate_room("game1", "map1.room2")
 
-        self.assertEquals({('game1', 'room1'): room1}, self.node.rooms)
+        self.assertEquals({('game1', 'map1.room1'): room1}, self.node.rooms)
         self.assertEquals(1, len(self.container.dbase.dbases['actors']))
         self.assertEquals(1, len(self.container.dbase.dbases['rooms']))
 
@@ -536,8 +539,8 @@ class NodeTest(unittest.TestCase):
         self.assertEquals(1, len(self.node._admin_connections_for(room1)))
 
     def testPropagateActorEvents(self):
-        self.node.manage_room("game1", "room1")
-        token = self.node.player_joins("ned", "game1", "room1")
+        self.node.manage_room("game1", "map1.room1")
+        token = self.node.player_joins("ned", "game1", "map1.room1")
         queue = self.node.connections[token].new_queue()
         actor = self.node.connections[token].actor
 

@@ -7,6 +7,8 @@ from rooms.room import RoomObject
 from rooms.room import Tag
 from rooms.room import Door
 from rooms.position import Position
+from rooms.visibility import Visibility
+from rooms.visibility import Area
 
 
 class FileMapSource(object):
@@ -51,7 +53,20 @@ class RoomFactory(object):
             room.doors.append(self._create_door(door_json))
         for tag_json in room_json['tags']:
             room.tags.append(self._create_tag(tag_json))
+        room.visibility = self._create_visibility(room,
+            room_json.get('visibility', {}))
         return room
+
+    def _create_visibility(self, room, visibility_json):
+        visibility = Visibility()
+        if visibility_json and visibility_json['type'] == 'areas':
+            for area_json in visibility_json['areas']:
+                visibility.add_visible_area(
+                    self._create_pos(area_json['topleft']),
+                    self._create_pos(area_json['bottomright']))
+        else:
+            visibility.add_visible_area(room.topleft, room.bottomright)
+        return visibility
 
     def _create_door(self, door_json):
         return Door(door_json['exit_room_id'],
@@ -70,4 +85,4 @@ class RoomFactory(object):
     def _create_pos(self, pos_json):
         return Position(pos_json['x'] + self.origin.x,
             pos_json['y'] + self.origin.y,
-            pos_json['z'] + self.origin.z)
+            pos_json.get('z', 0) + self.origin.z)

@@ -34,7 +34,8 @@ class SyncDict(object):
         if isinstance(value, (SyncDict, SyncList)):
             value._set_actor(self._actor)
         self._data[name] = value
-        self._actor._send_state_changed()
+        if self._actor:
+            self._actor._send_state_changed()
 
     def keys(self):
         return self._data.keys()

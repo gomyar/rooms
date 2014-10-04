@@ -260,13 +260,11 @@ class Container(object):
     # Room
     def _serialize_room(self, room):
         return dict(game_id=room.game_id, room_id=room.room_id,
-            topleft=room.topleft, bottomright=room.bottomright,
-            doors=room.doors)
+            state=room.state)
 
     def _build_room(self, data):
-        room = Room(data['game_id'], data['room_id'], data['topleft'],
-            data['bottomright'], self.node)
-        room.doors = data['doors']
+        room = self.room_factory.create(data['game_id'], data['room_id'])
+        room.state = data['state']
         room.geography = self.geography
         self.geography.setup(room)
         return room

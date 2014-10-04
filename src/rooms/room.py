@@ -7,18 +7,6 @@ import logging
 log = logging.getLogger("rooms.room")
 
 
-class State(dict):
-    def __init__(self, actor):
-        super(State, self).__init__()
-        self.__dict__['actor'] = actor
-
-    def __getattr__(self, name):
-        return self.get(name, None)
-
-    def __setattr__(self, name, value):
-        self[name] = value
-
-
 class Tag(object):
     def __init__(self, tag_type, position, data=None):
         self.tag_type = tag_type
@@ -70,6 +58,7 @@ class Room(object):
         self.online = True
         self.visibility = Visibility()
         self.visibility.add_visible_area(topleft, bottomright)
+        self.state = dict()
 
     def __repr__(self):
         return "<Room %s %s>" % (self.game_id, self.room_id)
