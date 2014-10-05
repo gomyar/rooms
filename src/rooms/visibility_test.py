@@ -35,6 +35,7 @@ class VisibilityTest(unittest.TestCase):
     def setUp(self):
         self.visibility = Visibility()
         self.actor = MockActor("actor1")
+        self.actor._visibility_range = 1.0
         self.actor.vector = Vector(Position(0, 0), 0, Position(10, 0), 10)
         self.actor2 = MockActor("actor2")
         self.actor2.vector = Vector(Position(0, 0), 0, Position(10, 0), 10)
@@ -105,16 +106,16 @@ class VisibilityTest(unittest.TestCase):
 
     def testChangeVectorOutOfVisibleArea(self):
         # listening to right hand area
-        self.actor.vector = Vector(Position(6, 0), 0, Position(10, 0), 10)
+        self.actor.vector = Vector(Position(7, 0), 0, Position(10, 0), 10)
 
         # two visible areas
         self.visibility.add_visible_area(Position(0, 0), Position(5, 5))
         self.visibility.add_visible_area(Position(5, 0), Position(10, 5))
         self.visibility.add_listener(self.connection)
 
-        # move from one area to the next
+        # move from right hand area to left
         self.actor2.vector = Vector(Position(0, 0), 0, Position(2, 0), 10)
-        previous_vector = Vector(Position(0, 0), 0, Position(6, 0), 10)
+        previous_vector = Vector(Position(6, 0), 0, Position(7, 0), 10)
 
         self.visibility.actor_vector_changed(self.actor2, previous_vector)
 
@@ -140,3 +141,8 @@ class VisibilityTest(unittest.TestCase):
         self.assertEquals([
             ("actor_vector_changed", self.actor2, previous_vector)],
             self.connection.messages)
+
+    def testPlayerActorForConnectionChangesVector(self):
+        self.actor.vector = Vector(Position(0, 0), 0, Position(10, 0), 10)
+
+

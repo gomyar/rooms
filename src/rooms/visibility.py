@@ -1,13 +1,14 @@
 
 
 class Area(object):
-    def __init__(self, topleft, bottomright):
+    def __init__(self, topleft, bottomright, visibility_range):
         self.topleft = topleft
         self.bottomright = bottomright
         self.x1 = min(topleft.x, bottomright.x)
         self.y1 = min(topleft.y, bottomright.y)
         self.x2 = max(topleft.x, bottomright.x)
         self.y2 = max(topleft.y, bottomright.y)
+        self.visibility_range = visibility_range
 
     def __repr__(self):
         return "<Area %s, %s -> %s, %s>" % (self.x1, self.y1, self.x2, self.y2)
@@ -21,19 +22,25 @@ class Area(object):
             x2 >= self.x1 and y2 >= self.y1
 
     def actor_in(self, actor):
-        return self.intersects(actor.vector.start_pos, actor.vector.end_pos)
+        return self.vector_in(actor.vector, actor._visibility_range)
 
-    def vector_in(self, vector):
-        return self.intersects(vector.start_pos, vector.end_pos)
+    def vector_in(self, vector, visibility_range):
+        topleft = vector.start_pos.add_coords(-visibility_range,
+            -visibility_range)
+        bottomright = vector.start_pos.add_coords(visibility_range,
+            visibility_range)
+        return self.intersects(topleft, bottomright)
 
 
 class Visibility(object):
     def __init__(self):
         self.visible_areas = dict()
         self.listeners = set()
+        self.visibility_range = 1.0
 
     def add_visible_area(self, topleft, bottomright):
-        self.visible_areas[topleft, bottomright] = Area(topleft, bottomright)
+        self.visible_areas[topleft, bottomright] = Area(topleft, bottomright,
+            self.visibility_range)
 
     def add_listener(self, listener):
         self.listeners.add(listener)
@@ -69,7 +76,8 @@ class Visibility(object):
         # get all areas for current vector
         current_areas = set(self._find_areas(actor))
         # get all areas for previous vector
-        previous_areas = set(self._find_areas_by_vector(previous_vector))
+        previous_areas = set(self._find_areas_by_vector(previous_vector,
+            actor._visibility_range))
         # get areas which have been removed
         removed = previous_areas.difference(current_areas)
         # send remove to removed listeners
@@ -87,9 +95,9 @@ class Visibility(object):
             if area.actor_in(actor):
                 yield area
 
-    def _find_areas_by_vector(self, vector):
+    def _find_areas_by_vector(self, vector, visibility_range):
         for area in self.visible_areas.values():
-            if area.vector_in(vector):
+            if area.vector_in(vector, visibility_range):
                 yield area
 
     def _get_listeners_for_areas(self, area_iter):
