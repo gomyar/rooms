@@ -22,13 +22,18 @@ class Area(object):
             x2 >= self.x1 and y2 >= self.y1
 
     def actor_in(self, actor):
-        return self.vector_in(actor.vector, actor._visibility_range)
+        return self.vector_intersects(actor.vector)
 
-    def vector_in(self, vector, visibility_range):
-        topleft = vector.start_pos.add_coords(-visibility_range,
-            -visibility_range)
-        bottomright = vector.start_pos.add_coords(visibility_range,
-            visibility_range)
+    def vector_intersects(self, vector):
+        return self.intersects(vector.start_pos, vector.end_pos)
+
+    def intersects_listener_vision(self, listener):
+        topleft = listener.actor.vector.start_pos.add_coords(
+            -listener.actor._visibility_range,
+            -listener.actor._visibility_range)
+        bottomright = listener.actor.vector.start_pos.add_coords(
+            listener.actor._visibility_range,
+            listener.actor._visibility_range)
         return self.intersects(topleft, bottomright)
 
 
@@ -76,8 +81,7 @@ class Visibility(object):
         # get all areas for current vector
         current_areas = set(self._find_areas(actor))
         # get all areas for previous vector
-        previous_areas = set(self._find_areas_by_vector(previous_vector,
-            actor._visibility_range))
+        previous_areas = set(self._find_areas_by_vector(previous_vector))
         # get areas which have been removed
         removed = previous_areas.difference(current_areas)
         # send remove to removed listeners
@@ -95,15 +99,15 @@ class Visibility(object):
             if area.actor_in(actor):
                 yield area
 
-    def _find_areas_by_vector(self, vector, visibility_range):
+    def _find_areas_by_vector(self, vector):
         for area in self.visible_areas.values():
-            if area.vector_in(vector, visibility_range):
+            if area.vector_intersects(vector):
                 yield area
 
     def _get_listeners_for_areas(self, area_iter):
         listeners = set()
         for area in area_iter:
             for listener in self.listeners:
-                if area.actor_in(listener.actor):
+                if area.intersects_listener_vision(listener):
                     listeners.add(listener)
         return listeners

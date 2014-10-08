@@ -1,4 +1,8 @@
 
+ - visibility:
+  - vector of player actor cannot be long than vision radius
+  - vector of actors can be anything
+
  - tests involving sleeps and queues fail on gevent v 1.0 bu pass on 0.13.8
 
  - domain objects

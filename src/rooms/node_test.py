@@ -351,11 +351,12 @@ class NodeTest(unittest.TestCase):
         # manage room2
         self.node.manage_room("game1", "map1.room1")
         self.node.manage_room("game1", "map1.room2")
+        token = self.node.player_joins("ned", "game1", "map1.room1")
 
         # assert player actors in room2
         room1 = self.node.rooms["game1", "map1.room1"]
         room2 = self.node.rooms["game1", "map1.room2"]
-        actor = room1.create_actor("npc", "mock_script")
+        actor = self.node.connections[token].actor
 
         player_conn = PlayerConnection("game1", "bob", room1, actor, "TOKEN1")
         self.node.player_connections['player1', 'game1'] = player_conn

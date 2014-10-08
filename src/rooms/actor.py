@@ -36,7 +36,6 @@ class Actor(object):
         self._script_gthread = None
         self._move_gthread = None
         self._visible = True
-        self._visibility_range = 1.0
 
     def __repr__(self):
         return "<Actor %s %s in %s-%s owned by %s>" % (self.actor_type,
