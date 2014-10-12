@@ -87,23 +87,29 @@ class GridVision(object):
             # actor changed area events
             for area in removed_areas:
                 for listener in area.listeners:
-                    listener.actor_removed(actor)
+                    if listener.actor != actor:
+                        listener.actor_removed(actor)
             for area in added_areas:
                 for listener in area.listeners:
-                    listener.actor_update(actor)
+                    if listener.actor != actor:
+                        listener.actor_update(actor)
             for area in same_areas:
                 for listener in area.listeners:
-                    listener.actor_vector_changed(actor, previous)
+                    if listener.actor != actor:
+                        listener.actor_vector_changed(actor, previous)
 
             # Listener changed area events
             if actor in self.listener_actors:
                 listener = self.listener_actors[actor]
                 for area in removed_areas:
                     for actor in area.actors:
-                        listener.actor_removed(actor)
+                        if listener.actor != actor:
+                            listener.actor_removed(actor)
                 for area in added_areas:
                     for actor in area.actors:
-                        listener.actor_update(actor)
+                        if listener.actor != actor:
+                            listener.actor_update(actor)
+                listener.actor_vector_changed(listener.actor, previous)
 
     def actor_becomes_invisible(self, actor):
         area = self.area_for_actor(actor)
