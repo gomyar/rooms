@@ -26,6 +26,7 @@ class GridVision(object):
         self._create_areas()
 
         self.actor_map = dict()
+        self.listener_actors = dict()
 
     def _create_areas(self):
         for y in range(0, int(self.room.height / self.gridsize)):
@@ -44,6 +45,7 @@ class GridVision(object):
     def add_listener(self, listener):
         area = self.area_for_actor(listener.actor)
         area.listeners.add(listener)
+        self.listener_actors[listener.actor] = listener
 
     def actor_update(self, actor):
         area = self.area_for_actor(actor)
@@ -77,9 +79,12 @@ class GridVision(object):
             self.actor_map[actor] = new_area
             current_area.actors.remove(actor)
             new_area.actors.add(actor)
+
             removed_areas = current_area.linked.difference(new_area.linked)
             added_areas = new_area.linked.difference(current_area.linked)
             same_areas = new_area.linked.intersection(current_area.linked)
+
+            # actor changed area events
             for area in removed_areas:
                 for listener in area.listeners:
                     listener.actor_removed(actor)
@@ -89,6 +94,16 @@ class GridVision(object):
             for area in same_areas:
                 for listener in area.listeners:
                     listener.actor_vector_changed(actor, previous)
+
+            # Listener changed area events
+            if actor in self.listener_actors:
+                listener = self.listener_actors[actor]
+                for area in removed_areas:
+                    for actor in area.actors:
+                        listener.actor_removed(actor)
+                for area in added_areas:
+                    for actor in area.actors:
+                        listener.actor_update(actor)
 
     def actor_becomes_invisible(self, actor):
         area = self.area_for_actor(actor)

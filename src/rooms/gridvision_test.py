@@ -175,3 +175,75 @@ class GridVisionTest(unittest.TestCase):
         self.vision.actor_vector_changed(self.actor1, previous)
 
         self.assertEquals([], listener.messages)
+
+    def testPlayerActorMovesIntoVisionArea(self):
+        self.vision = GridVision(self.room, 10)
+        self.actor1 = MockActor("actor1")
+        self.actor1.vector = build_vector(35, 35, 45, 45)
+        self.lactor = MockActor("listener1")
+        previous = build_vector(11, 11, 15, 15)
+        self.lactor.vector = previous
+
+        # add actors and listener
+        self.vision.actor_update(self.actor1)
+        self.vision.actor_update(self.lactor)
+        listener = MockListener(self.lactor)
+        self.vision.add_listener(listener)
+
+        # change vector to area outside vision distance
+        self.lactor.vector = build_vector(25, 25, 30, 30)
+        self.vision.actor_vector_changed(self.lactor, previous)
+
+        self.assertEquals([
+            ("actor_vector_changed", self.lactor, previous),
+            ("actor_update", self.actor1),
+            ], listener.messages)
+
+    def testPlayerActorMovesOutOfVisionArea(self):
+        self.vision = GridVision(self.room, 10)
+        self.actor1 = MockActor("actor1")
+        self.actor1.vector = build_vector(35, 35, 45, 45)
+        self.lactor = MockActor("listener1")
+        previous = build_vector(25, 25, 30, 30)
+        self.lactor.vector = previous
+
+        # add actors and listener
+        self.vision.actor_update(self.actor1)
+        self.vision.actor_update(self.lactor)
+        listener = MockListener(self.lactor)
+        self.vision.add_listener(listener)
+
+        # change vector to area outside vision distance
+        self.lactor.vector = build_vector(11, 11, 15, 15)
+        self.vision.actor_vector_changed(self.lactor, previous)
+
+        self.assertEquals([
+            ("actor_vector_changed", self.lactor, previous),
+            ("actor_removed", self.actor1),
+            ], listener.messages)
+
+
+    def testPlayerActorMovesInNonVisibleArea(self):
+        self.vision = GridVision(self.room, 10)
+        self.actor1 = MockActor("actor1")
+        self.actor1.vector = build_vector(35, 35, 45, 45)
+        self.lactor = MockActor("listener1")
+        previous = build_vector(11, 11, 15, 15)
+        self.lactor.vector = previous
+
+        # add actors and listener
+        self.vision.actor_update(self.actor1)
+        self.vision.actor_update(self.lactor)
+        listener = MockListener(self.lactor)
+        self.vision.add_listener(listener)
+
+        # change vector to area outside vision distance
+        self.lactor.vector = build_vector(1, 1, 5, 5)
+        self.vision.actor_vector_changed(self.lactor, previous)
+
+        self.assertEquals([
+            ("actor_vector_changed", self.lactor, previous),
+            ], listener.messages)
+
+    def testMovementVectorLimitedByGridWidth(self):
+        pass

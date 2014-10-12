@@ -2,6 +2,7 @@
 from rooms.position import Position
 from rooms.actor import Actor
 from rooms.visibility import Visibility
+from rooms.gridvision import GridVision
 
 import logging
 log = logging.getLogger("rooms.room")
@@ -56,8 +57,7 @@ class Room(object):
         self.tags = []
         self.node = node
         self.online = True
-        self.visibility = Visibility()
-        self.visibility.add_visible_area(topleft, bottomright)
+        self.visibility = GridVision(self, 10)
         self.state = dict()
 
     def __repr__(self):
