@@ -72,6 +72,19 @@ class GridVisionTest(unittest.TestCase):
             ("actor_removed", self.actor1),
             ], listener.messages)
 
+    def testRemoveListener(self):
+        listener = MockListener(self.lactor)
+        self.vision.add_listener(listener)
+        self.vision.actor_update(self.actor1)
+        self.assertEquals([("actor_update", self.actor1)], listener.messages)
+        area = self.vision.area_for_actor(self.lactor)
+        self.assertEquals(set([listener]), area.listeners)
+
+        self.vision.remove_listener(listener)
+
+        self.assertEquals(set(), area.listeners)
+        self.assertEquals(dict(), self.vision.listener_actors)
+
     def testAllActorsAreKeptAsReferences(self):
         self.vision.actor_update(self.actor1)
         self.assertEquals(set([self.actor1]),
@@ -198,6 +211,8 @@ class GridVisionTest(unittest.TestCase):
             ("actor_update", self.actor1),
             ("actor_vector_changed", self.lactor, previous),
             ], listener.messages)
+        self.assertEquals(listener,
+            self.vision.area_for_actor(self.lactor).listeners.pop())
 
     def testPlayerActorMovesOutOfVisionArea(self):
         self.vision = GridVision(self.room, 10)

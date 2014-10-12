@@ -131,3 +131,13 @@ class RoomTest(unittest.TestCase):
 
         self.assertEquals([tag1, tag2, tag3], self.room.find_tags("tag"))
         self.assertEquals([tag1, tag2, tag3], self.room.find_tags(""))
+
+    def testSplitPathBasedOnVisionGridWidth(self):
+        self.room.visibility.gridsize = 10
+
+        path = self.room.find_path(Position(10, 10), Position(20, 10))
+        self.assertEquals([Position(10, 10), Position(20, 10)], path)
+
+        path = self.room.find_path(Position(10, 10), Position(30, 10))
+        self.assertEquals([Position(10, 10), Position(20, 10), Position(30, 10)], path)
+

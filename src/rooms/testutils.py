@@ -11,6 +11,7 @@ from rooms.timer import Timer
 from rooms.container import Container
 from rooms.utils import IDFactory
 from rooms.visibility import Visibility
+from rooms.gridvision import GridVision
 
 
 class MockContainer(Container):
@@ -81,8 +82,7 @@ class MockRoom(Room):
         self.topleft = Position(0, 0)
         self.bottomright = Position(10, 10)
         self._actor_enters = []
-        self.visibility = Visibility()
-        self.visibility.add_visible_area(self.topleft, self.bottomright)
+        self.visibility = GridVision(self)
 
     def kick(self):
         self._kicked_off = True

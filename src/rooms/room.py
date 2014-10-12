@@ -57,7 +57,7 @@ class Room(object):
         self.tags = []
         self.node = node
         self.online = True
-        self.visibility = GridVision(self, 10)
+        self.visibility = GridVision(self, self.width)
         self.state = dict()
 
     def __repr__(self):
@@ -105,7 +105,27 @@ class Room(object):
         return [a for a in self.actors.values() if a.is_player]
 
     def find_path(self, from_pos, to_pos):
-        return self.geography.find_path(self, from_pos, to_pos)
+        path = self.geography.find_path(self, from_pos, to_pos)
+        split_path = self._split_path(path, self.visibility.gridsize)
+        return split_path
+
+    def _split_path(self, path, max_length):
+        split_path = []
+        from_point = path[0]
+        for to_point in path[1:]:
+            split_path.extend(self._split_points(from_point, to_point,
+                max_length) + [to_point])
+        return split_path
+
+    def _split_points(self, from_point, to_point, max_length):
+        if abs(to_point.x - from_point.x) > max_length or \
+                abs(to_point.y - from_point.y) > max_length:
+            halfway = Position((to_point.x + from_point.x) / 2,
+                (to_point.y + from_point.y) / 2)
+            return self._split_points(from_point, halfway, max_length) + \
+                self._split_points(halfway, to_point, max_length)
+        else:
+            return [from_point]
 
     def actor_state_changed(self, actor):
         self.node.actor_state_changed(self, actor)

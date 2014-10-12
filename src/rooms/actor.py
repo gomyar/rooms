@@ -101,6 +101,7 @@ class Actor(object):
                 args, kwargs)
 
     def _move_update(self):
+        log.debug(" --- Actor %s moving along path: %s", self, self.path)
         from_point = self.path[0]
         from_time = Timer.now()
         for to_point in self.path[1:]:
@@ -111,6 +112,7 @@ class Actor(object):
             self.room.actor_vector_changed(self, previous_vector)
             from_point = to_point
             from_time = end_time
+            log.debug("%s moving from %s to %s", self, from_point, to_point)
             Timer.sleep_until(end_time)
 
     def _send_state_changed(self):

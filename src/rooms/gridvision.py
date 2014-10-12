@@ -47,6 +47,11 @@ class GridVision(object):
         area.listeners.add(listener)
         self.listener_actors[listener.actor] = listener
 
+    def remove_listener(self, listener):
+        area = self.area_for_actor(listener.actor)
+        area.listeners.remove(listener)
+        self.listener_actors.pop(listener.actor)
+
     def actor_update(self, actor):
         area = self.area_for_actor(actor)
         for link in area.linked:
@@ -101,6 +106,8 @@ class GridVision(object):
             # Listener changed area events
             if actor in self.listener_actors:
                 listener = self.listener_actors[actor]
+                current_area.listeners.remove(listener)
+                new_area.listeners.add(listener)
                 for area in removed_areas:
                     for actor in area.actors:
                         if listener.actor != actor:

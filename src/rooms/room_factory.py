@@ -9,6 +9,7 @@ from rooms.room import Door
 from rooms.position import Position
 from rooms.visibility import Visibility
 from rooms.visibility import Area
+from rooms.gridvision import GridVision
 
 
 class FileMapSource(object):
@@ -23,6 +24,7 @@ class FileMapSource(object):
 class RoomFactory(object):
     POS_TOPLEFT = "relative_topleft"
     POS_ABS = "absolute"
+    DEFAULT_GRIDSIZE = 10
 
     def __init__(self, map_source, node):
         self.map_source = map_source
@@ -58,15 +60,8 @@ class RoomFactory(object):
         return room
 
     def _create_visibility(self, room, visibility_json):
-        visibility = Visibility()
-        if visibility_json and visibility_json['type'] == 'areas':
-            for area_json in visibility_json['areas']:
-                visibility.add_visible_area(
-                    self._create_pos(area_json['topleft']),
-                    self._create_pos(area_json['bottomright']))
-        else:
-            visibility.add_visible_area(room.topleft, room.bottomright)
-        return visibility
+        return GridVision(room, visibility_json.get('gridsize',
+            RoomFactory.DEFAULT_GRIDSIZE))
 
     def _create_door(self, door_json):
         return Door(door_json['exit_room_id'],
