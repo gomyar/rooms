@@ -9,6 +9,10 @@ def create_vector(start_pos, end_pos, speed=1):
     return Vector(start_pos, start_time, end_pos, end_time)
 
 
+def build_vector(x1, y1, x2, y2, speed=1):
+    return create_vector(Position(x1, y1), Position(x2, y2), speed)
+
+
 def time_to_position(start_pos, end_pos, speed):
     return start_pos.distance_to(end_pos) / speed
 

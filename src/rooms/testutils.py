@@ -69,7 +69,7 @@ class MockDbase(object):
         objdata.update(fields)
 
 
-class MockRoom(object):
+class MockRoom(Room):
     def __init__(self, game_id, room_id):
         self._kicked_off = False
         self.room_id = room_id
@@ -80,7 +80,6 @@ class MockRoom(object):
         self.actors = dict()
         self.topleft = Position(0, 0)
         self.bottomright = Position(10, 10)
-        self.center = Position(0, 0)
         self._actor_enters = []
         self.visibility = Visibility()
         self.visibility.add_visible_area(self.topleft, self.bottomright)
