@@ -115,5 +115,63 @@ class GridVisionTest(unittest.TestCase):
         self.assertEquals(Area(9, 9), self.vision.area_at(Position(99, 99)))
         self.assertEquals(None, self.vision.area_at(Position(100, 100)))
 
-    def testActorMovesArea(self):
-        pass
+    def testActorMovesOutOfVisionArea(self):
+        self.vision = GridVision(self.room, 10)
+        self.actor1 = MockActor("actor1")
+        previous = build_vector(21, 21, 25, 25)
+        self.actor1.vector = previous
+        self.lactor = MockActor("listener1")
+        self.lactor.vector = build_vector(11, 11, 15, 15)
+
+        # add actor and listener
+        self.vision.actor_update(self.actor1)
+        listener = MockListener(self.lactor)
+        self.vision.add_listener(listener)
+
+        # change vector to area outside vision distance
+        self.actor1.vector = build_vector(35, 35, 45, 45)
+        self.vision.actor_vector_changed(self.actor1, previous)
+
+        self.assertEquals([
+            ("actor_removed", self.actor1)
+        ], listener.messages)
+
+    def testActorMovesIntoVisionArea(self):
+        self.vision = GridVision(self.room, 10)
+        self.actor1 = MockActor("actor1")
+        previous = build_vector(35, 35, 45, 45)
+        self.actor1.vector = previous
+        self.lactor = MockActor("listener1")
+        self.lactor.vector = build_vector(11, 11, 15, 15)
+
+        # add actor and listener
+        self.vision.actor_update(self.actor1)
+        listener = MockListener(self.lactor)
+        self.vision.add_listener(listener)
+
+        # change vector to area outside vision distance
+        self.actor1.vector = build_vector(21, 21, 25, 25)
+        self.vision.actor_vector_changed(self.actor1, previous)
+
+        self.assertEquals([
+            ("actor_update", self.actor1)
+        ], listener.messages)
+
+    def testActorMovesInNonVisibleAreas(self):
+        self.vision = GridVision(self.room, 10)
+        self.actor1 = MockActor("actor1")
+        previous = build_vector(35, 35, 45, 45)
+        self.actor1.vector = previous
+        self.lactor = MockActor("listener1")
+        self.lactor.vector = build_vector(11, 11, 15, 15)
+
+        # add actor and listener
+        self.vision.actor_update(self.actor1)
+        listener = MockListener(self.lactor)
+        self.vision.add_listener(listener)
+
+        # change vector to area outside vision distance
+        self.actor1.vector = build_vector(45, 45, 55, 55)
+        self.vision.actor_vector_changed(self.actor1, previous)
+
+        self.assertEquals([], listener.messages)

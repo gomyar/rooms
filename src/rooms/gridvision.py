@@ -65,10 +65,30 @@ class GridVision(object):
                 listener.actor_state_changed(actor)
 
     def actor_vector_changed(self, actor, previous):
-        area = self.area_for_actor(actor)
-        for link in area.linked:
-            for listener in link.listeners:
-                listener.actor_vector_changed(actor, previous)
+        current_area = self.actor_map[actor]
+        new_area = self.area_at(actor.vector.start_pos)
+        if current_area == new_area:
+            # area has not changed, propagate event as normal
+            for link in current_area.linked:
+                for listener in link.listeners:
+                    listener.actor_vector_changed(actor, previous)
+        else:
+            # area changed
+            self.actor_map[actor] = new_area
+            current_area.actors.remove(actor)
+            new_area.actors.add(actor)
+            removed_areas = current_area.linked.difference(new_area.linked)
+            added_areas = new_area.linked.difference(current_area.linked)
+            same_areas = new_area.linked.intersection(current_area.linked)
+            for area in removed_areas:
+                for listener in area.listeners:
+                    listener.actor_removed(actor)
+            for area in added_areas:
+                for listener in area.listeners:
+                    listener.actor_update(actor)
+            for area in same_areas:
+                for listener in area.listeners:
+                    listener.actor_vector_changed(actor, previous)
 
     def actor_becomes_invisible(self, actor):
         area = self.area_for_actor(actor)
