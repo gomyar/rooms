@@ -1,4 +1,6 @@
 
+ - move sync to gridvision
+
  - possibly don't completely delete the actor on the client side for a while in case the data comes back again, and we can restore 
 
  - can we replace actor_update in the gridvision with actor_added? ( which propagates an actor_update event)

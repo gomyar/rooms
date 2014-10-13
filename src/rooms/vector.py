@@ -5,7 +5,7 @@ from rooms.position import Position
 
 def create_vector(start_pos, end_pos, speed=1):
     start_time = Timer.now()
-    end_time = time_to_position(start_pos, end_pos, speed)
+    end_time = start_time + time_to_position(start_pos, end_pos, speed)
     return Vector(start_pos, start_time, end_pos, end_time)
 
 

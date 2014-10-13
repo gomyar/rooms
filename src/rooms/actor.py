@@ -81,6 +81,7 @@ class Actor(object):
         total = 0
         for to_point in self.path[1:]:
             total += time_to_position(from_point, to_point, self.speed)
+            from_point = to_point
         return total
 
     def sleep(self, seconds):
@@ -101,7 +102,6 @@ class Actor(object):
                 args, kwargs)
 
     def _move_update(self):
-        log.debug(" --- Actor %s moving along path: %s", self, self.path)
         from_point = self.path[0]
         from_time = Timer.now()
         for to_point in self.path[1:]:
@@ -109,10 +109,10 @@ class Actor(object):
                 time_to_position(from_point, to_point, self.speed)
             previous_vector = self.vector
             self.vector = Vector(from_point, from_time, to_point, end_time)
+            self.vector = create_vector(from_point, to_point, self.speed)
             self.room.actor_vector_changed(self, previous_vector)
             from_point = to_point
             from_time = end_time
-            log.debug("%s moving from %s to %s", self, from_point, to_point)
             Timer.sleep_until(end_time)
 
     def _send_state_changed(self):
