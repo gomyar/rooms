@@ -56,6 +56,10 @@ class RoomTest(unittest.TestCase):
         self.assertEquals("bob", actor2.username)
         self.assertEquals(self.script, actor.script)
 
+        actor = self.room.create_actor("mock_actor", "rooms.room_test",
+            position=Position(10, 10))
+        self.assertEquals(actor.position, Position(10, 10))
+
     def testFindPath(self):
         path = self.room.find_path(Position(1, 2), Position(3, 4))
         self.assertEquals([
@@ -141,3 +145,12 @@ class RoomTest(unittest.TestCase):
         path = self.room.find_path(Position(10, 10), Position(30, 10))
         self.assertEquals([Position(10, 10), Position(20, 10), Position(30, 10)], path)
 
+
+    def testActorsAddedToRoomOutsideBoundariesArePositionedInside(self):
+        newactor1 = MockActor("new1")
+        self.room.put_actor(newactor1, Position(-5, -5))
+        self.assertEquals(Position(0, 0), newactor1.position)
+
+        newactor2 = MockActor("new1")
+        self.room.put_actor(newactor2, Position(55, 55))
+        self.assertEquals(Position(50, 50), newactor2.position)

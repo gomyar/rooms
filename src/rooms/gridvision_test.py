@@ -47,7 +47,7 @@ class GridVisionTest(unittest.TestCase):
 
     def testAreaLayout(self):
         # basic grid, 10 x 10
-        self.assertEquals(100, len(self.vision.areas))
+        self.assertEquals(121, len(self.vision.areas))
         self.assertEquals(Area(0, 0), self.vision.area_at(Position(2, 3)))
         self.assertEquals(None, self.vision.area_at(Position(-1, -1)))
         self.assertEquals(Area(9, 9), self.vision.area_at(Position(90, 90)))
@@ -126,7 +126,8 @@ class GridVisionTest(unittest.TestCase):
     def testEveryPartOfTheRoomShouldBeCoveredByAVisionArea(self):
         self.assertEquals(Area(0, 0), self.vision.area_at(Position(0, 0)))
         self.assertEquals(Area(9, 9), self.vision.area_at(Position(99, 99)))
-        self.assertEquals(None, self.vision.area_at(Position(100, 100)))
+        self.assertEquals(Area(10, 10), self.vision.area_at(Position(100, 100)))
+        self.assertEquals(None, self.vision.area_at(Position(110, 110)))
 
     def testActorMovesOutOfVisionArea(self):
         self.vision = GridVision(self.room, 10)
@@ -286,3 +287,15 @@ class GridVisionTest(unittest.TestCase):
             ("actor_update", self.actor1),
             ("actor_vector_changed", self.lactor, previous),
             ], listener.messages)
+
+    def testAbsolutePositionRoom(self):
+        self.room = MockRoom("game1", "map1.roomq")
+        self.room.topleft = Position(100, 0)
+        self.room.bottomright = Position(200, 100)
+        self.vision = GridVision(self.room, 10)
+        self.actor1 = MockActor("actor1")
+        self.actor1.vector = build_vector(1, 1, 5, 5)
+
+        self.room.put_actor(self.actor1)
+
+

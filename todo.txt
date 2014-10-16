@@ -1,4 +1,6 @@
 
+ - test move rooms
+
  - move sync to gridvision
 
  - possibly don't completely delete the actor on the client side for a while in case the data comes back again, and we can restore 

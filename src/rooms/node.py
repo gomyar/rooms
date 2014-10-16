@@ -211,7 +211,7 @@ class Node(object):
         player_conn = self.connections[token]
         room = self.rooms[game_id, player_conn.room.room_id]
         queue = player_conn.new_queue()
-        player_conn.send_sync_to_websocket(ws, room, player_conn.username)
+        room.visibility.send_sync(player_conn)
         self._perform_ws_loop(player_conn, queue, ws)
 
     def _perform_ws_loop(self, player_conn, queue, ws):
@@ -389,6 +389,7 @@ class Node(object):
             player_conn.room.visibility.remove_listener(player_conn)
             player_conn.room = exit_room
             exit_room.visibility.add_listener(player_conn)
+            #exit_room.visibility.send_sync(player_conn)
             player_conn.send_sync(exit_room)
             for actor in exit_room.actors.values():
                 player_conn.actor_update(actor)

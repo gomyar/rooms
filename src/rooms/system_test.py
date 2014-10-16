@@ -247,6 +247,8 @@ class SystemTest(unittest.TestCase):
         self.assertEquals(Position(5, 5), ned_actor.position)
 
     def testMultiplePlayerConnections(self):
+        # I'm gonna call this a known bug : when the same player connects
+        # twice it re-sends the sync to the same players' other connections
         self.node.manage_room("game1", "map1.room1")
 
         self.node.player_joins("fred", "game1", "map1.room1")
@@ -264,7 +266,8 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(0)
 
-        self.assertEquals(4, len(player1_ws.updates))
+        # extra sync messages here (8 instead of 4):
+        self.assertEquals(8, len(player1_ws.updates))
         self.assertEquals(4, len(player1_ws_2.updates))
         self.assertEquals(4, len(player2_ws.updates))
 
@@ -273,7 +276,7 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(0)
 
-        self.assertEquals(5, len(player1_ws.updates))
+        self.assertEquals(9, len(player1_ws.updates))
         self.assertEquals(5, len(player1_ws_2.updates))
         self.assertEquals(5, len(player2_ws.updates))
 

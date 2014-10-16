@@ -29,8 +29,8 @@ class GridVision(object):
         self.listener_actors = dict()
 
     def _create_areas(self):
-        for y in range(0, int(self.room.height / self.gridsize)):
-            for x in range(0, int(self.room.width / self.gridsize)):
+        for y in range(0, int(self.room.height / self.gridsize) + 1):
+            for x in range(0, int(self.room.width / self.gridsize) + 1):
                 self.areas[x, y] = Area(x, y)
         for area in self.areas.values():
             area.linked = set([self.areas.get((area.x + x, area.y + y)) for \
@@ -38,8 +38,8 @@ class GridVision(object):
                 self.areas.get((area.x + x, area.y + y))])
 
     def area_at(self, position):
-        x = int(position.x) / self.gridsize
-        y = int(position.y) / self.gridsize
+        x = int(position.x - self.room.topleft.x) / self.gridsize
+        y = int(position.y - self.room.topleft.y) / self.gridsize
         return self.areas.get((x, y))
 
     def add_listener(self, listener):
@@ -135,3 +135,9 @@ class GridVision(object):
             self.actor_map[actor] = self.area_at(actor.vector.start_pos)
             self.actor_map[actor].actors.add(actor)
         return self.actor_map[actor]
+
+    def send_sync(self, listener):
+        listener.send_sync(self.room)
+        for area in self.area_for_actor(listener.actor).linked:
+            for actor in area.actors:
+                listener.actor_update(actor)

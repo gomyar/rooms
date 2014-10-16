@@ -84,13 +84,13 @@ class Room(object):
         for actor in self.actors.values():
             actor.kick()
 
-    def create_actor(self, actor_type, script_name, player=None):
+    def create_actor(self, actor_type, script_name, player=None, position=None):
         script = self.node.scripts[script_name]
         actor = self.node.container.create_actor(self, actor_type, script,
             player.username if player else None)
         actor.script.call("created", actor)
         actor.kick()
-        self.put_actor(actor)
+        self.put_actor(actor, position)
         return actor
 
     def put_actor(self, actor, position=None):
@@ -98,8 +98,16 @@ class Room(object):
         actor.room = self
         if position:
             actor.position = position
+        actor.position = self._correct_position(actor.position)
         actor.kick()
         self.actor_added(actor)
+
+    def _correct_position(self, position):
+        x, y, z = position.x, position.y, position.z
+        x = min(self.bottomright.x, max(self.topleft.x, x))
+        y = min(self.bottomright.y, max(self.topleft.y, y))
+        z = min(self.bottomright.z, max(self.topleft.z, z))
+        return Position(x, y, z)
 
     def player_actors(self):
         return [a for a in self.actors.values() if a.is_player]
@@ -128,19 +136,34 @@ class Room(object):
             return [from_point]
 
     def actor_state_changed(self, actor):
-        self.node.actor_state_changed(self, actor)
+        if actor.actor_id in self.actors:
+            self.node.actor_state_changed(self, actor)
+        else:
+            log.warning("Actor not in room but state changed sent: %s", actor)
 
     def actor_vector_changed(self, actor, previous_vector):
-        self.node.actor_vector_changed(self, actor, previous_vector)
+        if actor.actor_id in self.actors:
+            self.node.actor_vector_changed(self, actor, previous_vector)
+        else:
+            log.warning("Actor not in room but vector update sent: %s", actor)
 
     def actor_added(self, actor):
-        self.node.actor_added(self, actor)
+        if actor.actor_id in self.actors:
+            self.node.actor_added(self, actor)
+        else:
+            log.warning("Actor not in room but actor added sent: %s", actor)
 
     def actor_becomes_visible(self, actor):
-        self.node.actor_becomes_visible(self, actor)
+        if actor.actor_id in self.actors:
+            self.node.actor_becomes_visible(self, actor)
+        else:
+            log.warning("Actor not in room but actor visible sent: %s", actor)
 
     def actor_becomes_invisible(self, actor):
-        self.node.actor_becomes_invisible(self, actor)
+        if actor.actor_id in self.actors:
+            self.node.actor_becomes_invisible(self, actor)
+        else:
+            log.warning("Actor not in room but actor invisible sent: %s", actor)
 
     def get_door(self, exit_room_id=None):
         for door in self.doors:
