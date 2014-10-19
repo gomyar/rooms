@@ -8,30 +8,7 @@ from rooms.vector import Vector
 from rooms.gridvision import GridVision
 from rooms.gridvision import Area
 from rooms.testutils import MockActor
-
-
-class MockListener(object):
-    def __init__(self, actor):
-        self.messages = []
-        self.actor = actor
-
-    def actor_update(self, actor):
-        self.messages.append(("actor_update", actor))
-
-    def actor_removed(self, actor):
-        self.messages.append(("actor_removed", actor))
-
-    def actor_state_changed(self, actor):
-        self.messages.append(("actor_state_changed", actor))
-
-    def actor_vector_changed(self, actor, previous_vector):
-        self.messages.append(("actor_vector_changed", actor, previous_vector))
-
-    def actor_becomes_invisible(self, actor):
-        self.messages.append(("actor_becomes_invisible", actor))
-
-    def actor_becomes_visible(self, actor):
-        self.messages.append(("actor_becomes_visible", actor))
+from rooms.testutils import MockPlayerConnection
 
 
 class GridVisionTest(unittest.TestCase):
@@ -49,8 +26,11 @@ class GridVisionTest(unittest.TestCase):
         # basic grid, 10 x 10
         self.assertEquals(121, len(self.vision.areas))
         self.assertEquals(Area(0, 0), self.vision.area_at(Position(2, 3)))
-        self.assertEquals(None, self.vision.area_at(Position(-1, -1)))
+        self.assertEquals(Area(0, 0), self.vision.area_at(Position(-1, -1)))
+        self.assertEquals(None, self.vision.area_at(Position(-10, -10)))
         self.assertEquals(Area(9, 9), self.vision.area_at(Position(90, 90)))
+        self.assertEquals(Area(10, 9), self.vision.area_at(Position(100, 90)))
+        self.assertEquals(None, self.vision.area_at(Position(110, 110)))
 
     def testAreasAttachedToVisibleAreas(self):
         area = self.vision.area_at(Position(12, 13))
@@ -59,7 +39,7 @@ class GridVisionTest(unittest.TestCase):
         self.assertTrue(Area(2, 2) in list(area.linked))
 
     def testListenersAttachToSingleArea(self):
-        listener = MockListener(self.lactor)
+        listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
         self.vision.actor_update(self.actor1)
         self.assertEquals([("actor_update", self.actor1)], listener.messages)
@@ -73,7 +53,7 @@ class GridVisionTest(unittest.TestCase):
             ], listener.messages)
 
     def testRemoveListener(self):
-        listener = MockListener(self.lactor)
+        listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
         self.vision.actor_update(self.actor1)
         self.assertEquals([("actor_update", self.actor1)], listener.messages)
@@ -95,7 +75,7 @@ class GridVisionTest(unittest.TestCase):
             self.vision.area_at(self.actor1.position).actors)
 
     def testEventsPropagatedToAreaListeners(self):
-        listener = MockListener(self.lactor)
+        listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
 
         self.vision.actor_update(self.actor1)
@@ -139,7 +119,7 @@ class GridVisionTest(unittest.TestCase):
 
         # add actor and listener
         self.vision.actor_update(self.actor1)
-        listener = MockListener(self.lactor)
+        listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
 
         # change vector to area outside vision distance
@@ -160,7 +140,7 @@ class GridVisionTest(unittest.TestCase):
 
         # add actor and listener
         self.vision.actor_update(self.actor1)
-        listener = MockListener(self.lactor)
+        listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
 
         # change vector to area outside vision distance
@@ -181,7 +161,7 @@ class GridVisionTest(unittest.TestCase):
 
         # add actor and listener
         self.vision.actor_update(self.actor1)
-        listener = MockListener(self.lactor)
+        listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
 
         # change vector to area outside vision distance
@@ -201,7 +181,7 @@ class GridVisionTest(unittest.TestCase):
         # add actors and listener
         self.vision.actor_update(self.actor1)
         self.vision.actor_update(self.lactor)
-        listener = MockListener(self.lactor)
+        listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
 
         # change vector to area outside vision distance
@@ -226,7 +206,7 @@ class GridVisionTest(unittest.TestCase):
         # add actors and listener
         self.vision.actor_update(self.actor1)
         self.vision.actor_update(self.lactor)
-        listener = MockListener(self.lactor)
+        listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
 
         # change vector to area outside vision distance
@@ -250,7 +230,7 @@ class GridVisionTest(unittest.TestCase):
         # add actors and listener
         self.vision.actor_update(self.actor1)
         self.vision.actor_update(self.lactor)
-        listener = MockListener(self.lactor)
+        listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
 
         # change vector to area outside vision distance
@@ -276,7 +256,7 @@ class GridVisionTest(unittest.TestCase):
         # add actors and listener
         self.vision.actor_update(self.actor1)
         self.vision.actor_update(self.lactor)
-        listener = MockListener(self.lactor)
+        listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
 
         # change vector to area outside vision distance

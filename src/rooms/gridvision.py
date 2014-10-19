@@ -1,6 +1,9 @@
 
 from rooms.position import Position
 
+import logging
+log = logging.getLogger("rooms.vision")
+
 
 class Area(object):
     def __init__(self, x, y):
@@ -25,7 +28,9 @@ class GridVision(object):
         self.gridsize = gridsize
         self._create_areas()
 
+        # actor => area
         self.actor_map = dict()
+        # actor => listener
         self.listener_actors = dict()
 
     def _create_areas(self):
@@ -38,8 +43,8 @@ class GridVision(object):
                 self.areas.get((area.x + x, area.y + y))])
 
     def area_at(self, position):
-        x = int(position.x - self.room.topleft.x) / self.gridsize
-        y = int(position.y - self.room.topleft.y) / self.gridsize
+        x = int((position.x - self.room.topleft.x) / self.gridsize)
+        y = int((position.y - self.room.topleft.y) / self.gridsize)
         return self.areas.get((x, y))
 
     def add_listener(self, listener):
@@ -138,6 +143,9 @@ class GridVision(object):
 
     def send_sync(self, listener):
         listener.send_sync(self.room)
+        self.send_all_visible_actors(listener)
+
+    def send_all_visible_actors(self, listener):
         for area in self.area_for_actor(listener.actor).linked:
             for actor in area.actors:
                 listener.actor_update(actor)

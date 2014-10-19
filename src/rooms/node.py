@@ -379,20 +379,20 @@ class Node(object):
         if actor.actor_id in from_room.actors:
             from_room.remove_actor(actor)
         exit_room = self.rooms[game_id, exit_room_id]
-        exit_room.put_actor(actor)
-        actor.position = exit_position
+        if actor.is_player and \
+                (actor.username, game_id) in self.player_connections:
+            player_conn = self.player_connections[actor.username, game_id]
+            player_conn.room.visibility.remove_listener(player_conn)
+        exit_room.put_actor(actor, exit_position)
         if actor.is_player and \
                 (actor.username, game_id) in self.player_connections:
             log.debug("Sending room sync for %s to %s-%s", exit_room, game_id,
                 actor.username)
             player_conn = self.player_connections[actor.username, game_id]
-            player_conn.room.visibility.remove_listener(player_conn)
             player_conn.room = exit_room
             exit_room.visibility.add_listener(player_conn)
-            #exit_room.visibility.send_sync(player_conn)
             player_conn.send_sync(exit_room)
-            for actor in exit_room.actors.values():
-                player_conn.actor_update(actor)
+            exit_room.visibility.send_all_visible_actors(player_conn)
         else:
             log.debug("No connection for player %s-%s", game_id, actor.username)
 

@@ -113,7 +113,8 @@ class Room(object):
         return [a for a in self.actors.values() if a.is_player]
 
     def find_path(self, from_pos, to_pos):
-        path = self.geography.find_path(self, from_pos, to_pos)
+        path = self.geography.find_path(self, self._correct_position(from_pos),
+            self._correct_position(to_pos))
         split_path = self._split_path(path, self.visibility.gridsize)
         return split_path
 

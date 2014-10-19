@@ -66,7 +66,8 @@ class PlayerConnection(object):
 
     def _sync_message(self, room):
         return {"command": "sync", "data": {"now": Timer.now(),
-            "username": self.username, "room_id": room.room_id}}
+            "username": self.username, "room_id": room.room_id,
+            "player_actor": jsonview(self.actor)}}
 
 
 class AdminConnection(PlayerConnection):

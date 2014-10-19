@@ -183,3 +183,12 @@ class ActorTest(unittest.TestCase):
             self.mock_room._updates)
         self.assertEquals([self.actor2], self.mock_room._update_invisible)
         self.assertEquals([self.actor2], self.mock_room._update_visible)
+
+    def testSetPositionToOutsideRoomCorrectsPosition(self):
+        self.mock_room.put_actor(self.actor)
+
+        self.assertEquals(Position(0, 0), self.actor.position)
+
+        self.actor.position = Position(-1, -1)
+
+        self.assertEquals(Position(0, 0), self.actor.position)

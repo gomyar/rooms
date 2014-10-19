@@ -362,12 +362,12 @@ class NodeTest(unittest.TestCase):
         self.node.player_connections['player1', 'game1'] = player_conn
         queue = player_conn.new_queue()
         room1.visibility.add_listener(player_conn)
-        room2.visibility.add_listener(player_conn)
 
         self.node._move_actor_room(actor, "game1", "map1.room2", Position(10, 10))
 
         self.assertEquals("remove_actor", queue.get_nowait()['command'])
-        #self.assertEquals({}, queue.get_nowait())
+
+        # maybe add another listener in the second room later
 
     def testStartReport(self):
         self.node.start_reporting()

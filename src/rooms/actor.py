@@ -127,6 +127,8 @@ class Actor(object):
 
     @position.setter
     def position(self, pos):
+        if self.room:
+            pos = self.room._correct_position(pos)
         self.vector = create_vector(pos, pos)
 
     def enter(self, door):

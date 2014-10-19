@@ -209,7 +209,7 @@ class SystemTest(unittest.TestCase):
         self.assertEquals(ned_actor, room2.actors["id1"])
         self.assertEquals(room2, ned_actor.room)
         self.assertEquals({}, self.room1.actors)
-        self.assertEquals(Position(5, 5), ned_actor.position)
+        self.assertEquals(Position(50, 5), ned_actor.position)
 
     def testMoveActorRoomAnotherNode(self):
         self.room1 = Room("game1", "room1",

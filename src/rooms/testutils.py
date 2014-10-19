@@ -12,6 +12,8 @@ from rooms.container import Container
 from rooms.utils import IDFactory
 from rooms.visibility import Visibility
 from rooms.gridvision import GridVision
+from rooms.player_connection import PlayerConnection
+from rooms.node import Node
 
 
 class MockContainer(Container):
@@ -123,37 +125,15 @@ class MockRoom(Room):
         return "<MockRoom %s %s>" % (self.game_id, self.room_id)
 
 
-class MockNode(object):
+class MockNode(Node):
     def __init__(self):
-        self._updates = []
-        self._removals = []
-        self._invisible = []
-        self._visible = []
         self.scripts = {}
-
-    def actor_update(self, room, actor):
-        self._updates.append((room, actor))
-
-    def actor_removed(self, room, actor):
-        self._removals.append((room, actor))
+        self.admin_connections = {}
+        self.rooms = {}
+        self._updates = []
 
     def move_actor_room(self, actor, game_id, exit_room_id, exit_room_position):
         self._updates.append((actor, game_id, exit_room_id, exit_room_position))
-
-    def actor_added(self, room, actor):
-        self._updates.append((room, actor))
-
-    def actor_state_changed(self, room, actor):
-        self._updates.append((room, actor))
-
-    def actor_vector_changed(self, room, actor):
-        self._updates.append((room, actor))
-
-    def actor_becomes_visible(self, room, actor):
-        self._visible.append((room, actor))
-
-    def actor_becomes_invisible(self, room, actor):
-        self._invisible.append((room, actor))
 
 
 class MockGame(object):
@@ -306,3 +286,29 @@ class MockIDFactory(IDFactory):
     def _create_id(self):
         self.index += 1
         return "id%s" % self.index
+
+
+class MockPlayerConnection(object):
+    def __init__(self, actor):
+        self.messages = []
+        self.actor = actor
+
+    def actor_update(self, actor):
+        self.messages.append(("actor_update", actor))
+
+    def actor_removed(self, actor):
+        self.messages.append(("actor_removed", actor))
+
+    def actor_state_changed(self, actor):
+        self.messages.append(("actor_state_changed", actor))
+
+    def actor_vector_changed(self, actor, previous_vector):
+        self.messages.append(("actor_vector_changed", actor, previous_vector))
+
+    def actor_becomes_invisible(self, actor):
+        self.messages.append(("actor_becomes_invisible", actor))
+
+    def actor_becomes_visible(self, actor):
+        self.messages.append(("actor_becomes_visible", actor))
+
+
