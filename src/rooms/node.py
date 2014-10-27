@@ -328,6 +328,32 @@ class Node(object):
         #    - If listener(s) following actor
         #      - Move listener(s) (remove then add)
         #      - Send sync
+        if (game_id, exit_room_id) in self.rooms:
+            from_room = actor.room
+            listener = from_room.vision.listener_actors.get(actor)
+            if listener:
+                from_room.vision.remove_listener(listener)
+            from_room.remove_actor(actor)
+            exit_room = self.rooms[game_id, exit_room_id]
+            exit_room.put_actor(actor, exit_position)
+            if listener:
+                exit_room.vision.add_listener(listener)
+                listener.send_sync(exit_room)
+                exit_room.vision.send_all_visible_actors(listener)
+        else:
+            from_room = actor.room
+            from_room.remove_actor(actor)
+            self._save_actor_to_other_room(exit_room_id, exit_position, actor)
+            listener = from_room.vision.listener_actors.get(actor)
+            if listener:
+                listener.redirect_to_master(self.master_host, self.master_port)
+                # disconnect
+                self.player_connections.pop((actor.username,
+                    actor.game_id))
+            self._send_actor_entered_message(game_id, exit_room_id, actor,
+                from_room, exit_position)
+
+
         # 2. Actor moves to a room which is currently managed by another node
         #    - Remove actor
         #    - Save actor to other room
@@ -340,6 +366,17 @@ class Node(object):
         #    - If listener(s) following
         #      - Remove listener
         #      - Redirect
+
+
+    def _save_actor_to_other_room(self, exit_room_id, exit_position, actor):
+        actor._game_id = actor.game_id
+        actor.position = exit_position
+        actor._room_id = exit_room_id
+        self.container.save_actor(actor) # (, async=False) ?
+
+
+
+    def __move_actor_room(self, actor, game_id, exit_room_id, exit_position):
         log.debug("Moving actor %s to %s", actor, exit_room_id)
         from_room = actor.room
         if (game_id, exit_room_id) in self.rooms:
@@ -383,7 +420,7 @@ class Node(object):
                 self.player_connections.pop((actor.username,
                     actor.game_id))
 
-    def _save_actor_to_other_room(self, exit_room_id, exit_position, actor,
+    def __save_actor_to_other_room(self, exit_room_id, exit_position, actor,
             from_room):
         actor._game_id = actor.game_id
         from_room.remove_actor(actor)

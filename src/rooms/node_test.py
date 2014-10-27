@@ -365,7 +365,7 @@ class NodeTest(unittest.TestCase):
 
         self.node._move_actor_room(actor, "game1", "map1.room2", Position(10, 10))
 
-        self.assertEquals("remove_actor", queue.get_nowait()['command'])
+        self.assertEquals("sync", queue.get_nowait()['command'])
 
         # maybe add another listener in the second room later
 
