@@ -1,7 +1,6 @@
 
 from rooms.position import Position
 from rooms.actor import Actor
-from rooms.visibility import Visibility
 from rooms.gridvision import GridVision
 
 import logging
@@ -57,7 +56,7 @@ class Room(object):
         self.tags = []
         self.node = node
         self.online = True
-        self.visibility = GridVision(self, self.width)
+        self.vision = GridVision(self, self.width)
         self.state = dict()
 
     def __repr__(self):
@@ -100,7 +99,8 @@ class Room(object):
             actor.position = position
         actor.position = self._correct_position(actor.position)
         actor.kick()
-        self.actor_added(actor)
+        self.vision.add_actor(actor)
+#        self.actor_added(actor)
 
     def _correct_position(self, position):
         x, y, z = position.x, position.y, position.z
@@ -115,7 +115,7 @@ class Room(object):
     def find_path(self, from_pos, to_pos):
         path = self.geography.find_path(self, self._correct_position(from_pos),
             self._correct_position(to_pos))
-        split_path = self._split_path(path, self.visibility.gridsize)
+        split_path = self._split_path(path, self.vision.gridsize)
         return split_path
 
     def _split_path(self, path, max_length):

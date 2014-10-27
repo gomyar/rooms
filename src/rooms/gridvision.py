@@ -57,6 +57,14 @@ class GridVision(object):
         area.listeners.remove(listener)
         self.listener_actors.pop(listener.actor)
 
+    def add_actor(self, actor):
+        area = self.area_at(actor.vector.start_pos)
+        area.actors.add(actor)
+        self.actor_map[actor] = area
+        for link in area.linked:
+            for listener in link.listeners:
+                listener.actor_update(actor)
+
     def actor_update(self, actor):
         area = self.area_for_actor(actor)
         for link in area.linked:
@@ -66,6 +74,7 @@ class GridVision(object):
     def actor_removed(self, actor):
         area = self.area_for_actor(actor)
         area.actors.remove(actor)
+        self.actor_map.pop(actor)
         for link in area.linked:
             for listener in link.listeners:
                 listener.actor_removed(actor)
@@ -136,9 +145,6 @@ class GridVision(object):
                 listener.actor_becomes_visible(actor)
 
     def area_for_actor(self, actor):
-        if actor not in self.actor_map:
-            self.actor_map[actor] = self.area_at(actor.vector.start_pos)
-            self.actor_map[actor].actors.add(actor)
         return self.actor_map[actor]
 
     def send_sync(self, listener):

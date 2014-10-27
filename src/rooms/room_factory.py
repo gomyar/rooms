@@ -7,8 +7,6 @@ from rooms.room import RoomObject
 from rooms.room import Tag
 from rooms.room import Door
 from rooms.position import Position
-from rooms.visibility import Visibility
-from rooms.visibility import Area
 from rooms.gridvision import GridVision
 
 
@@ -55,12 +53,12 @@ class RoomFactory(object):
             room.doors.append(self._create_door(door_json))
         for tag_json in room_json['tags']:
             room.tags.append(self._create_tag(tag_json))
-        room.visibility = self._create_visibility(room,
-            room_json.get('visibility', {}))
+        room.vision = self._create_vision(room,
+            room_json.get('vision', {}))
         return room
 
-    def _create_visibility(self, room, visibility_json):
-        return GridVision(room, visibility_json.get('gridsize',
+    def _create_vision(self, room, vision_json):
+        return GridVision(room, vision_json.get('gridsize',
             RoomFactory.DEFAULT_GRIDSIZE))
 
     def _create_door(self, door_json):

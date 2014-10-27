@@ -10,7 +10,6 @@ from rooms.position import Position
 from rooms.timer import Timer
 from rooms.container import Container
 from rooms.utils import IDFactory
-from rooms.visibility import Visibility
 from rooms.gridvision import GridVision
 from rooms.player_connection import PlayerConnection
 from rooms.node import Node
@@ -84,7 +83,7 @@ class MockRoom(Room):
         self.topleft = Position(0, 0)
         self.bottomright = Position(10, 10)
         self._actor_enters = []
-        self.visibility = GridVision(self)
+        self.vision = GridVision(self)
 
     def kick(self):
         self._kicked_off = True

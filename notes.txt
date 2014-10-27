@@ -1,4 +1,10 @@
 
+ - vision - separate listener from actor updates
+   - listeners can attach/deattach at will
+   - listeners follow any number of actor ids (playeractor + others)
+   - actors can be added / removed without listeners
+   - if a playeractor is removed / moves to another room, fire specific event
+
  - visibility:
   - vector of player actor cannot be long than vision radius
   - vector of actors can be anything

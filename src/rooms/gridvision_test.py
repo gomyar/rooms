@@ -22,6 +22,9 @@ class GridVisionTest(unittest.TestCase):
         self.lactor = MockActor("listener1")
         self.lactor.vector = build_vector(11, 11, 15, 15)
 
+        self.vision.add_actor(self.actor1)
+        self.vision.add_actor(self.lactor)
+
     def testAreaLayout(self):
         # basic grid, 10 x 10
         self.assertEquals(121, len(self.vision.areas))
@@ -51,6 +54,8 @@ class GridVisionTest(unittest.TestCase):
             ("actor_update", self.actor1),
             ("actor_removed", self.actor1),
             ], listener.messages)
+        self.assertEquals({self.lactor: self.vision.areas[1, 1]},
+            self.vision.actor_map)
 
     def testRemoveListener(self):
         listener = MockPlayerConnection(self.lactor)
@@ -66,7 +71,6 @@ class GridVisionTest(unittest.TestCase):
         self.assertEquals(dict(), self.vision.listener_actors)
 
     def testAllActorsAreKeptAsReferences(self):
-        self.vision.actor_update(self.actor1)
         self.assertEquals(set([self.actor1]),
             self.vision.area_at(self.actor1.position).actors)
 
@@ -80,10 +84,6 @@ class GridVisionTest(unittest.TestCase):
 
         self.vision.actor_update(self.actor1)
         self.assertEquals(("actor_update", self.actor1),
-            listener.messages[-1])
-
-        self.vision.actor_removed(self.actor1)
-        self.assertEquals(("actor_removed", self.actor1),
             listener.messages[-1])
 
         previous = Vector(Position(2, 2), 0, Position(4, 4), 1)
@@ -103,6 +103,10 @@ class GridVisionTest(unittest.TestCase):
         self.assertEquals(("actor_becomes_visible", self.actor1),
             listener.messages[-1])
 
+        self.vision.actor_removed(self.actor1)
+        self.assertEquals(("actor_removed", self.actor1),
+            listener.messages[-1])
+
     def testEveryPartOfTheRoomShouldBeCoveredByAVisionArea(self):
         self.assertEquals(Area(0, 0), self.vision.area_at(Position(0, 0)))
         self.assertEquals(Area(9, 9), self.vision.area_at(Position(99, 99)))
@@ -118,7 +122,8 @@ class GridVisionTest(unittest.TestCase):
         self.lactor.vector = build_vector(11, 11, 15, 15)
 
         # add actor and listener
-        self.vision.actor_update(self.actor1)
+        self.vision.add_actor(self.actor1)
+        self.vision.add_actor(self.lactor)
         listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
 
@@ -139,7 +144,8 @@ class GridVisionTest(unittest.TestCase):
         self.lactor.vector = build_vector(11, 11, 15, 15)
 
         # add actor and listener
-        self.vision.actor_update(self.actor1)
+        self.vision.add_actor(self.actor1)
+        self.vision.add_actor(self.lactor)
         listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
 
@@ -160,7 +166,8 @@ class GridVisionTest(unittest.TestCase):
         self.lactor.vector = build_vector(11, 11, 15, 15)
 
         # add actor and listener
-        self.vision.actor_update(self.actor1)
+        self.vision.add_actor(self.actor1)
+        self.vision.add_actor(self.lactor)
         listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
 
@@ -179,8 +186,8 @@ class GridVisionTest(unittest.TestCase):
         self.lactor.vector = previous
 
         # add actors and listener
-        self.vision.actor_update(self.actor1)
-        self.vision.actor_update(self.lactor)
+        self.vision.add_actor(self.actor1)
+        self.vision.add_actor(self.lactor)
         listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
 
@@ -198,19 +205,19 @@ class GridVisionTest(unittest.TestCase):
     def testPlayerActorMovesOutOfVisionArea(self):
         self.vision = GridVision(self.room, 10)
         self.actor1 = MockActor("actor1")
-        self.actor1.vector = build_vector(35, 35, 45, 45)
+        self.actor1.vector = build_vector(25, 25, 45, 45)
         self.lactor = MockActor("listener1")
         previous = build_vector(25, 25, 30, 30)
         self.lactor.vector = previous
 
         # add actors and listener
-        self.vision.actor_update(self.actor1)
-        self.vision.actor_update(self.lactor)
+        self.vision.add_actor(self.actor1)
+        self.vision.add_actor(self.lactor)
         listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
 
         # change vector to area outside vision distance
-        self.lactor.vector = build_vector(11, 11, 15, 15)
+        self.lactor.vector = build_vector(41, 41, 55, 55)
         self.vision.actor_vector_changed(self.lactor, previous)
 
         self.assertEquals([
@@ -228,8 +235,8 @@ class GridVisionTest(unittest.TestCase):
         self.lactor.vector = previous
 
         # add actors and listener
-        self.vision.actor_update(self.actor1)
-        self.vision.actor_update(self.lactor)
+        self.vision.add_actor(self.actor1)
+        self.vision.add_actor(self.lactor)
         listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
 
@@ -241,9 +248,6 @@ class GridVisionTest(unittest.TestCase):
             ("actor_vector_changed", self.lactor, previous),
             ], listener.messages)
 
-    def testMovementVectorLimitedByGridWidth(self):
-        pass
-
     def testMovesMoreThanOneArea(self):
         # same as move into vision test but moves longer distance
         self.vision = GridVision(self.room, 10)
@@ -254,8 +258,8 @@ class GridVisionTest(unittest.TestCase):
         self.lactor.vector = previous
 
         # add actors and listener
-        self.vision.actor_update(self.actor1)
-        self.vision.actor_update(self.lactor)
+        self.vision.add_actor(self.actor1)
+        self.vision.add_actor(self.lactor)
         listener = MockPlayerConnection(self.lactor)
         self.vision.add_listener(listener)
 
@@ -278,4 +282,13 @@ class GridVisionTest(unittest.TestCase):
 
         self.room.put_actor(self.actor1)
 
+    def testAddRemoveActorFromVision(self):
+        self.vision = GridVision(self.room, 10)
+        self.actor1 = MockActor("actor1")
+        self.lactor = MockActor("listener1")
 
+        self.vision.add_actor(self.actor1)
+
+        self.assertEquals({self.actor1: self.vision.areas[0, 0]},
+            self.vision.actor_map)
+        self.assertEquals({}, self.vision.listener_actors)

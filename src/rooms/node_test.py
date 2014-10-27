@@ -361,7 +361,7 @@ class NodeTest(unittest.TestCase):
         player_conn = PlayerConnection("game1", "bob", room1, actor, "TOKEN1")
         self.node.player_connections['player1', 'game1'] = player_conn
         queue = player_conn.new_queue()
-        room1.visibility.add_listener(player_conn)
+        room1.vision.add_listener(player_conn)
 
         self.node._move_actor_room(actor, "game1", "map1.room2", Position(10, 10))
 

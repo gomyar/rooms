@@ -85,7 +85,7 @@ class RoomsConnection(object):
         self.node = None
         self.token = None
 
-        self.room = dict(width=500, height=500, position=[0, 0], map_objects=[], visibility_grid=dict(width =0, height =0, gridsize=10))
+        self.room = dict(width=500, height=500, position=[0, 0], map_objects=[], vision_grid=dict(width =0, height =0, gridsize=10))
 
         self.actors = {}
         self.player_actor = None

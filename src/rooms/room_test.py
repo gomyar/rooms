@@ -82,7 +82,7 @@ class RoomTest(unittest.TestCase):
 
         conn = MockPlayerConnection(self.actor)
 
-        self.room.visibility.add_listener(conn)
+        self.room.vision.add_listener(conn)
 
         self.room.actor_state_changed(self.actor)
         self.assertEquals([("actor_state_changed", self.actor)], conn.messages)
@@ -128,7 +128,7 @@ class RoomTest(unittest.TestCase):
         self.room.put_actor(listener, Position(1, 1))
         conn = MockPlayerConnection(listener)
 
-        self.room.visibility.add_listener(conn)
+        self.room.vision.add_listener(conn)
 
         self.room.remove_actor(newactor1)
 
@@ -149,7 +149,7 @@ class RoomTest(unittest.TestCase):
         self.assertEquals([tag1, tag2, tag3], self.room.find_tags(""))
 
     def testSplitPathBasedOnVisionGridWidth(self):
-        self.room.visibility.gridsize = 10
+        self.room.vision.gridsize = 10
 
         path = self.room.find_path(Position(10, 10), Position(20, 10))
         self.assertEquals([Position(10, 10), Position(20, 10)], path)
@@ -173,3 +173,39 @@ class RoomTest(unittest.TestCase):
             Position(0, 0), Position(3, 4),
         ], path)
 
+    def testAddRemoveActorFromVision(self):
+        # add actor
+        newactor1 = MockActor("new1")
+        self.room.put_actor(newactor1, Position(5, 5))
+
+        # assert actor added to room, vision.actor_map, area(s)
+        area = self.room.vision.area_at(Position(5, 5))
+        self.assertEquals(area, self.room.vision.actor_map[newactor1])
+        self.assertEquals(set([newactor1]), area.actors)
+        # fire events, no listeners attached but no exceptions thrown
+        self.room.vision.actor_state_changed(newactor1)
+
+        # remove actor
+        self.room.remove_actor(newactor1)
+        # assert actor removed from room, vision.actor_map, area(s)
+        self.assertEquals({}, self.room.vision.actor_map)
+        self.assertEquals(set(), area.actors)
+        # fire events, no listeners attached but no exceptions thrown
+
+        # add player_actor
+        # add listener
+        # assert listener is attached to player_actor
+        # fire events, assert listener gets them
+
+        # remove player_actor
+        # disconnect listener
+        #     should we disallow player_actor removal?
+
+        # move player_actor
+        # redirect listener
+        pass
+
+    def testListenerCanAttachWithNoPlayerActor(self):
+        # add listener
+        # assert listener is not attached to player_actor
+        pass
