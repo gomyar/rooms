@@ -22,7 +22,7 @@ class FileMapSource(object):
 class RoomFactory(object):
     POS_TOPLEFT = "relative_topleft"
     POS_ABS = "absolute"
-    DEFAULT_GRIDSIZE = 10
+    DEFAULT_GRIDSIZE = 25
 
     def __init__(self, map_source, node):
         self.map_source = map_source

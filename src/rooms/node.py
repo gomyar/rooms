@@ -240,7 +240,8 @@ class Node(object):
             conn.room == room]
 
     def actor_added(self, room, actor):
-        self.actor_update(room, actor)
+        for admin_conn in self._admin_connections_for(room):
+            admin_conn.actor_state_changed(actor)
 
     def actor_state_changed(self, room, actor):
         room.vision.actor_state_changed(actor)

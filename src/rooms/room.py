@@ -100,7 +100,7 @@ class Room(object):
         actor.position = self._correct_position(actor.position)
         actor.kick()
         self.vision.add_actor(actor)
-#        self.actor_added(actor)
+        self.actor_added(actor)
 
     def _correct_position(self, position):
         x, y, z = position.x, position.y, position.z
