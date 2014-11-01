@@ -153,6 +153,7 @@ function game_callback(msg)
     {
         load_room(msg.data.room_id);
         gui.requestRedraw();
+        api_rooms.vision = msg.data.vision;
     }
 }
 

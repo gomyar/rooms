@@ -83,6 +83,7 @@ class AdminConnection(PlayerConnection):
     def _sync_message(self, room):
         sync_msg = super(AdminConnection, self)._sync_message(room)
         sync_msg['map_url'] = "http://mapurl"
+        sync_msg['data']['vision'] = {"gridsize": self.room.vision.gridsize}
         return sync_msg
 
     def actor_update(self, actor):

@@ -319,6 +319,32 @@ gui.draw = function()
     gui.ctx.fillStyle = "rgb(0,0,0)";
     gui.ctx.clearRect(0, 0, gui.canvas.width, gui.canvas.height);
 
+    // Draw vision grid
+    gui.ctx.strokeStyle = "rgb(50, 50, 50)";
+    for (var x=api_rooms.room.topleft.x; x<api_rooms.room.bottomright.x; x += api_rooms.vision.gridsize)
+    {
+        var x1 = gui.canvas_x(x);
+        var y1 = gui.canvas_y(api_rooms.room.topleft.y);
+        var x2 = gui.canvas_x(x);
+        var y2 = gui.canvas_y(api_rooms.room.bottomright.y);
+        gui.ctx.beginPath();
+        gui.ctx.moveTo(x1, y1);
+        gui.ctx.lineTo(x2, y2);
+        gui.ctx.stroke();
+    }
+
+    for (var y=api_rooms.room.topleft.y; y<api_rooms.room.bottomright.y; y += api_rooms.vision.gridsize)
+    {
+        var x1 = gui.canvas_x(api_rooms.room.topleft.x);
+        var y1 = gui.canvas_y(y);
+        var x2 = gui.canvas_x(api_rooms.room.bottomright.x);
+        var y2 = gui.canvas_y(y);
+        gui.ctx.beginPath();
+        gui.ctx.moveTo(x1, y1);
+        gui.ctx.lineTo(x2, y2);
+        gui.ctx.stroke();
+    }
+
     gui.ctx.strokeStyle = "rgb(255, 255, 255)";
     var width = api_rooms.room.bottomright.x - api_rooms.room.topleft.x;
     var height = api_rooms.room.bottomright.y - api_rooms.room.topleft.y;
