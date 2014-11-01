@@ -1,296 +1,186 @@
 
-from collections import defaultdict
-
-from rooms.null import Null
-from player_actor import PlayerActor
-from npc_actor import NpcActor
-from door import Door
-from rooms.config import get_config
-from rooms.geography.linearopen_geography import LinearOpenGeography
-from rooms.waypoint import distance as calc_distance
-from rooms.visibility_grid import create_vision_grid
-
-from actor import FACING_NORTH
-from actor import FACING_SOUTH
-from actor import FACING_EAST
-from actor import FACING_WEST
-from actor import Actor
+from rooms.position import Position
+from rooms.actor import Actor
+from rooms.gridvision import GridVision
 
 import logging
-log = logging.getLogger("rooms")
+log = logging.getLogger("rooms.room")
 
-_default_geog = LinearOpenGeography()
+
+class Tag(object):
+    def __init__(self, tag_type, position, data=None):
+        self.tag_type = tag_type
+        self.position = position
+        self.data = data or {}
+
+    def __repr__(self):
+        return "<Tag %s (%s)>" % (self.tag_type, self.position)
+
+    def __eq__(self, rhs):
+        return rhs and type(rhs) is Tag and self.tag_type == rhs.tag_type and \
+            self.position == rhs.position and \
+            self.data == rhs.data
 
 
 class RoomObject(object):
-    def __init__(self, object_type, width, height, position=(0, 0),
-            facing=FACING_NORTH):
+    def __init__(self, object_type, topleft, bottomright):
         self.object_type = object_type
-        self.width = width
-        self.height = height
-        self.position = position
-        self.facing = facing
+        self.topleft = topleft
+        self.bottomright = bottomright
 
     def __repr__(self):
-        return "<RoomObject %s, %s, %s, %s>" % self.wall_positions()
+        return "<RoomObject %s at %s/%s>" (self.object_type, self.topleft,
+            self.bottomright)
 
-    def external(self):
-        return dict(width=self.width, height=self.height,
-            position=self.position, object_type=self.object_type,
-            facing=self.facing)
 
-    def at(self, x, y):
-        return self.position[0] <= x and self.position[0] + self.width >= x \
-            and self.position[1] <= y and self.position[1] + self.height >= y
+class Door(object):
+    def __init__(self, exit_room_id, enter_position, exit_position):
+        self.exit_room_id = exit_room_id
+        self.enter_position = enter_position
+        self.exit_position = exit_position
 
-    def left(self):
-        return self.position[0]
-
-    def top(self):
-        return self.position[1]
-
-    def right(self):
-        return self.position[0] + self.width
-
-    def bottom(self):
-        return self.position[1] + self.height
-
-    def wall_positions(self):
-        return (self.left(), self.top(), self.right(), self.bottom())
+    def __repr__(self):
+        return "<Door to %s at %s>" % (self.exit_room_id, self.enter_position)
 
 
 class Room(object):
-    def __init__(self, room_id=None, width=50, height=50, description=None,
-            visibility_grid_gridsize=100):
+    def __init__(self, game_id, room_id, topleft, bottomright, node):
+        self.game_id = game_id
         self.room_id = room_id
-        self.description = description or room_id
-        self.position = (0, 0)
-        self.width = width
-        self.height = height
-        self.map_objects = dict()
+        self.topleft = topleft
+        self.bottomright = bottomright
+        self.geography = None
         self.actors = dict()
-        self.area = None
-        self.geog = _default_geog
-        self.save_manager = Null()
-        self.visibility_grid = create_vision_grid(visibility_grid_gridsize,
-            self.width, self.height)
-        log.debug("Created vision grid: %s", self.visibility_grid)
-
-    def __eq__(self, rhs):
-        return rhs and self.room_id == rhs.room_id
+        self.room_objects = []
+        self.doors = []
+        self.tags = []
+        self.node = node
+        self.online = True
+        self.vision = GridVision(self, self.width)
+        self.state = dict()
 
     def __repr__(self):
-        return "<Room %s at %s w:%s h:%s>" % (self.room_id,self.position,
-            self.width, self.height)
+        return "<Room %s %s>" % (self.game_id, self.room_id)
 
-    def object_at(self, x, y):
-        for map_object in self.map_objects.values():
-            if map_object.at(x, y):
-                return True
-        return False
+    @property
+    def width(self):
+        return self.bottomright.x - self.topleft.x
 
-    def get_path(self, start, end):
-        start = (int(start[0]), int(start[1]))
-        end = (int(end[0]), int(end[1]))
-        try:
-            return self.geog.get_path(self, start, end)
-        except Exception, e:
-            log.exception("Error %s getting path from %s to %s", e, start, end)
-            raise
+    @property
+    def height(self):
+        return self.bottomright.y - self.topleft.y
 
-    def add_object(self, object_id, map_object, rel_position=(0, 0)):
-        position = (self.position[0] + rel_position[0],
-            self.position[1] + rel_position[1])
-        map_object.position = position
-        self.map_objects[object_id] = map_object
-
-    def external(self, map_objects=True):
-        return dict(room_id=self.room_id, position=self.position,
-            width=self.width, height=self.height, description=self.description,
-            map_objects=dict([(obj_id, m.external()) for (obj_id, m) in \
-                self.map_objects.items()]) if map_objects else None,
-            visibility_grid=self.visibility_grid.external(),
+    @property
+    def center(self):
+        return Position(
+            self.topleft.x + (self.bottomright.x - self.topleft.x) / 2,
+            self.topleft.y + (self.bottomright.y - self.topleft.y) / 2,
+            self.topleft.z + (self.bottomright.z - self.topleft.z) / 2,
         )
 
-    def actor_enters(self, actor, door_id):
-        self.actors[actor.actor_id] = actor
-        actor.room = self
-        actor.set_position(self.geog.get_available_position_closest_to(self,
-            self.actors[door_id].position()))
-        self.area.actor_enters_room(self, actor, door_id)
+    def kick(self):
+        log.debug("Kicking room (%s actors)", len(self.actors))
+        for actor in self.actors.values():
+            actor.kick()
+
+    def create_actor(self, actor_type, script_name, player=None, position=None):
+        script = self.node.scripts[script_name]
+        actor = self.node.container.create_actor(self, actor_type, script,
+            player.username if player else None)
+        actor.script.call("created", actor)
+        actor.kick()
+        self.put_actor(actor, position)
+        return actor
 
     def put_actor(self, actor, position=None):
-        if not position:
-            position = (
-                self.position[0] + self.width / 2,
-                self.position[1] + self.height / 2
-            )
-        position = self.geog.get_available_position_closest_to(self,
-            position)
-
-        actor.set_position(position)
         self.actors[actor.actor_id] = actor
         actor.room = self
-        if actor.visible:
-            self.visibility_grid.add_actor(actor)
-        self.visibility_grid.register_listener(actor)
+        if position:
+            actor.position = position
+        actor.position = self._correct_position(actor.position)
+        actor.kick()
+        self.vision.add_actor(actor)
+        self.actor_added(actor)
+
+    def _correct_position(self, position):
+        x, y, z = position.x, position.y, position.z
+        x = min(self.bottomright.x, max(self.topleft.x, x))
+        y = min(self.bottomright.y, max(self.topleft.y, y))
+        z = min(self.bottomright.z, max(self.topleft.z, z))
+        return Position(x, y, z)
+
+    def player_actors(self):
+        return [a for a in self.actors.values() if a.is_player]
+
+    def find_path(self, from_pos, to_pos):
+        path = self.geography.find_path(self, self._correct_position(from_pos),
+            self._correct_position(to_pos))
+        split_path = self._split_path(path, self.vision.gridsize)
+        return split_path
+
+    def _split_path(self, path, max_length):
+        split_path = []
+        from_point = path[0]
+        for to_point in path[1:]:
+            split_path.extend(self._split_points(from_point, to_point,
+                max_length) + [to_point])
+        return split_path
+
+    def _split_points(self, from_point, to_point, max_length):
+        if abs(to_point.x - from_point.x) > max_length or \
+                abs(to_point.y - from_point.y) > max_length:
+            halfway = Position((to_point.x + from_point.x) / 2,
+                (to_point.y + from_point.y) / 2)
+            return self._split_points(from_point, halfway, max_length) + \
+                self._split_points(halfway, to_point, max_length)
+        else:
+            return [from_point]
+
+    def actor_state_changed(self, actor):
+        if actor.actor_id in self.actors:
+            self.node.actor_state_changed(self, actor)
+        else:
+            log.warning("Actor not in room but state changed sent: %s", actor)
+
+    def actor_vector_changed(self, actor, previous_vector):
+        if actor.actor_id in self.actors:
+            self.node.actor_vector_changed(self, actor, previous_vector)
+        else:
+            log.warning("Actor not in room but vector update sent: %s", actor)
+
+    def actor_added(self, actor):
+        if actor.actor_id in self.actors:
+            self.node.actor_added(self, actor)
+        else:
+            log.warning("Actor not in room but actor added sent: %s", actor)
+
+    def actor_becomes_visible(self, actor):
+        if actor.actor_id in self.actors:
+            self.node.actor_becomes_visible(self, actor)
+        else:
+            log.warning("Actor not in room but actor visible sent: %s", actor)
+
+    def actor_becomes_invisible(self, actor):
+        if actor.actor_id in self.actors:
+            self.node.actor_becomes_invisible(self, actor)
+        else:
+            log.warning("Actor not in room but actor invisible sent: %s", actor)
+
+    def get_door(self, exit_room_id=None):
+        for door in self.doors:
+            if door.exit_room_id == exit_room_id:
+                return door
+        return None
+
+    def actor_enters(self, actor, door):
+        self.node.move_actor_room(actor, self.game_id, door.exit_room_id,
+            door.exit_position)
 
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)
-        self.save_manager.queue_actor_remove(actor)
-        actor._kill_move_gthread()
-        actor.room = Null()
-        if actor.visible:
-            self.visibility_grid.remove_actor(actor)
-        if actor.vision_distance:
-            self.visibility_grid.unregister_listener(actor)
+        actor._kill_gthreads()
+        actor.room = None
+        self.node.actor_removed(self, actor)
 
-    def _send_actor_update(self, actor):
-        if actor.visible:
-            self.visibility_grid.send_update_actor(actor)
-        self.send_to_admins("actor_update", **actor.internal())
-
-    def send_to_admins(self, update_id, **kwargs):
-        if self.area and self.area.node:
-            self.area.node.server.send_to_admins(self.area, update_id,
-                **kwargs)
-
-    def _send_update(self, actor, update_id, **kwargs):
-        self.visibility_grid.send_update_event(actor, update_id, **kwargs)
-
-    def player_exit_to_area(self, actor, door):
-        self.remove_actor(actor)
-        self.area.node.players.pop(actor.player.username)
-        actor.path.set_position(door.exit_position)
-        self.area.node.save_manager.update_player_location(actor.player,
-            door.exit_area_id, door.exit_room_id)
-        for docked in actor.docked.values():
-            self.remove_actor(docked)
-        transport = [actor] + actor.docked.values()
-        self.area.node.move_actors_to_limbo(door.exit_area_id,
-            door.exit_room_id, transport)
-        response = self.area.node.master.player_moves_area(
-            actor.player.username)
-        actor._update("moved_node", **response)
-        actor._update("disconnect")
-        actor.running = False
-
-    def actor_exit_to_area(self, actor, door):
-        self.remove_actor(actor)
-        actor.path.set_position(door.exit_position)
-        for docked in actor.docked.values():
-            self.remove_actor(docked)
-        transport = [actor] + actor.docked.values()
-        self.area.node.move_actors_to_limbo(door.exit_area_id,
-            door.exit_room_id, transport)
-        response = self.area.node.master.actor_moves_area(
-            door.exit_area_id)
-        actor.running = False
-
-    def actor_exit_to_room(self, actor, door):
-        self.remove_actor(actor)
-        exit_door = door.exit_room.actors[door.exit_door_id]
-        door.exit_room.put_actor(actor,
-            exit_door.position())
-        for child in actor.docked.values():
-            self.remove_actor(child)
-            door.exit_room.put_actor(child,
-                exit_door.position())
-        actor.add_log("You entered %s", door.exit_room.description)
-
-    def all_doors(self):
-        return self.find_actors(actor_type="door")
-
-    def actors_by_type(self, actor_type):
-        return [actor for actor in self.actors.values() if \
-            actor.actor_type == actor_type]
-
-    def left(self):
-        return self.position[0]
-
-    def top(self):
-        return self.position[1]
-
-    def right(self):
-        return self.position[0] + self.width
-
-    def bottom(self):
-        return self.position[1] + self.height
-
-    def center(self):
-        return (self.position[0] + self.width / 2,
-            self.position[1] + self.height / 2)
-
-    def calculate_door_position(self, target_room):
-        position = target_room.center()
-        x = min(max(self.left(), position[0]), self.right())
-        y = min(max(self.top(), position[1]), self.bottom())
-        return x, y
-
-    def wall_positions(self):
-        return (self.left(), self.top(), self.right(), self.bottom())
-
-    def has_door_to(self, room_id):
-        for door in self.all_doors():
-            if door.exit_room_id == room_id:
-                return True
-        return False
-
-    def actor_said(self, actor, msg):
-        for heard in self.actors.values():
-            heard.actor_heard(actor, msg)
-
-    def create_actor(self, actor_type, actor_script, position=None,
-            actor_id=None, name="", visible=True, visible_to_all=False,
-            parents=None, model_type=None, **state):
-        actor = Actor(actor_id)
-        actor.actor_type = actor_type
-        actor.model_type = model_type or actor_type
-        actor.name = name
-        actor.state.update(state)
-        actor.visible = visible
-        actor.visible_to_all = visible_to_all
-        actor.parents = parents or []
-        self.put_actor(actor, position)
-        actor.load_script(actor_script)
-        if "created" in actor.script:
-            actor.script.created(actor)
-        actor.kick()
-        return actor
-
-    def player_actors(self):
-        for actor in self._iter_actors():
-            if issubclass(actor.__class__, PlayerActor):
-                yield actor
-
-    def _iter_actors(self):
-        for actor in self.actors.values():
-            yield actor
-
-    def find_actors(self, visible=True, distance_from_point=None,
-            distance=None, actor_type=None, name=None):
-        for target in self._iter_actors():
-            if (visible == None or target.visible == visible) and \
-                    (distance==None or calc_distance(target.x(), target.y(),
-                        *distance_from_point) <  distance) and \
-                    (name == None or target.name == name) and \
-                    (actor_type == None or target.actor_type == actor_type):
-                yield target
-
-    def send_message(self, from_actor_id, actor_id, room_id, area_id, message):
-        self.area.node.send_message(from_actor_id, actor_id, room_id, area_id,
-            message)
-
-    def has_active_players(self):
-        for actor in self.player_actors():
-            if actor.running == True:
-                return True
-        if self.area.node and self.area.node.admins:
-            return True
-        return False
-
-    def has_active_actors(self):
-        for actor in self._iter_actors():
-            if actor.running == True:
-                return True
-        return False
+    def find_tags(self, tag_id):
+        return [tag for tag in self.tags if tag.tag_type.startswith(tag_id)]

@@ -1,12 +1,16 @@
 
-class Player(object):
-    def __init__(self, username, game_id):
-        self.username = username
-        self.game_id = game_id
-        self.area_id = None
-        self.room_id = None
-        self.actor_id = None
-        self.state = dict()
+from rooms.actor import Actor
+
+
+class PlayerActor(Actor):
+    def __init__(self, room, actor_type, script, username, actor_id=None,
+            game_id=None, room_id=None):
+        super(PlayerActor, self).__init__(room, actor_type, script,
+            username=username, actor_id=actor_id, game_id=game_id,
+            room_id=room_id)
+        self.is_player = True
+        self._vision_range = 1.0
 
     def __repr__(self):
-        return "<Player %s:%s>" % (self.username, self.game_id)
+        return "<PlayerActor %s in game %s room %s>" % (self.username,
+            self.game_id, self.room_id)

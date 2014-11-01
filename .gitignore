@@ -1,6 +1,7 @@
 *.swp
 *.pyc
-web/data.db
-src/Rooms.egg-info
-build/
-dist/
+src/Rooms.egg-info/
+.coverage
+.ropeproject
+db.sqlite3
+*.egg-info

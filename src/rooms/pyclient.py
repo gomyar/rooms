@@ -2,8 +2,8 @@
 import time
 import gevent
 
-import simplejson
-from rooms.wsgi_rpc import WSGIRPCClient
+import json
+from rooms.rpc import WSGIRPCClient
 from ws4py.client.geventclient import WebSocketClient
 
 import logging
@@ -85,7 +85,7 @@ class RoomsConnection(object):
         self.node = None
         self.token = None
 
-        self.room = dict(width=500, height=500, position=[0, 0], map_objects=[], visibility_grid=dict(width =0, height =0, gridsize=10))
+        self.room = dict(width=500, height=500, position=[0, 0], map_objects=[], vision_grid=dict(width =0, height =0, gridsize=10))
 
         self.actors = {}
         self.player_actor = None
@@ -148,7 +148,7 @@ class RoomsConnection(object):
                 sock_msg = self.ws.receive()
                 log.debug("Received :%s", sock_msg)
                 if sock_msg:
-                    messages = simplejson.loads(str(sock_msg))
+                    messages = json.loads(str(sock_msg))
                     for message in messages:
                         self._commands[message['command']](
                             message.get('kwargs'))

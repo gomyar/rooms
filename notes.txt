@@ -1,0 +1,32 @@
+
+ - vision - separate listener from actor updates
+   - listeners can attach/deattach at will
+   - listeners follow any number of actor ids (playeractor + others)
+   - actors can be added / removed without listeners
+   - if a playeractor is removed / moves to another room, fire specific event
+
+ - visibility:
+  - vector of player actor cannot be long than vision radius
+  - vector of actors can be anything
+
+ - tests involving sleeps and queues fail on gevent v 1.0 bu pass on 0.13.8
+
+ - domain objects
+  - node
+   - player connects / disconnects
+  - room
+  - actor
+  - player
+  - game
+
+ - wsgi / websocket node
+
+ - master
+  - node attaches
+  - node detaches
+
+  - user connects to game
+    - redirect to node
+  - user disconnects
+
+ - proxy

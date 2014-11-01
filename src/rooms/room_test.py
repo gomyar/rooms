@@ -1,137 +1,211 @@
 
 import unittest
 
-from room import Room
-from area import Area
-from actor import Actor
-from player_actor import PlayerActor
-from rooms.timing import _set_mock_time
-from rooms.timing import _fast_forward
-from rooms.player import Player
+from rooms.room import Room
+from rooms.room import Door
+from rooms.room import Tag
+from rooms.position import Position
+from rooms.testutils import MockGeog
+from rooms.testutils import MockNode
+from rooms.testutils import MockActor
+from rooms.testutils import MockContainer
+from rooms.testutils import MockIDFactory
+from rooms.geography.basic_geography import BasicGeography
+from rooms.player import PlayerActor
+from rooms.script import Script
+from rooms.testutils import MockPlayerConnection
 
 
 class RoomTest(unittest.TestCase):
     def setUp(self):
-        _set_mock_time(0)
-
-        self.area = Area()
-        self.room1 = Room("room1", 100, 100)
-        self.area.put_room(self.room1, (0, 0))
-        self.room2 = Room("room2", 100, 100)
-        self.area.put_room(self.room2, (100, 0))
-        self.room3 = Room("room3", 100, 100)
-        self.area.put_room(self.room3, (0, 100))
-
-        self.area.create_door(self.room1, self.room2, (0, 0), (10, 0))
-        self.area.create_door(self.room1, self.room3, (10, 0), (0, 0))
-
-        self.area.rebuild_area_map()
-
-        self._updates_1 = []
-        self._updates_2 = []
-
-        self._mock_slept_for = 0
+        self.script = Script("room_test", RoomTest)
+        self.node = MockNode()
+        self.node.scripts['rooms.room_test'] = self.script
+        self.node.container = MockContainer()
+        self.room = Room("game1", "room1", Position(0, 0), Position(50, 50),
+            self.node)
+        self.geography = MockGeog()
+        self.room.geography = self.geography
+        MockIDFactory.setup_mock()
 
     def tearDown(self):
-        _set_mock_time(None)
+        MockIDFactory.teardown_mock()
 
-    def _mock_sleep(self, seconds):
-        self._mock_slept_for += seconds
-        _fast_forward(seconds)
+    @staticmethod
+    def created(actor):
+        actor.state['created'] = True
 
-    def _mock_actor_added_1(self, actor):
-        self._updates_1.append(("added", actor))
-
-    def _mock_actor_added_2(self, actor):
-        self._updates_2.append(("added", actor))
-
-    def testDoorsExist(self):
-        self.assertTrue(self.area.rooms['room1'].has_door_to("room2"))
-        self.assertTrue(self.area.rooms['room1'].has_door_to("room3"))
-        self.assertFalse(self.area.rooms['room3'].has_door_to("room2"))
-
-    def testActorExitsThroughDoor(self):
-        self.actor = Actor("actor1")
-        self.actor.sleep = self._mock_sleep
-        self.room1.put_actor(self.actor)
-
-        self.actor.move_to_room("room2")
-
-        self.assertEquals("room2", self.actor.room.room_id)
-        self.assertTrue(self.actor.actor_id in self.room2.actors)
-        self.assertEquals([(10, 0), (10, 0)], self.actor.path.basic_path_list())
-        self.assertEquals(70.71, round(self._mock_slept_for, 2))
-
-    def testActorWithDockedExitsThroughDoor(self):
-        self.actor = Actor("actor1")
-        self.actor.sleep = self._mock_sleep
-
-        self.room1.put_actor(self.actor)
-
-        self.child1 = Actor("child1")
-        self.room1.put_actor(self.child1)
-        self.actor.dock(self.child1)
-
-        self.actor.move_to_room("room2")
-
-        self.assertEquals("room2", self.actor.room.room_id)
-        self.assertEquals("room2", self.child1.room.room_id)
-        self.assertTrue(self.actor.actor_id in self.room2.actors)
-        self.assertEquals([(10, 0), (10, 0)], self.actor.path.basic_path_list())
-        self.assertEquals(70.71, round(self._mock_slept_for, 2))
+    def testInitialSetup(self):
+        self.assertEquals(50, self.room.width)
+        self.assertEquals(50, self.room.height)
+        self.assertEquals(Position(0, 0, 0), self.room.topleft)
+        self.assertEquals(Position(50, 50, 0), self.room.bottomright)
+        self.assertEquals(Position(25, 25, 0), self.room.center)
 
     def testCreateActor(self):
-        actor = self.room1.create_actor("itemactor", "rooms.actor_test",
-            actor_id="mock1")
-        self.assertEquals("mock1", actor.actor_id)
-        self.assertEquals("itemactor", actor.actor_type)
-        self.assertEquals("itemactor", actor.model_type)
-        self.assertEquals("rooms.actor_test", actor.script.script_name)
+        actor = self.room.create_actor("mock_actor", "rooms.room_test")
+        self.assertTrue(actor.state.created)
+        self.assertFalse(actor._script_gthread is None)
+        self.assertEquals(RoomTest.created, actor.script.script_module.created)
+        self.assertEquals(self.room, actor.room)
+        self.assertEquals(actor, self.room.actors['id1'])
+        self.assertEquals(None, actor.username)
 
-    def testQueryActors(self):
+        self.player = PlayerActor(self.room, "player", "rooms.room_test", "bob")
+        actor2 = self.room.create_actor("mock_actor", "rooms.room_test",
+            player=self.player)
+        self.assertEquals("bob", actor2.username)
+        self.assertEquals(self.script, actor.script)
+
+        actor = self.room.create_actor("mock_actor", "rooms.room_test",
+            position=Position(10, 10))
+        self.assertEquals(actor.position, Position(10, 10))
+
+    def testFindPath(self):
+        path = self.room.find_path(Position(1, 2), Position(3, 4))
+        self.assertEquals([
+            Position(1, 2), Position(3, 4),
+        ], path)
+
+    def testBasicGeography(self):
+        geography = BasicGeography()
+        self.room.geography = geography
+        geography.setup(self.room)
+
+        self.assertEquals(
+            [Position(10, 20), Position(30, 40)],
+            self.room.find_path(Position(10, 20), Position(30, 40)))
+
+    def testActorUpdate(self):
+        self.actor = MockActor("actor1")
+        self.room.put_actor(self.actor, Position(10, 10))
+
+        conn = MockPlayerConnection(self.actor)
+
+        self.room.vision.add_listener(conn)
+
+        self.room.actor_state_changed(self.actor)
+        self.assertEquals([("actor_state_changed", self.actor)], conn.messages)
+
+        self.room.actor_becomes_invisible(self.actor)
+        self.assertEquals([("actor_state_changed", self.actor),
+            ("actor_becomes_invisible", self.actor)], conn.messages)
+
+        self.room.actor_becomes_visible(self.actor)
+        self.assertEquals([
+            ("actor_state_changed", self.actor),
+            ("actor_becomes_invisible", self.actor),
+            ("actor_becomes_visible", self.actor),
+        ], conn.messages)
+
+    def testActorEnterDoor(self):
+        self.door = Door("room2", Position(5, 5), Position(10, 10))
+        self.actor = MockActor("actor1")
+
+        self.room.doors.append(self.door)
+        self.room.actors["actor1"] = self.actor
+
+        self.room.actor_enters(self.actor, self.door)
+
+        self.assertEquals((self.actor, "game1", "room2", Position(10, 10)),
+            self.node._updates[0])
+
+    def testActorAddRemove(self):
+        newactor1 = MockActor("new1")
+        self.room.put_actor(newactor1, Position(5, 5))
+
+        self.assertEquals(1, len(self.room.actors))
+        self.assertEquals("new1", self.room.actors.values()[0].actor_id)
+        self.assertEquals(Position(5, 5), self.room.actors['new1'].vector.start_pos)
+        self.assertEquals(Position(5, 5), self.room.actors['new1'].vector.end_pos)
+        self.assertEquals([('kickoff', (newactor1,), {})],
+            newactor1.script.called)
+
+    def testSendRemoveUpdateOnRemoveActor(self):
+        newactor1 = MockActor("new1")
+        listener = MockActor("listener1")
+        self.room.put_actor(newactor1, Position(5, 5))
+        self.room.put_actor(listener, Position(1, 1))
+        conn = MockPlayerConnection(listener)
+
+        self.room.vision.add_listener(conn)
+
+        self.room.remove_actor(newactor1)
+
+        self.assertEquals([("actor_removed", newactor1)], conn.messages)
+
+    def testFindTags(self):
+        tag1 = Tag("tag.room.1", Position(0, 0), {"field": "1"})
+        tag2 = Tag("tag.room.2", Position(0, 0), {"field": "2"})
+        tag3 = Tag("tag.something", Position(0, 0), {"field": "3"})
+
+        self.room.tags = [tag1, tag2, tag3]
+
+        self.assertEquals([tag1, tag2], self.room.find_tags("tag.room"))
+        self.assertEquals([tag2], self.room.find_tags("tag.room.2"))
+        self.assertEquals([tag3], self.room.find_tags("tag.something"))
+
+        self.assertEquals([tag1, tag2, tag3], self.room.find_tags("tag"))
+        self.assertEquals([tag1, tag2, tag3], self.room.find_tags(""))
+
+    def testSplitPathBasedOnVisionGridWidth(self):
+        self.room.vision.gridsize = 10
+
+        path = self.room.find_path(Position(10, 10), Position(20, 10))
+        self.assertEquals([Position(10, 10), Position(20, 10)], path)
+
+        path = self.room.find_path(Position(10, 10), Position(30, 10))
+        self.assertEquals([Position(10, 10), Position(20, 10), Position(30, 10)], path)
+
+
+    def testActorsAddedToRoomOutsideBoundariesArePositionedInside(self):
+        newactor1 = MockActor("new1")
+        self.room.put_actor(newactor1, Position(-5, -5))
+        self.assertEquals(Position(0, 0), newactor1.position)
+
+        newactor2 = MockActor("new1")
+        self.room.put_actor(newactor2, Position(55, 55))
+        self.assertEquals(Position(50, 50), newactor2.position)
+
+    def testFindPathCorrectPosition(self):
+        path = self.room.find_path(Position(-1, -2), Position(3, 4))
+        self.assertEquals([
+            Position(0, 0), Position(3, 4),
+        ], path)
+
+    def testAddRemoveActorFromVision(self):
+        # add actor
+        newactor1 = MockActor("new1")
+        self.room.put_actor(newactor1, Position(5, 5))
+
+        # assert actor added to room, vision.actor_map, area(s)
+        area = self.room.vision.area_at(Position(5, 5))
+        self.assertEquals(area, self.room.vision.actor_map[newactor1])
+        self.assertEquals(set([newactor1]), area.actors)
+        # fire events, no listeners attached but no exceptions thrown
+        self.room.vision.actor_state_changed(newactor1)
+
+        # remove actor
+        self.room.remove_actor(newactor1)
+        # assert actor removed from room, vision.actor_map, area(s)
+        self.assertEquals({}, self.room.vision.actor_map)
+        self.assertEquals(set(), area.actors)
+        # fire events, no listeners attached but no exceptions thrown
+
+        # add player_actor
+        # add listener
+        # assert listener is attached to player_actor
+        # fire events, assert listener gets them
+
+        # remove player_actor
+        # disconnect listener
+        #     should we disallow player_actor removal?
+
+        # move player_actor
+        # redirect listener
         pass
 
-    def testActorUpdateInSector(self):
-        pass#self.fail("Restrict _actor_update to visibility range")
-
-    def testAddRemoveActorsVisibility(self):
-        self.actor1 = Actor("actor1")
-        self.actor1.vision_distance = 10
-        self.actor1.actor_added = self._mock_actor_added_1
-        self.actor1.sleep = self._mock_sleep
-
-        self.actor2 = Actor("actor2")
-        self.actor2.actor_added = self._mock_actor_added_2
-        self.actor2.sleep = self._mock_sleep
-
-        self.room1.put_actor(self.actor1, (5, 5))
-        self.room1.put_actor(self.actor2, (35, 35))
-
-        self.assertEquals([('added', self.actor2)], self._updates_1)
-        self.assertEquals([], self._updates_2)
-
-        self.actor2.move_to(15, 15)
-
-        self.assertEquals([("added", self.actor2)], self._updates_1)
-
-    def testCanIcicle(self):
-        self.assertFalse(self.room1.has_active_players())
-
-        self.player = PlayerActor(Player('bob', 'games_0'), "player1")
-        self.room1.put_actor(self.player)
-
-        self.assertTrue(self.room1.has_active_players())
-
-        self.player.pause()
-        self.assertFalse(self.room1.has_active_players())
-
-    def testHasActiveActors(self):
-        self.assertFalse(self.room1.has_active_actors())
-
-        self.actor = Actor("actor1")
-        self.room1.put_actor(self.actor)
-
-        self.assertTrue(self.room1.has_active_actors())
-
-        self.actor.pause()
-        self.assertFalse(self.room1.has_active_actors())
+    def testListenerCanAttachWithNoPlayerActor(self):
+        # add listener
+        # assert listener is not attached to player_actor
+        pass

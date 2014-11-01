@@ -1,15 +1,7 @@
 
-from functools import wraps
+import os
 import inspect
-
-from rooms.chat import chat as create_chat
-from rooms.chat import choice as c
-from rooms.chat import call
-from rooms.chat import load_chat as load_chat_script
-from rooms.waypoint import get_now
-
-import logging
-log = logging.getLogger('rooms.script')
+from functools import wraps
 
 
 def command(func):
@@ -30,23 +22,47 @@ def request(func):
     return wrapped
 
 
-def conversation(func):
-    @wraps(func)
-    def wrapped(npc, player, message=None):
-        if message:
-            return npc.chat(player, message)
+
+
+class Script(object):
+    def __init__(self, script_name, script_module):
+        self.script_name = script_name
+        self.script_module = script_module
+
+    def __repr__(self):
+        return "<Script %s - %s>" % (self.script_name, self.script_module)
+
+    def call(self, method, *args, **kwargs):
+        if self.has_method(method):
+            return getattr(self.script_module, method)(*args, **kwargs)
         else:
-            npc.create_chat(player, func(npc, player))
-            return npc.chat(player)
-    wrapped.is_request = True
-    return wrapped
+            return None
+
+    def has_method(self, method):
+        return self.script_module and hasattr(self.script_module, method)
+
+    def inspect(self):
+        methods = {}
+        for field, func in inspect.getmembers(self.script_module, \
+                predicate=inspect.isfunction):
+            argspec = inspect.getargspec(func)
+            methods[field] = {'args': argspec.args,
+                'doc': func.__doc__ or "",
+                'type': 'request'}
+        return methods
 
 
-def chat_delay(actor):
-    actor.sleep(10)
 
-def move_to_object(actor, object_id):
-    actor.move_to(*actor.room.map_objects[object_id].position)
 
-def load_chat(chat_script, npc):
-    return load_chat_script(chat_script, npc.script, npc)
+class NullScript(Script):
+    def __init__(self):
+        pass
+
+    def call(self, method, *args, **kwargs):
+        pass
+
+    def has_method(self, method):
+        return False
+
+    def inspect(self):
+        return {}

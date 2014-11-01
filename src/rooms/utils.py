@@ -1,32 +1,15 @@
 
-import urlparse
-
-import logging
-log = logging.getLogger("rooms.wsgi")
+import uuid
 
 
-def checked(func):
-    def tryexcept(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except:
-            log.exception("Exception calling %s", func)
-            raise
-    return tryexcept
+class IDFactory(object):
+    _instance = None
 
-def _read_cookies(environ):
-    cookie_str = environ['HTTP_COOKIE']
-    cookies = cookie_str.split(';')
-    cookies = map(lambda c: c.strip().split('='), cookies)
-    return dict(cookies)
+    @staticmethod
+    def create_id():
+        return IDFactory._instance._create_id()
 
+    def _create_id(self):
+        return str(uuid.uuid1())
 
-def _get_param(environ, param):
-    if 'QUERY_STRING' in environ:
-        params = dict(urlparse.parse_qsl(environ['QUERY_STRING']))
-        if param in params:
-            return params[param]
-    return None
-
-
-
+IDFactory._instance = IDFactory()

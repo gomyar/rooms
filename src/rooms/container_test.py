@@ -1,140 +1,288 @@
 
 import unittest
 
-from collections import defaultdict
-
-from rooms.game import Game
-from rooms.room import Room
-from rooms.room_container import RoomContainer
-from rooms.area import Area
-from rooms.actor import Actor
-from rooms.player import Player
-from rooms.player_actor import PlayerActor
-
 from rooms.container import Container
-from rooms.geography.linearopen_geography import LinearOpenGeography
-
-from rooms.null import Null
-
-
-class MockRoomContainer(RoomContainer):
-    def load_room(self, room_id):
-        return self._rooms[room_id]
-
-    def save_room(self, room_id, room):
-        self._rooms[room_id] = room
-
-
-class MockDbase(object):
-    def __init__(self):
-        self.dbases = dict()
-
-    def load_object(self, obj_id, dbase_name):
-        return self.dbases.get(dbase_name, dict()).get(obj_id).copy()
-
-    def save_object(self, obj_dict, dbase_name, db_id):
-        obj_dict = obj_dict.copy()
-        if dbase_name not in self.dbases:
-            self.dbases[dbase_name] = dict()
-        db_id = db_id or dbase_name + "_" + str(len(self.dbases[dbase_name]))
-        obj_dict['_id'] = db_id
-        self.dbases[dbase_name][db_id] = obj_dict
-        return db_id
-
-    def filter(self, dbase_name, **fields):
-        found = self.dbases.get(dbase_name, dict()).values()
-        found = [o for o in found if all([i in o.items() for i in fields.items()])]
-        found = [o.copy() for o in found]
-        return found
-
-    def filter_one(self, dbase_name, **fields):
-        result = self.filter(dbase_name, **fields)
-        return result[0] if result else None
-
-    def object_exists(self, dbase_name, **search_fields):
-        return bool(self.filter(dbase_name, **search_fields))
-
-    def remove(self, dbase_name, **fields):
-        dbase = self.dbases.get(dbase_name, [])
-        keep = dict()
-        for k, v in dbase.items():
-            if not all([i in v.items() for i in fields.items()]):
-                keep[k] = v
-        self.dbases[dbase_name] = keep
-
-    def remove_by_id(self, dbase_name, object_id):
-        dbase = self.dbases.get(dbase_name, dict())
-        dbase.pop(object_id)
+from rooms.game import Game
+from rooms.player import PlayerActor
+from rooms.room import Room
+from rooms.position import Position
+from rooms.testutils import MockGeog
+from rooms.testutils import MockNode
+from rooms.testutils import MockRoomFactory
+from rooms.testutils import MockRoom
+from rooms.testutils import MockTimer
+from rooms.testutils import MockActor
+from rooms.testutils import MockDbase
+from rooms.testutils import MockScript
+from rooms.testutils import MockIDFactory
+from rooms.actor import Actor
 
 
 class ContainerTest(unittest.TestCase):
     def setUp(self):
-        self.area = Area()
-        self.area.load_script("rooms.container_test")
-        self.area.rooms = RoomContainer(self.area, Null())
-        self.area.server = Null()
-        self.room1 = Room('lobby')
-        self.room1.area = self.area
-        self.area.rooms['lobby'] = self.room1
-        self.actor1 = Actor('actor1')
-        self.actor1.room = self.room1
-        self.area.rooms['lobby'].actors['actor1'] = self.actor1
         self.dbase = MockDbase()
-        self.container = Container(self.dbase, LinearOpenGeography())
+        self.geography = MockGeog()
+        self.node = MockNode()
+        self.node.scripts["mock_script"] = MockScript()
+        self.room2 = Room("games_0", "room2", Position(0, 0), Position(10, 10),
+            self.node)
+        self.mock_room_factory = MockRoomFactory(self.room2)
+        self.container = Container(self.dbase, self.geography, self.node,
+            self.mock_room_factory)
+        self.node.container = self.container
+        MockTimer.setup_mock()
+        MockIDFactory.setup_mock()
+
+    def tearDown(self):
+        MockIDFactory.teardown_mock()
+
+    def testSaveGame(self):
+        self.game = Game("bob", "Bob's game", "A game by Bob")
+
+        self.container.save_game(self.game)
+
+        self.assertEquals({'games_0': {u'__type__': u'Game',
+            '_id': 'games_0',
+            u'name': "Bob's game",
+            u'description': "A game by Bob",
+            u'owner_id': u'bob'}},
+            self.dbase.dbases['games'])
+
+    def testLoadGame(self):
+        self.dbase.dbases['games'] = {'games_0': {u'__type__': u'Game',
+            '_id': 'games_0',
+            u'name': "Bob's game",
+            u'description': "A game by Bob",
+            u'owner_id': u'bob'}}
+        game = self.container.load_game("games_0")
+
+    def testSavePlayer(self):
+        self.player = PlayerActor(self.room2, "player", MockScript(),
+            "bob", game_id="games_0", actor_id="id1")
+
+        self.assertFalse(self.container.player_exists("bob", "games_0"))
+        self.container.save_player(self.player)
+        self.assertTrue(self.container.player_exists("bob", "games_0"))
+
+        self.assertEquals({'actors_0': {u'__type__': u'PlayerActor',
+              '_id': 'actors_0',
+              u'actor_id': u'id1',
+              u'actor_type': u'player',
+              u'game_id': u'games_0',
+              u'path': [],
+              u'room_id': u'room2',
+              u'script_name': u'mock_script',
+              u'speed': 1.0,
+              u'state': {},
+              u'state': {u'__type__': u'SyncDict'},
+              u'username': u'bob',
+              u'vector': {u'__type__': u'Vector',
+                          u'end_pos': {u'__type__': u'Position',
+                                       u'x': 0.0,
+                                       u'y': 0.0,
+                                       u'z': 0.0},
+                          u'end_time': 0.0,
+                          u'start_pos': {u'__type__': u'Position',
+                                         u'x': 0.0,
+                                         u'y': 0.0,
+                                         u'z': 0.0},
+                          u'start_time': 0}}}
+            , self.dbase.dbases['actors'])
+
+    def testLoadPlayer(self):
+        self.dbase.dbases['actors'] = {'id1': {u'__type__': u'PlayerActor',
+            '_id': 'id1',
+            u'actor_id': u'id1',
+            u'actor_type': u'player',
+            u'game_id': u'games_1',
+            u'script_name': u'mock_script',
+            u'room_id': u'rooms_10',
+            "state": {"__type__": "SyncDict"},
+            "path": [],
+            "speed": 1.0,
+            "vector": {"__type__": "Vector",
+            "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "start_time": 0,
+            "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
+            "end_time": 10,
+            },
+            u'username': u'ned'}}
+
+        player = self.container.load_player("ned", "games_1")
+
+        self.assertEquals("rooms_10", player.room_id)
+        self.assertEquals("id1", player._id)
+        self.assertEquals(player, player.state._actor)
+
+        self.assertRaises(Exception,
+            self.container.load_player, "ned", "nonexistant")
+
+    def testCreatePlayer(self):
+        player = self.container.create_player(self.room2, "player",
+            MockScript(), "ned", game_id="games_0")
+        self.assertEquals("actors_0", player._id)
+        self.assertEquals("ned", player.username)
+        self.assertEquals("games_0", player.game_id)
+        self.assertEquals("room2", player.room_id)
+
+    def testLoadRoom(self):
+        self.dbase.dbases['rooms'] = {}
+        self.dbase.dbases['rooms']['rooms_0'] = { "_id": "rooms_0",
+            "__type__": "Room", "room_id": "room1", "game_id": "games_0",
+            'state': {u'__type__': u'SyncDict'},
+            }
+        self.dbase.dbases['actors'] = {}
+        self.dbase.dbases['actors']['actor1'] = \
+            {"__type__": "Actor", "_id": "actor1", "actor_id": None,
+            "game_id": "games_0", "room_id": "room1",
+            "actor_type": "test", "model_type": "model",
+            "speed": 1.0,
+            "username": "ned",
+            'state': {u'__type__': u'SyncDict'},
+            "path": [], "vector": {"__type__": "Vector",
+            "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "start_time": 0,
+            "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
+            "end_time": 10,
+            }, "script_name": "mock_script"}
+        room = self.container.load_room("games_0", "room1")
+        self.assertEquals(self.geography, room.geography)
+        self.assertEquals(room, self.geography.room)
+        self.assertEquals(1, len(room.actors))
+        self.assertEquals(room, room.actors.values()[0].room)
+        self.assertEquals(self.node, room.node)
+        self.assertEquals(0, len(room.doors))
+
+    def testCreateRoom(self):
+        room = self.container.create_room("game1", "room2")
+        room_dict = self.dbase.dbases['rooms']['rooms_0']
+        self.assertEquals('room2', room_dict['room_id'])
+        self.assertEquals(self.node, room.node)
+        self.assertEquals(self.geography, room.geography)
+
+    def testCreateExistingRoom(self):
+        self.dbase.dbases['rooms'] = dict()
+        self.dbase.dbases['rooms']['rooms_0'] = { "_id": "rooms_0",
+            "__type__": "Room", "room_id": "room1", "game_id": "games_0",
+            "topleft": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "bottomright": {"__type__": "Position", "x": 10, "y": 10, "z": 0},
+            }
+
+        self.assertRaises(Exception, self.container.create_room, "games_0",
+            "room1")
 
     def testSaveRoom(self):
-        self.container.save_room(self.room1)
+        room = Room("game1", "room1", Position(0, 0), Position(10, 10),
+            self.node)
+        actor = room.create_actor("mock_actor", "mock_script")
+        self.container.save_room(room)
+        room_dict = self.dbase.dbases['rooms']['rooms_0']
+        self.assertEquals('room1', room_dict['room_id'])
+        actor_dict = self.dbase.dbases['actors']["actors_0"]
+        self.assertEquals({u'__type__': u'Actor',
+            '_id': 'actors_0',
+            u'actor_id': "id1",
+            u'actor_type': u'mock_actor',
+            u'game_id': u'game1',
+            u'path': [],
+            u'username': None,
+            u'room_id': u'room1',
+            u'script_name': u'mock_script',
+            u'speed': 1.0,
+            u'state': {u'__type__': u'SyncDict'},
+            u'vector': {u'__type__': u'Vector',
+                        u'end_pos': {u'__type__': u'Position',
+                                    u'x': 0.0,
+                                    u'y': 0.0,
+                                    u'z': 0.0},
+                        u'end_time': 0.0,
+                        u'start_pos': {u'__type__': u'Position',
+                                        u'x': 0.0,
+                                        u'y': 0.0,
+                                        u'z': 0.0},
+                        u'start_time': 0}}
+            , actor_dict)
 
-        # Why None? because mongo creates the id
-        self.assertEquals('lobby', self.dbase.dbases['rooms']['rooms_0']['description'])
+    def testOkWeveGotTheIdea(self):
+        self.container.save_room(Room("games_0", "rooms_0", Position(0, 0),
+            Position(50, 50), self.node))
+        self.assertTrue(self.dbase.dbases['rooms'])
 
-    def testSaveRoomWithPlayer(self):
-        self.player = Player("bob", "game1")
-        self.player_actor = PlayerActor(self.player)
-        self.room1.put_actor(self.player_actor)
+    def testSaveActor(self):
+        room = self.container.create_room("game1", "room2")
+        actor = room.create_actor("mock_actor", "mock_script")
+        self.container.save_actor(actor)
+        self.assertEquals({u'__type__': u'Actor',
+            '_id': 'actors_0',
+            u'actor_id': "id1",
+            u'actor_type': u'mock_actor',
+            u'game_id': u'games_0',
+            u'path': [],
+            u'username': None,
+            u'room_id': u'room2',
+            u'script_name': u'mock_script',
+            u'speed': 1.0,
+            u'state': {u'__type__': u'SyncDict'},
+            u'vector': {u'__type__': u'Vector',
+                        u'end_pos': {u'__type__': u'Position',
+                                    u'x': 0.0,
+                                    u'y': 0.0,
+                                    u'z': 0.0},
+                        u'end_time': 0.0,
+                        u'start_pos': {u'__type__': u'Position',
+                                        u'x': 0.0,
+                                        u'y': 0.0,
+                                        u'z': 0.0},
+                        u'start_time': 0}}
+            , self.dbase.dbases['actors']['actors_0'])
 
-        self.container.save_room(self.room1)
+        actor.state.testme = "value1"
+        self.container.save_actor(actor)
+        self.assertEquals({u'__type__': u'SyncDict', u'testme': u'value1'},
+            self.dbase.dbases['actors']['actors_0']['state'])
 
-        self.assertEquals('lobby', self.dbase.dbases['rooms']['rooms_0']['description'])
-        self.assertEquals('bob', self.dbase.dbases['players']['players_0']['username'])
+        actor.room = None
+        actor._room_id = "newroom1"
+        self.container.save_actor(actor)
+        self.assertEquals("newroom1",
+            self.dbase.dbases['actors']['actors_0']['room_id'])
 
-    def testGetOrCreatePlayer(self):
-        self.assertEquals(None, self.container.load_player("nonexistant",
-            "game1"))
+    def testUpdateActor(self):
+        actor = MockActor("actor1")
+        actor._id = "actor1"
 
-        player = self.container.get_or_create_player("newplayer", "game1")
-        self.assertEquals("newplayer", player.username)
+        self.dbase.dbases['actors'] = {}
+        self.dbase.dbases['actors']['actor1'] = {'_id': "actor1"}
+        self.dbase.dbases['actors']['actor2'] = {'_id': "actor2"}
 
-    def testJsonPickle(self):
-        pickled = self.container._serialize_area(self.area)
-        unpickled = self.container._create_area(pickled)
-        unpickled.rooms = RoomContainer(self.area, Null())
-        unpickled.rooms['lobby'] = Room('lobby')
-        unpickled.rooms['lobby'].actors['actor1'] = Actor('actor1')
-        self.assertEquals(self.area.rooms['lobby'], unpickled.rooms['lobby'])
-        self.assertEquals(self.area.rooms['lobby'].actors['actor1'],
-            unpickled.rooms['lobby'].actors['actor1'])
+        self.container.update_actor(actor, room_id="room2")
 
-    def testDeleteGame(self):
-        game = Game("bob")
-        area1 = game.create_area("area1")
-        area2 = game.create_area("area2")
+        self.assertEquals({'_id': "actor1", "room_id": "room2"},
+            self.dbase.dbases['actors']['actor1'])
+        self.assertEquals({'_id': "actor2"},
+            self.dbase.dbases['actors']['actor2'])
 
-        room1 = area1.create_room("room1", (10, 10))
-        room2 = area1.create_room("room2", (40, 40))
+    def testLoadPlayerVSLoadActor(self):
+        room = MockRoom("game1", "room1")
+        actor1 = Actor(room, "basic", MockScript(), username="bob")
+        player_actor1 = PlayerActor(room, "player", MockScript(), "bob")
 
-        room3 = area2.create_room("room3", (40, 40))
+        self.container.save_actor(player_actor1)
+        self.container.save_actor(actor1)
 
-        actor1 = room1.create_actor("test", "rooms.container_test")
+        loaded = self.container.load_player("bob", "game1")
+        self.assertTrue(loaded.is_player)
+        loaded_actor = self.container.load_actor("id1")
+        self.assertFalse(loaded_actor.is_player)
 
-        self.container.save_game(game)
+    def testLoadPlayerOnly(self):
+        room = MockRoom("game1", "room1")
+        player_actor1 = PlayerActor(room, "player", MockScript(), "bob")
 
-        self.assertEquals("games_0", game.game_id)
-        self.assertEquals(1, len(self.dbase.dbases['games']))
-        self.assertEquals(2, len(self.dbase.dbases['areas']))
-        self.assertEquals(3, len(self.dbase.dbases['rooms']))
+        self.container.save_actor(player_actor1)
 
-        self.container.remove_game(game.game_id)
-        self.assertEquals(0, len(self.dbase.dbases['games']))
-        self.assertEquals(0, len(self.dbase.dbases['areas']))
-        self.assertEquals(0, len(self.dbase.dbases['rooms']))
+        loaded = self.container.load_player("bob", "game1")
+        self.assertTrue(loaded.is_player)
+
+    def testLoadPlayersForRoom(self):
+        pass

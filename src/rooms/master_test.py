@@ -1,252 +1,565 @@
 
-
 import unittest
+import os
 
 from rooms.master import Master
 from rooms.master import RegisteredNode
-from rooms.container import Container
-from rooms.container_test import MockDbase
+from rooms.player import PlayerActor
+from rooms.rpc import RPCException
+from rooms.rpc import RPCWaitException
+from rooms.testutils import MockContainer
+from rooms.testutils import MockRpcClient
+from rooms.testutils import MockGame
+from rooms.testutils import MockRoom
+from rooms.testutils import MockActor
+from rooms.testutils import MockScript
+from rooms.testutils import MockTimer
 
 
-class MockGameScript(object):
+class MockNodeRpcClient(object):
     def __init__(self):
-        self._game = None
-        self._options = {}
+        self.called = []
 
-    def create_game(self, game, **options):
-        self._game = game
-        self._options = options
-        area = game.create_area("area1")
-        area.create_room("room1", (0, 0))
+    def player_joins(self, username, game_id, room_id, param=None):
+        self.called.append(('player_joins', username, game_id, room_id, param))
+        return "TOKEN"
 
-    def player_joins(self, game, player):
-        player.area_id = "area1"
-        player.room_id = "room1"
-
-
-class MockNodeClient(object):
-    def __init__(self):
-        self.managed_areas = []
-        self.players = []
-        self.admins = []
-        self.client = self
-        self.host = "localhost"
-        self.port = 8000
-        self.external_host = "external.com"
-        self.external_port = 80
-        self.active = True
-
-    def manage_area(self, game_id, area_id):
-        self.managed_areas.append((game_id, area_id))
-
-    def player_joins(self, username, game_id):
-        self.players.append(username)
-        return dict(token="TOKEN")
-
-    def load_from_limbo(self, game_id, area_id):
-        self.loaded_limbo = area_id
-
-    def send_message(self, from_actor_id, actor_id, game_id, area_id, room_id,
-            message):
-        self.message_sent = (from_actor_id, actor_id, game_id, area_id, room_id,
-            message)
-
-    def admin_show_area(self, game_id, area_id):
-        return {"game_id": game_id, "area_id": area_id, "mock": True}
-
-    def admin_joins(self, username, game_id, area_id, room_id):
-        self.admins.append(username)
-        return dict(token="ADMIN")
-
-    def stop_game(self, game_id):
-        self.stop_called = game_id
+    def manage_room(self, game_id, room_id):
+        self.called.append(('manage_room', game_id, room_id))
 
 
 class MasterTest(unittest.TestCase):
     def setUp(self):
-        self.dbase = MockDbase()
-        self.game_script = MockGameScript()
+        self.container = MockContainer()
+        self.container.node = None
+        self.rpc_conn = MockRpcClient(expect={"player_joins": "TOKEN",
+            "request_token": "TOKEN"})
 
-        self.master = Master(
-            "host.com", 9000,
-            Container(self.dbase, None, None),
-            self.game_script)
+        self.master = Master(self.container)
+        self.master._create_rpc_conn = lambda h, p: self.rpc_conn
+        self.master.scripts['game_script'] = MockScript(
+            expect={"start_room": "room1"})
+        MockTimer.setup_mock()
+
+    def tearDown(self):
+        MockTimer.teardown_mock()
+
+    def testNodeAttach(self):
+        self.master.register_node("10.10.10.1", 8000)
+        self.assertEquals(1, len(self.master.nodes))
+
+        node = self.master.nodes.values()[0]
+        self.assertEquals("10.10.10.1", node.host)
+        self.assertEquals(8000, node.port)
+
+    def testNodeDeregister(self):
+        self.master.register_node("10.10.10.1", 8000)
+        self.master.request_room("game1", "room1")
+        self.assertEquals(1, len(self.master.nodes))
+        self.assertEquals(1, len(self.master.rooms))
+        self.master.deregister_node("10.10.10.1", 8000)
+        self.assertEquals(0, len(self.master.nodes))
+        self.assertEquals(0, len(self.master.rooms))
+
+    def testCreateRPCNodeConn(self):
+        self.master = Master(self.container)
+        conn = self.master._create_rpc_conn("10.10.10.1", 8000)
+        self.assertEquals("node_control", conn.namespace)
+        self.assertEquals("10.10.10.1", conn.host)
+        self.assertEquals(8000, conn.port)
 
     def testCreateGame(self):
-        # player starts a new game
-        self.master.create_game("bob")
-        self.assertEquals(1, len(self.dbase.dbases['games']))
-        self.assertEquals("bob", self.dbase.dbases['games']['games_0']['owner_id'])
+        self.master.register_node("10.10.10.1", 8000)
 
-    def testListGames(self):
-        self.master.create_game("bob")
+        game_id = self.master.create_game("bob")
+        self.assertEquals("bob",
+            self.container.dbase.dbases['games']['games_0']['owner_id'])
 
-        self.assertEquals([{'owner': 'bob', 'game_id': 'games_0',
-            'start_areas': []}], self.master.list_games())
+        self.assertEquals([{'game_id': 'games_0', 'owner_id': 'bob'}],
+            self.master.all_games())
 
-        self.master.create_game("ray")
+    def testCantRegisterNodeTwice(self):
+        self.master.register_node("10.10.10.1", 8000)
+        self.assertRaises(RPCException, self.master.register_node,
+            "10.10.10.1", 8000)
 
-        self.assertEquals([{'owner': 'ray', 'game_id': 'games_1',
-            'start_areas': []}, {'owner': 'bob', 'game_id': 'games_0',
-            'start_areas': []}], self.master.list_games())
-
-    def testEndGame(self):
-        # player ends own game
-        pass
-
-    def testNodeRegisters(self):
-        # node registers with master
-        self.master.register_node("10.10.10.1", 8081, "node1.com", 8082)
-        self.assertEquals(RegisteredNode("10.10.10.1", 8081, "node1.com", 8082),
-            self.master.nodes["10.10.10.1", 8081])
-
-    def testRequestNode(self):
-        mock_node = MockNodeClient()
-        self.master.nodes[('10.10.10.1', 8080)] = mock_node
-        self.master.areas["games_0", "area1"] = dict(node=("10.10.10.1", 8080))
-
-        self.assertEquals(mock_node, self.master._request_node(
-            "games_0", "area1"))
-
-    def testRequestNodeNotManaging(self):
-        mock_node = MockNodeClient()
-        self.master.nodes[('10.10.10.1', 8080)] = mock_node
-
-        self.assertEquals(mock_node, self.master._request_node(
-            "games_0", "area1"))
-
-        self.assertEquals({
-            ('games_0', 'area1'): {'area_id': 'area1',
-            'game_id': 'games_0',
-            'node': ('localhost', 8000)}}, self.master.areas)
+        # can register different one though
+        self.master.register_node("10.10.10.2", 8000)
+        self.assertEquals(2, len(self.master.nodes))
 
     def testJoinGame(self):
-        # node must exist
-        self.mock_node = MockNodeClient()
-        self.master.nodes[('10.10.10.1', 8080)] = self.mock_node
-        # game must exist
-        game_id = self.master.create_game("bob")
-        # player joins a game
-        node_info = self.master.join_game("bob", game_id)
-        self.assertEquals({'host': 'external.com',
-            'port': 80, 'token': 'TOKEN'}, node_info)
-        # node is requested
-        # player join sent to node
-        self.assertEquals("bob", self.mock_node.players[0])
-        # node info sent back
+        self.master.register_node("10.10.10.1", 8000)
+        self.master.create_game("bob")
+        self.master.nodes['10.10.10.1', 8000].client = self.rpc_conn
 
-        # Check player info call
-        self.assertEquals([{'game_id': 'games_0', 'area_id': 'area1'}],
-            self.master.player_info('bob'))
+        self.assertEquals({}, self.container.dbase.dbases['actors'])
+        node = self.master.join_game("bob", "games_0")
+        self.assertEquals({'node': ("10.10.10.1", 8000), 'token': 'TOKEN',
+            'url': 'http://10.10.10.1:8000/assets/index.html?token=TOKEN&game_id=games_0&username=bob'},
+            node)
 
-    def testPlayerConnects(self):
-        self.mock_node = MockNodeClient()
-        self.master.nodes[('localhost', 8000)] = self.mock_node
+        self.assertEquals([
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('player_joins', {'game_id': 'games_0', 'room_id': 'room1',
+                'username': 'bob'})
+        ], self.rpc_conn.called)
 
-        self.master.create_game("owner")
-        result = self.master.join_game("bob", "games_0")
-        self.assertEquals({'host': 'external.com', 'port': 80,
-            'token': 'TOKEN'},
-            self.master.connect_to_game("bob", "games_0"))
+    def testJoinGameNonexistant(self):
+        self.master.register_node("10.10.10.1", 8000)
+        self.assertRaises(Exception, self.master.join_game, "bob",
+            "nonexistant")
 
-    def testPlayerMovesAreathroughLimbo(self):
-        self.mock_node = MockNodeClient()
-        self.master.nodes[('localhost', 8000)] = self.mock_node
-        self.master.create_game("owner")
+    def testPlayersInGame(self):
+        self.container.save_actor(PlayerActor(
+            MockRoom("game1", "room1"), 'player', MockScript(), "bob"))
+        self.assertEquals([{'game_id': 'game1', 'room_id': 'room1',
+            'username': 'bob'}], self.master.players_in_game("game1"))
+
+    def testManageRoom(self):
+        self.master.register_node("10.10.10.1", 8000)
+        self.master.create_game("bob")
+        self.master.nodes['10.10.10.1', 8000].client = self.rpc_conn
+
+        self.master.request_room("game1", "room1")
+
+        self.assertEquals(('10.10.10.1', 8000),
+            self.master.rooms['game1', 'room1'].node)
+        self.assertEquals("game1",
+            self.master.rooms['game1', 'room1'].game_id)
+        self.assertEquals("room1",
+            self.master.rooms['game1', 'room1'].room_id)
+
+        self.assertEquals([
+            {'node': ('10.10.10.1', 8000), 'game_id': 'game1',
+                'room_id': 'room1', 'online': True}],
+            self.master.managed_rooms())
+        self.assertEquals([
+            ('manage_room', {'game_id': 'game1', 'room_id': 'room1'}),
+            ], self.rpc_conn.called)
+
+    def testManageRoomAlreadyManaged(self):
+        self.master.register_node("10.10.10.1", 8000)
+        self.master.create_game("bob")
+        self.master.nodes['10.10.10.1', 8000].client = self.rpc_conn
+
+        self.master.rooms = {('game1', 'room1'): ('10.10.10.1', 8000)}
+
+        self.assertEquals(("10.10.10.1", 8000),
+            self.master.request_room("game1", "room1"))
+        self.assertEquals([], self.rpc_conn.called)
+
+    def testJoinGameRoomAlreadyManaged(self):
+        # room managed, so don't call manage_room
+        self.master.register_node("10.10.10.1", 8000)
+        self.master.create_game("bob")
+        self.master.nodes['10.10.10.1', 8000].client = self.rpc_conn
+        self.master.rooms['game1', 'room1'] = ("10.10.10.1", 8000)
+
+        self.assertEquals({('game1', 'room1'): ('10.10.10.1', 8000)},
+            self.master.rooms)
+        self.assertEquals([], self.rpc_conn.called)
+
+    def testJoinGameNoNodes(self):
+        self.master.create_game("bob")
+        self.assertRaises(RPCWaitException, self.master.join_game, "bob",
+            "games_0")
+
+    def testJoinGamePlayerAlreadyJoined(self):
+        self.master.register_node("10.10.10.1", 8000)
+        self.master.create_game("bob")
+        self.master.nodes['10.10.10.1', 8000].client = self.rpc_conn
+
+        # Player exists
+        self.container.save_actor(PlayerActor(
+            MockRoom("games_0", "room1"), 'player', MockScript(), "bob"))
+
+        self.assertRaises(RPCException, self.master.join_game, "bob", "games_0")
+
+    def testJoinGameTwoGamesTwoNodes(self):
+        self.master.register_node("10.10.10.1", 8000)
+        game_1 = self.master.create_game("bob")
+        node1 = self.master.join_game("bob", "games_0")
+
+        self.master.register_node("10.10.10.2", 8000)
+        game_2 = self.master.create_game("bob")
+        node2 = self.master.join_game("bob", "games_1")
+
+        self.assertEquals({'node': ("10.10.10.1", 8000), 'token': 'TOKEN',
+            'url': 'http://10.10.10.1:8000/assets/index.html?token=TOKEN&game_id=games_0&username=bob'},
+            node1)
+        self.assertEquals({'node': ("10.10.10.2", 8000), 'token': 'TOKEN',
+            'url': 'http://10.10.10.2:8000/assets/index.html?token=TOKEN&game_id=games_1&username=bob'},
+            node2)
+
+        self.assertEquals([
+            {'host': '10.10.10.2', 'port': 8000, 'online': True, 'load': 0.0},
+            {'host': '10.10.10.1', 'port': 8000, 'online': True, 'load': 0.0}],
+            self.master.all_nodes())
+
+    def testNodeOffliningQueueRoomRequests(self):
+        self.assertEquals("games_0", self.master.create_game("bob"))
+
+        self.master.register_node("10.10.10.1", 8000)
+        self.master.register_node("20.20.20.2", 8000)
+
+        self.master.request_room("games_0", "room1")
+
+        self.master.report_load_stats("10.10.10.1", 8000, 0.1, '{}')
+
+        self.master.request_room("games_0", "room2")
+
+        # receive offline signal
+        self.master.offline_node("10.10.10.1", 8000)
+
+        # receieve room request - send wait response
+        self.assertRaises(RPCWaitException, self.master.join_game,
+            "bob", "games_0")
+
+        # wait until room becomes available (from node)
+        self.master.deregister_node("10.10.10.1", 8000)
+
+        self.assertEquals(('20.20.20.2', 8000),
+            self.master.rooms['games_0', 'room2'].node)
+        self.assertEquals("games_0",
+            self.master.rooms['games_0', 'room2'].game_id)
+        self.assertEquals("room2",
+            self.master.rooms['games_0', 'room2'].room_id)
+
+        # receive room request - normal room manage
         self.master.join_game("bob", "games_0")
 
-        player = self.dbase.dbases['players']['players_0']
-        player['area_id'] = "area2"
+        self.assertEquals(('20.20.20.2', 8000),
+            self.master.rooms['games_0', 'room1'].node)
+        self.assertEquals("games_0",
+            self.master.rooms['games_0', 'room1'].game_id)
+        self.assertEquals("room1",
+            self.master.rooms['games_0', 'room1'].room_id)
 
-        self.master.player_moves_area("bob", "games_0")
+        self.container.save_actor(PlayerActor(
+            MockRoom("games_0", "room1"), 'player', MockScript(), "bob"))
 
-        self.assertEquals('area2', self.mock_node.loaded_limbo)
-        # bob joined node twice
-        self.assertEquals(['bob', 'bob'], self.mock_node.players)
+        # offline the second node
+        self.master.deregister_node("20.20.20.2", 8000)
 
-    def testSendMessage(self):
-        self.mock_node = MockNodeClient()
-        self.master.nodes[('localhost', 8000)] = self.mock_node
-        self.master.send_message("actor1", "actor2", "games_0", "area1",
-            "room1", "msg")
-        self.assertEquals(("actor1", "actor2", "games_0", "area1", "room1",
-            "msg"),
-            self.mock_node.message_sent)
+        # attempt player connect
+        self.assertRaises(RPCWaitException, self.master.player_connects,
+            "bob", "games_0")
 
-    def testClientNodeDeregisters(self):
-        # node deregisters. node must send deregistering, then deregistered,
-        # in between, new join requests for any game areas are queued
-        self.mock_node = MockNodeClient()
-        self.master.nodes[('localhost', 8000)] = self.mock_node
+    def testOfflineNonexistant(self):
+        self.assertRaises(RPCException,
+            self.master.offline_node,"10.10.10.1", 8000)
 
-        self.assertTrue(self.master.nodes["localhost", 8000].active)
-        self.master.deregister_node("localhost", 8000)
-        self.assertFalse(self.master.nodes["localhost", 8000].active)
+    def testPlayerConnects(self):
+        self.master.create_game("bob")
+        self.master.register_node("10.10.10.1", 8000)
 
-        self.master.shutdown_node("localhost", 8000)
-        self.assertEquals({}, self.master.nodes)
+        player = self.container.create_player(MockRoom("game1", "room1"),
+            "player", MockScript(), "bob", "game1")
+
+        self.assertEquals({'token': 'TOKEN', 'node': ('10.10.10.1', 8000),
+            'url': 'http://10.10.10.1:8000/assets/index.html'
+            '?token=TOKEN&game_id=game1&username=bob'},
+            self.master.player_connects("bob", "game1"))
+        self.assertEquals(('10.10.10.1', 8000),
+            self.master.rooms['game1', 'room1'].node)
+        self.assertEquals("game1",
+            self.master.rooms['game1', 'room1'].game_id)
+        self.assertEquals("room1",
+            self.master.rooms['game1', 'room1'].room_id)
+
+    def testManageRoomOnlyOnce(self):
+        self.master.create_game("bob")
+        self.master.register_node("10.10.10.1", 8000)
+        self.master.register_node("10.10.10.2", 8000)
+
+        self.master.join_game("bob", "games_0")
+
+        self.assertEquals([
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('player_joins', {'game_id': 'games_0', 'room_id': 'room1',
+                'username': 'bob'})], self.rpc_conn.called)
+
+        self.master.request_room("games_0", "room1")
+
+        self.assertEquals([
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('player_joins', {'game_id': 'games_0', 'room_id': 'room1',
+                'username': 'bob'})], self.rpc_conn.called)
+
+    def testAllRooms(self):
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+        self.master.register_node("10.10.10.2", 8000)
+
+        self.master.join_game("bob", "games_0")
+        self.master.join_game("ned", "games_0")
+
+        self.assertEquals(('10.10.10.2', 8000),
+            self.master.rooms['games_0', 'room1'].node)
+        self.assertEquals("games_0",
+            self.master.rooms['games_0', 'room1'].game_id)
+        self.assertEquals("room1",
+            self.master.rooms['games_0', 'room1'].room_id)
+
+        self.assertEquals([
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('player_joins', {'game_id': 'games_0', 'room_id': 'room1', 'username': 'bob'}),
+            ('player_joins', {'game_id': 'games_0', 'room_id': 'room1', 'username': 'ned'}),
+        ], self.rpc_conn.called)
+
+    def testActorEntered(self):
+        self.rpc_conn.expect['actor_enters_node'] = {'host': '10.10.10.1',
+            'port': 8000, 'token': 'TOKEN'}
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+
+        self.master.join_game("bob", "games_0")
+
+        self.assertEquals({'node': ['10.10.10.1', 8000], 'token': 'TOKEN'},
+            self.master.actor_entered("games_0", "room1", "actor1", True, "bob"))
+
+        self.assertEquals(
+            ('actor_enters_node', {"actor_id": "actor1"}),
+            self.rpc_conn.called[2])
+
+        # doesn't need a token (if npc)
+        self.rpc_conn.expect['actor_enters_node'] = {'host': '10.10.10.1',
+            'port': 8000}
+        self.master.actor_entered("games_0", "room1", "actor1", True, "bob")
+        self.assertEquals(
+            ('actor_enters_node', {"actor_id": "actor1"}),
+            self.rpc_conn.called[2])
+
+    def testNonPlayerActorEnteredNoManagedRoom(self):
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+
+        self.assertEquals(None,
+            self.master.actor_entered("games_0", "room1", "actor1", False, None))
+
+        self.assertEquals([], self.rpc_conn.called)
+
+    def testPlayerActorEnteredManagesRoom(self):
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+
+        self.assertEquals({"node": ["10.10.10.1", 8000], "token": "TOKEN"},
+            self.master.actor_entered("game1", "room1", "actor1", "True",
+                "bob"))
+
+        self.assertEquals([
+            ('manage_room', {'game_id': 'game1', 'room_id': 'room1'}),
+            ('request_token', {'username': 'bob', 'game_id': 'game1'}),
+            ], self.rpc_conn.called)
+
+    def testActorEnteredOfflineRoom(self):
+        self.rpc_conn = MockRpcClient(exceptions={
+            "actor_enters_node": Exception("room is offline")})
+
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+
+        self.master.join_game("bob", "games_0")
+
+        self.master.rooms["games_0", "room1"].online = False
+
+        self.assertEquals(None,
+            self.master.actor_entered("games_0", "room1", "actor1", False, None))
+
+        self.assertEquals([
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('player_joins', {'username': 'bob', 'game_id': 'games_0',
+                'room_id': 'room1'})], self.rpc_conn.called)
+
+    def testPlayerActorEnteredOfflineRoom(self):
+        self.rpc_conn = MockRpcClient(exceptions={
+            "actor_enters_node": Exception("room is offline")})
+
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+
+        self.master.join_game("bob", "games_0")
+
+        self.master.rooms["games_0", "room1"].online = False
+
+        try:
+            self.master.actor_entered("games_0", "room1", "actor1", "True",
+                None)
+            self.fail("Should have thrown")
+        except RPCWaitException, rpcwe:
+            self.assertEquals("Room is offline", str(rpcwe))
+
+    def testReportServerLoad(self):
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+
+        self.master.report_load_stats("10.10.10.1", 8000, 0.5, '{}')
+
+        self.assertEquals(0.5,
+            self.master.nodes["10.10.10.1", 8000].server_load())
+
+    def testReportConnectedPlayers(self):
+        self.master.scripts['game_script'].expect = {"start_room": "map1.room2"}
+        self.master.create_game("bob")
+
+        self.master.register_node("10.10.10.1", 8000)
+        self.master.register_node("10.10.10.2", 8000)
+
+        self.master.join_game("bob", "games_0")
+        self.master.scripts['game_script'].expect = {"start_room": "map1.room1"}
+        self.master.join_game("ned", "games_0")
+
+        self.master.report_load_stats("10.10.10.1", 8000, 0.5,
+            '{"games_0.map1.room2": {"connected_players": 1}}')
+
+        self.assertEquals(0,
+            self.master.rooms["games_0", "map1.room1"].connected_players)
+        self.assertEquals(1,
+            self.master.rooms["games_0", "map1.room2"].connected_players)
 
 
+    def testRoomOfflineQueueRoomRequests(self):
+        self.master.scripts['game_script'].expect = {"start_room": "map1.room1"}
+        self.assertEquals("games_0", self.master.create_game("bob"))
 
-    def testAdminJoins(self):
-        self.mock_node = MockNodeClient()
-        self.master.nodes[('localhost', 8000)] = self.mock_node
+        self.master.register_node("10.10.10.1", 8000)
 
-        game = self.master.create_game("owner")
-        result = self.master.join_game("bob", "games_0")
+        self.master.request_room("games_0", "map1.room1")
+        self.master.request_room("games_0", "map1.room2")
 
-        self.assertEquals(dict(token="ADMIN", host="external.com", port=80),
-            self.master.admin_connects("bob", "games_0", "area1", "room1"))
+        self.master.rooms["games_0", "map1.room1"].online = False
 
-    def testAdminListAreas(self):
-        self.mock_node = MockNodeClient()
-        self.master.nodes[('localhost', 8000)] = self.mock_node
+        # receieve room request - send wait response
+        self.assertRaises(RPCWaitException, self.master.join_game,
+            "bob", "games_0")
 
-        self.assertEquals({}, self.master.admin_list_areas())
+        self.container.save_actor(PlayerActor(
+            MockRoom("games_0", "map1.room1"), 'player', MockScript(), "bob"))
+        self.assertRaises(RPCWaitException, self.master.player_connects,
+            "bob", "games_0")
 
-        game = self.master.create_game("owner")
-        result = self.master.join_game("bob", "games_0")
+        self.master.scripts['game_script'].expect = {"start_room": "map1.room2"}
+        self.master.join_game("ned", "games_0")
 
-        self.assertEquals({"games_0:area1":
-            {'area_id': 'area1', "game_id": "games_0",
-            'node': ('localhost', 8000)}},
-            self.master.admin_list_areas())
+        self.container.save_actor(PlayerActor(
+            MockRoom("games_0", "map1.room2"), 'player', MockScript(), "ned"))
+        self.master.player_connects("ned", "games_0")
 
-    def testAdminShowNodes(self):
-        self.mock_node = MockNodeClient()
-        self.master.nodes[('localhost', 8000)] = self.mock_node
+    def testRoomManagerRemovesUnneededRoomsOnBusyNodes(self):
+        self.master.register_node("10.10.10.1", 8000)
 
-        self.assertEquals([("localhost", 8000)],
-            self.master.admin_show_nodes())
+        self.master.request_room("games_0", "room1")
+        self.master.request_room("games_0", "room2")
 
-        new_mock_node = MockNodeClient()
-        new_mock_node.host = "10.10.10.2"
-        new_mock_node.port = 8080
-        self.master.nodes[('10.10.10.2', 8080)] = new_mock_node
+        self.master.rooms["games_0", "room1"].connected_players = 1
+        self.master.nodes['10.10.10.1', 8000].load = 0.1
 
-        self.assertEquals([("10.10.10.2", 8080), ("localhost", 8000)],
-            self.master.admin_show_nodes())
+        # Dont deactivate if uptime < 15 seconds
+        self.master.run_cleanup_rooms()
 
-    def testAdminShowArea(self):
-        self.mock_node = MockNodeClient()
-        self.master.nodes[('localhost', 8000)] = self.mock_node
+        self.assertEquals(
+            [('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+#            ('deactivate_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+            ]
+        , self.rpc_conn.called)
+        self.assertTrue(self.master.rooms["games_0", "room1"].online)
+        self.assertTrue(self.master.rooms["games_0", "room2"].online)
 
-        game = self.master.create_game("owner")
-        result = self.master.join_game("bob", "games_0")
+        # Node must have been up for 30 seconds before allowing room deactivate
+        MockTimer.fast_forward(16)
 
-        self.assertEquals({'game_id': 'games_0', 'area_id': 'area1',
-            "mock": True},
-            self.master.admin_show_area("games_0", "area1"))
+        self.master.run_cleanup_rooms()
 
-    def testEndGame(self):
-        self.mock_node = MockNodeClient()
-        self.master.nodes[('localhost', 8000)] = self.mock_node
+        self.assertEquals(
+            [('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+            ('deactivate_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+            ]
+        , self.rpc_conn.called)
+        self.assertTrue(("games_0", "room1") in self.master.rooms)
+        self.assertFalse(("games_0", "room2") in self.master.rooms)
 
-        game = self.master.create_game("bob")
-        result = self.master.join_game("bob", "games_0")
+    def testRoomManagerRemovesUnneededRoomsOnBusyNodesByUpTime(self):
+        self.master.register_node("10.10.10.1", 8000)
 
-        self.master.end_game("bob", "games_0")
+        self.master.request_room("games_0", "room1")
+        MockTimer.fast_forward(10)
+        self.master.request_room("games_0", "room2")
 
-        self.assertEquals("games_0", self.mock_node.stop_called)
-        self.assertEquals({'areas': {}, 'games': {}, 'players': {},
-            'rooms': {}}, self.dbase.dbases)
+        self.master.rooms["games_0", "room1"].connected_players = 0
+        self.master.rooms["games_0", "room2"].connected_players = 0
+
+        # Dont deactivate if uptime < 15 seconds
+        self.master.run_cleanup_rooms()
+
+        self.assertEquals(
+            [('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+#            ('deactivate_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+            ]
+        , self.rpc_conn.called)
+
+        # Node must have been up for 15 seconds before allowing room deactivate
+        MockTimer.fast_forward(10)
+
+        self.master.run_cleanup_rooms()
+
+        self.assertEquals(
+            [('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+            ('deactivate_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ]
+        , self.rpc_conn.called)
+
+        # Node must have been up for 15 seconds before allowing room deactivate
+        MockTimer.fast_forward(10)
+
+        self.master.run_cleanup_rooms()
+
+        self.assertEquals(
+            [('manage_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('manage_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+            ('deactivate_room', {'game_id': 'games_0', 'room_id': 'room1'}),
+            ('deactivate_room', {'game_id': 'games_0', 'room_id': 'room2'}),
+            ]
+        , self.rpc_conn.called)
+
+    def testAllGamesForPlayer(self):
+        self.master.register_node("10.10.10.1", 8000)
+
+        game_id = self.master.create_game("bob")
+        game = self.container.load_game('games_0')
+        self.assertEquals("games_0", game_id)
+        self.master.join_game("ned", "games_0")
+
+        self.assertEquals("games_0",
+            self.master.all_managed_games_for("bob")[0]['game_id'])
+
+    def testAllPlayersForPlayer(self):
+        player = PlayerActor(
+            MockRoom("game1", "room1"), 'player', MockScript(), "bob")
+        self.container.save_actor(player)
+
+        self.assertEquals([], self.master.all_players_for("ned"))
+        self.assertEquals("bob", self.master.all_players_for("bob")[0]['username'])
+
+    def testLoadScriptsFromPath(self):
+        script_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+            "test_scripts")
+        self.master.load_scripts(script_path)
+
+        self.assertEquals("loaded", self.master.scripts['basic_actor'].call("test", MockActor()))
+        self.assertEquals(
+            {'move_to':
+                {'args': ['actor', 'x', 'y'], 'doc': '', 'type': 'request'},
+            'ping': {'args': ['actor'], 'doc': '', 'type': 'request'},
+            'test': {'args': ['actor'], 'doc': '', 'type': 'request'}}
+        , self.master.inspect_script("basic_actor"))

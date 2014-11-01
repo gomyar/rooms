@@ -1,0 +1,36 @@
+<div>
+<!--    <div class="itemcreate">
+        <div class="button" ng-click="items.create()">Create</div>
+    </div>-->
+    <div class="items_section">
+        <div class="item tableheader">
+            <div class="category">Category</div>
+            <div class="item_type">Item Type</div>
+        </div>
+        <div class="item" ng-repeat="item in items track by $index">
+            <div class="category">{{ item.category}}</div>
+            <div class="item_type">{{ item.item_type }}</div>
+            <div class="showitem button" ng-click="items.select(item)">Edit</div>
+        </div>
+    </div>
+    <div class="items_section_right">
+        <div class="itemform">
+            <div class="field">
+                <div class="label">Category:</div><input type="text" ng-model="current.category" required />
+                <div class="label">Item Type:</div><input type="text" ng-model="current.item_type" required />
+            </div>
+            <div class="field" ng-repeat="field in current.fields track by $index">
+                <input id="{{ field.name }}_field" type="text" ng-model="field.name" />
+                <input id="{{ field.name }}_value" type="text" ng-model="field.value" />
+                <div id="{{ field.name }}_delete" class="deletefield" ng-click="delete_field($index)">X</div>
+            </div>    
+            <div class="button newfield" ng-click="new_field()">New</div>
+            <br />
+
+
+            <div class="button" ng-click="item_save()">Save</div>
+            <div class="button" ng-click="item_cancel()">Cancel</div>
+        </div>
+    </div>
+
+</div>

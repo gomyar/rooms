@@ -1,0 +1,113 @@
+#!/usr/bin/env python
+
+import os
+import sys
+
+import gevent.backdoor
+from gevent import monkey
+monkey.patch_socket()
+
+from optparse import OptionParser
+from ConfigParser import ConfigParser
+
+import rooms
+from rooms.master import Master
+from rooms.node import Node
+from rooms.geography.basic_geography import BasicGeography
+from rooms.room_factory import RoomFactory
+from rooms.room_factory import FileMapSource
+from rooms.master import MasterController
+from rooms.master import PlayerController
+from rooms.node import GameController
+from rooms.node import NodeController
+from rooms.container import Container
+from rooms.dbase.mongo_dbase import MongoDBase
+from rooms.rpc import WSGIRPCServer
+from rooms.item_registry import ItemRegistry
+
+import logging
+import logging.config
+log = logging.getLogger("rooms")
+
+
+if __name__ == "__main__":
+    master = None
+    try:
+        log.info("Starting server")
+        parser = OptionParser()
+
+        parser.add_option("-a", "--address", dest="address",
+            help="Address of master", default="localhost:9999")
+
+        parser.add_option("-g", "--game", dest="game",
+            help="Path to game config file", default=".")
+
+        parser.add_option("-b", "--backdoor", dest="backdoor",
+            action="store_true", default=True, help="Open backdoor socket")
+
+        (options, args) = parser.parse_args()
+
+#        if not os.path.exists(options.gameconf):
+#            print "No game file exists at '%s'" % (options.gameconf,)
+#            sys.exit(1)
+
+#        config = ConfigParser()
+#        config.read(options.gameconf)
+
+#        sys.path.append(config.get("scripts", "root"))
+
+        if os.path.exists("logging.conf"):
+            logging.config.fileConfig("logging.conf")
+        else:
+            logging.basicConfig(level=logging.DEBUG,
+                format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+        host, port = options.address.split(":")
+        dbase = MongoDBase()
+        dbase.init_mongo()
+        geography = BasicGeography()
+
+        node = Node(host, port, host, port)
+        room_factory = RoomFactory(FileMapSource(os.path.join(options.game,
+            "maps")), node)
+        node.room_factory = room_factory
+        item_registry = ItemRegistry()
+        item_registry.load_from_directory(options.game)
+        container = Container(dbase, geography, node, room_factory,
+            item_registry=item_registry)
+        master = Master(container)
+        master.load_scripts(os.path.join(options.game, "scripts"))
+
+        node.container = container
+        node.load_scripts(os.path.join(options.game, "scripts"))
+
+        server = WSGIRPCServer(host, port, access_control_header="*")
+        # master routes
+        server.add_controller("master_control", MasterController(master))
+        server.add_controller("master_game", PlayerController(master))
+        # node routes
+        server.add_controller("node_control", NodeController(node))
+        server.add_controller("node_game", GameController(node))
+        # dev server serves game files:
+        server.add_file_root("assets", os.path.join(options.game, "assets"))
+        server.add_file_root("maps", os.path.join(options.game, "maps"))
+        log.info("Starting Rooms Master")
+        master.start()
+        server.start()
+
+        if options.backdoor:
+            log.debug("Starting backdoor server on port 3000")
+            backdoor = gevent.backdoor.BackdoorServer(('127.0.0.1', 3000),
+                locals=dict(master=master, node=node))
+            backdoor.start()
+
+        node.connect_to_master()
+        node.start_reporting()
+
+        server.serve_forever()
+    except KeyboardInterrupt, ke:
+        log.debug("Master stopped")
+        node.save_all()
+        master.shutdown()
+    except:
+        log.exception("Exception starting server")
