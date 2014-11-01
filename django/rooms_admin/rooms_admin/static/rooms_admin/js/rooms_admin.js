@@ -139,6 +139,7 @@ function game_callback(msg)
     if (msg.command == "map_loaded")
     {
         console.log("Loaded map");
+        console.log(msg);
     }
     if (msg.command == "actor_update")
     {
@@ -152,8 +153,8 @@ function game_callback(msg)
     if (msg.command == "sync")
     {
         load_room(msg.data.room_id);
-        gui.requestRedraw();
         api_rooms.vision = msg.data.vision;
+        gui.requestRedraw();
     }
 }
 
@@ -190,6 +191,10 @@ function load_room(room_id)
 function show_room(data, map_room_id)
 {
     api_rooms.room = data['rooms'][map_room_id];
+    api_rooms.room_map = data['rooms'];
+    gui.viewport_x = (api_rooms.room.topleft.x + api_rooms.room.bottomright.x) / 2;
+    gui.viewport_y = (api_rooms.room.topleft.y + api_rooms.room.bottomright.y) / 2;
+    gui.zoom = 1.2 * (api_rooms.room.bottomright.y - api_rooms.room.topleft.y) / gui.canvas.height;
     gui.requestRedraw();
 }
 

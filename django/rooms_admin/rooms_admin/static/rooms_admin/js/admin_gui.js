@@ -345,10 +345,33 @@ gui.draw = function()
         gui.ctx.stroke();
     }
 
+    // Draw other rooms in map
+    for (var room_id in api_rooms.room_map)
+    {
+        var room = api_rooms.room_map[room_id];
+        gui.ctx.strokeStyle = "rgb(80, 80, 80)";
+        var width = room.bottomright.x - room.topleft.x;
+        var height = room.bottomright.y - room.topleft.y;
+        gui.ctx.strokeRect(gui.canvas_x(room.topleft.x), gui.canvas_y(room.topleft.y), width / gui.zoom, height / gui.zoom)
+    }
+
+    // Draw current room
     gui.ctx.strokeStyle = "rgb(255, 255, 255)";
     var width = api_rooms.room.bottomright.x - api_rooms.room.topleft.x;
     var height = api_rooms.room.bottomright.y - api_rooms.room.topleft.y;
     gui.ctx.strokeRect(gui.canvas_x(api_rooms.room.topleft.x), gui.canvas_y(api_rooms.room.topleft.y), width / gui.zoom, height / gui.zoom)
+
+    // Draw doors
+    for (var door_index in api_rooms.room.doors)
+    {
+        var door = api_rooms.room.doors[door_index];
+
+        gui.ctx.strokeStyle = "rgb(55, 55, 255)";
+        gui.ctx.beginPath();
+        gui.ctx.arc(gui.canvas_x(door.enter_position.x), gui.canvas_y(door.enter_position.y), 10, 0, Math.PI*2);
+        gui.ctx.closePath();
+        gui.ctx.stroke();
+    }
 
     // Draw room objects
     for (object_id in api_rooms.room.room_objects)
