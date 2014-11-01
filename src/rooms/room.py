@@ -184,3 +184,9 @@ class Room(object):
 
     def find_tags(self, tag_id):
         return [tag for tag in self.tags if tag.tag_type.startswith(tag_id)]
+
+    def object_at(self, position):
+        for room_object in self.room_objects:
+            if position.is_within(room_object.topleft, room_object.bottomright):
+                return True
+        return False

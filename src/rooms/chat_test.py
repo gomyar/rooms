@@ -8,8 +8,7 @@ from chat import chat
 from chat import choice
 from chat import load_chat
 from chat import Call
-from rooms.actor import Actor
-from rooms.config import config
+from rooms.testutils import MockActor
 
 
 class ChatTest(unittest.TestCase):
@@ -24,10 +23,9 @@ class ChatTest(unittest.TestCase):
             self.choice2,
         ])
         self._should_show_choice = True
-        self.actor = Actor("actor1")
-        if not config.has_section("scripts"):
-            config.add_section("scripts")
-        config.set("scripts", "script_dir", os.path.dirname(__file__))
+        self.actor = MockActor("actor1")
+        self.test_chat = open(os.path.join(os.path.dirname(__file__),
+            "test_chat.json")).read()
 
     def mock_chat_value(self):
         return self._should_show_choice
@@ -36,7 +34,7 @@ class ChatTest(unittest.TestCase):
         self._did_something = True
 
     def testLoadChat(self):
-        chat = load_chat("test_chat", self, self.actor)
+        chat = load_chat(self.test_chat, self, self.actor)
         self.assertEquals(2, len(chat.choices))
         self.assertEquals("Request 1", chat.choices[0].query_text)
         self.assertEquals("Response 1", chat.choices[0].response)
@@ -48,7 +46,7 @@ class ChatTest(unittest.TestCase):
 
     def testLoadOptionalChoice(self):
         self._should_show_choice = False
-        chat = load_chat("test_chat", self, self.actor)
+        chat = load_chat(self.test_chat, self, self.actor)
         self.assertEquals(1, len(chat.choices))
         self.assertEquals("Request 1", chat.choices[0].query_text)
         self.assertEquals("Response 1", chat.choices[0].response)

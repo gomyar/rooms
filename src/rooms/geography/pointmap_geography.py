@@ -18,8 +18,8 @@ class PointmapGeography(object):
                 int(room.height / self.point_spacing) * self.point_spacing,
                 self.point_spacing)
             for room_object in room.room_objects:
-                pointmap.make_impassable(room_object.topleft,
-                    room_object.bottomright)
+                pointmap.make_impassable(room_object.topleft.coords(),
+                    room_object.bottomright.coords())
             self._pointmaps[room] = pointmap
         return self._pointmaps[room]
 
