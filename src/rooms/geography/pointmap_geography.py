@@ -12,14 +12,14 @@ class PointmapGeography(object):
         if room not in self._pointmaps:
             pointmap = PointMap()
             pointmap.init_square_points(
-                room.position[0],
-                room.position[1],
+                int(room.topleft.x),
+                int(room.topleft.y),
                 int(room.width / self.point_spacing) * self.point_spacing,
                 int(room.height / self.point_spacing) * self.point_spacing,
                 self.point_spacing)
-            for room_object in room.map_objects.values():
-                pointmap.make_impassable(room_object.position,
-                    (room_object.right(), room_object.bottom()))
+            for room_object in room.room_objects:
+                pointmap.make_impassable(room_object.topleft,
+                    room_object.bottomright)
             self._pointmaps[room] = pointmap
         return self._pointmaps[room]
 
@@ -28,7 +28,7 @@ class PointmapGeography(object):
         return min(pointmap.available_points().keys(), key=lambda p: \
             abs(p[0] - position[0]) + abs(p[1] - position[1]))
 
-    def get_path(self, room, start, end):
+    def find_path(self, room, start, end):
         pointmap = self._get_pointmap(room)
         start = ((start[0] / self.point_spacing) * self.point_spacing,
             (start[1] / self.point_spacing) * self.point_spacing)

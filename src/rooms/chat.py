@@ -1,7 +1,7 @@
 
 import os
 
-import simplejson
+import json
 from rooms.config import config
 
 import logging
@@ -112,7 +112,7 @@ def _check_show_function(choice, script):
 
 def load_chat(chat_id, script, actor):
     log.debug("Loading chat %s", chat_id)
-    chat_json = simplejson.loads(open(os.path.join(
+    chat_json = json.loads(open(os.path.join(
         config.get("scripts", "script_dir", ""), chat_id + ".json")).read())
     conversation = Conversation()
     for choice in chat_json.get('choices', []):

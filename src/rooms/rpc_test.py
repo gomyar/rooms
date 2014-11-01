@@ -188,7 +188,7 @@ class RPCTest(unittest.TestCase):
 
         self.assertEquals('500', self._server_code)
         self.assertEquals([('content-type', 'text/javascript'),
-            ('content-length', 441)], self._server_lines)
+            ('content-length', 438)], self._server_lines)
         self.assertTrue(
             'Server Error calling controller1/callme():\nTraceback' in result)
 

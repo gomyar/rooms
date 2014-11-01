@@ -8,7 +8,7 @@ from rooms.room import Room
 class LinearOpenGeographyTest(unittest.TestCase):
     def setUp(self):
         self.geography = LinearOpenGeography()
-        self.room = Room((0, 0), 100, 100)
+        self.room = Room("game1", "room1", Position(0, 0), Position(100, 100))
         self.room.geog = self.geography
 
     def testGetPath(self):
