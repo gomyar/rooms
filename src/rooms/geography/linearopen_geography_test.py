@@ -3,12 +3,15 @@ import unittest
 
 from linearopen_geography import LinearOpenGeography
 from rooms.room import Room
+from rooms.position import Position
+from rooms.testutils import MockNode
 
 
 class LinearOpenGeographyTest(unittest.TestCase):
     def setUp(self):
         self.geography = LinearOpenGeography()
-        self.room = Room("game1", "room1", Position(0, 0), Position(100, 100))
+        self.room = Room("game1", "room1", Position(0, 0), Position(100, 100),
+            MockNode())
         self.room.geog = self.geography
 
     def testGetPath(self):

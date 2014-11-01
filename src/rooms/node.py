@@ -415,11 +415,13 @@ class Node(object):
                     from_room, exit_position)
             else:
                 log.debug("Redirecting to node: %s", response['node'])
-                conn = self.player_connections[actor.username, actor.game_id]
-                conn.redirect(response['node'][0], response['node'][1],
-                    response['token'])
-                self.player_connections.pop((actor.username,
-                    actor.game_id))
+                if (actor.username, actor.game_id) in self.player_connections:
+                    conn = self.player_connections[actor.username,
+                        actor.game_id]
+                    conn.redirect(response['node'][0], response['node'][1],
+                        response['token'])
+                    self.player_connections.pop((actor.username,
+                        actor.game_id))
 
     def __save_actor_to_other_room(self, exit_room_id, exit_position, actor,
             from_room):

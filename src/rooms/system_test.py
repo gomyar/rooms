@@ -215,6 +215,17 @@ class SystemTest(unittest.TestCase):
         self.room1 = Room("game1", "room1",
             Position(0, 0), Position(50, 50), self.node)
         self.room1.geography = MockGeog()
+
+        self.container = MockContainer(
+            room_factory=RoomFactory(
+            FileMapSource(os.path.join(os.path.dirname(__file__),
+            "test_maps")), self.node))
+        self.container.node = self.node
+        self.container.save_room(self.room1)
+
+        self.node.container = self.container
+
+
         self.container.save_room(self.room1)
 
         # add token to expects
@@ -237,12 +248,12 @@ class SystemTest(unittest.TestCase):
 
         # player is saved
         self.assertEquals("ned",
-            self.container.dbase.dbases['actors']['actors_1']['username'])
+            self.container.dbase.dbases['actors']['actors_0']['username'])
 
         self.assertEquals({'actor_id': 'id1', 'command': 'remove_actor'},
             queue.get())
-        self.assertEquals({'node': ['10.10.10.2', 8000], 'token': 'TOKEN2',
-            'command': 'redirect'}, queue.get())
+        self.assertEquals({'command': 'redirect_to_master',
+            'master': ['master', 9000]}, queue.get())
         self.assertEquals({}, self.room1.actors)
         self.assertEquals(Position(5, 5), ned_actor.position)
 
