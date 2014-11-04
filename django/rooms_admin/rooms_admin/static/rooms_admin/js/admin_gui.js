@@ -388,6 +388,17 @@ gui.draw = function()
         );
     }
 
+    // Draw actor paths
+    for (var actor_id in api_rooms.actors)
+    {
+        gui.ctx.strokeStyle = "rgb(0,0,150)";
+        var actor = api_rooms.actors[actor_id];
+        gui.ctx.beginPath();
+        gui.ctx.moveTo(gui.canvas_x(actor.vector.start_pos.x), gui.canvas_y(actor.vector.start_pos.y));
+        gui.ctx.lineTo(gui.canvas_x(actor.vector.end_pos.x), gui.canvas_y(actor.vector.end_pos.y));
+        gui.ctx.stroke();
+    }
+ 
     // Draw actors
     for (var actor_id in api_rooms.actors)
     {
