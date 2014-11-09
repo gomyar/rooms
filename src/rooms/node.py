@@ -222,6 +222,8 @@ class Node(object):
                 ws.send(json.dumps(jsonview(message)))
                 if message.get("command") in ['disconnect', 'redirect']:
                     connected = False
+        except WebSocketError, wse:
+            log.debug("Websocket socket dead: %s", str(wse))
         finally:
             player_conn.queues.remove(queue)
 

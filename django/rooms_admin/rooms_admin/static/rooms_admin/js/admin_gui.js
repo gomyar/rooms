@@ -379,6 +379,8 @@ gui.draw = function()
         var map_object = api_rooms.room.room_objects[object_id];
         var width = map_object.bottomright.x - map_object.topleft.x;
         var height = map_object.bottomright.y - map_object.topleft.y;
+        width = Math.max(width, 2);
+        height = Math.max(height, 2);
         gui.draw_rect(
             gui.canvas_x(map_object.topleft.x),
             gui.canvas_y(map_object.topleft.y),

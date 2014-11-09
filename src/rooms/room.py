@@ -58,6 +58,7 @@ class Room(object):
         self.online = True
         self.vision = GridVision(self, self.width)
         self.state = dict()
+        self.info = dict()
 
     def __repr__(self):
         return "<Room %s %s>" % (self.game_id, self.room_id)
