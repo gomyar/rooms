@@ -3,8 +3,9 @@
     "positioning": "relative_topleft",
     "rooms": {
         "room1": {
-            "visibility": {
-                "gridsize": 10
+            "vision": {
+                "gridsize": 10,
+                "linksize": 3
             },
             "topleft": {"x": 0, "y": 0, "z": 0},
             "bottomright": {"x": 50, "y": 50, "z": 0},

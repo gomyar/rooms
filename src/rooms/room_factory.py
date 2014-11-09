@@ -23,6 +23,7 @@ class RoomFactory(object):
     POS_TOPLEFT = "relative_topleft"
     POS_ABS = "absolute"
     DEFAULT_GRIDSIZE = 25
+    DEFAULT_LINKSIZE = 2
 
     def __init__(self, map_source, node):
         self.map_source = map_source
@@ -59,8 +60,9 @@ class RoomFactory(object):
         return room
 
     def _create_vision(self, room, vision_json):
-        return GridVision(room, vision_json.get('gridsize',
-            RoomFactory.DEFAULT_GRIDSIZE))
+        return GridVision(room,
+            vision_json.get('gridsize', RoomFactory.DEFAULT_GRIDSIZE),
+            vision_json.get('linksize', RoomFactory.DEFAULT_LINKSIZE))
 
     def _create_door(self, door_json):
         return Door(door_json['exit_room_id'],

@@ -22,10 +22,11 @@ class Area(object):
 
 
 class GridVision(object):
-    def __init__(self, room, gridsize=10):
+    def __init__(self, room, gridsize=10, linksize=1):
         self.room = room
         self.areas = dict()
         self.gridsize = gridsize
+        self.linksize = linksize
         self._create_areas()
 
         # actor => area
@@ -39,7 +40,8 @@ class GridVision(object):
                 self.areas[x, y] = Area(x, y)
         for area in self.areas.values():
             area.linked = set([self.areas.get((area.x + x, area.y + y)) for \
-                y in range(-1, 2) for x in range(-1, 2) if \
+                y in range(-self.linksize, self.linksize + 1) for \
+                x in range(-self.linksize, self.linksize + 1) if \
                 self.areas.get((area.x + x, area.y + y))])
 
     def area_at(self, position):
