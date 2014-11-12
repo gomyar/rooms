@@ -207,8 +207,7 @@ class NodeTest(unittest.TestCase):
         room1 = self.node.rooms["game1", "map1.room1"]
         player_actor = room1.actors['id1']
         player_actor.script = MockScript()
-        self.node.actor_call("game1", "TOKEN1", "player1",
-            "do_something")
+        self.node.actor_call("game1", "TOKEN1", "do_something")
 
         # script calls happen on a gthread
         self.assertEquals([], player_actor.script.called)

@@ -1,4 +1,6 @@
 
+ - the error reporting in this guy needs tidying
+
  - test move rooms
 
  - move sync to gridvision

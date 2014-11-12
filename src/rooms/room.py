@@ -174,8 +174,10 @@ class Room(object):
         return None
 
     def actor_enters(self, actor, door):
-        self.node.move_actor_room(actor, self.game_id, door.exit_room_id,
-            door.exit_position)
+        self.move_actor_room(actor, door.exit_room_id, door.exit_position)
+
+    def move_actor_room(self, actor, room_id, exit_position):
+        self.node.move_actor_room(actor, self.game_id, room_id, exit_position)
 
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)

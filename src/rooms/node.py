@@ -33,9 +33,8 @@ class GameController(object):
         return self.node.player_connects(ws, game_id, token)
 
     @request
-    def actor_call(self, game_id, token, actor_id, method, **kwargs):
-        return self.node.actor_call(game_id, token, actor_id, method,
-            **kwargs)
+    def actor_call(self, game_id, token, method, **kwargs):
+        return self.node.actor_call(game_id, token, method, **kwargs)
 
     @websocket
     def admin_connects(self, ws, token):
@@ -227,7 +226,7 @@ class Node(object):
         finally:
             player_conn.queues.remove(queue)
 
-    def actor_call(self, game_id, token, actor_id, method, **kwargs):
+    def actor_call(self, game_id, token, method, **kwargs):
         if token not in self.connections:
             raise Exception("Invalid token for player")
         player_conn = self.connections[token]

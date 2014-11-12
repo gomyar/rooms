@@ -2,7 +2,7 @@
     "map_id": "map1",
     "positioning": "absolute",
     "rooms": {
-        "room1": {
+        "map1.room1": {
             "topleft": {"x": 0, "y": 0, "z": 0},
             "bottomright": {"x": 250, "y": 250, "z": 0},
             "room_objects": [
@@ -15,7 +15,7 @@
                 {"tag_type": "actor.spawn", "position": {"x": 25, "y": 25, "z": 0}, "data": {"actor_type": "npc", "actor_script": "npc_script"}}
             ]
         },
-        "room2": {
+        "map1.room2": {
             "topleft": {"x": 250, "y": 0, "z": 0},
             "bottomright": {"x": 500, "y": 250, "z": 0},
             "room_objects": [

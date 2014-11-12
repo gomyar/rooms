@@ -2,7 +2,7 @@
     "map_id": "map1_absolute",
     "positioning": "absolute",
     "rooms": {
-        "room1": {
+        "map1_absolute.room1": {
             "topleft": {"x": 0, "y": 0, "z": 0},
             "bottomright": {"x": 50, "y": 50, "z": 0},
             "room_objects": [
@@ -15,7 +15,7 @@
                 {"tag_type": "tag.type.1", "position": {"x": 25, "y": 25, "z": 0}, "data": {"field1": "value1"}}
             ]
         },
-        "room2": {
+        "map1_absolute.room2": {
             "topleft": {"x": 50, "y": 0, "z": 0},
             "bottomright": {"x": 100, "y": 50, "z": 0},
             "room_objects": [

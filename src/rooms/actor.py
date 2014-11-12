@@ -63,14 +63,21 @@ class Actor(object):
         self.sleep(self._calc_end_time())
 
     def _kill_move_gthread(self):
-        if self._move_gthread:
-            self._move_gthread.kill()
+        self._safe_kill_gthread(self._move_gthread)
         self._move_gthread = None
 
     def _kill_script_gthread(self):
-        if self._script_gthread:
-            self._script_gthread.kill()
+        self._safe_kill_gthread(self._script_gthread)
         self._script_gthread = None
+
+    def _safe_kill_gthread(self, gthread):
+        try:
+            if gthread:
+                gthread.kill()
+        except GreenletExit, ge:
+            pass
+        except:
+            log.exception("Exception killing script gthread")
 
     def _kill_gthreads(self):
         self._kill_move_gthread()
@@ -133,6 +140,9 @@ class Actor(object):
 
     def enter(self, door):
         self.room.actor_enters(self, door)
+
+    def move_to_room(self, room_id, exit_position):
+        self.room.move_actor_room(self, room_id, exit_position)
 
     def dock_with(self, actor):
         if self.docked_with:

@@ -179,18 +179,17 @@ perform_get = function(url, callback, onerror)
 function load_room(room_id)
 {
     var map_id = room_id.split('.')[0];
-    var map_room_id = room_id.split('.')[1];
 
     // TODO: Might send this right through the admin api
     perform_get("http://" + api_rooms.node_host + ":" + api_rooms.node_port + "/node_game/admin_map/" + api_rooms.token + "/" + map_id,
-        function(data){ show_room(data, map_room_id);},
+        function(data){ show_room(data, room_id);},
         function(errTxt, jqXHR){ alert("Error loading room: "+errTxt);});
 }
 
 
-function show_room(data, map_room_id)
+function show_room(data, room_id)
 {
-    api_rooms.room = data['rooms'][map_room_id];
+    api_rooms.room = data['rooms'][room_id];
     api_rooms.room_map = data['rooms'];
     gui.viewport_x = (api_rooms.room.topleft.x + api_rooms.room.bottomright.x) / 2;
     gui.viewport_y = (api_rooms.room.topleft.y + api_rooms.room.bottomright.y) / 2;

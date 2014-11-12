@@ -97,7 +97,7 @@ class SystemTest(unittest.TestCase):
         self.assertEquals("actor_update", player2_ws.updates[1]['command'])
         self.assertEquals("actor_update", player2_ws.updates[2]['command'])
 
-        self.node.actor_call("game1", "TOKEN2", "id1", "move_to",
+        self.node.actor_call("game1", "TOKEN2", "move_to",
             x=10, y=10)
 
         MockTimer.fast_forward(0)
@@ -117,7 +117,7 @@ class SystemTest(unittest.TestCase):
         player1_gthread = gevent.spawn(self.node.player_connects, player1_ws,
             "game1", "TOKEN2")
 
-        self.node.actor_call("game1", "TOKEN2", "player1", "ping")
+        self.node.actor_call("game1", "TOKEN2", "ping")
 
         MockTimer.fast_forward(1)
 
@@ -173,7 +173,7 @@ class SystemTest(unittest.TestCase):
 
         MockTimer.fast_forward(0)
 
-        self.node.actor_call("game1", "TOKEN2", "player1", "move_to",
+        self.node.actor_call("game1", "TOKEN2", "move_to",
             x=10, y=10)
 
         MockTimer.fast_forward(0)
@@ -282,7 +282,7 @@ class SystemTest(unittest.TestCase):
         self.assertEquals(4, len(player1_ws_2.updates))
         self.assertEquals(4, len(player2_ws.updates))
 
-        self.node.actor_call("game1", "TOKEN2", "id1", "move_to",
+        self.node.actor_call("game1", "TOKEN2", "move_to",
             x=10, y=10)
 
         MockTimer.fast_forward(0)
@@ -333,7 +333,7 @@ class SystemTest(unittest.TestCase):
         self.assertEquals(3, len(player1_ws.updates))
         self.assertEquals(3, len(admin_ws.updates))
 
-        self.node.actor_call("game1", "TOKEN2", "id1", "move_to",
+        self.node.actor_call("game1", "TOKEN2", "move_to",
             x=10, y=10)
 
         MockTimer.fast_forward(0)
