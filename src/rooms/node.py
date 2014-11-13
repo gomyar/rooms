@@ -5,6 +5,8 @@ import json
 import os
 from urllib2 import HTTPError
 
+from geventwebsocket import WebSocketError
+
 from rooms.player import PlayerActor
 from rooms.rpc import WSGIRPCClient
 from rooms.rpc import request
@@ -451,7 +453,6 @@ class Node(object):
             log.debug("Sending room sync for %s to %s-%s", exit_room, game_id,
                 actor.username)
             player_conn = self.player_connections[actor.username, game_id]
-            player_conn.room = exit_room
             # re-connect connection to newly loaded actor
             if actor.actor_id in exit_room.actors:
                 player_conn.actor = exit_room.actors[actor.actor_id]

@@ -135,12 +135,14 @@ class GridVision(object):
                 listener.actor_vector_changed(listener.actor, previous)
 
     def actor_becomes_invisible(self, actor):
+        log.debug("actor_becomes_invisible")
         area = self.area_for_actor(actor)
         for link in area.linked:
             for listener in link.listeners:
                 listener.actor_becomes_invisible(actor)
 
     def actor_becomes_visible(self, actor):
+        log.debug("actor_becomes_visible")
         area = self.area_for_actor(actor)
         for link in area.linked:
             for listener in link.listeners:

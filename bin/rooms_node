@@ -19,6 +19,7 @@ from rooms.rpc import WSGIRPCServer
 from rooms.geography.basic_geography import BasicGeography
 from rooms.room_factory import RoomFactory
 from rooms.room_factory import FileMapSource
+from rooms.item_registry import ItemRegistry
 
 import logging
 import logging.config
@@ -41,7 +42,7 @@ if __name__ == "__main__":
             help="Path to game dir", default=".")
 
         parser.add_option("-b", "--backdoor", dest="backdoor",
-            action="store_true", default=True, help="Open backdoor socket")
+            default=None, help="Open backdoor socket")
 
         (options, args) = parser.parse_args()
 
@@ -60,43 +61,41 @@ if __name__ == "__main__":
             logging.basicConfig(level=logging.DEBUG,
                 format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-        if not os.path.exists(options.game):
-            print "Game directory does not exist'%s'" % (options.game,)
-            sys.exit(1)
-        else:
-            sys.path.append(os.path.join(options.game, "scripts"))
-
         host, port = options.address.split(":")
         master_host, master_port = options.master.split(":")
-        node = Node(host, port, master_host, master_port)
-        node.load_scripts(os.path.join(options.game, "scripts"))
-#        node.load_player_script("player_script")
-#        node.load_game_script("game_script")
+
         dbase = MongoDBase()
         dbase.init_mongo()
         geography = BasicGeography()
+
+        node = Node(host, port, master_host, master_port)
         room_factory = RoomFactory(FileMapSource(os.path.join(options.game,
             "maps")), node)
+        node.room_factory = room_factory
         item_registry = ItemRegistry()
         item_registry.load_from_directory(options.game)
         container = Container(dbase, geography, node, room_factory,
             item_registry=item_registry)
+
         node.container = container
+        node.load_scripts(os.path.join(options.game, "scripts"))
+
         server = WSGIRPCServer(host, port, access_control_header="*")
+        # node routes
         server.add_controller("node_control", NodeController(node))
         server.add_controller("node_game", GameController(node))
-        server.add_file_root("assets", os.path.join(options.game, "assets"))
-        server.add_file_root("maps", os.path.join(options.game, "maps"))
-        log.info("Starting Rooms Node")
         server.start()
 
         if options.backdoor:
-            log.debug("Starting backdoor server on port 3001")
-            backdoor = gevent.backdoor.BackdoorServer(('127.0.0.1', 3001),
-                locals=dict(node=node))
+            log.debug("Starting backdoor server on port %s" % (
+                options.backdoor))
+            backdoor = gevent.backdoor.BackdoorServer(('127.0.0.1',
+                int(options.backdoor)), locals=dict(node=node))
             backdoor.start()
+
         node.connect_to_master()
         node.start_reporting()
+
         server.serve_forever()
     except KeyboardInterrupt, ke:
         log.debug("Node stopped")

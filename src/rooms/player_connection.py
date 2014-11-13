@@ -13,7 +13,6 @@ class PlayerConnection(object):
     def __init__(self, game_id, username, room, actor, token):
         self.game_id = game_id
         self.username = username
-        self.room = room
         self.actor = actor
         self.token = token
         self.queues = []
@@ -21,6 +20,10 @@ class PlayerConnection(object):
     def __repr__(self):
         return "<PlayerConnection %s in %s-%s>" % (self.username,
             self.game_id, self.room.room_id)
+
+    @property
+    def room(self):
+        return self.actor.room
 
     def new_queue(self):
         queue = Queue()
@@ -71,6 +74,18 @@ class PlayerConnection(object):
 
 
 class AdminConnection(PlayerConnection):
+    def __init__(self, game_id, username, room, actor, token):
+        self.game_id = game_id
+        self.username = username
+        self._room = room
+        self.actor = actor
+        self.token = token
+        self.queues = []
+
+    @property
+    def room(self):
+        return self._room
+
     def actor_becomes_invisible(self, actor):
         self.actor_update(actor)
 

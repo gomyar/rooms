@@ -13,7 +13,6 @@ from mimetypes import guess_type
 
 from gevent import pywsgi
 from geventwebsocket.handler import WebSocketHandler
-from geventwebsocket import WebSocketError
 
 import logging
 log = logging.getLogger("rooms.wsgirpc")

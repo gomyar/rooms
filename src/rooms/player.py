@@ -9,7 +9,6 @@ class PlayerActor(Actor):
             username=username, actor_id=actor_id, game_id=game_id,
             room_id=room_id)
         self.is_player = True
-        self._vision_range = 1.0
 
     def __repr__(self):
         return "<PlayerActor %s in game %s room %s>" % (self.username,

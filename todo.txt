@@ -1,5 +1,8 @@
 
  - the error reporting in this guy needs tidying
+ - need ATs - inter-node movement etc
+
+ - the queues are leaking messages (messages not be propagated are just left)
 
  - test move rooms
 
