@@ -206,6 +206,7 @@ class Node(object):
             gevent.sleep(1)
 
     def player_connects(self, ws, game_id, token):
+        import ipdb; ipdb.set_trace()
         log.debug("Player connects: %s %s", game_id, token)
         if token not in self.connections:
             raise Exception("Invalid token for player")

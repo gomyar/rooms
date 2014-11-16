@@ -22,7 +22,7 @@ class PyClientTest(unittest.TestCase):
         self.client = RoomsConnection()
         self.master = MockMaster()
         self.client.master = self.master
-        self.client._connect_to_node = lambda host, port, token, game_id: None
+        self.client._connect_to_node = lambda host, port, token: None
 
     def testCreateGame(self):
         self.client.create_game("bob", info="someinfo")

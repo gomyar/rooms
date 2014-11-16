@@ -72,6 +72,7 @@ class RoomsConnection(object):
         self.server_time = None
         self.local_time = None
         self.node = None
+        self.username = None
         self.game_id = None
         self.token = None
 
@@ -85,7 +86,7 @@ class RoomsConnection(object):
             "actor_update": self._command_actor_update,
             "remove_actor": self._command_remove_actor,
             "moved_node": self._command_moved_node,
-            "bounce_to_master": self._command_bounce_to_master,
+            "redirect_to_master": self._command_redirect_to_master,
         }
 
     def get_now(self):
@@ -108,27 +109,33 @@ class RoomsConnection(object):
             username=username)
 
     def join_game(self, username, game_id, area_id, room_id, **state):
+        self.username = username
+        self.game_id = game_id
         node = self.master.call("master_game/join_game", username=username,
             game_id=game_id, **state)
-        self._connect_to_node(node['node'][0], node['node'][1], game_id,
+        self._connect_to_node(node['node'][0], node['node'][1],
             node['token'])
 
     def connect_to_game(self, username, game_id):
+        self.username = username
+        self.game_id = game_id
+
+    def _connect_to_game(self):
         node = self.master.call("master_game/player_connects",
-            username=username, game_id=game_id)
-        self._connect_to_node(node['node'][0], node['node'][1], game_id,
+            username=self.username, game_id=self.game_id)
+        self._connect_to_node(node['node'][0], node['node'][1],
             node['token'])
 
-    def _connect_to_node(self, host, port, game_id, token):
+    def _connect_to_node(self, host, port, token):
         log.debug("Connecting to node ws://%s:%s/ with token %s", host, port,
             token)
         self.ws = WebSocketClient("ws://%s:%s/node_game/player_connects/%s/%s" \
-            % (host, port, game_id, token), protocols=['http-only', 'chat'])
+            % (host, port, self.game_id, token),
+            protocols=['http-only', 'chat'])
         self.ws.connect()
 
         self.node = WSGIRPCClient(host, port)
         self.token = token
-        self.game_id = game_id
         self._start_listen_thread()
         self.connected = True
 
@@ -142,7 +149,8 @@ class RoomsConnection(object):
                 log.debug("Received :%s", sock_msg)
                 if sock_msg:
                     message = json.loads(str(sock_msg))
-                    self._commands[message['command']](message['data'])
+                    command = message.pop('command')
+                    self._commands[command](**message)
                 else:
                     self.connected = False
             except:
@@ -170,32 +178,29 @@ class RoomsConnection(object):
 
         self.player_actor = Actor(self, data['player_actor'])
 
-    def _command_heartbeat(self, data):
-        log.debug("Heartbeat")
-
-    def _command_actor_update(self, data):
-        if data['actor_id'] == self.player_actor.actor_id:
+    def _command_actor_update(self, actor_id, data):
+        if actor_id == self.player_actor.actor_id:
             self.player_actor.update(data)
         elif data.get('docked_with') == self.player_actor.actor_id:
             self.player_actor['docked_actors'][data['actor_type']]\
-                [data['actor_id']] = data
+                [actor_id] = data
         else:
-            if data['actor_id'] not in self.actors:
-                self.actors[data['actor_id']] = Actor(self, data)
+            if actor_id not in self.actors:
+                self.actors[actor_id] = Actor(self, data)
             else:
-                self.actors[data['actor_id']].update(data)
+                self.actors[actor_id].update(data)
 
         log.debug("Actor updated: %s", data)
 
-    def _command_remove_actor(self, data):
-        log.debug("actor removed; %s", data)
-        if data['actor_id'] in self.actors:
-            self.actors.pop(data['actor_id'])
+    def _command_remove_actor(self, actor_id):
+        log.debug("actor removed; %s", actor_id)
+        if actor_id in self.actors:
+            self.actors.pop(actor_id)
 
     def _command_moved_node(self, data):
         log.debug("moving node: %s", data)
         raise Exception("Not implemented")
 
-    def _command_bounce_to_master(self, data):
-        log.debug("Bounce to master")
-        raise Exception("Not implemented")
+    def _command_redirect_to_master(self, master):
+        log.debug("Redirect to master")
+        self._connect_to_game()

@@ -22,6 +22,11 @@ def move_to(player, x, y):
 
 
 @command
+def move_room(player, room_id):
+    player.move_to_room(room_id, Position(0, 0))
+
+
+@command
 def set_position(player, x, y):
     player.position = Position(int(x), int(y))
 
