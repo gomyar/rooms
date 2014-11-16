@@ -1,4 +1,6 @@
 
+ - manage_room may be called twice, creating two rooms on node
+
  - the error reporting in this guy needs tidying
  - need ATs - inter-node movement etc
 

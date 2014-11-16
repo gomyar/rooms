@@ -1,5 +1,6 @@
 
 from rooms.position import Position
+from gevent.queue import Queue
 
 import logging
 log = logging.getLogger("rooms.vision")
@@ -20,6 +21,7 @@ class Area(object):
     def __repr__(self):
         return "<Area %s, %s>" % (self.x, self.y)
 
+NullArea = Area(0, 0)
 
 class GridVision(object):
     def __init__(self, room, gridsize=10, linksize=1):
@@ -33,6 +35,9 @@ class GridVision(object):
         self.actor_map = dict()
         # actor => listener
         self.listener_actors = dict()
+
+        # actor_id => queue
+        self.actor_queues = dict()
 
     def _create_areas(self):
         for y in range(0, int(self.room.height / self.gridsize) + 1):
@@ -149,7 +154,7 @@ class GridVision(object):
                 listener.actor_becomes_visible(actor)
 
     def area_for_actor(self, actor):
-        return self.actor_map[actor]
+        return self.actor_map.get(actor, NullArea)
 
     def send_sync(self, listener):
         listener.send_sync(self.room)
@@ -159,3 +164,10 @@ class GridVision(object):
         for area in self.area_for_actor(listener.actor).linked:
             for actor in area.actors:
                 listener.actor_update(actor)
+
+    def connect_vision_queue(self, actor_id):
+        queue = Queue()
+        if actor_id not in self.actor_queues:
+            self.actor_queues[actor_id] = []
+        self.actor_queues[actor_id].append(queue)
+        return queue

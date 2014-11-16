@@ -324,9 +324,9 @@ class Master(object):
         self._check_node_offline(game_id, room_id)
         if (game_id, room_id) not in self.rooms:
             node = self._select_available_node()
-            node.manage_room(game_id, room_id)
             self.rooms[game_id, room_id] = RegisteredRoom(node.host, node.port,
                 game_id, room_id)
+            node.manage_room(game_id, room_id)
 
         host, port = self.rooms[game_id, room_id].node
         return self.nodes[host, port]

@@ -99,7 +99,6 @@ class Room(object):
         actor._set_position(position or actor.position)
         actor.kick()
         self.vision.add_actor(actor)
-        self.actor_added(actor)
 
     def _correct_position(self, position):
         x, y, z = position.x, position.y, position.z
@@ -135,36 +134,6 @@ class Room(object):
         else:
             return [from_point]
 
-    def actor_state_changed(self, actor):
-        if actor.actor_id in self.actors:
-            self.node.actor_state_changed(self, actor)
-        else:
-            log.warning("Actor not in room but state changed sent: %s", actor)
-
-    def actor_vector_changed(self, actor, previous_vector):
-        if actor.actor_id in self.actors:
-            self.node.actor_vector_changed(self, actor, previous_vector)
-        else:
-            log.warning("Actor not in room but vector update sent: %s", actor)
-
-    def actor_added(self, actor):
-        if actor.actor_id in self.actors:
-            self.node.actor_added(self, actor)
-        else:
-            log.warning("Actor not in room but actor added sent: %s", actor)
-
-    def actor_becomes_visible(self, actor):
-        if actor.actor_id in self.actors:
-            self.node.actor_becomes_visible(self, actor)
-        else:
-            log.warning("Actor not in room but actor visible sent: %s", actor)
-
-    def actor_becomes_invisible(self, actor):
-        if actor.actor_id in self.actors:
-            self.node.actor_becomes_invisible(self, actor)
-        else:
-            log.warning("Actor not in room but actor invisible sent: %s", actor)
-
     def get_door(self, exit_room_id=None):
         for door in self.doors:
             if door.exit_room_id == exit_room_id:
@@ -181,7 +150,7 @@ class Room(object):
         self.actors.pop(actor.actor_id)
         actor._kill_gthreads()
         actor.room = None
-        self.node.actor_removed(self, actor)
+        self.vision.actor_removed(actor)
 
     def find_tags(self, tag_id):
         return [tag for tag in self.tags if tag.tag_type.startswith(tag_id)]

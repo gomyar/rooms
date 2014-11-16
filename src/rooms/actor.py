@@ -117,13 +117,13 @@ class Actor(object):
             previous_vector = self.vector
             self.vector = Vector(from_point, from_time, to_point, end_time)
             self.vector = create_vector(from_point, to_point, self.speed)
-            self.room.actor_vector_changed(self, previous_vector)
+            self.room.vision.actor_vector_changed(self, previous_vector)
             from_point = to_point
             from_time = end_time
             Timer.sleep_until(end_time)
 
     def _send_state_changed(self):
-        self.room.actor_state_changed(self)
+        self.room.vision.actor_state_changed(self)
 
     @property
     def position(self):
@@ -137,7 +137,7 @@ class Actor(object):
         previous_vector = self.vector
         self._set_position(pos)
         if self.room:
-            self.room.actor_vector_changed(self, previous_vector)
+            self.room.vision.actor_vector_changed(self, previous_vector)
 
     def _set_position(self, pos):
         if self.room:
@@ -178,7 +178,7 @@ class Actor(object):
             return
         if isvisible:
             self._visible = isvisible
-            self.room.actor_becomes_visible(self)
+            self.room.vision.actor_becomes_visible(self)
         else:
-            self.room.actor_becomes_invisible(self)
+            self.room.vision.actor_becomes_invisible(self)
             self._visible = isvisible

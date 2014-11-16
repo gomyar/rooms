@@ -292,3 +292,23 @@ class GridVisionTest(unittest.TestCase):
         self.assertEquals({self.actor1: self.vision.areas[0, 0]},
             self.vision.actor_map)
         self.assertEquals({}, self.vision.listener_actors)
+
+    def testConnectToRoomWithoutActor(self):
+        pass
+        # wait for actor to be added to room
+        # on add, send sync
+
+    def testConnectVisionQueue(self):
+        self.vision = GridVision(self.room, 10)
+
+        self.actor1 = MockActor("actor1")
+        self.actor2 = MockActor("actor2")
+
+        self.vision.add_actor(self.actor1)
+        self.vision.add_actor(self.actor2)
+
+        queue = self.vision.connect_vision_queue("actor1")
+
+        self.assertEquals({"command": "sync", "data": {}}, queue.get_nowait())
+        self.assertEquals({"command": "actor_update", "actor_id": "actor2"},
+            queue.get_nowait())

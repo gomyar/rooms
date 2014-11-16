@@ -206,7 +206,6 @@ class Node(object):
             gevent.sleep(1)
 
     def player_connects(self, ws, game_id, token):
-        import ipdb; ipdb.set_trace()
         log.debug("Player connects: %s %s", game_id, token)
         if token not in self.connections:
             raise Exception("Invalid token for player")
@@ -243,40 +242,6 @@ class Node(object):
         return [conn for conn in self.admin_connections.values() if \
             conn.room == room]
 
-    def actor_added(self, room, actor):
-        for admin_conn in self._admin_connections_for(room):
-            admin_conn.actor_state_changed(actor)
-
-    def actor_state_changed(self, room, actor):
-        room.vision.actor_state_changed(actor)
-        for admin_conn in self._admin_connections_for(room):
-            admin_conn.actor_state_changed(actor)
-
-    def actor_vector_changed(self, room, actor, previous_vector):
-        room.vision.actor_vector_changed(actor, previous_vector)
-        for admin_conn in self._admin_connections_for(room):
-            admin_conn.actor_vector_changed(actor, previous_vector)
-
-    def actor_update(self, room, actor):
-        room.vision.actor_update(actor)
-        for admin_conn in self._admin_connections_for(room):
-            admin_conn.actor_update(actor)
-
-    def actor_removed(self, room, actor):
-        room.vision.actor_removed(actor)
-        for admin_conn in self._admin_connections_for(room):
-            admin_conn.actor_removed(actor)
-
-    def actor_becomes_visible(self, room, actor):
-        room.vision.actor_becomes_visible(actor)
-        for admin_conn in self._admin_connections_for(room):
-            admin_conn.actor_becomes_visible(actor)
-
-    def actor_becomes_invisible(self, room, actor):
-        room.vision.actor_becomes_invisible(actor)
-        for admin_conn in self._admin_connections_for(room):
-            admin_conn.actor_becomes_invisible(actor)
-
     def _request_player_connection(self, username, game_id):
         player = self._get_or_load_player(username, game_id)
         self._check_player_valid(player)
@@ -308,6 +273,10 @@ class Node(object):
         actor = self.container.load_actor(actor_id)
         self._check_room_active(actor.game_id, actor.room_id)
         room = self.rooms[actor.game_id, actor.room_id]
+        if actor.actor_id not in room.actors:
+            room.put_actor(actor)
+        else:
+            actor = room.actors[actor_id]
         room.put_actor(actor)
         if actor.is_player:
             return {"token": self._create_player_conn(actor).token}
@@ -321,18 +290,6 @@ class Node(object):
             raise RPCWaitException("Room offline %s-%s" % (game_id, room_id))
 
     def move_actor_room(self, actor, game_id, exit_room_id, exit_position):
-        gthread = gevent.spawn(self._move_actor_room, actor, game_id,
-            exit_room_id, exit_position)
-        gthread.join()
-        if gthread.exception:
-            raise gthread.exception
-
-    def _move_actor_room(self, actor, game_id, exit_room_id, exit_position):
-        # 1. Actor moves to a room which is currently managed by same node
-        #    - Move actor
-        #    - If listener(s) following actor
-        #      - Move listener(s) (remove then add)
-        #      - Send sync
         if (game_id, exit_room_id) in self.rooms:
             from_room = actor.room
             listener = from_room.vision.listener_actors.get(actor)
@@ -355,22 +312,6 @@ class Node(object):
                 # disconnect
                 self.player_connections.pop((actor.username,
                     actor.game_id))
-            self._send_actor_entered_message(game_id, exit_room_id, actor,
-                from_room, exit_position)
-
-
-        # 2. Actor moves to a room which is currently managed by another node
-        #    - Remove actor
-        #    - Save actor to other room
-        #    - If listener(s) following
-        #      - Remove listener
-        #      - Redirect
-        # 3. Actor moves to an unknown room, which subsequently is loaded
-        #    - Remove actor
-        #    - Save actor to other room
-        #    - If listener(s) following
-        #      - Remove listener
-        #      - Redirect
 
 
     def _save_actor_to_other_room(self, exit_room_id, exit_position, actor):
@@ -378,90 +319,6 @@ class Node(object):
         actor.position = exit_position
         actor._room_id = exit_room_id
         self.container.save_actor(actor) # (, async=False) ?
-
-
-
-    def __move_actor_room(self, actor, game_id, exit_room_id, exit_position):
-        log.debug("Moving actor %s to %s", actor, exit_room_id)
-        from_room = actor.room
-        if (game_id, exit_room_id) in self.rooms:
-            log.debug("Moving internally")
-            exit_room = self._move_actor_internal(game_id, exit_room_id, actor,
-                from_room, exit_position)
-            self.container.save_actor(actor)
-        else:
-            log.debug("Room not on this node")
-            self._save_actor_to_other_room(exit_room_id, exit_position, actor,
-                from_room)
-            self._send_actor_entered_message(game_id, exit_room_id, actor,
-                from_room, exit_position)
-
-    def _send_actor_entered_message(self, game_id, exit_room_id, actor,
-            from_room, exit_position):
-        try:
-            response = self.master_conn.call("actor_entered", game_id=game_id,
-                room_id=exit_room_id, actor_id=actor.actor_id,
-                is_player=actor.is_player, username=actor.username)
-        except Exception, e:
-            log.debug("Got http error: %s", e)
-            if actor.is_player:
-                conn = self.player_connections[actor.username, actor.game_id]
-                conn.redirect_to_master(self.master_host, self.master_port)
-                self.player_connections.pop((actor.username,
-                    actor.game_id))
-            return
-
-        if actor.is_player:
-            log.debug("It's a player")
-            if (game_id, exit_room_id) in self.rooms:
-                log.debug("Room now managed by this node")
-                self._move_actor_internal(game_id, exit_room_id, actor,
-                    from_room, exit_position)
-            else:
-                log.debug("Redirecting to node: %s", response['node'])
-                if (actor.username, actor.game_id) in self.player_connections:
-                    conn = self.player_connections[actor.username,
-                        actor.game_id]
-                    conn.redirect(response['node'][0], response['node'][1],
-                        response['token'])
-                    self.player_connections.pop((actor.username,
-                        actor.game_id))
-
-    def __save_actor_to_other_room(self, exit_room_id, exit_position, actor,
-            from_room):
-        actor._game_id = actor.game_id
-        from_room.remove_actor(actor)
-        actor.position = exit_position
-        actor._room_id = exit_room_id
-        self.container.save_actor(actor) # (, async=False) ?
-
-    def _move_actor_internal(self, game_id, exit_room_id, actor, from_room,
-            exit_position):
-        # Remove associated connection and actor from room
-        exit_room = self.rooms[game_id, exit_room_id]
-        if actor.is_player and \
-                (actor.username, game_id) in self.player_connections:
-            player_conn = self.player_connections[actor.username, game_id]
-            player_conn.room.vision.remove_listener(player_conn)
-        if actor.actor_id in from_room.actors:
-            from_room.remove_actor(actor)
-
-        # Add actor into new room, add associated connection
-        if actor.actor_id not in exit_room.actors:
-            exit_room.put_actor(actor, exit_position)
-        if actor.is_player and \
-                (actor.username, game_id) in self.player_connections:
-            log.debug("Sending room sync for %s to %s-%s", exit_room, game_id,
-                actor.username)
-            player_conn = self.player_connections[actor.username, game_id]
-            # re-connect connection to newly loaded actor
-            if actor.actor_id in exit_room.actors:
-                player_conn.actor = exit_room.actors[actor.actor_id]
-            exit_room.vision.add_listener(player_conn)
-            player_conn.send_sync(exit_room)
-            exit_room.vision.send_all_visible_actors(player_conn)
-        else:
-            log.debug("No connection for player %s-%s", game_id, actor.username)
 
     def deactivate_room(self, game_id, room_id):
         room = self.rooms.pop((game_id, room_id))
