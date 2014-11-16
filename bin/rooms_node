@@ -46,17 +46,9 @@ if __name__ == "__main__":
 
         (options, args) = parser.parse_args()
 
-#        if not os.path.exists(options.gameconf):
-#            print "No game file exists at '%s'" % (options.gameconf,)
-#            sys.exit(1)
-
-#        config = ConfigParser()
-#        config.read(options.gameconf)
-
-#        sys.path.append(config.get("scripts", "root"))
-
-        if os.path.exists("logging.conf"):
-            logging.config.fileConfig("logging.conf")
+        if os.path.exists(os.path.join(options.game, "logging.conf")):
+            logging.config.fileConfig(os.path.join(options.game,
+                "logging.conf"))
         else:
             logging.basicConfig(level=logging.DEBUG,
                 format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")

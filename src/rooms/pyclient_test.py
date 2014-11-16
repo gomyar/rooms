@@ -5,11 +5,16 @@ from rooms.pyclient import RoomsConnection
 
 
 class MockMaster(object):
-    def create_game(self, owner_username, **options):
-        pass
+    def __init__(self):
+        self._commands = {
+            "master_game/join_game":
+                dict(node=("localhost", 8080), token="TOKEN"),
+            "master_game/create_game":
+                None,
+        }
 
-    def join_game(self, username, game_id, start_area_id, start_room_id):
-        return dict(host="localhost", port=8080, token="TOKEN")
+    def call(self, method, **kwargs):
+        return self._commands[method]
 
 
 class PyClientTest(unittest.TestCase):
@@ -17,7 +22,7 @@ class PyClientTest(unittest.TestCase):
         self.client = RoomsConnection()
         self.master = MockMaster()
         self.client.master = self.master
-        self.client._connect_to_node = lambda host, port, token: None
+        self.client._connect_to_node = lambda host, port, token, game_id: None
 
     def testCreateGame(self):
         self.client.create_game("bob", info="someinfo")

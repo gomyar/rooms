@@ -43,21 +43,13 @@ if __name__ == "__main__":
             help="Path to game config file", default=".")
 
         parser.add_option("-b", "--backdoor", dest="backdoor",
-            action="store_true", default=True, help="Open backdoor socket")
+            default=None, help="Open backdoor socket")
 
         (options, args) = parser.parse_args()
 
-#        if not os.path.exists(options.gameconf):
-#            print "No game file exists at '%s'" % (options.gameconf,)
-#            sys.exit(1)
-
-#        config = ConfigParser()
-#        config.read(options.gameconf)
-
-#        sys.path.append(config.get("scripts", "root"))
-
-        if os.path.exists("logging.conf"):
-            logging.config.fileConfig("logging.conf")
+        if os.path.exists(os.path.join(options.game, "logging.conf")):
+            logging.config.fileConfig(os.path.join(options.game,
+                "logging.conf"))
         else:
             logging.basicConfig(level=logging.DEBUG,
                 format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -97,8 +89,8 @@ if __name__ == "__main__":
 
         if options.backdoor:
             log.debug("Starting backdoor server on port 3000")
-            backdoor = gevent.backdoor.BackdoorServer(('127.0.0.1', 3000),
-                locals=dict(master=master, node=node))
+            backdoor = gevent.backdoor.BackdoorServer(('127.0.0.1',
+                int(options.backdoor)), locals=dict(master=master, node=node))
             backdoor.start()
 
         node.connect_to_master()

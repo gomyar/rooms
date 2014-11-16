@@ -96,9 +96,7 @@ class Room(object):
     def put_actor(self, actor, position=None):
         self.actors[actor.actor_id] = actor
         actor.room = self
-        if position:
-            actor.position = position
-        actor.position = self._correct_position(actor.position)
+        actor._set_position(position or actor.position)
         actor.kick()
         self.vision.add_actor(actor)
         self.actor_added(actor)

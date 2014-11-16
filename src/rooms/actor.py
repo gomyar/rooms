@@ -134,6 +134,12 @@ class Actor(object):
 
     @position.setter
     def position(self, pos):
+        previous_vector = self.vector
+        self._set_position(pos)
+        if self.room:
+            self.room.actor_vector_changed(self, previous_vector)
+
+    def _set_position(self, pos):
         if self.room:
             pos = self.room._correct_position(pos)
         self.vector = create_vector(pos, pos)

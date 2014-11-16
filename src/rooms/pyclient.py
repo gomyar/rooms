@@ -14,7 +14,8 @@ log = logging.getLogger("rooms.client")
 
 class Actor(object):
     def __init__(self, conn, data):
-        self.update(data)
+        self._data = dict()
+        self._data.update(data)
         self._conn = conn
 
     def update(self, data):
@@ -23,48 +24,36 @@ class Actor(object):
     def __repr__(self):
         return "<%s %s>" % (self.actor_type, self.name,)
 
-    def position(self):
-        return (0, 0)
+    def __getattr__(self, name):
+        return self._data.get(name)
+
+    def __getitem__(self, name):
+        return self._data(name)
+
+    def _calc_d(self, start_d, end_d):
+        now = self._conn.get_now()
+        start_time = self.vector['start_time']
+        end_time = self.vector['end_time']
+        if now > end_time:
+            return end_d
+        diff_x = end_d - start_d
+        diff_t = end_time - start_time
+        if diff_t <= 0:
+            return end_d
+        inc = (now - start_time) / diff_t
+        return start_d + diff_x * inc
 
     def x(self):
-        now = self._conn.get_now()
-        path = list(self.path)
-        start = path[0]
-        while path and now > path[0][2]:
-            start = path.pop(0)
-        if not path:
-            return self.path[-1][0]
-        start_x, start_y, start_time = start
-        end_x, end_y, end_time = path[0]
-
-        if now > end_time:
-            return end_x
-        diff_x = end_x - start_x
-        diff_t = end_time - start_time
-        if diff_t <= 0:
-            return end_x
-        inc = (now - start_time) / diff_t
-        return start_x + diff_x * inc
+        return self._calc_d(self.vector['start_pos']['x'],
+            self.vector['end_pos']['x'])
 
     def y(self):
-        now = self._conn.get_now()
-        path = list(self.path)
-        start = path[0]
-        while path and now > path[0][2]:
-            start = path.pop(0)
-        if not path:
-            return self.path[-1][1]
-        start_x, start_y, start_time = start
-        end_x, end_y, end_time = path[0]
+        return self._calc_d(self.vector['start_pos']['y'],
+            self.vector['end_pos']['y'])
 
-        if now > end_time:
-            return end_y
-        diff_y = end_y - start_y
-        diff_t = end_time - start_time
-        if diff_t <= 0:
-            return end_y
-        inc = (now - start_time) / diff_t
-        return start_y + diff_y * inc
+    def z(self):
+        return self._calc_d(self.vector['start_pos']['z'],
+            self.vector['end_pos']['z'])
 
     def position(self):
         return (self.x(), self.y())
@@ -83,10 +72,11 @@ class RoomsConnection(object):
         self.server_time = None
         self.local_time = None
         self.node = None
+        self.game_id = None
         self.token = None
 
-        self.room = dict(width=500, height=500, position=[0, 0], map_objects=[], vision_grid=dict(width =0, height =0, gridsize=10))
-
+        self.room = { 'topleft': {'x': 0, 'y': 0, 'z': 0},
+            'bottomright': {'x': 0, 'y': 0, 'z': 0}, 'map_objects': [] }
         self.actors = {}
         self.player_actor = None
 
@@ -95,7 +85,7 @@ class RoomsConnection(object):
             "actor_update": self._command_actor_update,
             "remove_actor": self._command_remove_actor,
             "moved_node": self._command_moved_node,
-            "heartbeat": self._command_heartbeat,
+            "bounce_to_master": self._command_bounce_to_master,
         }
 
     def get_now(self):
@@ -103,8 +93,8 @@ class RoomsConnection(object):
         ticks = local_now - self.local_time
         return ticks + self.server_time
 
-    def create_game(self, owner_username, **options):
-        return self.master.create_game(owner_username=owner_username,
+    def create_game(self, owner_id, **options):
+        return self.master.call("master_game/create_game", owner_id=owner_id,
             **options)
 
     def end_game(self, owner_username, game_id):
@@ -113,29 +103,32 @@ class RoomsConnection(object):
     def list_games(self, owner_username):
         raise NotImplemented("")
 
-    def player_info(self, username):
-        return self.master.player_info(username=username)
+    def all_players_for(self, username):
+        return self.master.call("master_game/all_players_for",
+            username=username)
 
     def join_game(self, username, game_id, area_id, room_id, **state):
-        node = self.master.join_game(username=username, game_id=game_id,
-            start_area_id=area_id, start_room_id=room_id, **state)
-        self._connect_to_node(**node)
+        node = self.master.call("master_game/join_game", username=username,
+            game_id=game_id, **state)
+        self._connect_to_node(node['node'][0], node['node'][1], game_id,
+            node['token'])
 
     def connect_to_game(self, username, game_id):
-        node = self.master.connect_to_game(username=username, game_id=game_id)
-        self._connect_to_node(**node)
+        node = self.master.call("master_game/player_connects",
+            username=username, game_id=game_id)
+        self._connect_to_node(node['node'][0], node['node'][1], game_id,
+            node['token'])
 
-    def _connect_to_node(self, host, port, token):
+    def _connect_to_node(self, host, port, game_id, token):
         log.debug("Connecting to node ws://%s:%s/ with token %s", host, port,
             token)
-        self.ws = WebSocketClient("ws://%s:%s/socket" % (host, port),
-            protocols=['http-only', 'chat'])
+        self.ws = WebSocketClient("ws://%s:%s/node_game/player_connects/%s/%s" \
+            % (host, port, game_id, token), protocols=['http-only', 'chat'])
         self.ws.connect()
 
-        self.ws.send(token)
-
-        self.node = WSGIRPCClient(host, port, namespace="game")
+        self.node = WSGIRPCClient(host, port)
         self.token = token
+        self.game_id = game_id
         self._start_listen_thread()
         self.connected = True
 
@@ -148,10 +141,8 @@ class RoomsConnection(object):
                 sock_msg = self.ws.receive()
                 log.debug("Received :%s", sock_msg)
                 if sock_msg:
-                    messages = json.loads(str(sock_msg))
-                    for message in messages:
-                        self._commands[message['command']](
-                            message.get('kwargs'))
+                    message = json.loads(str(sock_msg))
+                    self._commands[message['command']](message['data'])
                 else:
                     self.connected = False
             except:
@@ -160,9 +151,9 @@ class RoomsConnection(object):
                 self.ws = None
                 return
 
-    def call(self, method, **kwargs):
-        kwargs['token'] = self.token
-        return getattr(self.node, method)(**kwargs)
+    def call_command(self, method, **kwargs):
+        return self.node.call("node_game/actor_call/%s/%s/%s" % (
+            self.game_id, self.token, method), **kwargs)
 
     def set_now(self, now):
         self.server_time = now
@@ -178,10 +169,6 @@ class RoomsConnection(object):
         self.set_now(data['now'])
 
         self.player_actor = Actor(self, data['player_actor'])
-
-        self.actors = {}
-        for actor in data['actors']:
-            self.actors[actor['actor_id']] = Actor(self, actor)
 
     def _command_heartbeat(self, data):
         log.debug("Heartbeat")
@@ -209,3 +196,6 @@ class RoomsConnection(object):
         log.debug("moving node: %s", data)
         raise Exception("Not implemented")
 
+    def _command_bounce_to_master(self, data):
+        log.debug("Bounce to master")
+        raise Exception("Not implemented")

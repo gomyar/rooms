@@ -1,6 +1,10 @@
 
 from rooms.item_registry import Item
 
+def start_room(**kwargs):
+    return "map1.room1"
+
+
 def player_joins(game, player):
     player.area_id = "area1"
     player.room_id = "room1"
