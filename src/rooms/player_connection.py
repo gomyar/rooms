@@ -9,11 +9,25 @@ import logging
 log = logging.getLogger("rooms.player_connection")
 
 
+def command_update(actor):
+    return {"command": "actor_update",
+        "actor_id": actor.actor_id, "data": jsonview(actor)}
+
+
+def command_remove(actor):
+    return {"command": "remove_actor", "actor_id": actor.actor_id}
+
+
+def command_redirect(host, port):
+    return {"command": "redirect_to_master",
+            "master": [host, port]}
+
+
 class PlayerConnection(object):
-    def __init__(self, game_id, username, room, actor, token):
+    def __init__(self, game_id, username, room, actor_id, token):
         self.game_id = game_id
         self.username = username
-        self.actor = actor
+        self.actor_id = actor_id
         self.token = token
         self.queues = []
 
@@ -39,13 +53,11 @@ class PlayerConnection(object):
             "node": [node_host, node_port], "token": token})
 
     def redirect_to_master(self, master_host, master_port):
-        self.send_message({"command": "redirect_to_master",
-            "master": [master_host, master_port]})
+        self.send_message(command_redirect(master_host, master_port))
 
     def actor_update(self, actor):
         if actor.visible:
-            self.send_message({"command": "actor_update",
-                "actor_id": actor.actor_id, "data": jsonview(actor)})
+            self.send_message(command_update(actor))
 
     def actor_removed(self, actor):
         if actor.visible:
@@ -74,11 +86,9 @@ class PlayerConnection(object):
 
 
 class AdminConnection(PlayerConnection):
-    def __init__(self, game_id, username, room, actor, token):
+    def __init__(self, game_id, room, token):
         self.game_id = game_id
-        self.username = username
         self._room = room
-        self.actor = actor
         self.token = token
         self.queues = []
 
@@ -92,8 +102,7 @@ class AdminConnection(PlayerConnection):
     def send_sync_to_websocket(self, ws, room, username):
         ws.send(json.dumps(self._sync_message(room)))
         for actor in room.actors.values():
-            ws.send(json.dumps({"command": "actor_update",
-                "actor_id": actor.actor_id, "data": jsonview(actor)}))
+            ws.send(json.dumps(command_update(actor)))
 
     def _sync_message(self, room):
         sync_msg = super(AdminConnection, self)._sync_message(room)
@@ -102,9 +111,7 @@ class AdminConnection(PlayerConnection):
         return sync_msg
 
     def actor_update(self, actor):
-        self.send_message({"command": "actor_update",
-            "actor_id": actor.actor_id, "data": jsonview(actor)})
+        self.send_message(command_update(actor))
 
     def actor_removed(self, actor):
-        self.send_message({"command": "remove_actor",
-            "actor_id": actor.actor_id})
+        self.send_message(command_remove(actor))

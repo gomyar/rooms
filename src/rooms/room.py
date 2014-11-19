@@ -144,7 +144,11 @@ class Room(object):
         self.move_actor_room(actor, door.exit_room_id, door.exit_position)
 
     def move_actor_room(self, actor, room_id, exit_position):
-        self.node.move_actor_room(actor, self.game_id, room_id, exit_position)
+        self.remove_actor(actor)
+        self.node._save_actor_to_other_room(room_id, exit_position, actor)
+        if actor.actor_id in self.vision.actor_queues:
+            for queue in self.vision.actor_queues[actor.actor_id]:
+                queue.put({"command": "move_room", "room_id": room_id})
 
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)

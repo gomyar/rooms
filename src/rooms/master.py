@@ -292,10 +292,7 @@ class Master(object):
         player = self._load_player(username, game_id)
         node = self._get_node_for_room(game_id, player.room_id)
         token = node.request_token(username, game_id)
-        return {"token": token, "node": (node.host, node.port),
-            "url": "http://%s:%s/assets/index.html?"
-            "token=%s&game_id=%s&username=%s" % (node.host, node.port, token,
-                game_id, username)}
+        return {"token": token, "node": (node.host, node.port)}
 
     def request_admin_token(self, game_id, room_id):
         node = self._get_node_for_room(game_id, room_id)

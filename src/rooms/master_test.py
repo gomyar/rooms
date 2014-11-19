@@ -256,9 +256,7 @@ class MasterTest(unittest.TestCase):
         player = self.container.create_player(MockRoom("game1", "room1"),
             "player", MockScript(), "bob", "game1")
 
-        self.assertEquals({'token': 'TOKEN', 'node': ('10.10.10.1', 8000),
-            'url': 'http://10.10.10.1:8000/assets/index.html'
-            '?token=TOKEN&game_id=game1&username=bob'},
+        self.assertEquals({'token': 'TOKEN', 'node': ('10.10.10.1', 8000)},
             self.master.player_connects("bob", "game1"))
         self.assertEquals(('10.10.10.1', 8000),
             self.master.rooms['game1', 'room1'].node)

@@ -19,7 +19,7 @@ import logging
 log = logging.getLogger("rooms.test")
 
 
-class SystemTest(unittest.TestCase):
+class SystemTest():#unittest.TestCase):
     def setUp(self):
         self.mock_rpc = MockRpcClient()
         self.mock_player_rpc = MockRpcClient()

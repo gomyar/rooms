@@ -71,10 +71,6 @@ class NodeController(object):
     def request_token(self, username, game_id):
         return self.node.request_token(username, game_id)
 
-    @request
-    def actor_enters_node(self, actor_id):
-        return self.node.actor_enters_node(actor_id)
-
     @websocket
     def ping(self, ws):
         return self.node.ping(ws)
@@ -188,9 +184,8 @@ class Node(object):
         conn_key = player_actor.username, player_actor.game_id
         if conn_key not in self.player_connections:
             player_conn = PlayerConnection(player_actor.game_id,
-                player_actor.username, player_actor.room, player_actor,
-                self._create_token())
-            player_actor.room.vision.add_listener(player_conn)
+                player_actor.username, player_actor.room,
+                player_actor.actor_id, self._create_token())
             self.player_connections[conn_key] = player_conn
             self.connections[player_conn.token] = player_conn
         return self.player_connections[conn_key]
@@ -211,11 +206,8 @@ class Node(object):
             raise Exception("Invalid token for player")
         player_conn = self.connections[token]
         room = self.rooms[game_id, player_conn.room.room_id]
-        queue = player_conn.new_queue()
-        room.vision.send_sync(player_conn)
-        self._perform_ws_loop(player_conn, queue, ws)
+        queue = room.vision.connect_vision_queue(player_conn.actor_id)
 
-    def _perform_ws_loop(self, player_conn, queue, ws):
         try:
             connected = True
             while connected:
@@ -223,10 +215,16 @@ class Node(object):
                 ws.send(json.dumps(jsonview(message)))
                 if message.get("command") in ['disconnect', 'redirect']:
                     connected = False
+                if message.get("command") == 'move_room':
+                    if (game_id, message['room_id']) in self.rooms:
+                        room = self.rooms[game_id, message['room_id']]
+                        queue = room.vision.connect_vision_queue(
+                            player_conn.actor_id)
+                    else:
+                        ws.send(json.dumps(command_redirect(self.master_host,
+                            self.master_port)))
         except WebSocketError, wse:
             log.debug("Websocket socket dead: %s", str(wse))
-        finally:
-            player_conn.queues.remove(queue)
 
     def actor_call(self, game_id, token, method, **kwargs):
         if token not in self.connections:
@@ -242,52 +240,8 @@ class Node(object):
         return [conn for conn in self.admin_connections.values() if \
             conn.room == room]
 
-    def _request_player_connection(self, username, game_id):
-        player = self._get_or_load_player(username, game_id)
-        self._check_player_valid(player)
-        self._setup_player_token(player)
-        return player
-
-    def _setup_player_token(self, player):
-        if not player.token:
-            player.token = self._create_token()
-
-    def _check_player_valid(self, player):
-        if (player.game_id, player.room_id) not in self.rooms:
-            raise RPCException("Invalid player for node (no such room) %s" %
-                (player,))
-
-    def _get_or_load_player(self, username, game_id):
-        if (username, game_id) not in self.player_connections:
-            if not self.container.player_exists(username, game_id):
-                raise RPCException("No such player %s, %s" % (username,
-                    game_id))
-            self.player_connections[username, game_id] = \
-                self.container.load_player(username, game_id)
-        return self.player_connections[username, game_id]
-
     def _create_token(self):
         return str(uuid.uuid1())
-
-    def actor_enters_node(self, actor_id):
-        actor = self.container.load_actor(actor_id)
-        self._check_room_active(actor.game_id, actor.room_id)
-        room = self.rooms[actor.game_id, actor.room_id]
-        if actor.actor_id not in room.actors:
-            room.put_actor(actor)
-        else:
-            actor = room.actors[actor_id]
-        room.put_actor(actor)
-        if actor.is_player:
-            return {"token": self._create_player_conn(actor).token}
-        else:
-            return {}
-
-    def _check_room_active(self, game_id, room_id):
-        if (game_id, room_id) not in self.rooms:
-            raise RPCWaitException("No such room %s-%s" % (game_id, room_id))
-        if not self.rooms[game_id, room_id].online:
-            raise RPCWaitException("Room offline %s-%s" % (game_id, room_id))
 
     def move_actor_room(self, actor, game_id, exit_room_id, exit_position):
         if (game_id, exit_room_id) in self.rooms:
@@ -312,7 +266,7 @@ class Node(object):
                 # disconnect
                 self.player_connections.pop((actor.username,
                     actor.game_id))
-
+                self.connections.pop(listener.token)
 
     def _save_actor_to_other_room(self, exit_room_id, exit_position, actor):
         actor._game_id = actor.game_id

@@ -5,10 +5,16 @@ from rooms.testutils import MockRoom
 from rooms.position import Position
 from rooms.vector import build_vector
 from rooms.vector import Vector
+from rooms.actor import Actor
 from rooms.gridvision import GridVision
 from rooms.gridvision import Area
+from rooms.gridvision import NullArea
 from rooms.testutils import MockActor
 from rooms.testutils import MockPlayerConnection
+from rooms.views import jsonview
+
+from rooms.player_connection import command_update
+from rooms.player_connection import command_remove
 
 
 class GridVisionTest(unittest.TestCase):
@@ -24,6 +30,7 @@ class GridVisionTest(unittest.TestCase):
 
         self.vision.add_actor(self.actor1)
         self.vision.add_actor(self.lactor)
+        self.room.vision = self.vision
 
     def testAreaLayout(self):
         # basic grid, 10 x 10
@@ -54,7 +61,7 @@ class GridVisionTest(unittest.TestCase):
             ("actor_update", self.actor1),
             ("actor_removed", self.actor1),
             ], listener.messages)
-        self.assertEquals({self.lactor: self.vision.areas[1, 1]},
+        self.assertEquals({"listener1": self.vision.areas[1, 1]},
             self.vision.actor_map)
 
     def testRemoveListener(self):
@@ -289,7 +296,7 @@ class GridVisionTest(unittest.TestCase):
 
         self.vision.add_actor(self.actor1)
 
-        self.assertEquals({self.actor1: self.vision.areas[0, 0]},
+        self.assertEquals({"actor1": self.vision.areas[0, 0]},
             self.vision.actor_map)
         self.assertEquals({}, self.vision.listener_actors)
 
@@ -300,15 +307,99 @@ class GridVisionTest(unittest.TestCase):
 
     def testConnectVisionQueue(self):
         self.vision = GridVision(self.room, 10)
+        self.actor1 = Actor(None, None, None, actor_id="actor1")
 
-        self.actor1 = MockActor("actor1")
-        self.actor2 = MockActor("actor2")
-
+        self.room.put_actor(self.actor1)
         self.vision.add_actor(self.actor1)
-        self.vision.add_actor(self.actor2)
 
         queue = self.vision.connect_vision_queue("actor1")
 
-        self.assertEquals({"command": "sync", "data": {}}, queue.get_nowait())
-        self.assertEquals({"command": "actor_update", "actor_id": "actor2"},
-            queue.get_nowait())
+        self.assertEquals("sync", queue.get_nowait()["command"])
+        self.assertEquals("actor_update", queue.get_nowait()["command"])
+
+    def testDisconnectVisionQueue(self):
+        self.vision = GridVision(self.room, 10)
+        self.actor1 = Actor(None, None, None, actor_id="actor1")
+
+        self.room.put_actor(self.actor1)
+        self.vision.add_actor(self.actor1)
+
+        queue = self.vision.connect_vision_queue("actor1")
+
+        self.assertEquals(Area(0, 0), self.vision.area_for_actor(self.actor1))
+        self.assertEquals({queue}, self.vision.area_for_actor(self.actor1
+            ).queues)
+
+        self.vision.disconnect_vision_queue("actor1", queue)
+
+        self.assertEquals(Area(0, 0), self.vision.area_for_actor(self.actor1))
+        self.assertEquals(set(), self.vision.area_for_actor(self.actor1).queues)
+
+    def testDisconnectVisionQueueAfterActorLeaves(self):
+        self.room = MockRoom("game1", "map1.roomq")
+        self.room.topleft = Position(0, 0)
+        self.room.bottomright = Position(100, 100)
+        self.vision = GridVision(self.room, 10)
+        self.room.vision = self.vision
+
+        self.actor1 = Actor(None, None, None, actor_id="actor1")
+
+        self.room.put_actor(self.actor1)
+        self.vision.add_actor(self.actor1)
+
+        queue = self.vision.connect_vision_queue("actor1")
+
+        self.room.remove_actor(self.actor1)
+
+        self.assertEquals(NullArea, self.vision.area_for_actor(self.actor1))
+
+        self.vision.disconnect_vision_queue("actor1", queue)
+
+        self.assertEquals(set(), self.vision.area_for_actor(self.actor1).queues)
+
+
+
+    def testConnectVisionQueueNoActor(self):
+        self.vision = GridVision(self.room, 10)
+        queue = self.vision.connect_vision_queue("actor1")
+
+        self.assertTrue(queue.empty())
+
+        self.actor1 = Actor(None, None, None, actor_id="actor1")
+        self.vision.add_actor(self.actor1)
+
+        self.assertEquals("sync", queue.get_nowait()["command"])
+        self.assertEquals("actor_update", queue.get_nowait()["command"])
+
+    def testEventsPropagatedToQueues(self):
+        self.vision = GridVision(self.room, 10)
+        queue = self.vision.connect_vision_queue("listener")
+
+        self.lactor = Actor(None, None, None, actor_id="listener")
+        self.vision.add_actor(self.lactor)
+
+        self.assertEquals("sync", queue.get_nowait()["command"])
+        self.assertEquals("actor_update", queue.get_nowait()["command"])
+
+        self.actor1 = Actor(None, None, None, actor_id="actor1")
+        self.vision.add_actor(self.actor1)
+        self.assertEquals("actor_update", queue.get_nowait()["command"])
+
+        self.vision.actor_update(self.actor1)
+        self.assertEquals(command_update(self.actor1), queue.get_nowait())
+
+        previous = Vector(Position(2, 2), 0, Position(4, 4), 1)
+        self.vision.actor_vector_changed(self.actor1, previous)
+        self.assertEquals(command_update(self.actor1), queue.get_nowait())
+
+        self.vision.actor_state_changed(self.actor1)
+        self.assertEquals(command_update(self.actor1), queue.get_nowait())
+
+        self.vision.actor_becomes_invisible(self.actor1)
+        self.assertEquals(command_remove(self.actor1), queue.get_nowait())
+
+        self.vision.actor_becomes_visible(self.actor1)
+        self.assertEquals(command_update(self.actor1), queue.get_nowait())
+
+        self.vision.actor_removed(self.actor1)
+        self.assertEquals(command_remove(self.actor1), queue.get_nowait())
