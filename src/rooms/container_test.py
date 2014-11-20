@@ -247,6 +247,10 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals("newroom1",
             self.dbase.dbases['actors']['actors_0']['room_id'])
 
+        self.container.save_actor(actor, limbo=True)
+        self.assertEquals("limbo",
+            self.dbase.dbases['actors']['actors_0']['_loadstate'])
+
     def testUpdateActor(self):
         actor = MockActor("actor1")
         actor._id = "actor1"
@@ -286,3 +290,37 @@ class ContainerTest(unittest.TestCase):
 
     def testLoadPlayersForRoom(self):
         pass
+
+    def testLoadObjectsFromLimbo(self):
+        self.dbase.dbases['actors'] = {}
+        self.dbase.dbases['actors']['actor1'] = \
+            {"__type__": "Actor", "_id": "actor1", "actor_id": "actor1",
+            "game_id": "games_0", "room_id": "room1",
+            "actor_type": "test", "model_type": "model",
+            "speed": 1.0,
+            "username": "ned",
+            'state': {u'__type__': u'SyncDict'},
+            "path": [], "vector": {"__type__": "Vector",
+            "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "start_time": 0,
+            "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
+            "end_time": 10,
+            }, "script_name": "mock_script"}
+        self.dbase.dbases['actors']['actor2'] = \
+            {"__type__": "Actor", "_id": "actor2", "actor_id": "actor2",
+            "game_id": "games_0", "room_id": "room1",
+            "actor_type": "test", "model_type": "model",
+            "_loadstate": "limbo",
+            "speed": 1.0,
+            "username": "ned",
+            'state': {u'__type__': u'SyncDict'},
+            "path": [], "vector": {"__type__": "Vector",
+            "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "start_time": 0,
+            "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
+            "end_time": 10,
+            }, "script_name": "mock_script"}
+
+        limbo_list = self.container.load_limbo_actors("room1")
+        self.assertEquals(1, len(limbo_list))
+        self.assertEquals("actor2", limbo_list[0].actor_id)

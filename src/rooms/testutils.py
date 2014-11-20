@@ -70,6 +70,13 @@ class MockDbase(object):
         objdata = self.dbases.get(collection_name, dict()).get(obj._id)
         objdata.update(fields)
 
+    def find_and_modify(self, collection_name, modify_name, modify_value,
+            **search_fields):
+        objdata = self.filter(collection_name, **search_fields)
+        for data in objdata:
+            data[modify_name] = modify_value
+        return objdata
+
 
 class MockRoom(Room):
     def __init__(self, game_id, room_id):

@@ -120,6 +120,10 @@ class Node(object):
                 port=self.port, server_load=len(self.rooms) / 100.0,
                 node_info=json.dumps(self._compile_node_info()))
 
+    def start_actor_loader(self):
+        loader = ActorLoader(self)
+        self._actorload_gthread = gevent.spawn(loader.load_loop)
+
     def _compile_node_info(self):
         node_info = dict()
         for room in self.rooms.values():
@@ -135,6 +139,8 @@ class Node(object):
     def deregister(self):
         if self._report_gthread:
             self._report_gthread.kill()
+        if self._actorload_gthread:
+            self._actorload_gthread.kill()
         self.master_conn.call("offline_node", host=self.host, port=self.port)
         self.save_all()
         self.master_conn.call("deregister_node", host=self.host,
@@ -243,36 +249,11 @@ class Node(object):
     def _create_token(self):
         return str(uuid.uuid1())
 
-    def move_actor_room(self, actor, game_id, exit_room_id, exit_position):
-        if (game_id, exit_room_id) in self.rooms:
-            from_room = actor.room
-            listener = from_room.vision.listener_actors.get(actor)
-            if listener:
-                from_room.vision.remove_listener(listener)
-            from_room.remove_actor(actor)
-            exit_room = self.rooms[game_id, exit_room_id]
-            exit_room.put_actor(actor, exit_position)
-            if listener:
-                exit_room.vision.add_listener(listener)
-                listener.send_sync(exit_room)
-                exit_room.vision.send_all_visible_actors(listener)
-        else:
-            from_room = actor.room
-            from_room.remove_actor(actor)
-            self._save_actor_to_other_room(exit_room_id, exit_position, actor)
-            listener = from_room.vision.listener_actors.get(actor)
-            if listener:
-                listener.redirect_to_master(self.master_host, self.master_port)
-                # disconnect
-                self.player_connections.pop((actor.username,
-                    actor.game_id))
-                self.connections.pop(listener.token)
-
-    def _save_actor_to_other_room(self, exit_room_id, exit_position, actor):
+    def save_actor_to_other_room(self, exit_room_id, exit_position, actor):
         actor._game_id = actor.game_id
         actor.position = exit_position
         actor._room_id = exit_room_id
-        self.container.save_actor(actor) # (, async=False) ?
+        self.container.save_actor(actor, limbo=True) # (, async=False) ?
 
     def deactivate_room(self, game_id, room_id):
         room = self.rooms.pop((game_id, room_id))

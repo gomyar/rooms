@@ -79,8 +79,11 @@ class Container(object):
         self.save_actor(actor)
         return actor
 
-    def save_actor(self, actor):
-        self._save_object(actor, "actors")
+    def save_actor(self, actor, limbo=False):
+        if limbo:
+            self._save_object(actor, "actors", _loadstate="limbo")
+        else:
+            self._save_object(actor, "actors")
 
     def update_actor(self, actor, **fields):
         self.dbase.update_object_fields("actors", actor, **fields)
@@ -99,6 +102,11 @@ class Container(object):
 
     def load_actor(self, actor_id):
         return self._load_filter_one("actors", actor_id=actor_id)
+
+    def load_limbo_actors(self, room_id):
+        enc_list = self.dbase.find_and_modify("actors", "_loadstate", "",
+            room_id=room_id, _loadstate="limbo")
+        return [self._decode_enc_dict(enc) for enc in enc_list]
 
     def save_player(self, player):
         self._save_object(player, "actors")
@@ -158,13 +166,14 @@ class Container(object):
 
     ## ---- Encoding method
 
-    def _save_object(self, saved_object, dbase_name):
+    def _save_object(self, saved_object, dbase_name, **fields):
         if getattr(saved_object, '_id', None):
             db_id = saved_object._id
             saved_object._id = None
         else:
             db_id = None
         object_dict = self._obj_to_dict(saved_object)
+        object_dict.update(fields)
         db_id = self.dbase.save_object(object_dict, dbase_name, db_id)
         saved_object._id = str(db_id)
         return str(db_id)

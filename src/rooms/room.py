@@ -145,7 +145,7 @@ class Room(object):
 
     def move_actor_room(self, actor, room_id, exit_position):
         self.remove_actor(actor)
-        self.node._save_actor_to_other_room(room_id, exit_position, actor)
+        self.node.save_actor_to_other_room(room_id, exit_position, actor)
         if actor.actor_id in self.vision.actor_queues:
             for queue in self.vision.actor_queues[actor.actor_id]:
                 queue.put({"command": "move_room", "room_id": room_id})
