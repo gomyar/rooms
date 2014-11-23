@@ -88,6 +88,7 @@ class AdminConnection(PlayerConnection):
         self.room = room
         self.token = token
         self.queues = []
+        self.username = "admin"
 
     def actor_becomes_invisible(self, actor):
         self.actor_update(actor)
@@ -98,7 +99,8 @@ class AdminConnection(PlayerConnection):
             ws.send(json.dumps(command_update(actor)))
 
     def _sync_message(self, room):
-        sync_msg = super(AdminConnection, self)._sync_message(room)
+        sync_msg = {"command": "sync", "data": {"now": Timer.now(),
+             "username": "admin", "room_id": room.room_id}}
         sync_msg['map_url'] = "http://mapurl"
         sync_msg['data']['vision'] = {"gridsize": self.room.vision.gridsize}
         return sync_msg

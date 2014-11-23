@@ -2,6 +2,8 @@
  - change all objects and actors in a room to relative positioning
    (basically replace topleft and bottomright with width/height)
 
+ - set position when moving should kill _move_update gthread
+
  - manage_room may be called twice, creating two rooms on node
 
  - the error reporting in this guy needs tidying

@@ -39,6 +39,7 @@ class GridVision(object):
         self.actor_map = dict()
         # actor_id => queue
         self.actor_queues = dict()
+        self.admin_queues = set()
 
     def _create_areas(self):
         for y in range(0, int(self.room.height / self.gridsize) + 1):
@@ -68,6 +69,7 @@ class GridVision(object):
             area.actor_queues.add(actor.actor_id)
             for queue in self.actor_queues[actor.actor_id]:
                 self._send_sync_to_queue(actor, queue)
+        self._admin_update(actor)
 
     def actor_update(self, actor):
         area = self.area_for_actor(actor)
@@ -75,6 +77,7 @@ class GridVision(object):
             for actor_id in link.actor_queues:
                 for queue in self.actor_queues[actor_id]:
                     queue.put(command_update(actor))
+        self._admin_update(actor)
 
     def _send_command(self, actor_id, command):
         for queue in self.actor_queues[actor_id]:
@@ -87,12 +90,10 @@ class GridVision(object):
         for link in area.linked:
             for actor_id in link.actor_queues:
                 self._send_command(actor_id, command_remove(actor))
+        self._admin_remove(actor)
 
     def actor_state_changed(self, actor):
-        area = self.area_for_actor(actor)
-        for link in area.linked:
-            for actor_id in link.actor_queues:
-                self._send_command(actor_id, command_update(actor))
+        self.actor_update(actor)
 
     def actor_vector_changed(self, actor, previous):
         current_area = self.actor_map[actor.actor_id]
@@ -140,6 +141,7 @@ class GridVision(object):
                             if a.actor_id != actor.actor_id:
                                 queue.put(command_update(a))
                 self._send_command(actor.actor_id, command_update(actor))
+        self._admin_update(actor)
 
     def actor_becomes_invisible(self, actor):
         log.debug("actor_becomes_invisible")
@@ -148,6 +150,7 @@ class GridVision(object):
             for actor_id in link.actor_queues:
                 for queue in self.actor_queues[actor_id]:
                     queue.put(command_remove(actor))
+        self._admin_update(actor)
 
     def actor_becomes_visible(self, actor):
         log.debug("actor_becomes_visible")
@@ -155,14 +158,10 @@ class GridVision(object):
         for link in area.linked:
             for actor_id in link.actor_queues:
                 self._send_command(actor_id, command_update(actor))
+        self._admin_update(actor)
 
     def area_for_actor(self, actor):
         return self.actor_map.get(actor.actor_id, NullArea)
-
-    def send_all_visible_actors(self, listener):
-        for area in self.area_for_actor(listener.actor).linked:
-            for actor in area.actors:
-                listener.actor_update(actor)
 
     def connect_vision_queue(self, actor_id):
         queue = Queue()
@@ -196,3 +195,22 @@ class GridVision(object):
         return {"command": "sync", "data": {"now": Timer.now(),
             "username": actor.username, "room_id": self.room.room_id,
             "player_actor": jsonview(actor)}}
+
+    def connect_admin_queue(self):
+        queue = Queue()
+        self.admin_queues.add(queue)
+        for area in self.areas.values():
+            for actor in area.actors:
+                self._admin_update(actor)
+        return queue
+
+    def disconnect_admin_queue(self, queue):
+        self.admin_queues.remove(queue)
+
+    def _admin_update(self, actor):
+        for queue in self.admin_queues:
+            queue.put(command_update(actor))
+
+    def _admin_remove(self, actor):
+        for queue in self.admin_queues:
+            queue.put(command_remove(actor))

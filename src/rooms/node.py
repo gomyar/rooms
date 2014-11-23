@@ -242,6 +242,8 @@ class Node(object):
                             self.master_port)))
         except WebSocketError, wse:
             log.debug("Websocket socket dead: %s", str(wse))
+        finally:
+            room.vision.disconnect_vision_queue(player_conn.actor_id, queue)
 
     def actor_call(self, game_id, token, method, **kwargs):
         if token not in self.connections:
@@ -282,16 +284,26 @@ class Node(object):
     def request_admin_token(self, game_id, room_id):
         room = self.rooms[game_id, room_id]
         token = self._create_token()
-        self.admin_connections[token] = AdminConnection(game_id, "admin",
-            room, None, token)
+        self.admin_connections[token] = AdminConnection(game_id, room, token)
         return token
 
     def admin_connects(self, ws, token):
         admin_conn = self.admin_connections[token]
         log.debug("Admin conects: %s", token)
-        queue = admin_conn.new_queue()
-        admin_conn.send_sync_to_websocket(ws, admin_conn.room, "admin")
-        self._perform_ws_loop(admin_conn, queue, ws)
+        room = admin_conn.room
+        queue = room.vision.connect_admin_queue()
+        admin_conn.send_sync_to_websocket(ws, room, "admin")
+        try:
+            connected = True
+            while connected:
+                message = queue.get()
+                ws.send(json.dumps(jsonview(message)))
+                if message.get("command") in ['disconnect', 'redirect']:
+                    connected = False
+        except WebSocketError, wse:
+            log.debug("Admin Websocket socket dead: %s", str(wse))
+        finally:
+            room.vision.disconnect_admin_queue(queue)
 
     def admin_map(self, token, map_id):
         if token not in self.admin_connections:

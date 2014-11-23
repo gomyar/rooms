@@ -271,31 +271,48 @@ class GridVisionTest(unittest.TestCase):
         self.room.vision = self.vision
 
         queue = self.vision.connect_vision_queue("listener1")
+        admin = self.vision.connect_admin_queue()
 
         self.vision.add_actor(self.lactor)
 
         self.assertEquals("sync", queue.get_nowait()["command"])
         self.assertEquals("actor_update", queue.get_nowait()["command"])
 
+        self.assertEquals("actor_update", admin.get_nowait()["command"])
+
         self.actor1 = Actor(None, None, None, actor_id="actor1")
         self.vision.add_actor(self.actor1)
         self.assertEquals("actor_update", queue.get_nowait()["command"])
 
+        self.assertEquals("actor_update", admin.get_nowait()["command"])
+
         self.vision.actor_update(self.actor1)
         self.assertEquals(command_update(self.actor1), queue.get_nowait())
+
+        self.assertEquals(command_update(self.actor1), admin.get_nowait())
 
         previous = Vector(Position(2, 2), 0, Position(4, 4), 1)
         self.vision.actor_vector_changed(self.actor1, previous)
         self.assertEquals(command_update(self.actor1), queue.get_nowait())
 
+        self.assertEquals(command_update(self.actor1), admin.get_nowait())
+
         self.vision.actor_state_changed(self.actor1)
         self.assertEquals(command_update(self.actor1), queue.get_nowait())
+
+        self.assertEquals(command_update(self.actor1), admin.get_nowait())
 
         self.vision.actor_becomes_invisible(self.actor1)
         self.assertEquals(command_remove(self.actor1), queue.get_nowait())
 
+        self.assertEquals(command_update(self.actor1), admin.get_nowait())
+
         self.vision.actor_becomes_visible(self.actor1)
         self.assertEquals(command_update(self.actor1), queue.get_nowait())
 
+        self.assertEquals(command_update(self.actor1), admin.get_nowait())
+
         self.vision.actor_removed(self.actor1)
         self.assertEquals(command_remove(self.actor1), queue.get_nowait())
+
+        self.assertEquals(command_remove(self.actor1), admin.get_nowait())
