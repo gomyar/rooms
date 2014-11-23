@@ -21,6 +21,7 @@ from rooms.views import jsonview
 from rooms.timer import Timer
 from rooms.player_connection import PlayerConnection
 from rooms.player_connection import AdminConnection
+from rooms.player_connection import command_redirect
 from rooms.actor_loader import ActorLoader
 
 import logging
@@ -227,11 +228,16 @@ class Node(object):
                 if message.get("command") in ['disconnect', 'redirect']:
                     connected = False
                 if message.get("command") == 'move_room':
+                    log.debug("Moving room for %s to %s", player_conn.username,
+                        message['room_id'])
                     if (game_id, message['room_id']) in self.rooms:
+                        log.debug("Room already managed: %s",
+                            message['room_id'])
                         room = self.rooms[game_id, message['room_id']]
                         queue = room.vision.connect_vision_queue(
                             player_conn.actor_id)
                     else:
+                        log.debug("Redirecting to master")
                         ws.send(json.dumps(command_redirect(self.master_host,
                             self.master_port)))
         except WebSocketError, wse:
@@ -258,7 +264,11 @@ class Node(object):
         actor._game_id = actor.game_id
         actor.position = exit_position
         actor._room_id = exit_room_id
+        actor.room = None
         self.container.save_actor(actor, limbo=True) # (, async=False) ?
+        if actor.is_player:
+            conn = self.player_connections.pop((actor.username, actor.game_id))
+            self.connections.pop(conn.token)
 
     def deactivate_room(self, game_id, room_id):
         room = self.rooms.pop((game_id, room_id))

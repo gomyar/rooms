@@ -87,11 +87,6 @@ class GridVision(object):
         for link in area.linked:
             for actor_id in link.actor_queues:
                 self._send_command(actor_id, command_remove(actor))
-        if actor.actor_id in self.actor_queues:
-            for actor.actor_id in self.actor_queues[actor.actor_id]:
-                area = self.area_for_actor(actor)
-                if actor_id in area.actor_queues:
-                    area.actor_queues.remove(actor_id)
 
     def actor_state_changed(self, actor):
         area = self.area_for_actor(actor)

@@ -103,10 +103,10 @@ class Container(object):
     def load_actor(self, actor_id):
         return self._load_filter_one("actors", actor_id=actor_id)
 
-    def load_limbo_actors(self, room_id):
-        enc_list = self.dbase.find_and_modify("actors", "_loadstate", "",
-            room_id=room_id, _loadstate="limbo")
-        return [self._decode_enc_dict(enc) for enc in enc_list]
+    def load_limbo_actor(self, game_id, room_id):
+        enc_actor = self.dbase.find_and_modify("actors", "_loadstate", "",
+            game_id=game_id, room_id=room_id, _loadstate="limbo")
+        return self._decode_enc_dict(enc_actor) if enc_actor else None
 
     def save_player(self, player):
         self._save_object(player, "actors")

@@ -291,6 +291,7 @@ class Master(object):
 
         player = self._load_player(username, game_id)
         node = self._get_node_for_room(game_id, player.room_id)
+        log.debug("Got node %s for room %s - %s", node, game_id, player.room_id)
         token = node.request_token(username, game_id)
         return {"token": token, "node": (node.host, node.port)}
 

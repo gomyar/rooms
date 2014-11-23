@@ -14,10 +14,10 @@ class ActorLoader(object):
             self._load_actors()
 
     def _load_actors(self):
-        for room_id, room in self.node.rooms.items():
-            actors = self.node.container.load_limbo_actors(room_id)
-            for actor in actors:
+        for ((game_id, room_id), room) in self.node.rooms.items():
+            actor = self.node.container.load_limbo_actor(game_id, room_id)
+            if actor:
                 log.debug("Loaded actor %s into room %s", actor, room_id)
-                room.put_actor(actor)
-            Timer.sleep(0.1)
+                if actor.actor_id not in room.actors:
+                    room.put_actor(actor)
         Timer.sleep(0.1)
