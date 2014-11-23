@@ -72,6 +72,8 @@ class GridVision(object):
         self._admin_update(actor)
 
     def actor_update(self, actor):
+        if not actor.visible:
+            return
         area = self.area_for_actor(actor)
         for link in area.linked:
             for actor_id in link.actor_queues:
@@ -84,6 +86,8 @@ class GridVision(object):
             queue.put(command)
 
     def actor_removed(self, actor):
+        if not actor.visible:
+            return
         area = self.area_for_actor(actor)
         area.actors.remove(actor)
         self.actor_map.pop(actor.actor_id)
@@ -96,6 +100,8 @@ class GridVision(object):
         self.actor_update(actor)
 
     def actor_vector_changed(self, actor, previous):
+        if not actor.visible:
+            return
         current_area = self.actor_map[actor.actor_id]
         new_area = self.area_at(actor.vector.start_pos)
         if current_area == new_area:
