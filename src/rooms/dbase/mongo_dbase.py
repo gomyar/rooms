@@ -56,7 +56,7 @@ class MongoDBase(object):
             **search_fields):
         return self._collection(collection_name).find_and_modify(
             search_fields, {modify_name: modify_value}
-        )
+        ) or []
 
     def update_object(self, collection_name, obj, update_key, update_obj):
         try:

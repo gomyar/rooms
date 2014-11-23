@@ -21,6 +21,7 @@ from rooms.views import jsonview
 from rooms.timer import Timer
 from rooms.player_connection import PlayerConnection
 from rooms.player_connection import AdminConnection
+from rooms.actor_loader import ActorLoader
 
 import logging
 log = logging.getLogger("rooms.node")
@@ -109,6 +110,10 @@ class Node(object):
 
     def connect_to_master(self):
         self.master_conn.call("register_node", host=self.host, port=self.port)
+
+    def start(self):
+        self.start_reporting()
+        self.start_actor_loader()
 
     def start_reporting(self):
         self._report_gthread = gevent.spawn(self._start_reporting)
@@ -236,7 +241,7 @@ class Node(object):
         if token not in self.connections:
             raise Exception("Invalid token for player")
         player_conn = self.connections[token]
-        actor = player_conn.actor
+        actor = player_conn.room.actors[player_conn.actor_id]
         if actor.script.has_method(method):
             actor.script_call(method, actor, **kwargs)
         else:
