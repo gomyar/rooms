@@ -131,11 +131,6 @@ class MasterController(object):
         return self.master.request_room(game_id, room_id)
 
     @request
-    def actor_entered(self, game_id, room_id, actor_id, is_player, username):
-        return self.master.actor_entered(game_id, room_id, actor_id, is_player,
-            username)
-
-    @request
     def report_load_stats(self, host, port, server_load, node_info):
         return self.master.report_load_stats(host, port, server_load, node_info)
 
@@ -293,6 +288,7 @@ class Master(object):
         node = self._get_node_for_room(game_id, player.room_id)
         log.debug("Got node %s for room %s - %s", node, game_id, player.room_id)
         token = node.request_token(username, game_id)
+        log.debug(" ------------ got token for %s: %s", username, token)
         return {"token": token, "node": (node.host, node.port)}
 
     def request_admin_token(self, game_id, room_id):
@@ -361,26 +357,6 @@ class Master(object):
             gevent.sleep(1)
             ws.send("Sending %s" % i)
         return "Done"
-
-    def actor_entered(self, game_id, room_id, actor_id, is_player, username):
-        log.debug("Actor entered %s-%s %s %s %s", game_id, room_id, actor_id,
-            is_player, username)
-        if (game_id, room_id) in self.rooms and \
-                self.rooms[game_id, room_id].online:
-            log.debug("Room %s-%s already managed", game_id, room_id)
-            host, port = self.rooms[game_id, room_id].node
-            log.debug("Calling actor_enters on %s:%s", host, port)
-            response = self.nodes[host, port].actor_enters_node(actor_id)
-            log.debug("Response: %s", response)
-            return {"node": [host, port], "token": response.get('token')}
-        elif is_player == "True":
-            log.debug("Room %s-%s not managed, managing room", game_id, room_id)
-            node = self._get_node_for_room(game_id, room_id)
-            log.debug("Got node")
-            token = node.request_token(username, game_id)
-            log.debug("Managed node %s:%s for %s - %s", node.host, node.port,
-                username, game_id)
-            return {"node": [node.host, node.port], "token": token}
 
     def _run_cleanup(self):
         while self.running:

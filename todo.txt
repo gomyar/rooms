@@ -1,4 +1,6 @@
 
+ - allow for invisible player actors to still receieve their own signals/events
+
  - change all objects and actors in a room to relative positioning
    (basically replace topleft and bottomright with width/height)
 

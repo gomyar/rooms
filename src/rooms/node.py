@@ -134,13 +134,13 @@ class Node(object):
         node_info = dict()
         for room in self.rooms.values():
             node_info["%s.%s" % (room.game_id, room.room_id)] = dict(
-                connected_players=len(self._connected_players_for(room))
+                connected_players=len(self._connected_players_for(room.room_id))
             )
         return node_info
 
-    def _connected_players_for(self, room):
+    def _connected_players_for(self, room_id):
         return [conn for conn in self.player_connections.values() if \
-            conn.room == room]
+            conn.room_id == room_id]
 
     def deregister(self):
         if self._report_gthread:
@@ -172,13 +172,9 @@ class Node(object):
     def manage_room(self, game_id, room_id):
         if self.container.room_exists(game_id, room_id):
             room = self.container.load_room(game_id, room_id)
-            for player_actor in room.player_actors():
-                self._create_player_conn(player_actor)
         else:
             room = self.container.create_room(game_id, room_id)
             self.scripts['game_script'].call("room_created", room)
-            for player_actor in room.player_actors():
-                self._create_player_conn(player_actor)
         self.rooms[game_id, room_id] = room
         room.kick()
 
@@ -187,24 +183,27 @@ class Node(object):
         player_actor = self.container.create_player(room, "player",
             self.scripts['player_script'], username, game_id)
         room.put_actor(player_actor)
-        player_conn = self._create_player_conn(player_actor)
+        player_conn = self._create_player_conn(username, game_id, room_id,
+            player_actor.actor_id)
         self.scripts['player_script'].call("player_joins", player_actor,
             **kwargs)
         return player_conn.token
 
-    def _create_player_conn(self, player_actor):
-        conn_key = player_actor.username, player_actor.game_id
+    def _create_player_conn(self, username, game_id, room_id, actor_id):
+        conn_key = username, game_id
         if conn_key not in self.player_connections:
-            player_conn = PlayerConnection(player_actor.game_id,
-                player_actor.username, player_actor.room,
-                player_actor.actor_id, self._create_token())
+            player_conn = PlayerConnection(game_id, username, room_id,
+                actor_id, self._create_token())
             self.player_connections[conn_key] = player_conn
             self.connections[player_conn.token] = player_conn
         return self.player_connections[conn_key]
 
     def request_token(self, username, game_id):
+        log.debug(" **** Requesting token for %s, %s", username, game_id)
         if (username, game_id) not in self.player_connections:
-            raise RPCException("No such player connected")
+            player_actor = self.container.load_player(username, game_id)
+            self._create_player_conn(username, game_id, player_actor.room_id,
+                player_actor.actor_id)
         return self.player_connections[username, game_id].token
 
     def ping(self, ws):
@@ -217,7 +216,7 @@ class Node(object):
         if token not in self.connections:
             raise Exception("Invalid token for player")
         player_conn = self.connections[token]
-        room = self.rooms[game_id, player_conn.room.room_id]
+        room = self.rooms[game_id, player_conn.room_id]
         queue = room.vision.connect_vision_queue(player_conn.actor_id)
 
         try:
@@ -234,6 +233,9 @@ class Node(object):
                         log.debug("Room already managed: %s",
                             message['room_id'])
                         room = self.rooms[game_id, message['room_id']]
+                        player_conn = self.connections[token]
+                        player_conn.room_id = room.room_id
+                        log.debug("Created conn: %s", player_conn)
                         queue = room.vision.connect_vision_queue(
                             player_conn.actor_id)
                     else:
@@ -249,7 +251,9 @@ class Node(object):
         if token not in self.connections:
             raise Exception("Invalid token for player")
         player_conn = self.connections[token]
-        actor = player_conn.room.actors[player_conn.actor_id]
+        room = self.rooms[player_conn.game_id, player_conn.room_id]
+        log.debug("call in room: %s - %s", room, player_conn)
+        actor = room.actors[player_conn.actor_id]
         if actor.script.has_method(method):
             actor.script_call(method, actor, **kwargs)
         else:
@@ -268,9 +272,10 @@ class Node(object):
         actor._room_id = exit_room_id
         actor.room = None
         self.container.save_actor(actor, limbo=True) # (, async=False) ?
-        if actor.is_player:
+        if actor.is_player and (actor.game_id, exit_room_id) not in self.rooms:
             conn = self.player_connections.pop((actor.username, actor.game_id))
             self.connections.pop(conn.token)
+            log.debug("Removed conn: %s", conn)
 
     def deactivate_room(self, game_id, room_id):
         room = self.rooms.pop((game_id, room_id))
@@ -282,15 +287,14 @@ class Node(object):
         self.container.save_room(room)
 
     def request_admin_token(self, game_id, room_id):
-        room = self.rooms[game_id, room_id]
         token = self._create_token()
-        self.admin_connections[token] = AdminConnection(game_id, room, token)
+        self.admin_connections[token] = AdminConnection(game_id, room_id, token)
         return token
 
     def admin_connects(self, ws, token):
         admin_conn = self.admin_connections[token]
         log.debug("Admin conects: %s", token)
-        room = admin_conn.room
+        room = self.rooms[admin_conn.game_id, admin_conn.room_id]
         queue = room.vision.connect_admin_queue()
         admin_conn.send_sync_to_websocket(ws, room, "admin")
         try:

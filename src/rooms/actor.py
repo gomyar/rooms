@@ -167,7 +167,6 @@ class Actor(object):
             self._send_state_changed()
             self.visible = True
 
-
     @property
     def visible(self):
         return self._visible

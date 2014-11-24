@@ -72,28 +72,34 @@ class GridVision(object):
         self._admin_update(actor)
 
     def actor_update(self, actor):
-        if not actor.visible:
-            return
         area = self.area_for_actor(actor)
         for link in area.linked:
             for actor_id in link.actor_queues:
-                for queue in self.actor_queues[actor_id]:
-                    queue.put(command_update(actor))
+                if actor.visible or actor_id == actor.actor_id:
+                    for queue in self.actor_queues[actor_id]:
+                        queue.put(command_update(actor))
         self._admin_update(actor)
+
+    def _send_update(self, actor_id, actor):
+        if actor.visible or actor_id == actor.actor_id:
+            self._send_command(actor_id, command_update(actor))
+
+    def _send_remove(self, actor_id, actor):
+        if actor.visible or actor_id == actor.actor_id:
+            self._send_command(actor_id, command_remove(actor))
 
     def _send_command(self, actor_id, command):
         for queue in self.actor_queues[actor_id]:
             queue.put(command)
 
     def actor_removed(self, actor):
-        if not actor.visible:
-            return
         area = self.area_for_actor(actor)
         area.actors.remove(actor)
         self.actor_map.pop(actor.actor_id)
         for link in area.linked:
             for actor_id in link.actor_queues:
-                self._send_command(actor_id, command_remove(actor))
+                if actor.visible or actor_id == actor.actor_id:
+                    self._send_remove(actor_id, actor)
         self._admin_remove(actor)
 
     def actor_state_changed(self, actor):
@@ -101,15 +107,13 @@ class GridVision(object):
 
     def actor_vector_changed(self, actor, previous):
         self._admin_update(actor)
-        if not actor.visible:
-            return
         current_area = self.actor_map[actor.actor_id]
         new_area = self.area_at(actor.vector.start_pos)
         if current_area == new_area:
             # area has not changed, propagate event as normal
             for link in current_area.linked:
                 for actor_id in link.actor_queues:
-                    self._send_command(actor_id, command_update(actor))
+                    self._send_update(actor_id, actor)
         else:
             # area changed
             self.actor_map[actor.actor_id] = new_area
@@ -121,18 +125,19 @@ class GridVision(object):
             same_areas = new_area.linked.intersection(current_area.linked)
 
             # actor changed area events
-            for area in removed_areas:
-                for actor_id in area.actor_queues:
-                    if actor_id != actor.actor_id:
-                        self._send_command(actor_id, command_remove(actor))
-            for area in added_areas:
-                for actor_id in area.actor_queues:
-                    if actor_id != actor.actor_id:
-                        self._send_command(actor_id, command_update(actor))
-            for area in same_areas:
-                for actor_id in area.actor_queues:
-                    if actor_id != actor.actor_id:
-                        self._send_command(actor_id, command_update(actor))
+            if actor.visible:
+                for area in removed_areas:
+                    for actor_id in area.actor_queues:
+                        if actor_id != actor.actor_id:
+                            self._send_command(actor_id, command_remove(actor))
+                for area in added_areas:
+                    for actor_id in area.actor_queues:
+                        if actor_id != actor.actor_id:
+                            self._send_command(actor_id, command_update(actor))
+                for area in same_areas:
+                    for actor_id in area.actor_queues:
+                        if actor_id != actor.actor_id:
+                            self._send_command(actor_id, command_update(actor))
 
             # Listener changed area events
             if actor.actor_id in self.actor_queues:
@@ -155,7 +160,10 @@ class GridVision(object):
         for link in area.linked:
             for actor_id in link.actor_queues:
                 for queue in self.actor_queues[actor_id]:
-                    queue.put(command_remove(actor))
+                    if actor_id == actor.actor_id:
+                        queue.put(command_update(actor))
+                    else:
+                        queue.put(command_remove(actor))
         self._admin_update(actor)
 
     def actor_becomes_visible(self, actor):

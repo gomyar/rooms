@@ -341,3 +341,31 @@ class GridVisionTest(unittest.TestCase):
         self.vision.actor_removed(self.actor1)
 
         self.assertTrue(queue.empty())
+
+    def testListenerVisibility(self):
+        queue = self.vision.connect_vision_queue("listener1")
+
+        self.assertEquals("sync", queue.get_nowait()["command"])
+        self.assertEquals("actor_update", queue.get_nowait()["command"])
+        self.assertEquals("actor_update", queue.get_nowait()["command"])
+        self.assertTrue(queue.empty())
+
+        self.lactor.visible = False
+
+        self.assertEquals("actor_update", queue.get_nowait()['command'])
+        self.assertTrue(queue.empty())
+
+        self.lactor.position = Position(2, 3)
+
+        self.assertEquals("actor_update", queue.get_nowait()['command'])
+        self.assertTrue(queue.empty())
+
+        self.lactor.state.argle = "bargle"
+
+        self.assertEquals("actor_update", queue.get_nowait()['command'])
+        self.assertTrue(queue.empty())
+
+        self.vision.actor_removed(self.lactor)
+
+        self.assertEquals("remove_actor", queue.get_nowait()['command'])
+        self.assertTrue(queue.empty())
