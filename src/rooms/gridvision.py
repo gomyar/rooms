@@ -100,6 +100,7 @@ class GridVision(object):
         self.actor_update(actor)
 
     def actor_vector_changed(self, actor, previous):
+        self._admin_update(actor)
         if not actor.visible:
             return
         current_area = self.actor_map[actor.actor_id]
@@ -147,7 +148,6 @@ class GridVision(object):
                             if a.actor_id != actor.actor_id:
                                 queue.put(command_update(a))
                 self._send_command(actor.actor_id, command_update(actor))
-        self._admin_update(actor)
 
     def actor_becomes_invisible(self, actor):
         log.debug("actor_becomes_invisible")
