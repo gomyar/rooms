@@ -72,7 +72,8 @@ class RoomFactory(object):
     def _create_object(self, map_object_json):
         return RoomObject(map_object_json['object_type'],
             self._create_pos(map_object_json['topleft']),
-            self._create_pos(map_object_json['bottomright']))
+            self._create_pos(map_object_json['bottomright']),
+            map_object_json['info'])
 
     def _create_tag(self, tag_json):
         return Tag(tag_json['tag_type'], self._create_pos(tag_json['position']),

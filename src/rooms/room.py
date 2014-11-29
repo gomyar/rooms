@@ -23,10 +23,11 @@ class Tag(object):
 
 
 class RoomObject(object):
-    def __init__(self, object_type, topleft, bottomright):
+    def __init__(self, object_type, topleft, bottomright, info):
         self.object_type = object_type
         self.topleft = topleft
         self.bottomright = bottomright
+        self.info = info
 
     def __repr__(self):
         return "<RoomObject %s at %s/%s>" (self.object_type, self.topleft,
