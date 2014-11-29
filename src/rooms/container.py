@@ -263,7 +263,7 @@ class Container(object):
         player.state._set_actor(player)
         player.path = data['path']
         player.vector = data['vector']
-        player.speed = data['speed']
+        player._speed = data['speed']
         return player
 
     # Room
@@ -310,7 +310,7 @@ class Container(object):
         actor.state._set_actor(actor)
         actor.path = data['path']
         actor.vector = data['vector']
-        actor.speed = data['speed']
+        actor._speed = data['speed']
         return actor
 
     # Script

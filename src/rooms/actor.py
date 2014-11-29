@@ -27,7 +27,7 @@ class Actor(object):
         self.path = []
         self.vector = create_vector(Position(0, 0), Position(0, 0))
         self.script = script
-        self.speed = 1.0
+        self._speed = 1.0
         self.username = username
         self.is_player = False
         self.docked_actors = set()
@@ -56,11 +56,23 @@ class Actor(object):
     def move_to(self, position, path=None):
         self.path = path or self.room.find_path(self.position, position)
         self._kill_move_gthread()
+        self._start_move_gthread()
+
+    def _start_move_gthread(self):
         self._move_gthread = gevent.spawn(self._move_update)
 
     def move_wait(self, position, path=None):
         self.move_to(position, path)
         self.sleep(self._calc_end_time())
+
+    @property
+    def speed(self):
+        return self._speed
+
+    @speed.setter
+    def speed(self, s):
+        self._speed = float(s)
+        self.move_to(self.path[-1])
 
     def _kill_move_gthread(self):
         self._safe_kill_gthread(self._move_gthread)
@@ -87,7 +99,7 @@ class Actor(object):
         from_point = self.path[0]
         total = 0
         for to_point in self.path[1:]:
-            total += time_to_position(from_point, to_point, self.speed)
+            total += time_to_position(from_point, to_point, self._speed)
             from_point = to_point
         return total
 
@@ -113,10 +125,10 @@ class Actor(object):
         from_time = Timer.now()
         for to_point in self.path[1:]:
             end_time = from_time + \
-                time_to_position(from_point, to_point, self.speed)
+                time_to_position(from_point, to_point, self._speed)
             previous_vector = self.vector
             self.vector = Vector(from_point, from_time, to_point, end_time)
-            self.vector = create_vector(from_point, to_point, self.speed)
+            self.vector = create_vector(from_point, to_point, self._speed)
             self.room.vision.actor_vector_changed(self, previous_vector)
             from_point = to_point
             from_time = end_time

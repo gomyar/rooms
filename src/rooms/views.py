@@ -42,6 +42,7 @@ class JsonView(object):
             game_id=actor.game_id,
             state=actor.state,
             vector=actor.vector,
+            speed=actor.speed,
             actor_type=actor.actor_type,
             username=actor.username,
             docked_with=actor.docked_with.actor_id if \
