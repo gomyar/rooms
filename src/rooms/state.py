@@ -47,6 +47,9 @@ class SyncDict(object):
         for name in self.keys():
             yield name
 
+    def update(self, values):
+        self._data.update(values)
+
 
 class SyncList(object):
     def __init__(self, data=None, public=True):

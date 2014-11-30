@@ -74,8 +74,10 @@ class Container(object):
         self._load_actors_for_room(room, game_id, room_id)
         return room
 
-    def create_actor(self, room, actor_type, script_name, username=None):
+    def create_actor(self, room, actor_type, script_name, username=None,
+            state=None):
         actor = Actor(room, actor_type, script_name, username)
+        actor.state.update(state or {})
         self.save_actor(actor)
         return actor
 

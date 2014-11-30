@@ -30,7 +30,7 @@ class RoomObject(object):
         self.info = info
 
     def __repr__(self):
-        return "<RoomObject %s at %s/%s>" (self.object_type, self.topleft,
+        return "<RoomObject %s at %s/%s>" % (self.object_type, self.topleft,
             self.bottomright)
 
 
@@ -85,10 +85,10 @@ class Room(object):
         for actor in self.actors.values():
             actor.kick()
 
-    def create_actor(self, actor_type, script_name, player=None, position=None):
+    def create_actor(self, actor_type, script_name, player=None, position=None, state=None):
         script = self.node.scripts[script_name]
         actor = self.node.container.create_actor(self, actor_type, script,
-            player.username if player else None)
+            player.username if player else None, state)
         actor.script.call("created", actor)
         actor.kick()
         self.put_actor(actor, position)
