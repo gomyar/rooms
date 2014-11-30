@@ -105,7 +105,7 @@ class GridVision(object):
     def actor_state_changed(self, actor):
         self.actor_update(actor)
 
-    def actor_vector_changed(self, actor, previous):
+    def actor_vector_changed(self, actor):
         self._admin_update(actor)
         current_area = self.actor_map[actor.actor_id]
         new_area = self.area_at(actor.vector.start_pos)
@@ -146,11 +146,11 @@ class GridVision(object):
                 for queue in self.actor_queues[actor.actor_id]:
                     for area in removed_areas:
                         for a in area.actors:
-                            if a.actor_id != actor.actor_id:
+                            if a.visible and a.actor_id != actor.actor_id:
                                 queue.put(command_remove(a))
                     for area in added_areas:
                         for a in area.actors:
-                            if a.actor_id != actor.actor_id:
+                            if a.visible and a.actor_id != actor.actor_id:
                                 queue.put(command_update(a))
                 self._send_command(actor.actor_id, command_update(actor))
 
@@ -203,7 +203,8 @@ class GridVision(object):
         queue.put(self._sync_message(actor))
         for area in self.area_for_actor(actor).linked:
             for a in area.actors:
-                queue.put(command_update(a))
+                if a.visible or a.actor_id == actor.actor_id:
+                    queue.put(command_update(a))
 
     def _sync_message(self, actor):
         return {"command": "sync", "data": {"now": Timer.now(),

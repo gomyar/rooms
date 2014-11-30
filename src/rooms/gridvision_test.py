@@ -99,13 +99,11 @@ class GridVisionTest(unittest.TestCase):
 
         # change vector to area outside vision distance
         self.actor1.vector = build_vector(35, 35, 45, 45)
-        previous = build_vector(21, 21, 21, 21)
-        self.vision.actor_vector_changed(self.actor1, previous)
+        self.vision.actor_vector_changed(self.actor1)
 
         self.assertEquals("remove_actor", queue.get_nowait()['command'])
 
     def testActorMovesIntoVisionArea(self):
-        previous = build_vector(35, 35, 45, 45)
         self.actor1.position = Position(35, 35)
         self.lactor.vector = build_vector(11, 11, 15, 15)
 
@@ -116,14 +114,13 @@ class GridVisionTest(unittest.TestCase):
 
         # change vector to area outside vision distance
         self.actor1.vector = build_vector(21, 21, 25, 25)
-        self.vision.actor_vector_changed(self.actor1, previous)
+        self.vision.actor_vector_changed(self.actor1)
 
         command = queue.get_nowait()
         self.assertEquals("actor_update", command['command'])
         self.assertEquals("actor1", command['actor_id'])
 
     def testActorMovesInNonVisibleAreas(self):
-        previous = build_vector(35, 35, 45, 45)
         self.actor1.position = Position(35, 35)
         self.lactor.vector = build_vector(11, 11, 15, 15)
 
@@ -134,14 +131,13 @@ class GridVisionTest(unittest.TestCase):
 
         # change vector to area outside vision distance
         self.actor1.vector = build_vector(45, 45, 55, 55)
-        self.vision.actor_vector_changed(self.actor1, previous)
+        self.vision.actor_vector_changed(self.actor1)
 
         self.assertTrue(queue.empty())
 
     def testPlayerActorMovesIntoVisionArea(self):
         self.actor1.position = Position(35, 35)
-        previous = build_vector(11, 11, 15, 15)
-        self.lactor.vector = previous
+        self.lactor.vector = build_vector(11, 11, 15, 15)
 
         # add actors and listener
         queue = self.vision.connect_vision_queue("listener1")
@@ -150,7 +146,7 @@ class GridVisionTest(unittest.TestCase):
 
         # change vector to area outside vision distance
         self.lactor.vector = build_vector(25, 25, 30, 30)
-        self.vision.actor_vector_changed(self.lactor, previous)
+        self.vision.actor_vector_changed(self.lactor)
 
         self.assertEquals("actor_update", queue.get_nowait()['command'])
         self.assertEquals(set(["listener1"]),
@@ -164,8 +160,7 @@ class GridVisionTest(unittest.TestCase):
 
         # change vector to area outside vision distance
         self.lactor.vector = build_vector(41, 41, 55, 55)
-        self.vision.actor_vector_changed(self.lactor,
-            build_vector(25, 25, 30, 30))
+        self.vision.actor_vector_changed(self.lactor)
 
         remove_event = queue.get_nowait()
         self.assertEquals("remove_actor", remove_event['command'])
@@ -180,16 +175,14 @@ class GridVisionTest(unittest.TestCase):
 
         # change vector to area outside vision distance
         self.lactor.vector = build_vector(1, 1, 5, 5)
-        previous = build_vector(11, 11, 15, 15)
-        self.vision.actor_vector_changed(self.lactor, previous)
+        self.vision.actor_vector_changed(self.lactor)
 
         self.assertEquals("actor_update", queue.get_nowait()['command'])
 
     def testMovesMoreThanOneArea(self):
         # same as move into vision test but moves longer distance
         self.actor1.position = Position(85, 85)
-        previous = build_vector(11, 11, 15, 15)
-        self.lactor.vector = previous
+        self.lactor.vector = build_vector(11, 11, 15, 15)
 
         # add actors and listener
         queue = self.vision.connect_vision_queue("listener1")
@@ -198,7 +191,7 @@ class GridVisionTest(unittest.TestCase):
 
         # change vector to area outside vision distance
         self.lactor.vector = build_vector(85, 85, 95, 95)
-        self.vision.actor_vector_changed(self.lactor, previous)
+        self.vision.actor_vector_changed(self.lactor)
 
         self.assertEquals("actor_update", queue.get_nowait()['command'])
         self.assertEquals("actor_update", queue.get_nowait()['command'])
@@ -291,8 +284,7 @@ class GridVisionTest(unittest.TestCase):
 
         self.assertEquals(command_update(self.actor1), admin.get_nowait())
 
-        previous = Vector(Position(2, 2), 0, Position(4, 4), 1)
-        self.vision.actor_vector_changed(self.actor1, previous)
+        self.vision.actor_vector_changed(self.actor1)
         self.assertEquals(command_update(self.actor1), queue.get_nowait())
 
         self.assertEquals(command_update(self.actor1), admin.get_nowait())
@@ -368,4 +360,24 @@ class GridVisionTest(unittest.TestCase):
         self.vision.actor_removed(self.lactor)
 
         self.assertEquals("remove_actor", queue.get_nowait()['command'])
+        self.assertTrue(queue.empty())
+
+    def testListenerMoveIntoVisionAreaOfInvisibleActor(self):
+        self.actor1.position = Position(35, 35)
+        self.lactor.vector = build_vector(11, 11, 15, 15)
+        self.actor1.visible = False
+
+        # add actor and listener
+        queue = self.vision.connect_vision_queue("listener1")
+        self.assertEquals("sync", queue.get_nowait()['command'])
+        self.assertEquals("actor_update", queue.get_nowait()['command'])
+
+        # change vector to area outside vision distance
+        self.lactor.vector = build_vector(21, 21, 25, 25)
+        self.vision.actor_vector_changed(self.lactor)
+
+        command = queue.get_nowait()
+        self.assertEquals("actor_update", command['command'])
+        self.assertEquals("listener1", command['actor_id'])
+
         self.assertTrue(queue.empty())
