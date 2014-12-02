@@ -40,6 +40,11 @@ class GameController(object):
     def actor_call(self, game_id, token, method, **kwargs):
         return self.node.actor_call(game_id, token, method, **kwargs)
 
+    @request
+    def actor_request(self, game_id, token, actor_id, method, **kwargs):
+        return self.node.actor_request(game_id, token, actor_id, method,
+            **kwargs)
+
     @websocket
     def admin_connects(self, ws, token):
         return self.node.admin_connects(ws, token)
@@ -256,6 +261,19 @@ class Node(object):
         actor = room.actors[player_conn.actor_id]
         if actor.script.has_method(method):
             actor.script_call(method, actor, **kwargs)
+        else:
+            raise Exception("No such method %s" % (method,))
+
+    def actor_request(self, game_id, token, actor_id, method, **kwargs):
+        if token not in self.connections:
+            raise Exception("Invalid token for player")
+        player_conn = self.connections[token]
+        room = self.rooms[player_conn.game_id, player_conn.room_id]
+        actor = room.actors[actor_id]
+        log.debug("request in room: %s - %s", room, player_conn)
+        player = room.actors[player_conn.actor_id]
+        if actor.script.has_method(method):
+            return actor.script_request(method, actor, player, **kwargs)
         else:
             raise Exception("No such method %s" % (method,))
 

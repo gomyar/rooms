@@ -112,9 +112,12 @@ class Actor(object):
         self._script_gthread = gevent.spawn(self._checked_script_call, method,
             *args, **kwargs)
 
+    def script_request(self, method, *args, **kwargs):
+        return self._checked_script_call(method, *args, **kwargs)
+
     def _checked_script_call(self, method, *args, **kwargs):
         try:
-            self.script.call(method, *args, **kwargs)
+            return self.script.call(method, *args, **kwargs)
         except GreenletExit, ge:
             pass
         except:
