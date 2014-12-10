@@ -34,6 +34,8 @@ class StateTest(unittest.TestCase):
         self.state['inner']['field1'] = "value1"
 
         self.assertEquals(2, self.actor.updates)
+        self.assertTrue('inner' in self.state)
+        self.assertTrue('field1' in self.state['inner'])
 
     def testWrapBasicTypes(self):
         self.state['list_field'] = SyncList([1, 2, 3])

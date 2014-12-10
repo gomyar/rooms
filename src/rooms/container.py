@@ -47,6 +47,7 @@ class Container(object):
 
     def load_room(self, game_id, room_id):
         room = self._load_filter_one("rooms", game_id=game_id, room_id=room_id)
+        room.item_registry = self.item_registry
         self._load_actors_for_room(room, game_id, room_id)
         return room
 
@@ -70,6 +71,7 @@ class Container(object):
             raise Exception("Room %s %s already exists" % (game_id, room_id))
         room = self.room_factory.create(game_id, room_id)
         room.geography = self.geography
+        room.item_registry = self.item_registry
         self.save_room(room)
         self._load_actors_for_room(room, game_id, room_id)
         return room

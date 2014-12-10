@@ -60,6 +60,7 @@ class Room(object):
         self.vision = GridVision(self, self.width)
         self.state = dict()
         self.info = dict()
+        self.item_registry = None
 
     def __repr__(self):
         return "<Room %s %s>" % (self.game_id, self.room_id)
