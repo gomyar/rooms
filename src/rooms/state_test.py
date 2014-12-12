@@ -56,7 +56,7 @@ class StateTest(unittest.TestCase):
         self.assertEquals(3, self.actor.updates)
 
     def testWrapDict(self):
-        self.state['dict_field'] = SyncDict({'a': 1, 'b': 2, 'c': 3})
+        self.state['dict_field'] = {'a': 1, 'b': 2, 'c': 3, 'd': {'e': 5}}
 
         self.assertEquals(1, self.actor.updates)
 
@@ -64,9 +64,14 @@ class StateTest(unittest.TestCase):
 
         self.assertEquals(2, self.actor.updates)
 
+        self.state.dict_field['d']['e'] = 25
+
+        self.assertEquals(3, self.actor.updates)
+
         self.assertEquals(1, self.state.dict_field['a'])
         self.assertEquals(15, self.state.dict_field['b'])
         self.assertEquals(3, self.state.dict_field['c'])
+        self.assertEquals(25, self.state.dict_field['d']['e'])
 
     def testSetActor(self):
         self.actor2 = MockActor()

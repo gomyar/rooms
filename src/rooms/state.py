@@ -5,6 +5,8 @@ class SyncDict(object):
         self._data = data or {}
         self._actor = None
         self._public = public
+        for key, value in self._data.items():
+            self._data[key] = self._wrap(value)
 
     def __eq__(self, rhs):
         return self._data == rhs
@@ -27,10 +29,17 @@ class SyncDict(object):
         else:
             self.__setitem__(name, value)
 
+    def _wrap(self, value):
+        if isinstance(value, dict):
+            return SyncDict(value)
+        else:
+            return value
+
     def __getitem__(self, name):
         return self._data.get(name, None)
 
     def __setitem__(self, name, value):
+        value = self._wrap(value)
         if isinstance(value, (SyncDict, SyncList)):
             value._set_actor(self._actor)
         self._data[name] = value

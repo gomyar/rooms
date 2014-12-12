@@ -11,6 +11,8 @@ from urllib2 import URLError, HTTPError
 from functools import wraps
 from mimetypes import guess_type
 
+from rooms.state import SyncDict
+
 from gevent import pywsgi
 from geventwebsocket.handler import WebSocketHandler
 
@@ -190,7 +192,7 @@ class WSGIRPCServer(object):
 
     def _json_return(self, response, returned):
         if returned != None:
-            returned = json.dumps(returned)
+            returned = json.dumps(returned, default=self._encode_result)
         else:
             returned = "[]"
         headers = [
@@ -200,6 +202,9 @@ class WSGIRPCServer(object):
         self._add_optional_headers(headers)
         response('200 OK', headers)
         return returned
+
+    def _encode_result(self, obj):
+        return obj._data if isinstance(obj, SyncDict) else obj
 
     def _add_optional_headers(self, headers):
         if self.access_control_header:
