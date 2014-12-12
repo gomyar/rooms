@@ -141,11 +141,12 @@ class NodeTest(unittest.TestCase):
             "bob")
         self.container.save_actor(self.player1)
         self.node.manage_room("game1", "map1.room1")
-        self.assertEquals([
+        expected = [
             {'actors': [('id1',
               {u'actor_id': u'id1',
                u'actor_type': u'player',
                u'game_id': u'game1',
+               u'speed': 1.0,
                u'state': {},
                u'username': u'bob',
                u'docked_with': None,
@@ -158,7 +159,8 @@ class NodeTest(unittest.TestCase):
                                           u'z': 0.0},
                            u'start_time': 0.0}})],
               'game_id': 'game1',
-              'room_id': 'map1.room1'}],
+              'room_id': 'map1.room1'}]
+        self.assertEquals(expected,
             self.node.all_rooms())
 
     def testRequestToken(self):
@@ -169,20 +171,6 @@ class NodeTest(unittest.TestCase):
         self.node.manage_room("game1", "map1.room1")
         token = self.node.request_token("bob", "game1")
         self.assertEquals("TOKEN1", token)
-
-    def testRequestTokenInvalidPlayer(self):
-        self.node.manage_room("game1", "map1.room2")
-        self.player1 = PlayerActor(self.room1, "player", MockScript(),
-            "bob")
-        self.container.save_actor(self.player1)
-        self.assertRaises(RPCException, self.node.request_token, "bob", "game1")
-
-    def testRequestTokenNoSuchPlayer(self):
-        self.node.manage_room("game1", "map1.room2")
-        self.player1 = PlayerActor(self.room1, "player", MockScript(),
-            "bob")
-        self.container.save_actor(self.player1)
-        self.assertRaises(RPCException, self.node.request_token, "bob", "game1")
 
     def testPlayerConnects(self):
         ws = MockWebsocket()
@@ -237,37 +225,6 @@ class NodeTest(unittest.TestCase):
         except Exception, e:
             self.assertEquals("Invalid token for player", str(e))
 
-    def testActorEntered(self):
-        self.node.manage_room("game1", "map1.room1")
-
-        actor = Actor(None, "test_actor", MockScript())
-        actor._room_id = "map1.room1"
-        actor._game_id = "game1"
-        self.container.save_actor(actor)
-
-        self.node.actor_enters_node("id1")
-
-        room = self.node.rooms['game1', 'map1.room1']
-        self.assertEquals(actor.actor_id, room.actors['id1'].actor_id)
-        self.assertEquals(actor.room_id, room.actors['id1'].room_id)
-
-    def testActorEntersDeactivatedRoom(self):
-        self.node.manage_room("game1", "map1.room1")
-
-        actor = Actor(None, "test_actor", MockScript())
-        actor._room_id = "map1.room1"
-        actor._game_id = "game1"
-        self.container.save_actor(actor)
-
-        room = self.node.rooms["game1", "map1.room1"]
-        room.online = False
-
-        try:
-            self.node.actor_enters_node("id1")
-            self.fail("Should have thrown")
-        except RPCWaitException, rpcwe:
-            self.assertEquals("Room offline game1-map1.room1", str(rpcwe))
-
     def testPlayerJoinsActorCreatedConnectionCreated(self):
         self.node.manage_room("game1", "map1.room1")
 
@@ -282,9 +239,9 @@ class NodeTest(unittest.TestCase):
         self.assertEquals("ned",
             self.node.rooms['game1', 'map1.room1'].actors['id1'].username)
         self.assertEquals("id1",
-            self.node.player_connections['ned', 'game1'].actor.actor_id)
+            self.node.player_connections['ned', 'game1'].actor_id)
 
-    def testRoomManagedWithPlayerActorsPlayerConnectionsCreated(self):
+    def testRoomManagedWithPlayerActorsNoPlayerConnectionsCreated(self):
         self.player1 = PlayerActor(self.room1, "player", MockScript(),
             "bob")
         self.container.save_actor(self.player1)
@@ -292,14 +249,12 @@ class NodeTest(unittest.TestCase):
         self.node.manage_room("game1", "map1.room1")
 
         self.assertEquals(1, len(self.node.rooms['game1', 'map1.room1'].actors))
-        self.assertEquals(1, len(self.node.player_connections))
+        self.assertEquals(0, len(self.node.player_connections))
 
         self.assertEquals(PlayerActor,
             type(self.node.rooms['game1', 'map1.room1'].actors['id1']))
         self.assertEquals("bob",
             self.node.rooms['game1', 'map1.room1'].actors['id1'].username)
-        self.assertEquals("id1",
-            self.node.player_connections['bob', 'game1'].actor.actor_id)
 
     def testLoadScriptsFromPath(self):
         script_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -324,8 +279,7 @@ class NodeTest(unittest.TestCase):
         self.assertEquals("bob", actor.username)
 
         # assert player connections exist
-        self.assertEquals(self.node.player_connections["bob", "game1"].actor,
-            actor)
+        self.assertEquals(self.node.player_connections, {})
 
     def testManageRoomWithPlayersNotYetCreated(self):
         # save player
@@ -343,8 +297,7 @@ class NodeTest(unittest.TestCase):
         self.assertEquals("bob", actor.username)
 
         # assert player connections exist
-        self.assertEquals(self.node.player_connections["bob", "game1"].actor,
-            actor)
+        self.assertEquals(self.node.player_connections, {})
 
     def testActorMovesRoom(self):
         # manage room2
@@ -355,16 +308,17 @@ class NodeTest(unittest.TestCase):
         # assert player actors in room2
         room1 = self.node.rooms["game1", "map1.room1"]
         room2 = self.node.rooms["game1", "map1.room2"]
-        actor = self.node.connections[token].actor
+        actor = room1.actors[self.node.connections[token].actor_id]
 
-        player_conn = PlayerConnection("game1", "bob", room1, actor, "TOKEN1")
-        self.node.player_connections['player1', 'game1'] = player_conn
-        queue = player_conn.new_queue()
-        room1.vision.add_listener(player_conn)
+        queue = room1.vision.connect_vision_queue("id1")
 
-        self.node._move_actor_room(actor, "game1", "map1.room2", Position(10, 10))
+        room1.move_actor_room(actor, "map1.room2", Position(10, 10))
 
         self.assertEquals("sync", queue.get_nowait()['command'])
+        self.assertEquals("actor_update", queue.get_nowait()['command'])
+        self.assertEquals("actor_update", queue.get_nowait()['command'])
+        self.assertEquals("move_room", queue.get_nowait()['command'])
+        self.assertEquals("remove_actor", queue.get_nowait()['command'])
 
         # maybe add another listener in the second room later
 
@@ -411,101 +365,22 @@ class NodeTest(unittest.TestCase):
             ]
         , self.mock_rpc.called)
 
-    def testHandleRPCWaitExceptionOnActorEntersForNPC(self):
-        self.mock_rpc.exceptions['actor_entered'] = HTTPError("/actor_enters",
-            503, "Service Unavailable", {"retry-after": "3"}, None)
-
-        self.node.manage_room("game1", "map1.room1")
-
-        room1 = self.node.rooms["game1", "map1.room1"]
-        actor = room1.create_actor("npc", "mock_script")
-
-        self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
-
-        # nothing happens
-        self.mock_rpc.exceptions['actor_entered'] = HTTPError("/actor_enters",
-            500, "Random Error", {}, None)
-
-        self.node.manage_room("game1", "map1.room1")
-
-        room1 = self.node.rooms["game1", "map1.room1"]
-        actor = room1.create_actor("npc", "mock_script")
-
-        self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
-
-        # nothing happens
-
-    def testHandleRPCWaitExceptionOnPlayerActorEnters(self):
-        self.mock_rpc.exceptions['actor_entered'] = HTTPError("/actor_enters",
-            503, "Service Unavailable", {"retry-after": "3"}, None)
-
-        self.node.manage_room("game1", "map1.room1")
-
-        room1 = self.node.rooms["game1", "map1.room1"]
-        actor = room1.create_actor("npc", "mock_script")
-
-        self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
-
-        room1 = self.node.rooms["game1", "map1.room1"]
-        actor = PlayerActor(room1, "player", MockScript(), "bob", "actor1",
-            "game1")
-        self.room1.put_actor(actor)
-
-        player_conn = PlayerConnection("game1", "bob", room1, actor, "TOKEN1")
-        self.node.player_connections['bob', 'game1'] = player_conn
-        queue = player_conn.new_queue()
-
-        self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
-
-        self.assertEquals({'command': 'redirect_to_master',
-            'master': ['master', 9000]},
-            queue.get_nowait())
-
-    def testHandleAnyExceptionOnPlayerActorEnters(self):
+    def testHandlePlayerActorEnters(self):
         self.mock_rpc.exceptions['actor_entered'] = Exception("anything")
 
         self.node.manage_room("game1", "map1.room1")
 
         room1 = self.node.rooms["game1", "map1.room1"]
+        queue = room1.vision.connect_vision_queue("id1")
         actor = room1.create_actor("npc", "mock_script")
 
-        self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
+        room1.move_actor_room(actor, "room2", Position(10, 10))
 
-        room1 = self.node.rooms["game1", "map1.room1"]
-        actor = PlayerActor(room1, "player", MockScript(), "bob", "actor1",
-            "game1")
-        self.room1.put_actor(actor)
-
-        player_conn = PlayerConnection("game1", "bob", room1, actor, "TOKEN1")
-        self.node.player_connections['bob', 'game1'] = player_conn
-        queue = player_conn.new_queue()
-
-        self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
-
-        self.assertEquals({'command': 'redirect_to_master',
-            'master': ['master', 9000]},
-            queue.get_nowait())
-
-    def testHandlePlayerActorEnters(self):
-        self.mock_rpc.expect['actor_entered'] = {"node": ["10.10.10.1", 8000],
-            "token": "TOKEN1"}
-
-        self.node.manage_room("game1", "map1.room1")
-
-        room1 = self.node.rooms["game1", "map1.room1"]
-        actor = PlayerActor(room1, "player", MockScript(), "bob", "actor1",
-            "game1")
-        self.room1.put_actor(actor)
-
-        player_conn = PlayerConnection("game1", "bob", room1, actor, "TOKEN1")
-        self.node.player_connections['bob', 'game1'] = player_conn
-        queue = player_conn.new_queue()
-
-        self.node._move_actor_room(actor, "game1", "room2", Position(10, 10))
-
-        self.assertEquals({'command': 'redirect', 'node': ['10.10.10.1', 8000],
-            'token': 'TOKEN1'},
-            queue.get_nowait())
+        self.assertEquals("sync", queue.get_nowait()["command"])
+        self.assertEquals("actor_update", queue.get_nowait()["command"])
+        self.assertEquals("actor_update", queue.get_nowait()["command"])
+        self.assertEquals("move_room", queue.get_nowait()["command"])
+        self.assertEquals("remove_actor", queue.get_nowait()["command"])
 
     def testDeactivateRoom(self):
         self.node.manage_room("game1", "map1.room1")
@@ -535,25 +410,27 @@ class NodeTest(unittest.TestCase):
         token = self.node.request_admin_token("game1", "map1.room1")
 
         room1 = self.node.rooms["game1", "map1.room1"]
-        self.assertEquals(room1, self.node.admin_connections[token].room)
-        self.assertEquals(1, len(self.node._admin_connections_for(room1)))
+        self.assertEquals("map1.room1", self.node.admin_connections[token].room_id)
 
     def testPropagateActorEvents(self):
         self.node.manage_room("game1", "map1.room1")
+        room = self.node.rooms["game1", "map1.room1"]
+        queue = room.vision.connect_vision_queue("id1")
         token = self.node.player_joins("ned", "game1", "map1.room1")
-        queue = self.node.connections[token].new_queue()
-        actor = self.node.connections[token].actor
+        actor = room.actors.values()[0]
 
+        self.assertEquals("sync", queue.get_nowait()['command'])
+        self.assertEquals("actor_update", queue.get_nowait()['command'])
         self.assertTrue(queue.empty())
 
         actor.state.something = "value"
         self.assertEquals('actor_update', queue.get_nowait()['command'])
 
         actor.visible = False
-        self.assertEquals('remove_actor', queue.get_nowait()['command'])
+        self.assertEquals('actor_update', queue.get_nowait()['command'])
 
         actor.state.something = "value"
-        self.assertTrue(queue.empty())
+        self.assertEquals('actor_update', queue.get_nowait()['command'])
 
         actor.visible = True
         self.assertEquals('actor_update', queue.get_nowait()['command'])

@@ -321,6 +321,5 @@ class ContainerTest(unittest.TestCase):
             "end_time": 10,
             }, "script_name": "mock_script"}
 
-        limbo_list = self.container.load_limbo_actors("room1")
-        self.assertEquals(1, len(limbo_list))
-        self.assertEquals("actor2", limbo_list[0].actor_id)
+        actor = self.container.load_limbo_actor("games_0", "room1")
+        self.assertEquals("actor2", actor.actor_id)

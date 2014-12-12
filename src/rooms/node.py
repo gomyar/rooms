@@ -110,6 +110,7 @@ class Node(object):
         self.container = None
         self.room_factory = None
         self._report_gthread = None
+        self._actorload_gthread = None
 
     def load_scripts(self, script_path):
         self.scripts.load_scripts(script_path)
@@ -171,7 +172,7 @@ class Node(object):
 
     def all_players(self):
         return [{"username": conn.username, "game_id": conn.game_id,
-            "room_id": conn.room.room_id, "token": conn.token} for conn in \
+            "room_id": conn.room_id, "token": conn.token} for conn in \
             self.player_connections.values()]
 
     def manage_room(self, game_id, room_id):
@@ -276,10 +277,6 @@ class Node(object):
             return actor.script_request(method, actor, player, **kwargs)
         else:
             raise Exception("No such method %s" % (method,))
-
-    def _admin_connections_for(self, room):
-        return [conn for conn in self.admin_connections.values() if \
-            conn.room == room]
 
     def _create_token(self):
         return str(uuid.uuid1())

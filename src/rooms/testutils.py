@@ -72,9 +72,9 @@ class MockDbase(object):
 
     def find_and_modify(self, collection_name, modify_name, modify_value,
             **search_fields):
-        objdata = self.filter(collection_name, **search_fields)
-        for data in objdata:
-            data[modify_name] = modify_value
+        objdata = self.filter_one(collection_name, **search_fields)
+        if objdata:
+            objdata[modify_name] = modify_value
         return objdata
 
 
@@ -294,10 +294,11 @@ class MockIDFactory(IDFactory):
         return "id%s" % self.index
 
 
-class MockPlayerConnection(object):
-    def __init__(self, actor):
+class MockGridVision(object):
+    def __init__(self):
         self.messages = []
-        self.actor = actor
+        self.gridsize = 10
+        self.actor_queues = []
 
     def actor_update(self, actor):
         self.messages.append(("actor_update", actor))
@@ -308,8 +309,8 @@ class MockPlayerConnection(object):
     def actor_state_changed(self, actor):
         self.messages.append(("actor_state_changed", actor))
 
-    def actor_vector_changed(self, actor, previous_vector):
-        self.messages.append(("actor_vector_changed", actor, previous_vector))
+    def actor_vector_changed(self, actor):
+        self.messages.append(("actor_vector_changed", actor))
 
     def actor_becomes_invisible(self, actor):
         self.messages.append(("actor_becomes_invisible", actor))
@@ -317,4 +318,8 @@ class MockPlayerConnection(object):
     def actor_becomes_visible(self, actor):
         self.messages.append(("actor_becomes_visible", actor))
 
+    def add_actor(self, actor):
+        pass
 
+    def remove_actor(self, actor):
+        pass

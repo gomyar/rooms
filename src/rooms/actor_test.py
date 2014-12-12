@@ -6,6 +6,7 @@ from rooms.position import Position
 from rooms.testutils import MockRoom
 from rooms.testutils import MockTimer
 from rooms.testutils import MockIDFactory
+from rooms.testutils import MockGridVision
 from rooms.timer import Timer
 from rooms.vector import Vector
 from rooms.room import Door
@@ -22,6 +23,8 @@ class ActorTest(unittest.TestCase):
             ActorTest))
         self.actor.state.log = []
         self.actor.room = self.mock_room
+        self.vision = MockGridVision()
+        self.mock_room.vision = self.vision
 
     def tearDown(self):
         MockTimer.teardown_mock()
@@ -72,9 +75,12 @@ class ActorTest(unittest.TestCase):
             Position(10, 0),
         ], self.actor.path)
 
+        self.assertEquals([], self.vision.messages)
+
         MockTimer.fast_forward(1)
 
-        self.assertEquals([self.actor, self.actor], self.mock_room._updates)
+        self.assertEquals([("actor_vector_changed", self.actor)],
+            self.vision.messages)
 
         self.assertEquals(Position(1.0, 0), self.actor.position)
 
@@ -92,11 +98,16 @@ class ActorTest(unittest.TestCase):
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals(self.actor, self.mock_room._updates[0])
+        self.assertEquals([("actor_vector_changed", self.actor)],
+            self.vision.messages)
 
         MockTimer.fast_forward(5)
 
-        self.assertEquals(self.actor, self.mock_room._updates[1])
+        self.assertEquals([
+            ("actor_vector_changed", self.actor),
+            ("actor_vector_changed", self.actor),
+            ],
+            self.vision.messages)
 
     def testSpeed(self):
         self.actor.speed = 2
@@ -112,7 +123,8 @@ class ActorTest(unittest.TestCase):
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals(self.actor, self.mock_room._updates[0])
+        self.assertEquals([("actor_vector_changed", self.actor)],
+            self.vision.messages)
 
     def testMoveWait(self):
         self.assertEquals(Position(0, 0), self.actor.position)
@@ -160,10 +172,12 @@ class ActorTest(unittest.TestCase):
         self.assertEquals([], self.mock_room._update_visible)
 
         self.actor.visible = False
-        self.assertEquals([self.actor], self.mock_room._update_invisible)
+        self.assertEquals(("actor_becomes_invisible", self.actor),
+            self.vision.messages[-1])
 
         self.actor.visible = True
-        self.assertEquals([self.actor], self.mock_room._update_visible)
+        self.assertEquals(("actor_becomes_visible", self.actor),
+            self.vision.messages[-1])
 
     def testDockingUpdates(self):
         self.actor2 = Actor(self.mock_room, "mock_actor", Script("actor_script",
@@ -171,18 +185,24 @@ class ActorTest(unittest.TestCase):
 
         self.actor2.dock_with(self.actor)
 
-        self.assertEquals([self.actor, self.actor2, self.actor],
-            self.mock_room._updates)
-        self.assertEquals([self.actor2], self.mock_room._update_invisible)
-        self.assertEquals([], self.mock_room._update_visible)
+        self.assertEquals([
+            ("actor_becomes_invisible", self.actor2),
+            ("actor_state_changed", self.actor2),
+            ("actor_state_changed", self.actor),
+            ],
+            self.vision.messages)
 
         self.actor2.undock()
 
-        self.assertEquals([self.actor, self.actor2, self.actor,
-            self.actor, self.actor2],
-            self.mock_room._updates)
-        self.assertEquals([self.actor2], self.mock_room._update_invisible)
-        self.assertEquals([self.actor2], self.mock_room._update_visible)
+        self.assertEquals([
+            ("actor_becomes_invisible", self.actor2),
+            ("actor_state_changed", self.actor2),
+            ("actor_state_changed", self.actor),
+            ("actor_state_changed", self.actor),
+            ("actor_state_changed", self.actor2),
+            ("actor_becomes_visible", self.actor2),
+            ],
+            self.vision.messages)
 
     def testSetPositionToOutsideRoomCorrectsPosition(self):
         self.mock_room.put_actor(self.actor)

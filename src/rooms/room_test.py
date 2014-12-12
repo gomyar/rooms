@@ -13,7 +13,7 @@ from rooms.testutils import MockIDFactory
 from rooms.geography.basic_geography import BasicGeography
 from rooms.player import PlayerActor
 from rooms.script import Script
-from rooms.testutils import MockPlayerConnection
+from rooms.testutils import MockGridVision
 
 
 class RoomTest(unittest.TestCase):
@@ -26,6 +26,8 @@ class RoomTest(unittest.TestCase):
             self.node)
         self.geography = MockGeog()
         self.room.geography = self.geography
+        self.vision = MockGridVision()
+        self.room.vision = self.vision
         MockIDFactory.setup_mock()
 
     def tearDown(self):
@@ -73,42 +75,23 @@ class RoomTest(unittest.TestCase):
         geography.setup(self.room)
 
         self.assertEquals(
-            [Position(10, 20), Position(30, 40)],
+            [Position(10, 20), Position(20, 30), Position(30, 40)],
             self.room.find_path(Position(10, 20), Position(30, 40)))
-
-    def testActorUpdate(self):
-        self.actor = MockActor("actor1")
-        self.room.put_actor(self.actor, Position(10, 10))
-
-        conn = MockPlayerConnection(self.actor)
-
-        self.room.vision.add_listener(conn)
-
-        self.room.actor_state_changed(self.actor)
-        self.assertEquals([("actor_state_changed", self.actor)], conn.messages)
-
-        self.room.actor_becomes_invisible(self.actor)
-        self.assertEquals([("actor_state_changed", self.actor),
-            ("actor_becomes_invisible", self.actor)], conn.messages)
-
-        self.room.actor_becomes_visible(self.actor)
-        self.assertEquals([
-            ("actor_state_changed", self.actor),
-            ("actor_becomes_invisible", self.actor),
-            ("actor_becomes_visible", self.actor),
-        ], conn.messages)
 
     def testActorEnterDoor(self):
         self.door = Door("room2", Position(5, 5), Position(10, 10))
         self.actor = MockActor("actor1")
+        self.room.put_actor(self.actor)
 
         self.room.doors.append(self.door)
-        self.room.actors["actor1"] = self.actor
+        actor = self.room.create_actor("mock_actor", "rooms.room_test")
 
-        self.room.actor_enters(self.actor, self.door)
+        self.room.actor_enters(actor, self.door)
 
-        self.assertEquals((self.actor, "game1", "room2", Position(10, 10)),
-            self.node._updates[0])
+        expected = [('actor_state_changed', actor),
+            ('actor_vector_changed', actor),
+            ('actor_removed', actor)]
+        self.assertEquals(expected, self.vision.messages)
 
     def testActorAddRemove(self):
         newactor1 = MockActor("new1")
@@ -126,13 +109,10 @@ class RoomTest(unittest.TestCase):
         listener = MockActor("listener1")
         self.room.put_actor(newactor1, Position(5, 5))
         self.room.put_actor(listener, Position(1, 1))
-        conn = MockPlayerConnection(listener)
-
-        self.room.vision.add_listener(conn)
 
         self.room.remove_actor(newactor1)
 
-        self.assertEquals([("actor_removed", newactor1)], conn.messages)
+        self.assertEquals([("actor_removed", newactor1)], self.vision.messages)
 
     def testFindTags(self):
         tag1 = Tag("tag.room.1", Position(0, 0), {"field": "1"})
@@ -172,40 +152,3 @@ class RoomTest(unittest.TestCase):
         self.assertEquals([
             Position(0, 0), Position(3, 4),
         ], path)
-
-    def testAddRemoveActorFromVision(self):
-        # add actor
-        newactor1 = MockActor("new1")
-        self.room.put_actor(newactor1, Position(5, 5))
-
-        # assert actor added to room, vision.actor_map, area(s)
-        area = self.room.vision.area_at(Position(5, 5))
-        self.assertEquals(area, self.room.vision.actor_map[newactor1])
-        self.assertEquals(set([newactor1]), area.actors)
-        # fire events, no listeners attached but no exceptions thrown
-        self.room.vision.actor_state_changed(newactor1)
-
-        # remove actor
-        self.room.remove_actor(newactor1)
-        # assert actor removed from room, vision.actor_map, area(s)
-        self.assertEquals({}, self.room.vision.actor_map)
-        self.assertEquals(set(), area.actors)
-        # fire events, no listeners attached but no exceptions thrown
-
-        # add player_actor
-        # add listener
-        # assert listener is attached to player_actor
-        # fire events, assert listener gets them
-
-        # remove player_actor
-        # disconnect listener
-        #     should we disallow player_actor removal?
-
-        # move player_actor
-        # redirect listener
-        pass
-
-    def testListenerCanAttachWithNoPlayerActor(self):
-        # add listener
-        # assert listener is not attached to player_actor
-        pass
