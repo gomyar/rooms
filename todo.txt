@@ -1,4 +1,12 @@
 
+ - if an actor containing docked actors is removed from a room, all the docked
+   actors should be removed, and if applicable serialized to be loaded by the
+   next room
+
+ - add create_child() method on actor:
+   child actors are actors which are saved as inner objects in mongo
+   they act as docked actors
+
  - allow for invisible player actors to still receieve their own signals/events
 
  - change all objects and actors in a room to relative positioning
