@@ -77,8 +77,8 @@ class Container(object):
         return room
 
     def create_actor(self, room, actor_type, script_name, username=None,
-            state=None):
-        actor = Actor(room, actor_type, script_name, username)
+            state=None, visible=True):
+        actor = Actor(room, actor_type, script_name, username, visible=visible)
         actor.state.update(state or {})
         self.save_actor(actor)
         return actor

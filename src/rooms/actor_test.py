@@ -186,7 +186,6 @@ class ActorTest(unittest.TestCase):
         self.actor2.dock_with(self.actor)
 
         self.assertEquals([
-            ("actor_becomes_invisible", self.actor2),
             ("actor_state_changed", self.actor2),
             ("actor_state_changed", self.actor),
             ],
@@ -195,12 +194,10 @@ class ActorTest(unittest.TestCase):
         self.actor2.undock()
 
         self.assertEquals([
-            ("actor_becomes_invisible", self.actor2),
             ("actor_state_changed", self.actor2),
             ("actor_state_changed", self.actor),
             ("actor_state_changed", self.actor),
             ("actor_state_changed", self.actor2),
-            ("actor_becomes_visible", self.actor2),
             ],
             self.vision.messages)
 
@@ -212,3 +209,17 @@ class ActorTest(unittest.TestCase):
         self.actor.position = Position(-1, -1)
 
         self.assertEquals(Position(0, 0), self.actor.position)
+
+    def testCreateChildActor(self):
+        child = self.actor.create_actor("child", "actor_script")
+
+        self.assertEquals(self.actor.position, child.position)
+        self.assertEquals(self.actor, child.docked_with)
+        self.assertFalse(child.visible)
+
+        child = self.actor.create_actor("child", "actor_script", docked=False,
+            position=Position(5, 5), visible=True)
+
+        self.assertEquals(Position(5, 5), child.position)
+        self.assertEquals(None, child.docked_with)
+        self.assertTrue(child.visible)

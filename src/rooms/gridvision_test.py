@@ -381,3 +381,55 @@ class GridVisionTest(unittest.TestCase):
         self.assertEquals("listener1", command['actor_id'])
 
         self.assertTrue(queue.empty())
+
+    def testAddInvisibleActorNoEvent(self):
+        self.actor2 = Actor(None, None, None, actor_id="actor2", visible=False)
+        self.actor2.vector = build_vector(1, 1, 5, 5)
+
+        queue = self.vision.connect_vision_queue("listener1")
+
+        command = queue.get_nowait()
+        command = queue.get_nowait()
+        command = queue.get_nowait()
+        self.assertTrue(queue.empty())
+
+        self.vision.add_actor(self.actor2)
+
+        self.assertTrue(queue.empty())
+
+#    def testEventsForAllUsersActors(self):
+#        self.room = Room("game1", "map1.room1", Position(0, 0),
+#            Position(100, 100), None)
+#        self.vision = GridVision(self.room, 10)
+#        self.room.vision = self.vision
+#
+#        self.actor1 = Actor(None, None, None, username="bob", actor_id="actor1")
+#        self.actor1.vector = build_vector(1, 1, 5, 5)
+#        self.child1 = Actor(None, None, None, username="bob", actor_id="child1")
+#        self.child1.vector = build_vector(1, 31, 5, 5)
+#        self.actor2 = Actor(None, None, None, actor_id="actor2")
+#        self.actor2.vector = build_vector(31, 31, 15, 15)
+#
+#        self.room.put_actor(self.actor1)
+#        self.room.put_actor(self.child1)
+#        self.room.put_actor(self.actor2)
+#
+#        queue = self.vision.connect_vision_queue("actor1")
+#
+#        command = queue.get_nowait()
+#        self.assertEquals("sync", command['command'])
+#
+#        command = queue.get_nowait()
+#        self.assertEquals("actor_update", command['command'])
+#        self.assertEquals("actor1", command['actor_id'])
+#        command = queue.get_nowait()
+#        self.assertEquals("actor_update", command['command'])
+#        self.assertEquals("child1", command['actor_id'])
+#
+#        self.assertTrue(queue.empty())
+#
+#        self.child1.state.boo = "changed"
+#
+#        command = queue.get_nowait()
+#        self.assertEquals("actor_update", command['command'])
+#        self.assertEquals("child1", command['actor_id'])

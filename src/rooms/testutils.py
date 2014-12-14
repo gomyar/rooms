@@ -113,9 +113,13 @@ class MockRoom(Room):
     def actor_becomes_visible(self, actor):
         self._update_visible.append(actor)
 
-    def create_actor(self, actor_type, script_name, player=None):
+    def create_actor(self, actor_type, script_name, player=None, position=None,
+            state=None, visible=True):
         actor = MockActor("mock1")
         actor.room = self
+        actor.visible = visible
+        if position:
+            actor._set_position(position)
         actor.username = player.username if player else None
         self.actors[actor.actor_id] = actor
         return actor

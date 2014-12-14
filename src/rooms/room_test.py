@@ -63,6 +63,10 @@ class RoomTest(unittest.TestCase):
             position=Position(10, 10))
         self.assertEquals(actor.position, Position(10, 10))
 
+        actor = self.room.create_actor("invisible", "rooms.room_test",
+            visible=False)
+        self.assertFalse(actor.visible)
+
     def testFindPath(self):
         path = self.room.find_path(Position(1, 2), Position(3, 4))
         self.assertEquals([

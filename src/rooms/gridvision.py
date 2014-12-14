@@ -62,8 +62,9 @@ class GridVision(object):
         self.actor_map[actor.actor_id] = area
         for link in area.linked:
             for actor_id in link.actor_queues:
-                for queue in self.actor_queues[actor_id]:
-                    queue.put(command_update(actor))
+                if actor.visible:
+                    for queue in self.actor_queues[actor_id]:
+                        queue.put(command_update(actor))
         # sync connected queues
         if actor.actor_id in self.actor_queues:
             area.actor_queues.add(actor.actor_id)

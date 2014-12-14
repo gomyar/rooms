@@ -16,13 +16,14 @@ log = logging.getLogger("rooms.actor")
 
 class Actor(object):
     def __init__(self, room, actor_type, script, username=None,
-            actor_id=None, room_id=None, game_id=None):
+            actor_id=None, room_id=None, game_id=None, state=None,
+            visible=True):
         self.room = room
         self.actor_id = actor_id or IDFactory.create_id()
         self._room_id = room_id
         self._game_id = game_id
         self.actor_type = actor_type
-        self.state = SyncDict()
+        self.state = SyncDict(state or {})
         self.state._set_actor(self)
         self.path = []
         self.vector = create_vector(Position(0, 0), Position(0, 0))
@@ -35,7 +36,7 @@ class Actor(object):
 
         self._script_gthread = None
         self._move_gthread = None
-        self._visible = True
+        self._visible = visible
 
     def __repr__(self):
         return "<Actor %s %s in %s-%s owned by %s>" % (self.actor_type,
@@ -169,7 +170,6 @@ class Actor(object):
             self.undock()
         actor.docked_actors.add(self)
         self.docked_with = actor
-        self.visible = False
         self._send_state_changed()
         actor._send_state_changed()
 
@@ -195,3 +195,12 @@ class Actor(object):
         else:
             self.room.vision.actor_becomes_invisible(self)
             self._visible = isvisible
+
+    def create_actor(self, actor_type, script_name, position=None,
+            state=None, visible=False, docked=True):
+        actor = self.room.create_actor(actor_type, script_name,
+            player=self.username, position=position, state=state,
+            visible=visible)
+        if docked:
+            actor.dock_with(self)
+        return actor
