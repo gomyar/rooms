@@ -33,6 +33,7 @@ class Actor(object):
         self.is_player = False
         self.docked_actors = set()
         self.docked_with = None
+        self._docked_with = None
 
         self._script_gthread = None
         self._move_gthread = None
@@ -175,11 +176,11 @@ class Actor(object):
 
     def undock(self):
         if self.docked_with:
+            self.position = self.docked_with.position
             self.docked_with.docked_actors.remove(self)
             self.docked_with._send_state_changed()
             self.docked_with = None
             self._send_state_changed()
-            self.visible = True
 
     @property
     def visible(self):
@@ -196,10 +197,11 @@ class Actor(object):
             self.room.vision.actor_becomes_invisible(self)
             self._visible = isvisible
 
-    def create_actor(self, actor_type, script_name, position=None,
-            state=None, visible=False, docked=True):
+    def create_actor(self, actor_type, script_name, username=None,
+            position=None, state=None, visible=False, docked=True):
         actor = self.room.create_actor(actor_type, script_name,
-            player=self.username, position=position, state=state,
+            username=self.username,
+            position=self.position if docked else position, state=state,
             visible=visible)
         if docked:
             actor.dock_with(self)

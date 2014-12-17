@@ -76,6 +76,8 @@ class ContainerTest(unittest.TestCase):
               u'state': {},
               u'state': {u'__type__': u'SyncDict'},
               u'username': u'bob',
+              u'docked_with': None,
+              u'visible': True,
               u'vector': {u'__type__': u'Vector',
                           u'end_pos': {u'__type__': u'Position',
                                        u'x': 0.0,
@@ -138,6 +140,8 @@ class ContainerTest(unittest.TestCase):
             "actor_type": "test", "model_type": "model",
             "speed": 1.0,
             "username": "ned",
+            "docked_with": None,
+            "visible": True,
             'state': {u'__type__': u'SyncDict'},
             "path": [], "vector": {"__type__": "Vector",
             "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
@@ -152,6 +156,57 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals(room, room.actors.values()[0].room)
         self.assertEquals(self.node, room.node)
         self.assertEquals(0, len(room.doors))
+
+    def testLoadRoomDockedActors(self):
+        self.dbase.dbases['rooms'] = {}
+        self.dbase.dbases['rooms']['rooms_0'] = { "_id": "rooms_0",
+            "__type__": "Room", "room_id": "room1", "game_id": "games_0",
+            'state': {u'__type__': u'SyncDict'},
+            }
+        self.dbase.dbases['actors'] = {}
+        self.dbase.dbases['actors']['actor1'] = \
+            {"__type__": "Actor", "_id": "actor1", "actor_id": None,
+            "game_id": "games_0", "room_id": "room1",
+            "actor_type": "test", "model_type": "model",
+            "speed": 1.0,
+            "username": "ned",
+            "docked_with": None,
+            "visible": True,
+            'state': {u'__type__': u'SyncDict'},
+            "path": [], "vector": {"__type__": "Vector",
+            "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "start_time": 0,
+            "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
+            "end_time": 10,
+            }, "script_name": "mock_script"}
+        self.dbase.dbases['actors']['child1'] = \
+            {"__type__": "Actor", "_id": "child1", "actor_id": None,
+            "game_id": "games_0", "room_id": None,
+            "actor_type": "test", "model_type": "model",
+            "speed": 1.0,
+            "username": "ned",
+            "docked_with": "id1",
+            "visible": True,
+            'state': {u'__type__': u'SyncDict'},
+            "path": [], "vector": {"__type__": "Vector",
+            "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "start_time": 0,
+            "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
+            "end_time": 10,
+            }, "script_name": "mock_script"}
+        room = self.container.load_room("games_0", "room1")
+        self.assertEquals(self.geography, room.geography)
+        self.assertEquals(room, self.geography.room)
+        self.assertEquals(2, len(room.actors))
+        self.assertEquals(room, room.actors.values()[0].room)
+        self.assertEquals(self.node, room.node)
+        self.assertEquals(0, len(room.doors))
+
+        self.assertEquals("id1", room.actors['id1'].actor_id)
+        self.assertEquals("id2", room.actors['id2'].actor_id)
+        self.assertEquals(room.actors['id1'],
+            room.actors['id2'].docked_with)
+
 
     def testCreateRoom(self):
         room = self.container.create_room("game1", "room2")
@@ -179,7 +234,7 @@ class ContainerTest(unittest.TestCase):
         room_dict = self.dbase.dbases['rooms']['rooms_0']
         self.assertEquals('room1', room_dict['room_id'])
         actor_dict = self.dbase.dbases['actors']["actors_0"]
-        self.assertEquals({u'__type__': u'Actor',
+        expected = {u'__type__': u'Actor',
             '_id': 'actors_0',
             u'actor_id': "id1",
             u'actor_type': u'mock_actor',
@@ -189,6 +244,7 @@ class ContainerTest(unittest.TestCase):
             u'room_id': u'room1',
             u'script_name': u'mock_script',
             u'speed': 1.0,
+            u'docked_with': None,
             u'state': {u'__type__': u'SyncDict'},
             u'vector': {u'__type__': u'Vector',
                         u'end_pos': {u'__type__': u'Position',
@@ -200,8 +256,9 @@ class ContainerTest(unittest.TestCase):
                                         u'x': 0.0,
                                         u'y': 0.0,
                                         u'z': 0.0},
-                        u'start_time': 0}}
-            , actor_dict)
+                        u'start_time': 0},
+            u'visible': True}
+        self.assertEquals(expected, actor_dict)
 
     def testOkWeveGotTheIdea(self):
         self.container.save_room(Room("games_0", "rooms_0", Position(0, 0),
@@ -211,7 +268,7 @@ class ContainerTest(unittest.TestCase):
     def testSaveActor(self):
         room = self.container.create_room("game1", "room2")
         actor = room.create_actor("mock_actor", "mock_script")
-        self.container.save_actor(actor)
+#        self.container.save_actor(actor)
         self.assertEquals({u'__type__': u'Actor',
             '_id': 'actors_0',
             u'actor_id': "id1",
@@ -222,6 +279,8 @@ class ContainerTest(unittest.TestCase):
             u'room_id': u'room2',
             u'script_name': u'mock_script',
             u'speed': 1.0,
+            u'visible': True,
+            u'docked_with': None,
             u'state': {u'__type__': u'SyncDict'},
             u'vector': {u'__type__': u'Vector',
                         u'end_pos': {u'__type__': u'Position',
@@ -299,6 +358,8 @@ class ContainerTest(unittest.TestCase):
             "actor_type": "test", "model_type": "model",
             "speed": 1.0,
             "username": "ned",
+            "docked_with": None,
+            "visible": True,
             'state': {u'__type__': u'SyncDict'},
             "path": [], "vector": {"__type__": "Vector",
             "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
@@ -313,6 +374,8 @@ class ContainerTest(unittest.TestCase):
             "_loadstate": "limbo",
             "speed": 1.0,
             "username": "ned",
+            "docked_with": None,
+            "visible": True,
             'state': {u'__type__': u'SyncDict'},
             "path": [], "vector": {"__type__": "Vector",
             "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
@@ -323,3 +386,5 @@ class ContainerTest(unittest.TestCase):
 
         actor = self.container.load_limbo_actor("games_0", "room1")
         self.assertEquals("actor2", actor.actor_id)
+
+        self.assertEquals(None, self.container.load_limbo_actor("games_0", "room1"))

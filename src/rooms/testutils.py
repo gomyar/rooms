@@ -72,10 +72,13 @@ class MockDbase(object):
 
     def find_and_modify(self, collection_name, modify_name, modify_value,
             **search_fields):
-        objdata = self.filter_one(collection_name, **search_fields)
-        if objdata:
-            objdata[modify_name] = modify_value
-        return objdata
+        found = self.dbases.get(collection_name, dict()).values()
+        found = [o for o in found if all([i in o.items() for \
+            i in search_fields.items()])]
+        found = found[0] if found else None
+        if found:
+            found[modify_name] = modify_value
+        return found.copy() if found else None
 
 
 class MockRoom(Room):
@@ -114,10 +117,11 @@ class MockRoom(Room):
         self._update_visible.append(actor)
 
     def create_actor(self, actor_type, script_name, player=None, position=None,
-            state=None, visible=True):
+            state=None, visible=True, username=None):
         actor = MockActor("mock1")
         actor.room = self
         actor.visible = visible
+        actor.username = username
         if position:
             actor._set_position(position)
         actor.username = player.username if player else None

@@ -54,10 +54,15 @@ class Container(object):
     def _load_actors_for_room(self, room, game_id, room_id):
         log.debug("Load actors for room: %s %s", game_id, room_id)
         actors_list = self._load_filter("actors", game_id=game_id,
-            room_id=room_id)
+            room_id=room_id, docked_with=None)
         log.debug("Found %s actors", len(actors_list))
         for actor in actors_list:
+            docked_actors = self._load_filter("actors", game_id=game_id,
+                docked_with = actor.actor_id)
+            log.debug("Loaded docked actors: %s", docked_actors)
             room.put_actor(actor)
+            for docked in docked_actors:
+                room.put_actor(docked)
 
     def save_room(self, room):
         self._save_object(room, "rooms")
@@ -78,7 +83,8 @@ class Container(object):
 
     def create_actor(self, room, actor_type, script_name, username=None,
             state=None, visible=True):
-        actor = Actor(room, actor_type, script_name, username, visible=visible)
+        actor = Actor(room, actor_type, script_name, username, visible=visible,
+            game_id=room.game_id)
         actor.state.update(state or {})
         self.save_actor(actor)
         return actor
@@ -109,8 +115,15 @@ class Container(object):
 
     def load_limbo_actor(self, game_id, room_id):
         enc_actor = self.dbase.find_and_modify("actors", "_loadstate", "",
-            game_id=game_id, room_id=room_id, _loadstate="limbo")
+            game_id=game_id, room_id=room_id, _loadstate="limbo",
+            docked_with=None)
         return self._decode_enc_dict(enc_actor) if enc_actor else None
+
+    def load_docked_actors(self, game_id, parent_actor_id):
+        object_dicts = self.dbase.filter("actors", game_id=game_id,
+            docked_with=parent_actor_id)
+        objects = [self._decode_enc_dict(enc_dict) for enc_dict in object_dicts]
+        return objects
 
     def save_player(self, player):
         self._save_object(player, "actors")
@@ -135,10 +148,10 @@ class Container(object):
         return self._find_objects("games", "Game", **kwargs)
 
     def _find_objects(self, collection, object_type, **kwargs):
-        player_dicts = self.dbase.filter(collection, __type__=object_type,
+        object_dicts = self.dbase.filter(collection, __type__=object_type,
             **kwargs)
-        players = [self._decode_enc_dict(enc_dict) for enc_dict in player_dicts]
-        return players
+        objects = [self._decode_enc_dict(enc_dict) for enc_dict in object_dicts]
+        return objects
 
     def load_game(self, game_id):
         return self._load_object(game_id, "games")
@@ -299,22 +312,26 @@ class Container(object):
             room_id=actor.room_id,
             path=actor.path,
             vector=actor.vector,
+            visible=actor.visible,
             script_name=actor.script.script_name,
             actor_type=actor.actor_type,
             username=actor.username,
+            docked_with=actor.docked_with.actor_id if \
+                actor.docked_with else None,
             speed=actor.speed)
 
     def _build_actor(self, data):
         script = self.node.scripts[data['script_name']] if self.node else None
         actor = Actor(None, data['actor_type'],
-            script,
-            data['username'], actor_id=data['actor_id'],
+            script, visible=data['visible'],
+            username=data['username'], actor_id=data['actor_id'],
             room_id=data['room_id'], game_id=data['game_id'])
         actor.state = data['state']
         actor.state._set_actor(actor)
         actor.path = data['path']
         actor.vector = data['vector']
         actor._speed = data['speed']
+        actor._docked_with = data['docked_with']
         return actor
 
     # Script

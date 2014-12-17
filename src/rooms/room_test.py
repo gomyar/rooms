@@ -55,7 +55,7 @@ class RoomTest(unittest.TestCase):
 
         self.player = PlayerActor(self.room, "player", "rooms.room_test", "bob")
         actor2 = self.room.create_actor("mock_actor", "rooms.room_test",
-            player=self.player)
+            username=self.player.username)
         self.assertEquals("bob", actor2.username)
         self.assertEquals(self.script, actor.script)
 
@@ -93,7 +93,6 @@ class RoomTest(unittest.TestCase):
         self.room.actor_enters(actor, self.door)
 
         expected = [('actor_state_changed', actor),
-            ('actor_vector_changed', actor),
             ('actor_removed', actor)]
         self.assertEquals(expected, self.vision.messages)
 

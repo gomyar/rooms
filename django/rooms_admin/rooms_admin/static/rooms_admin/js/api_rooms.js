@@ -40,23 +40,32 @@ api_rooms.Actor.prototype._calc_d = function(start_d, end_d)
 
 api_rooms.Actor.prototype.x = function()
 {
-    return this._calc_d(this.vector.start_pos.x, this.vector.end_pos.x)
+    var vector = this.vector;
+    if (this.parent_actor())
+        vector = this.parent_actor().vector;
+    return this._calc_d(vector.start_pos.x, vector.end_pos.x)
 }
 
 api_rooms.Actor.prototype.y = function()
 {
-    return this._calc_d(this.vector.start_pos.y, this.vector.end_pos.y)
+    var vector = this.vector;
+    if (this.parent_actor())
+        vector = this.parent_actor().vector;
+    return this._calc_d(vector.start_pos.y, vector.end_pos.y)
 }
 
 api_rooms.Actor.prototype.z = function()
 {
-    return this._calc_d(this.vector.start_pos.z, this.vector.end_pos.z)
+    var vector = this.vector;
+    if (this.parent_actor())
+        vector = this.parent_actor().vector;
+    return this._calc_d(vector.start_pos.z, vector.end_pos.z)
 }
 
 api_rooms.Actor.prototype.parent_actor = function()
 {
-    if (this.parent_id != null && this.parent_id in api_rooms.actors)
-        return api_rooms.actors[this.parent_id];
+    if (this.docked_with != null && this.docked_with in api_rooms.actors)
+        return api_rooms.actors[this.docked_with];
     else
         return null;
 }

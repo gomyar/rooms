@@ -86,11 +86,11 @@ class Room(object):
         for actor in self.actors.values():
             actor.kick()
 
-    def create_actor(self, actor_type, script_name, player=None, position=None,
-            state=None, visible=True):
+    def create_actor(self, actor_type, script_name, username=None,
+            position=None, state=None, visible=True):
         script = self.node.scripts[script_name]
         actor = self.node.container.create_actor(self, actor_type, script,
-            player.username if player else None, state=state, visible=visible)
+            username=username, state=state, visible=visible)
         actor.script.call("created", actor)
         actor.kick()
         self.put_actor(actor, position)
@@ -98,6 +98,10 @@ class Room(object):
 
     def put_actor(self, actor, position=None):
         self.actors[actor.actor_id] = actor
+        if actor._docked_with:
+            parent = self.actors[actor._docked_with]
+            actor.docked_with = parent
+            parent.docked_actors.add(actor)
         actor.room = self
         actor._set_position(position or actor.position)
         actor.kick()
@@ -145,13 +149,24 @@ class Room(object):
 
     def actor_enters(self, actor, door):
         self.move_actor_room(actor, door.exit_room_id, door.exit_position)
+        # should move all docked actors as well, but may not be able
+        # to load them all in the correct order at the other end
 
     def move_actor_room(self, actor, room_id, exit_position):
+        # remove docked
+        # remove actor
+        # save all docked
+        # save actor
+        docked = list(actor.docked_actors)
+        self.remove_actor(actor)
+        for child in docked:
+            self.remove_actor(child)
+        for child in docked:
+            self.node.save_actor_to_other_room(room_id, exit_position, child)
         self.node.save_actor_to_other_room(room_id, exit_position, actor)
         if actor.actor_id in self.vision.actor_queues:
             for queue in self.vision.actor_queues[actor.actor_id]:
                 queue.put({"command": "move_room", "room_id": room_id})
-        self.remove_actor(actor)
 
     def remove_actor(self, actor):
         self.actors.pop(actor.actor_id)

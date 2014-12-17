@@ -56,7 +56,8 @@ class Script(object):
 
 class NullScript(Script):
     def __init__(self):
-        pass
+        self.script_name = ""
+        self.script_module = None
 
     def call(self, method, *args, **kwargs):
         pass

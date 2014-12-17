@@ -196,6 +196,7 @@ class ActorTest(unittest.TestCase):
         self.assertEquals([
             ("actor_state_changed", self.actor2),
             ("actor_state_changed", self.actor),
+            ("actor_vector_changed", self.actor2),
             ("actor_state_changed", self.actor),
             ("actor_state_changed", self.actor2),
             ],

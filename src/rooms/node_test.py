@@ -316,11 +316,32 @@ class NodeTest(unittest.TestCase):
 
         self.assertEquals("sync", queue.get_nowait()['command'])
         self.assertEquals("actor_update", queue.get_nowait()['command'])
-        self.assertEquals("actor_update", queue.get_nowait()['command'])
-        self.assertEquals("move_room", queue.get_nowait()['command'])
         self.assertEquals("remove_actor", queue.get_nowait()['command'])
+        self.assertEquals("move_room", queue.get_nowait()['command'])
 
         # maybe add another listener in the second room later
+
+    def testActorWithDockedActorsMovesRoom(self):
+        # manage room2
+        self.node.manage_room("game1", "map1.room1")
+        self.node.manage_room("game1", "map1.room2")
+        token = self.node.player_joins("ned", "game1", "map1.room1")
+
+        # assert player actors in room2
+        room1 = self.node.rooms["game1", "map1.room1"]
+        room2 = self.node.rooms["game1", "map1.room2"]
+        actor = room1.actors[self.node.connections[token].actor_id]
+        actor.create_actor("child1", "actor_script")
+
+        queue = room1.vision.connect_vision_queue("id1")
+
+        room1.move_actor_room(actor, "map1.room2", Position(10, 10))
+
+        self.assertEquals("sync", queue.get_nowait()['command'])
+        self.assertEquals("actor_update", queue.get_nowait()['command'])
+        self.assertEquals("remove_actor", queue.get_nowait()['command'])
+        self.assertEquals("move_room", queue.get_nowait()['command'])
+
 
     def testStartReport(self):
         self.node.start_reporting()
@@ -378,9 +399,8 @@ class NodeTest(unittest.TestCase):
 
         self.assertEquals("sync", queue.get_nowait()["command"])
         self.assertEquals("actor_update", queue.get_nowait()["command"])
-        self.assertEquals("actor_update", queue.get_nowait()["command"])
-        self.assertEquals("move_room", queue.get_nowait()["command"])
         self.assertEquals("remove_actor", queue.get_nowait()["command"])
+        self.assertEquals("move_room", queue.get_nowait()["command"])
 
     def testDeactivateRoom(self):
         self.node.manage_room("game1", "map1.room1")
