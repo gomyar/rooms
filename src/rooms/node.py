@@ -258,10 +258,11 @@ class Node(object):
             raise Exception("Invalid token for player")
         player_conn = self.connections[token]
         room = self.rooms[player_conn.game_id, player_conn.room_id]
-        log.debug("call in room: %s - %s", room, player_conn)
+        log.debug("call in room: %s - %s: %s(%s)", room.room_id,
+            player_conn.token, method, kwargs)
         actor = room.actors[player_conn.actor_id]
         if actor.script.has_method(method):
-            actor.script_call(method, actor, **kwargs)
+            actor.script_request(method, actor, **kwargs)
         else:
             raise Exception("No such method %s" % (method,))
 
