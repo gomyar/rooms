@@ -16,7 +16,8 @@ class Area(object):
         self.y = y
         self.linked = set()
         self.actors = set()
-        self.actor_queues = set()
+        # actor => queue
+        self.area_queues = set()
 
     def __eq__(self, rhs):
         return rhs and type(rhs) is Area and rhs.x == self.x and \
@@ -61,13 +62,13 @@ class GridVision(object):
         area.actors.add(actor)
         self.actor_map[actor.actor_id] = area
         for link in area.linked:
-            for actor_id in link.actor_queues:
+            for link_actor in link.area_queues:
                 if actor.visible:
-                    for queue in self.actor_queues[actor_id]:
+                    for queue in self.actor_queues[link_actor.actor_id]:
                         queue.put(command_update(actor))
         # sync connected queues
         if actor.actor_id in self.actor_queues:
-            area.actor_queues.add(actor.actor_id)
+            area.area_queues.add(actor)
             for queue in self.actor_queues[actor.actor_id]:
                 self._send_sync_to_queue(actor, queue)
         self._admin_update(actor)
@@ -75,9 +76,12 @@ class GridVision(object):
     def actor_update(self, actor):
         area = self.area_for_actor(actor)
         for link in area.linked:
-            for actor_id in link.actor_queues:
-                if actor.visible or actor_id == actor.actor_id:
-                    for queue in self.actor_queues[actor_id]:
+            for link_actor in link.area_queues:
+                if actor.visible or link_actor == actor or \
+                        (link_actor.username and \
+                        link_actor.username == actor.username):
+                    #or (actor.docked_with and actor_id == actor.docked_with.actor_id):
+                    for queue in self.actor_queues[link_actor.actor_id]:
                         queue.put(command_update(actor))
         self._admin_update(actor)
 
@@ -98,9 +102,9 @@ class GridVision(object):
         area.actors.remove(actor)
         self.actor_map.pop(actor.actor_id)
         for link in area.linked:
-            for actor_id in link.actor_queues:
-                if actor.visible or actor_id == actor.actor_id:
-                    self._send_remove(actor_id, actor)
+            for link_actor in link.area_queues:
+                if actor.visible or link_actor == actor:
+                    self._send_remove(link_actor.actor_id, actor)
         self._admin_remove(actor)
 
     def actor_state_changed(self, actor):
@@ -113,8 +117,8 @@ class GridVision(object):
         if current_area == new_area:
             # area has not changed, propagate event as normal
             for link in current_area.linked:
-                for actor_id in link.actor_queues:
-                    self._send_update(actor_id, actor)
+                for link_actor in link.area_queues:
+                    self._send_update(link_actor.actor_id, actor)
         else:
             # area changed
             self.actor_map[actor.actor_id] = new_area
@@ -128,22 +132,25 @@ class GridVision(object):
             # actor changed area events
             if actor.visible:
                 for area in removed_areas:
-                    for actor_id in area.actor_queues:
-                        if actor_id != actor.actor_id:
-                            self._send_command(actor_id, command_remove(actor))
+                    for link_actor in area.area_queues:
+                        if link_actor != actor:
+                            self._send_command(link_actor.actor_id,
+                                command_remove(actor))
                 for area in added_areas:
-                    for actor_id in area.actor_queues:
-                        if actor_id != actor.actor_id:
-                            self._send_command(actor_id, command_update(actor))
+                    for link_actor in area.area_queues:
+                        if link_actor != actor:
+                            self._send_command(link_actor.actor_id,
+                                command_update(actor))
                 for area in same_areas:
-                    for actor_id in area.actor_queues:
-                        if actor_id != actor.actor_id:
-                            self._send_command(actor_id, command_update(actor))
+                    for link_actor in area.area_queues:
+                        if link_actor != actor:
+                            self._send_command(link_actor.actor_id,
+                                command_update(actor))
 
             # Listener changed area events
             if actor.actor_id in self.actor_queues:
-                current_area.actor_queues.remove(actor.actor_id)
-                new_area.actor_queues.add(actor.actor_id)
+                current_area.area_queues.remove(actor)
+                new_area.area_queues.add(actor)
                 for queue in self.actor_queues[actor.actor_id]:
                     for area in removed_areas:
                         for a in area.actors:
@@ -159,9 +166,9 @@ class GridVision(object):
         log.debug("actor_becomes_invisible")
         area = self.area_for_actor(actor)
         for link in area.linked:
-            for actor_id in link.actor_queues:
-                for queue in self.actor_queues[actor_id]:
-                    if actor_id == actor.actor_id:
+            for link_actor in link.area_queues:
+                for queue in self.actor_queues[link_actor.actor_id]:
+                    if link_actor == actor:
                         queue.put(command_update(actor))
                     else:
                         queue.put(command_remove(actor))
@@ -171,8 +178,8 @@ class GridVision(object):
         log.debug("actor_becomes_visible")
         area = self.area_for_actor(actor)
         for link in area.linked:
-            for actor_id in link.actor_queues:
-                self._send_command(actor_id, command_update(actor))
+            for link_actor in link.area_queues:
+                self._send_command(link_actor.actor_id, command_update(actor))
         self._admin_update(actor)
 
     def area_for_actor(self, actor):
@@ -187,7 +194,7 @@ class GridVision(object):
             actor = self.room.actors[actor_id]
             self._send_sync_to_queue(actor, queue)
             area = self.area_at(actor.vector.start_pos)
-            area.actor_queues.add(actor_id)
+            area.area_queues.add(actor)
             self.actor_map[actor_id] = area
         return queue
 
@@ -198,7 +205,7 @@ class GridVision(object):
             if actor_id in self.room.actors:
                 actor = self.room.actors[actor_id]
                 area = self.area_for_actor(actor)
-                area.actor_queues.remove(actor_id)
+                area.area_queues.remove(actor)
 
     def _send_sync_to_queue(self, actor, queue):
         queue.put(self._sync_message(actor))

@@ -67,11 +67,11 @@ class GridVisionTest(unittest.TestCase):
         self.assertEquals("sync", queue.get_nowait()['command'])
         self.assertEquals("actor_update", queue.get_nowait()['command'])
         area = self.vision.area_for_actor(self.lactor)
-        self.assertEquals(set(["listener1"]), area.actor_queues)
+        self.assertEquals(set([self.lactor]), area.area_queues)
 
         self.vision.disconnect_vision_queue("listener1", queue)
 
-        self.assertEquals(set(), area.actor_queues)
+        self.assertEquals(set(), area.area_queues)
         self.assertEquals(dict(), self.vision.actor_queues)
 
     def testAllActorsAreKeptAsReferences(self):
@@ -149,8 +149,8 @@ class GridVisionTest(unittest.TestCase):
         self.vision.actor_vector_changed(self.lactor)
 
         self.assertEquals("actor_update", queue.get_nowait()['command'])
-        self.assertEquals(set(["listener1"]),
-            self.vision.area_for_actor(self.lactor).actor_queues)
+        self.assertEquals(set([self.lactor]),
+            self.vision.area_for_actor(self.lactor).area_queues)
 
     def testPlayerActorMovesOutOfVisionArea(self):
         queue = self.vision.connect_vision_queue("listener1")
@@ -228,14 +228,14 @@ class GridVisionTest(unittest.TestCase):
         queue = self.vision.connect_vision_queue("actor1")
 
         self.assertEquals(Area(0, 0), self.vision.area_for_actor(self.actor1))
-        self.assertEquals({"actor1"}, self.vision.area_for_actor(self.actor1
-            ).actor_queues)
+        self.assertEquals({self.actor1}, self.vision.area_for_actor(self.actor1
+            ).area_queues)
 
         self.vision.disconnect_vision_queue("actor1", queue)
 
         self.assertEquals(Area(0, 0), self.vision.area_for_actor(self.actor1))
         self.assertEquals(set(),
-            self.vision.area_for_actor(self.actor1).actor_queues)
+            self.vision.area_for_actor(self.actor1).area_queues)
 
     def testDisconnectVisionQueueAfterActorLeaves(self):
         pass
