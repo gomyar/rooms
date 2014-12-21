@@ -172,6 +172,9 @@ class Room(object):
         self.actors.pop(actor.actor_id)
         actor._kill_gthreads()
         actor.room = None
+        if actor.docked_with:
+            actor.docked_with.docked_actors.remove(actor)
+            actor.docked_with = None
         self.vision.actor_removed(actor)
 
     def find_tags(self, tag_id):

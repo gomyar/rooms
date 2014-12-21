@@ -14,6 +14,7 @@ from rooms.geography.basic_geography import BasicGeography
 from rooms.player import PlayerActor
 from rooms.script import Script
 from rooms.testutils import MockGridVision
+from rooms.actor import Actor
 
 
 class RoomTest(unittest.TestCase):
@@ -155,3 +156,15 @@ class RoomTest(unittest.TestCase):
         self.assertEquals([
             Position(0, 0), Position(3, 4),
         ], path)
+
+    def testRemovingDockedActorRemovesRefs(self):
+        actor = self.room.create_actor("test", "rooms.room_test")
+        child = actor.create_actor("child", "rooms.room_test")
+
+        self.assertTrue(child in actor.docked_actors)
+        self.assertEquals(actor, child.docked_with)
+
+        self.room.remove_actor(child)
+
+        self.assertEquals(set(), actor.docked_actors)
+        self.assertEquals(None, child.docked_with)
