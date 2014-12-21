@@ -138,7 +138,7 @@ class ActorTest(unittest.TestCase):
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals(20, MockTimer.slept())
+        self.assertEquals(10, MockTimer.slept())
 
     def testActorEnters(self):
         door = Door("room2", Position(0, 0), Position(10, 10))

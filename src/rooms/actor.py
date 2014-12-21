@@ -14,6 +14,10 @@ import logging
 log = logging.getLogger("rooms.actor")
 
 
+class AlterPath(GreenletExit):
+    pass
+
+
 class Actor(object):
     def __init__(self, room, actor_type, script, username=None,
             actor_id=None, room_id=None, game_id=None, state=None,
@@ -52,7 +56,6 @@ class Actor(object):
         return self.room.game_id if self.room else self._game_id
 
     def kick(self):
-        log.debug("Kicking actor %s", self)
         self.script_call("kickoff", self)
 
     def move_to(self, position, path=None):
@@ -65,7 +68,24 @@ class Actor(object):
 
     def move_wait(self, position, path=None):
         self.move_to(position, path)
-        self.sleep(self._calc_end_time())
+        while self._move_gthread:
+            try:
+                self._move_gthread.join()
+            except GreenletExit, ge:
+                pass
+
+    def _move_update(self):
+        from_point = self.path[0]
+        from_time = Timer.now()
+        for to_point in self.path[1:]:
+            end_time = from_time + \
+                time_to_position(from_point, to_point, self._speed)
+            self.vector = Vector(from_point, from_time, to_point, end_time)
+            self.vector = create_vector(from_point, to_point, self._speed)
+            self.room.vision.actor_vector_changed(self)
+            from_point = to_point
+            from_time = end_time
+            Timer.sleep_until(end_time)
 
     @property
     def speed(self):
@@ -74,8 +94,11 @@ class Actor(object):
     @speed.setter
     def speed(self, s):
         self._speed = float(s)
-        if self.path:
-            self.move_to(self.path[-1])
+        if self._move_gthread:
+            self._kill_move_gthread()
+            self.path = self.room.find_path(self.position,
+                self.path[-1])
+            self._start_move_gthread()
 
     def _kill_move_gthread(self):
         self._safe_kill_gthread(self._move_gthread)
@@ -125,19 +148,6 @@ class Actor(object):
         except:
             log.exception("Exception running script: %s(%s, %s)", method,
                 args, kwargs)
-
-    def _move_update(self):
-        from_point = self.path[0]
-        from_time = Timer.now()
-        for to_point in self.path[1:]:
-            end_time = from_time + \
-                time_to_position(from_point, to_point, self._speed)
-            self.vector = Vector(from_point, from_time, to_point, end_time)
-            self.vector = create_vector(from_point, to_point, self._speed)
-            self.room.vision.actor_vector_changed(self)
-            from_point = to_point
-            from_time = end_time
-            Timer.sleep_until(end_time)
 
     def _send_state_changed(self):
         self.room.vision.actor_state_changed(self)
