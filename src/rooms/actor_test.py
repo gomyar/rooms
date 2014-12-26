@@ -221,6 +221,7 @@ class ActorTest(unittest.TestCase):
         self.assertEquals(Position(0, 0), self.actor.position)
 
     def testCreateChildActor(self):
+        self.actor.username = "bob"
         child = self.actor.create_actor("child", "actor_script")
 
         self.assertEquals(self.actor.position, child.position)
@@ -236,3 +237,4 @@ class ActorTest(unittest.TestCase):
 
         self.assertEquals(self.actor.actor_id, child.parent_id)
         self.assertEquals(None, self.actor.parent_id)
+        self.assertEquals("bob", child.username)
