@@ -397,6 +397,15 @@ class GridVisionTest(unittest.TestCase):
 
         self.assertTrue(queue.empty())
 
+
+    def testChildActorRelatesEventsToParent(self):
+        self.room = Room("game1", "map1.room1", Position(0, 0),
+            Position(100, 100), None)
+        self.vision = GridVision(self.room, 10)
+        self.room.vision = self.vision
+
+
+
 #    def testEventsForAllUsersActors(self):
 #        self.room = Room("game1", "map1.room1", Position(0, 0),
 #            Position(100, 100), None)

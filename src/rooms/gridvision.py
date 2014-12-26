@@ -77,6 +77,7 @@ class GridVision(object):
         area = self.area_for_actor(actor)
         for link in area.linked:
             for link_actor in link.area_queues:
+                # make link_actor into username and call it a channel
                 if actor.visible or link_actor == actor or \
                         (link_actor.username and \
                         link_actor.username == actor.username):

@@ -24,6 +24,7 @@ class Actor(object):
             visible=True):
         self.room = room
         self.actor_id = actor_id or IDFactory.create_id()
+        self.parent_id = None
         self._room_id = room_id
         self._game_id = game_id
         self.actor_type = actor_type
@@ -209,7 +210,7 @@ class Actor(object):
         actor = self.room.create_actor(actor_type, script_name,
             username=self.username,
             position=self.position if docked else position, state=state,
-            visible=visible)
+            visible=visible, parent_id=self.actor_id)
         if docked:
             actor.dock_with(self)
         return actor

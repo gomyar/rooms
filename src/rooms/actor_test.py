@@ -2,11 +2,14 @@
 import unittest
 
 from rooms.actor import Actor
+from rooms.room import Room
 from rooms.position import Position
-from rooms.testutils import MockRoom
 from rooms.testutils import MockTimer
+from rooms.testutils import MockGeog
 from rooms.testutils import MockIDFactory
 from rooms.testutils import MockGridVision
+from rooms.testutils import MockNode
+from rooms.testutils import MockContainer
 from rooms.timer import Timer
 from rooms.vector import Vector
 from rooms.room import Door
@@ -18,13 +21,19 @@ class ActorTest(unittest.TestCase):
     def setUp(self):
         MockTimer.setup_mock()
         MockIDFactory.setup_mock()
-        self.mock_room = MockRoom("game1", "room1")
-        self.actor = Actor(self.mock_room, "mock_actor", Script("actor_script",
+        self.node = MockNode()
+        self.node.container = MockContainer()
+        self.node.scripts['actor_script'] = Script("actor_script", ActorTest)
+        self.room = Room("game1", "map1.room1", Position(0, 0),
+            Position(100, 100), self.node)
+        self.room.geography = MockGeog()
+        self.actor = Actor(self.room, "mock_actor", Script("actor_script",
             ActorTest))
+        self.room.put_actor(self.actor)
         self.actor.state.log = []
-        self.actor.room = self.mock_room
+        self.actor.room = self.room
         self.vision = MockGridVision()
-        self.mock_room.vision = self.vision
+        self.room.vision = self.vision
 
     def tearDown(self):
         MockTimer.teardown_mock()
@@ -44,10 +53,10 @@ class ActorTest(unittest.TestCase):
         self.assertEquals("actor_script", self.actor.script.script_name)
 
     def testActorId(self):
-        actor1 = Actor(self.mock_room, "mock_actor", "rooms.actor_test", None)
+        actor1 = Actor(self.room, "mock_actor", "rooms.actor_test", None)
         self.assertEquals("id2", actor1.actor_id)
 
-        actor2 = Actor(self.mock_room, "mock_actor", "rooms.actor_test",
+        actor2 = Actor(self.room, "mock_actor", "rooms.actor_test",
             actor_id="actor2")
         self.assertEquals("actor2", actor2.actor_id)
 
@@ -138,19 +147,20 @@ class ActorTest(unittest.TestCase):
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals(10, MockTimer.slept())
+        self.assertEquals(14, MockTimer.slept())
 
     def testActorEnters(self):
         door = Door("room2", Position(0, 0), Position(10, 10))
         self.actor.enter(door)
 
-        self.assertEquals((self.actor, door), self.mock_room._actor_enters[0])
+        self.assertEquals(('actor_removed', self.actor),
+            self.vision.messages[0])
 
     def testDocking(self):
-        self.actor2 = Actor(self.mock_room, "mock_actor", Script("actor_script",
+        self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
             ActorTest))
         self.actor2.state.log = []
-        self.actor2.room = self.mock_room
+        self.actor2.room = self.room
 
         self.actor2.dock_with(self.actor)
 
@@ -168,8 +178,7 @@ class ActorTest(unittest.TestCase):
 
     def testVisible(self):
         self.actor.visible = True
-        self.assertEquals([], self.mock_room._update_invisible)
-        self.assertEquals([], self.mock_room._update_visible)
+        self.assertEquals([], self.vision.messages)
 
         self.actor.visible = False
         self.assertEquals(("actor_becomes_invisible", self.actor),
@@ -180,7 +189,7 @@ class ActorTest(unittest.TestCase):
             self.vision.messages[-1])
 
     def testDockingUpdates(self):
-        self.actor2 = Actor(self.mock_room, "mock_actor", Script("actor_script",
+        self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
             ActorTest))
 
         self.actor2.dock_with(self.actor)
@@ -203,7 +212,7 @@ class ActorTest(unittest.TestCase):
             self.vision.messages)
 
     def testSetPositionToOutsideRoomCorrectsPosition(self):
-        self.mock_room.put_actor(self.actor)
+        self.room.put_actor(self.actor)
 
         self.assertEquals(Position(0, 0), self.actor.position)
 
@@ -224,3 +233,6 @@ class ActorTest(unittest.TestCase):
         self.assertEquals(Position(5, 5), child.position)
         self.assertEquals(None, child.docked_with)
         self.assertTrue(child.visible)
+
+        self.assertEquals(self.actor.actor_id, child.parent_id)
+        self.assertEquals(None, self.actor.parent_id)

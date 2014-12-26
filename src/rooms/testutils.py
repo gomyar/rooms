@@ -86,54 +86,17 @@ class MockRoom(Room):
         self._kicked_off = False
         self.room_id = room_id
         self.game_id = game_id
-        self._updates = []
-        self._update_invisible = []
-        self._update_visible = []
         self.actors = dict()
         self.topleft = Position(0, 0)
         self.bottomright = Position(10, 10)
-        self._actor_enters = []
         self.vision = GridVision(self)
+        self.node = MockNode()
 
     def kick(self):
         self._kicked_off = True
 
     def find_path(self, from_pos, to_pos):
         return [from_pos, to_pos]
-
-    def actor_update(self, actor):
-        self._updates.append(actor)
-
-    def actor_vector_changed(self, actor, previous_vector):
-        self._updates.append(actor)
-
-    def actor_state_changed(self, actor):
-        self._updates.append(actor)
-
-    def actor_becomes_invisible(self, actor):
-        self._update_invisible.append(actor)
-
-    def actor_becomes_visible(self, actor):
-        self._update_visible.append(actor)
-
-    def create_actor(self, actor_type, script_name, player=None, position=None,
-            state=None, visible=True, username=None):
-        actor = MockActor("mock1")
-        actor.room = self
-        actor.visible = visible
-        actor.username = username
-        if position:
-            actor._set_position(position)
-        actor.username = player.username if player else None
-        self.actors[actor.actor_id] = actor
-        return actor
-
-    def put_actor(self, actor):
-        self.actors[actor.actor_id] = actor
-        actor.room = self
-
-    def actor_enters(self, actor, door):
-        self._actor_enters.append((actor, door))
 
     def __repr__(self):
         return "<MockRoom %s %s>" % (self.game_id, self.room_id)
