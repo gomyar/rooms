@@ -39,6 +39,7 @@ class JsonView(object):
     def view_actor(self, actor):
         return dict(
             actor_id=actor.actor_id,
+            parent_id=actor.parent_id,
             game_id=actor.game_id,
             state=actor.state,
             vector=actor.vector,
@@ -47,7 +48,6 @@ class JsonView(object):
             username=actor.username,
             docked_with=actor.docked_with.actor_id if \
                 actor.docked_with else None,
-            docked_actors=list(actor.docked_actors),
             visible=actor.visible,
         )
 

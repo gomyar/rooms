@@ -144,13 +144,13 @@ class NodeTest(unittest.TestCase):
         expected = [
             {'actors': [('id1',
               {u'actor_id': u'id1',
+               u'parent_id': None,
                u'actor_type': u'player',
                u'game_id': u'game1',
                u'speed': 1.0,
                u'state': {},
                u'username': u'bob',
                u'docked_with': None,
-               u'docked_actors': [],
                u'visible': True,
                u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
                            u'end_time': 0.0,
@@ -334,6 +334,7 @@ class NodeTest(unittest.TestCase):
         room1.move_actor_room(actor, "map1.room2", Position(10, 10))
 
         self.assertEquals("sync", queue.get_nowait()['command'])
+        self.assertEquals("actor_update", queue.get_nowait()['command'])
         self.assertEquals("actor_update", queue.get_nowait()['command'])
         self.assertEquals("remove_actor", queue.get_nowait()['command'])
         self.assertEquals("move_room", queue.get_nowait()['command'])

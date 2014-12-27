@@ -26,6 +26,7 @@ class ActorLoaderTest(unittest.TestCase):
         self.dbase.dbases['actors'] = {}
         self.dbase.dbases['actors']['actor1'] = \
             {"__type__": "Actor", "_id": "actor1", "actor_id": "actor1",
+            "parent_id": None,
             "game_id": "games_0", "room_id": "map1.room1",
             "actor_type": "test", "model_type": "model",
             "speed": 1.0,
@@ -42,6 +43,7 @@ class ActorLoaderTest(unittest.TestCase):
 
         self.dbase.dbases['actors']['actor2'] = \
             {"__type__": "Actor", "_id": "actor1", "actor_id": "actor2",
+            "parent_id": None,
             "game_id": "games_0", "room_id": "map1.room1",
             "actor_type": "test", "model_type": "model",
             "_loadstate": "limbo",   # <---
@@ -66,6 +68,7 @@ class ActorLoaderTest(unittest.TestCase):
     def testLoaderDockedActors(self):
         self.dbase.dbases['actors']['actor3'] = \
             {"__type__": "Actor", "_id": "actor3", "actor_id": "actor3",
+            "parent_id": None,
             "game_id": "games_0", "room_id": "map1.room1",
             "actor_type": "test", "model_type": "model",
             "_loadstate": "limbo",   # <---

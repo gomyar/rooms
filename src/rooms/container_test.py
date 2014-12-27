@@ -67,6 +67,7 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals({'actors_0': {u'__type__': u'PlayerActor',
               '_id': 'actors_0',
               u'actor_id': u'id1',
+              u'parent_id': None,
               u'actor_type': u'player',
               u'game_id': u'games_0',
               u'path': [],
@@ -136,6 +137,7 @@ class ContainerTest(unittest.TestCase):
         self.dbase.dbases['actors'] = {}
         self.dbase.dbases['actors']['actor1'] = \
             {"__type__": "Actor", "_id": "actor1", "actor_id": None,
+            "parent_id": None,
             "game_id": "games_0", "room_id": "room1",
             "actor_type": "test", "model_type": "model",
             "speed": 1.0,
@@ -166,6 +168,7 @@ class ContainerTest(unittest.TestCase):
         self.dbase.dbases['actors'] = {}
         self.dbase.dbases['actors']['actor1'] = \
             {"__type__": "Actor", "_id": "actor1", "actor_id": None,
+            "parent_id": None,
             "game_id": "games_0", "room_id": "room1",
             "actor_type": "test", "model_type": "model",
             "speed": 1.0,
@@ -181,6 +184,7 @@ class ContainerTest(unittest.TestCase):
             }, "script_name": "mock_script"}
         self.dbase.dbases['actors']['child1'] = \
             {"__type__": "Actor", "_id": "child1", "actor_id": None,
+            "parent_id": None,
             "game_id": "games_0", "room_id": None,
             "actor_type": "test", "model_type": "model",
             "speed": 1.0,
@@ -237,6 +241,7 @@ class ContainerTest(unittest.TestCase):
         expected = {u'__type__': u'Actor',
             '_id': 'actors_0',
             u'actor_id': "id1",
+            u'parent_id': None,
             u'actor_type': u'mock_actor',
             u'game_id': u'game1',
             u'path': [],
@@ -272,6 +277,7 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals({u'__type__': u'Actor',
             '_id': 'actors_0',
             u'actor_id': "id1",
+            u'parent_id': None,
             u'actor_type': u'mock_actor',
             u'game_id': u'games_0',
             u'path': [],
@@ -354,6 +360,7 @@ class ContainerTest(unittest.TestCase):
         self.dbase.dbases['actors'] = {}
         self.dbase.dbases['actors']['actor1'] = \
             {"__type__": "Actor", "_id": "actor1", "actor_id": "actor1",
+            "parent_id": None,
             "game_id": "games_0", "room_id": "room1",
             "actor_type": "test", "model_type": "model",
             "speed": 1.0,
@@ -369,6 +376,7 @@ class ContainerTest(unittest.TestCase):
             }, "script_name": "mock_script"}
         self.dbase.dbases['actors']['actor2'] = \
             {"__type__": "Actor", "_id": "actor2", "actor_id": "actor2",
+            "parent_id": None,
             "game_id": "games_0", "room_id": "room1",
             "actor_type": "test", "model_type": "model",
             "_loadstate": "limbo",

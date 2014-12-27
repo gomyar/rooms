@@ -212,7 +212,8 @@ class GridVision(object):
         queue.put(self._sync_message(actor))
         for area in self.area_for_actor(actor).linked:
             for a in area.actors:
-                if a.visible or a.actor_id == actor.actor_id:
+                if a.visible or a.actor_id == actor.actor_id or \
+                        a.parent_id == actor.actor_id:
                     queue.put(command_update(a))
 
     def _sync_message(self, actor):

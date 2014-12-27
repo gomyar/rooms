@@ -308,6 +308,7 @@ class Container(object):
     # Actor
     def _serialize_actor(self, actor):
         return dict(actor_id=actor.actor_id,
+            parent_id=actor.parent_id,
             state=actor.state,
             game_id=actor.game_id,
             room_id=actor.room_id,
@@ -327,6 +328,7 @@ class Container(object):
             script, visible=data['visible'],
             username=data['username'], actor_id=data['actor_id'],
             room_id=data['room_id'], game_id=data['game_id'])
+        actor.parent_id = data['parent_id']
         actor.state = data['state']
         actor.state._set_actor(actor)
         actor.path = data['path']
