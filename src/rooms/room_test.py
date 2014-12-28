@@ -4,6 +4,7 @@ import unittest
 from rooms.room import Room
 from rooms.room import Door
 from rooms.room import Tag
+from rooms.gridvision import GridVision
 from rooms.position import Position
 from rooms.testutils import MockGeog
 from rooms.testutils import MockNode
@@ -168,3 +169,25 @@ class RoomTest(unittest.TestCase):
 
         self.assertEquals(set(), actor.docked_actors)
         self.assertEquals(None, child.docked_with)
+
+    def testSendMessage(self):
+        self.vision = GridVision(self.room, 10)
+        self.room.vision = self.vision
+
+        actor = self.room.create_actor("test", "rooms.room_test")
+
+        queue = self.room.vision.connect_vision_queue(actor.actor_id)
+
+        command = queue.get_nowait()
+        command = queue.get_nowait()
+        self.assertTrue(queue.empty())
+
+        self.room.send_message("test_message", actor.position,
+            key="value")
+
+        message = queue.get_nowait()
+
+        self.assertEquals({'data': {'key': 'value'},
+            'message_type': 'test_message',
+            'position': {u'x': 0.0, u'y': 0.0, u'z': 0.0}}
+        , message)

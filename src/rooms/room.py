@@ -186,3 +186,6 @@ class Room(object):
             if position.is_within(room_object.topleft, room_object.bottomright):
                 return True
         return False
+
+    def send_message(self, message_type, position, **data):
+        self.vision.send_message(message_type, position, data)

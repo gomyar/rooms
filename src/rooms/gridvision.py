@@ -239,3 +239,12 @@ class GridVision(object):
     def _admin_remove(self, actor):
         for queue in self.admin_queues:
             queue.put(command_remove(actor))
+
+    def send_message(self, message_type, position, data):
+        area = self.area_at(position)
+        message = dict(command="message", message_type=message_type,
+            position=jsonview(position), data=data)
+        for link in area.linked:
+            for link_actor in link.area_queues:
+                for queue in self.actor_queues[link_actor.actor_id]:
+                    queue.put(message)
