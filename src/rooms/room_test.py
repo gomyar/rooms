@@ -188,6 +188,7 @@ class RoomTest(unittest.TestCase):
         message = queue.get_nowait()
 
         self.assertEquals({'data': {'key': 'value'},
+            'command': 'message',
             'message_type': 'test_message',
             'position': {u'x': 0.0, u'y': 0.0, u'z': 0.0}}
         , message)
