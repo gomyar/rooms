@@ -121,8 +121,7 @@ class Room(object):
     def find_path(self, from_pos, to_pos):
         path = self.geography.find_path(self, self._correct_position(from_pos),
             self._correct_position(to_pos))
-        split_path = self._split_path(path, self.vision.gridsize)
-        return split_path
+        return path
 
     def _split_path(self, path, max_length):
         split_path = []
@@ -189,3 +188,11 @@ class Room(object):
 
     def send_message(self, message_type, position, **data):
         self.vision.send_message(message_type, position, data)
+
+    def find_actors(self, actor_type=None, state=None):
+        def test(actor):
+            t = not actor_type or actor_type == actor.actor_type
+            s = not state or \
+                all(item in actor.state.items() for item in state.items())
+            return t and s
+        return [a for a in self.actors.values() if test(a)]

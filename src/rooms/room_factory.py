@@ -7,7 +7,7 @@ from rooms.room import RoomObject
 from rooms.room import Tag
 from rooms.room import Door
 from rooms.position import Position
-from rooms.gridvision import GridVision
+from rooms.simplevision import Vision
 
 
 class FileMapSource(object):
@@ -60,9 +60,7 @@ class RoomFactory(object):
         return room
 
     def _create_vision(self, room, vision_json):
-        return GridVision(room,
-            vision_json.get('gridsize', RoomFactory.DEFAULT_GRIDSIZE),
-            vision_json.get('linksize', RoomFactory.DEFAULT_LINKSIZE))
+        return Vision(room)
 
     def _create_door(self, door_json):
         return Door(door_json['exit_room_id'],

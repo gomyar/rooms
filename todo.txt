@@ -1,4 +1,11 @@
 
+ - create objects for map creation and export scripts and normalize with api
+    (i.e. Room() object is the same room in the app as the scripts)
+
+ - add room "recreate" which will rebuild the room from scratch (except for
+      any player actors) if the map/tags have changed
+      - might be tricky given some of the actors may have come from other rooms
+
  - if an actor containing docked actors is removed from a room, all the docked
    actors should be removed, and if applicable serialized to be loaded by the
    next room

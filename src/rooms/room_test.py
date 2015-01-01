@@ -192,3 +192,24 @@ class RoomTest(unittest.TestCase):
             'message_type': 'test_message',
             'position': {u'x': 0.0, u'y': 0.0, u'z': 0.0}}
         , message)
+
+    def testFindActors(self):
+        actor1 = self.room.create_actor("test1", "rooms.room_test",
+            state=dict(key="value1"))
+        actor2 = self.room.create_actor("test1", "rooms.room_test",
+            state=dict(key="value2"))
+        actor3 = self.room.create_actor("test2", "rooms.room_test",
+            state=dict(key="value1"))
+
+        found = self.room.find_actors(actor_type="test1")
+        self.assertEquals(set([actor1, actor2]), set(found))
+
+        found = self.room.find_actors(actor_type="test2")
+        self.assertEquals(set([actor3]), set(found))
+
+        found = self.room.find_actors(state=dict(key="value1"))
+        self.assertEquals(set([actor1, actor3]), set(found))
+
+        found = self.room.find_actors(actor_type="test1",
+            state=dict(key="value1"))
+        self.assertEquals(set([actor1]), set(found))

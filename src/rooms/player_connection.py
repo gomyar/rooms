@@ -61,7 +61,6 @@ class AdminConnection(PlayerConnection):
         sync_msg = {"command": "sync", "data": {"now": Timer.now(),
              "username": "admin", "room_id": room.room_id}}
         sync_msg['map_url'] = "http://mapurl"
-        sync_msg['data']['vision'] = {"gridsize": room.vision.gridsize}
         return sync_msg
 
     def actor_update(self, actor):
