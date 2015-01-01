@@ -37,3 +37,8 @@ class Position(object):
             y >= topleft.y and y <= bottomright.y and \
             z >= topleft.z and z <= bottomright.z
 
+    def offset_position(self, distance, yaw):
+        x = self.x + distance * math.cos(yaw)
+        y = self.y + distance * math.sin(yaw)
+        return Position(x, y)
+
