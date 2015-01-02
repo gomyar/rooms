@@ -355,13 +355,23 @@ gui.draw = function()
         var height = map_object.bottomright.y - map_object.topleft.y;
         width = Math.max(width, 2);
         height = Math.max(height, 2);
+        gui.ctx.globalAlpha = 0.1;
+        gui.fill_rect(
+            gui.canvas_x(map_object.topleft.x),
+            gui.canvas_y(map_object.topleft.y),
+            width / gui.zoom,
+            height / gui.zoom,
+            "rgb(150, 200, 50)"
+        );
+        gui.ctx.globalAlpha = 1.0;
         gui.draw_rect(
             gui.canvas_x(map_object.topleft.x),
             gui.canvas_y(map_object.topleft.y),
             width / gui.zoom,
             height / gui.zoom,
-            "rgb(0, 255, 0)"
+            "rgb(150, 200, 50)"
         );
+        gui.draw_text_centered((gui.canvas_x(map_object.topleft.x) + gui.canvas_x(map_object.bottomright.x)) / 2, gui.canvas_y(map_object.topleft.y) + 10, map_object.object_type, "rgb(150, 200, 50)");
     }
 
     // Draw actor paths

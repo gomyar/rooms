@@ -1,4 +1,6 @@
 
+ - admin receiving everyone's updates again
+
  - create objects for map creation and export scripts and normalize with api
     (i.e. Room() object is the same room in the app as the scripts)
 

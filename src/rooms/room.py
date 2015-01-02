@@ -33,6 +33,14 @@ class RoomObject(object):
         return "<RoomObject %s at %s/%s>" % (self.object_type, self.topleft,
             self.bottomright)
 
+    @property
+    def center(self):
+        return Position(
+            self.topleft.x + (self.bottomright.x - self.topleft.x) / 2,
+            self.topleft.y + (self.bottomright.y - self.topleft.y) / 2,
+            self.topleft.z + (self.bottomright.z - self.topleft.z) / 2,
+        )
+
 
 class Door(object):
     def __init__(self, exit_room_id, enter_position, exit_position):
