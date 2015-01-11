@@ -1,4 +1,6 @@
 
+ - instanced rooms
+
  - admin receiving everyone's updates again
 
  - create objects for map creation and export scripts and normalize with api

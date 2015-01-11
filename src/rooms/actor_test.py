@@ -12,6 +12,7 @@ from rooms.testutils import MockNode
 from rooms.testutils import MockContainer
 from rooms.timer import Timer
 from rooms.vector import Vector
+from rooms.vector import create_vector
 from rooms.room import Door
 from rooms import actor
 from rooms.script import Script
@@ -31,7 +32,6 @@ class ActorTest(unittest.TestCase):
             ActorTest))
         self.room.put_actor(self.actor)
         self.actor.state.log = []
-        self.actor.room = self.room
         self.vision = MockGridVision()
         self.room.vision = self.vision
 
@@ -141,13 +141,13 @@ class ActorTest(unittest.TestCase):
         self.actor.move_wait(Position(10, 0))
 
         self.assertEquals([
-            Position(0, 0),
+        #    Position(0, 0),
             Position(10, 0),
         ], self.actor.path)
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals(14, MockTimer.slept())
+        self.assertEquals(Position(1, 0), self.actor.position)
 
     def testActorEnters(self):
         door = Door("room2", Position(0, 0), Position(10, 10))
@@ -238,3 +238,133 @@ class ActorTest(unittest.TestCase):
         self.assertEquals(self.actor.actor_id, child.parent_id)
         self.assertEquals(None, self.actor.parent_id)
         self.assertEquals("bob", child.username)
+
+    def testIntercept(self):
+        self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
+            ActorTest))
+
+        self.actor.position = Position(10, 10)
+        self.actor2.position = Position(50, 50)
+        self.actor2.move_to(Position(80, 50))
+
+        path = self.actor.find_intercept_path(self.actor2)
+
+        self.assertEquals([Position(10, 10), Position(80, 50)], path)
+
+    def testMoveUpdateGThread(self):
+        self.actor.position = Position(10, 10)
+        self.actor.move_to(Position(50, 10),
+            [Position(10, 10), Position(25, 10), Position(50, 10)])
+
+        MockTimer.fast_forward(3)
+        self.assertEquals(Position(13, 10), self.actor.position)
+        self.assertEquals(
+            [Position(10, 10), Position(25, 10), Position(50, 10)],
+            self.actor.path)
+        self.assertEquals(Vector(Position(10, 10), 0, Position(25, 10), 15),
+            self.actor.vector)
+
+        MockTimer.fast_forward(17)
+        self.assertEquals(Position(30, 10), self.actor.position)
+        self.assertEquals(
+            [Position(25, 10), Position(50, 10)],
+            self.actor.path)
+        self.assertEquals(Vector(Position(25, 10), 15, Position(50, 10), 40),
+            self.actor.vector)
+
+        MockTimer.fast_forward(15)
+        self.assertEquals(Position(45, 10), self.actor.position)
+        self.assertEquals(
+            [Position(25, 10), Position(50, 10)],
+            self.actor.path)
+        self.assertEquals(Vector(Position(25, 10), 15, Position(50, 10), 40),
+            self.actor.vector)
+
+        MockTimer.fast_forward(10)
+        self.assertEquals(Position(50, 10), self.actor.position)
+        self.assertEquals(
+            [Position(50, 10)],
+            self.actor.path)
+        self.assertEquals(Vector(Position(25, 10), 15, Position(50, 10), 40),
+            self.actor.vector)
+
+    def testIntercept(self):
+        self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
+            ActorTest))
+
+        self.actor.position = Position(10, 10)
+        self.actor2.position = Position(20, 10)
+        self.actor2.move_to(Position(30, 10))
+
+        self.actor.intercept(self.actor2)
+
+        self.assertEquals([Position(10, 10), Position(30, 10)], self.actor.path)
+
+        MockTimer.fast_forward(5)
+
+        self.assertEquals(Position(15, 10), self.actor.position)
+        self.assertEquals(Position(25, 10), self.actor2.position)
+
+        self.actor2.move_to(Position(25, 25))
+
+        MockTimer.fast_forward(5)
+
+#        self.assertEquals(Vector(Position(15, 10), 5, Position(25, 25), 23.0277563773),
+#            self.actor.vector)
+        self.assertEquals(Position(20, 10), self.actor.position)
+
+    def testInterceptStopsOnLostContact(self):
+        self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
+            ActorTest))
+
+        self.actor.position = Position(10, 10)
+        self.room.put_actor(self.actor2, Position(10, 10))
+
+        self.actor2.move_to(Position(30, 10))
+
+        self.actor.intercept(self.actor2)
+        self.assertEquals("id2", self.actor._following_id)
+        self.assertEquals({"id1"}, self.actor2._followers)
+
+        MockTimer.fast_forward(5)
+
+        self.room.remove_actor(self.actor2)
+        self.assertEquals(None, self.actor._following_id)
+        self.assertEquals(set(), self.actor2._followers)
+
+        MockTimer.fast_forward(1)
+
+        self.assertEquals(Position(15, 10), self.actor.position)
+
+    def testFollow(self):
+        self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
+            ActorTest))
+
+        self.actor.position = Position(10, 10)
+        self.actor2.position = Position(20, 10)
+        self.actor2.move_to(Position(30, 10))
+
+        # intercept - blocks until target reached
+
+        # follow - non-blocking, matches vector with target (not speed)
+
+    def testSpeedChangeOnIntercept(self):
+        pass
+
+    def testSpeedChangeOnFollow(self):
+        pass
+
+    def testTargetSpeedChangeOnIntercept(self):
+        pass
+
+    def testTargetSpeedChangeOnFollow(self):
+        pass
+
+        # blocks until stopped or lost contact
+        #self.actor.follow(self.actor2, 1)
+
+        # actor follows as long as gthread exists (depends on kickoff to start
+        # another follow)
+
+        # if the target is lost, target is kicked?
+        # if the target is lost, target_lost is called?

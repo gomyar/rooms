@@ -33,9 +33,6 @@ class RoomFactoryTest(unittest.TestCase):
         self.assertEquals(5, room.room_objects[0].topleft.x)
         self.assertEquals(5, room.room_objects[0].topleft.y)
 
-        self.assertEquals(10, room.vision.gridsize)
-        self.assertEquals(3, room.vision.linksize)
-
     def testCreateRoom2(self):
         room = self.factory.create("game1", "map1.room2")
 
@@ -50,8 +47,6 @@ class RoomFactoryTest(unittest.TestCase):
         self.assertEquals(125.0, room.doors[0].enter_position.y)
         self.assertEquals(55, room.room_objects[0].topleft.x)
         self.assertEquals(5, room.room_objects[0].topleft.y)
-
-        self.assertEquals(25, room.vision.gridsize)
 
     def testCreateRoomAbsolute(self):
         self.map_source = FileMapSource(os.path.join(os.path.dirname(__file__),

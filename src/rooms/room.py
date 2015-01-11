@@ -7,6 +7,10 @@ import logging
 log = logging.getLogger("rooms.room")
 
 
+class TargetLost(Exception):
+    pass
+
+
 class Tag(object):
     def __init__(self, tag_type, position, data=None):
         self.tag_type = tag_type
@@ -177,6 +181,8 @@ class Room(object):
                 queue.put({"command": "move_room", "room_id": room_id})
 
     def remove_actor(self, actor):
+        if actor._follow_event:
+            actor._follow_event.set_exception(TargetLost())
         self.actors.pop(actor.actor_id)
         actor._kill_gthreads()
         actor.room = None

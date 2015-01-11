@@ -1,5 +1,6 @@
 
 import gevent
+from gevent.event import AsyncResult
 from gevent import GreenletExit
 
 from rooms.script import Script
@@ -39,10 +40,11 @@ class Actor(object):
         self.docked_actors = set()
         self.docked_with = None
         self._docked_with = None
+        self._visible = visible
 
         self._script_gthread = None
         self._move_gthread = None
-        self._visible = visible
+        self._follow_event = None
 
     def __repr__(self):
         return "<Actor %s %s in %s-%s owned by %s>" % (self.actor_type,
@@ -61,11 +63,25 @@ class Actor(object):
 
     def move_to(self, position, path=None):
         self.path = path or self.room.find_path(self.position, position)
+        self.vector = create_vector(self.path[0], self.path[1], self._speed)
         self._kill_move_gthread()
         self._start_move_gthread()
 
     def _start_move_gthread(self):
         self._move_gthread = gevent.spawn(self._move_update)
+
+    def _start_following_gthread(self, target_actor_id):
+        self._move_gthread = gevent.spawn(self._follow_target, target_actor_id)
+
+    def _follow_target(self, target_actor_id):
+        while target_actor_id in self.room.actors:
+            target = self.room.actors[target_actor_id]
+            event = target._get_follow_event()
+            event.get()
+            self.path = self.find_intercept_path(target)
+            self.vector = create_vector(self.path[0], self.path[1], self._speed)
+            self.room.vision.actor_vector_changed(self)
+            self._notify_followers()
 
     def move_wait(self, position, path=None):
         self.move_to(position, path)
@@ -78,15 +94,27 @@ class Actor(object):
     def _move_update(self):
         from_point = self.path[0]
         from_time = Timer.now()
-        for to_point in self.path[1:]:
+        while len(self.path) > 1:
+            to_point = self.path[1]
             end_time = from_time + \
                 time_to_position(from_point, to_point, self._speed)
-            self.vector = Vector(from_point, from_time, to_point, end_time)
             self.vector = create_vector(from_point, to_point, self._speed)
             self.room.vision.actor_vector_changed(self)
+            self._notify_followers()
             from_point = to_point
             from_time = end_time
             Timer.sleep_until(end_time)
+            self.path.pop(0)
+
+    def _get_follow_event(self):
+        if not self._follow_event:
+            self._follow_event = AsyncResult()
+        return self._follow_event
+
+    def _notify_followers(self):
+        if self._follow_event:
+            self._follow_event.set()
+            self._follow_event = None
 
     @property
     def speed(self):
@@ -214,3 +242,23 @@ class Actor(object):
         if docked:
             actor.dock_with(self)
         return actor
+
+    def find_intercept_path(self, target):
+        return [self.position, target.vector.end_pos]
+
+    def intercept(self, target):
+        self.path = self.find_intercept_path(target)
+        self.vector = create_vector(self.path[0], self.path[1], self._speed)
+        self._kill_move_gthread()
+        self._start_following_gthread(target.actor_id)
+
+    def target_lost(self):
+        self.stop()
+
+    def stop(self):
+        if self._following_id and self._following_id in self.room.actors:
+            self.room.actors[self._following_id]._followers.remove(
+                self.actor_id)
+        self._following_id = None
+        self._kill_move_gthread()
+        self.position = self.position
