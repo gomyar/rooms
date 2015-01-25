@@ -288,83 +288,34 @@ class ActorTest(unittest.TestCase):
         self.assertEquals(Vector(Position(25, 10), 15, Position(50, 10), 40),
             self.actor.vector)
 
-    def testIntercept(self):
+    def testTimeToVectorEnd(self):
+        self.actor.move_to(Position(20, 10))
+        self.assertEquals(10, self.actor.time_to_vector_end())
+
+        self.actor.move_to(Position(30, 10),
+            [Position(20, 10), Position(30, 10)])
+        self.assertEquals(10, self.actor.time_to_path_end())
+
+    def testTrackTargetVector(self):
         self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
             ActorTest))
+        self.room.put_actor(self.actor2, Position(30, 10))
 
-        self.actor.position = Position(10, 10)
-        self.actor2.position = Position(20, 10)
-        self.actor2.move_to(Position(30, 10))
+        def actor_script(actor):
+            actors = actor.room.actors['id2']
+            target = actors[0]
+            actor.state.start_time = Timer.now()
+            actor.track_vector(target, 30)
+            actor.state.end_time = Timer.now()
 
-        self.actor.intercept(self.actor2)
-
-        self.assertEquals([Position(10, 10), Position(30, 10)], self.actor.path)
+        self.actor2.move_to(Position(50, 10))
 
         MockTimer.fast_forward(5)
 
-        self.assertEquals(Position(15, 10), self.actor.position)
-        self.assertEquals(Position(25, 10), self.actor2.position)
-
-        self.actor2.move_to(Position(25, 25))
-
-        MockTimer.fast_forward(5)
-
-#        self.assertEquals(Vector(Position(15, 10), 5, Position(25, 25), 23.0277563773),
-#            self.actor.vector)
-        self.assertEquals(Position(20, 10), self.actor.position)
-
-    def testInterceptStopsOnLostContact(self):
+    def testThrowTargetLostIfTargetNotInRoom(self):
         self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
             ActorTest))
+        self.assertRaises(TargetLost, self.actor.distance_to, self.actor2)
 
-        self.actor.position = Position(10, 10)
-        self.room.put_actor(self.actor2, Position(10, 10))
-
-        self.actor2.move_to(Position(30, 10))
-
-        self.actor.intercept(self.actor2)
-        self.assertEquals("id2", self.actor._following_id)
-        self.assertEquals({"id1"}, self.actor2._followers)
-
-        MockTimer.fast_forward(5)
-
-        self.room.remove_actor(self.actor2)
-        self.assertEquals(None, self.actor._following_id)
-        self.assertEquals(set(), self.actor2._followers)
-
-        MockTimer.fast_forward(1)
-
-        self.assertEquals(Position(15, 10), self.actor.position)
-
-    def testFollow(self):
-        self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
-            ActorTest))
-
-        self.actor.position = Position(10, 10)
-        self.actor2.position = Position(20, 10)
-        self.actor2.move_to(Position(30, 10))
-
-        # intercept - blocks until target reached
-
-        # follow - non-blocking, matches vector with target (not speed)
-
-    def testSpeedChangeOnIntercept(self):
+    def testIfVectorOrPositionSetWhileMovingKillMoveGThread(self):
         pass
-
-    def testSpeedChangeOnFollow(self):
-        pass
-
-    def testTargetSpeedChangeOnIntercept(self):
-        pass
-
-    def testTargetSpeedChangeOnFollow(self):
-        pass
-
-        # blocks until stopped or lost contact
-        #self.actor.follow(self.actor2, 1)
-
-        # actor follows as long as gthread exists (depends on kickoff to start
-        # another follow)
-
-        # if the target is lost, target is kicked?
-        # if the target is lost, target_lost is called?

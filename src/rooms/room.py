@@ -1,6 +1,7 @@
 
 from rooms.position import Position
 from rooms.actor import Actor
+from rooms.actor import search_actor_test
 from rooms.gridvision import GridVision
 
 import logging
@@ -181,8 +182,8 @@ class Room(object):
                 queue.put({"command": "move_room", "room_id": room_id})
 
     def remove_actor(self, actor):
-        if actor._follow_event:
-            actor._follow_event.set_exception(TargetLost())
+        actor._follow_event.set()
+        actor._follow_event.clear()
         self.actors.pop(actor.actor_id)
         actor._kill_gthreads()
         actor.room = None
@@ -203,10 +204,6 @@ class Room(object):
     def send_message(self, message_type, position, **data):
         self.vision.send_message(message_type, position, data)
 
-    def find_actors(self, actor_type=None, state=None):
-        def test(actor):
-            t = not actor_type or actor_type == actor.actor_type
-            s = not state or \
-                all(item in actor.state.items() for item in state.items())
-            return t and s
-        return [a for a in self.actors.values() if test(a)]
+    def find_actors(self, actor_type=None, state=None, visible=None):
+        return [a for a in self.actors.values() if \
+            search_actor_test(a, actor_type, state, visible)]

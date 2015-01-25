@@ -17,6 +17,15 @@ def time_to_position(start_pos, end_pos, speed):
     return start_pos.distance_to(end_pos) / speed
 
 
+def time_to(path, speed):
+    current = path[0]
+    total = 0
+    for point in path[1:]:
+        total += time_to_position(current, point, speed)
+        current = point
+    return total
+
+
 class Vector(object):
     def __init__(self, start_pos, start_time, end_pos, end_time):
         self.start_pos = start_pos
@@ -60,3 +69,17 @@ class Vector(object):
 
     def position(self):
         return Position(self.x, self.y, self.z)
+
+    def time_to_destination(self):
+        return self.end_time - Timer.now()
+
+    def yaw(self):
+        return self.start_pos.angle_between(self.end_pos)
+
+    def extrapolate(self, ratio=1.0):
+        x, y, z = self.x, self.y, self.z
+        tx, ty, tz = self.end_pos.x, self.end_pos.y, self.end_pos.z
+        return Position(
+            x + (tx - x) * ratio,
+            y + (ty - y) * ratio,
+            z + (tz - z) * ratio)

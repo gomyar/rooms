@@ -1,4 +1,7 @@
 
+from rooms.vector import time_to_position
+
+
 class BasicGeography(object):
     def setup(self, room):
         pass

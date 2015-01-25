@@ -18,3 +18,9 @@ class PositionTest(unittest.TestCase):
             self.position2.offset_position(2, math.pi))
         self.assertEquals(Position(10, 12),
             self.position2.offset_position(2, math.pi / 2))
+
+    def testAngleBetween(self):
+        self.assertEquals(math.pi,
+            Position(10, 10).angle_between(Position(5, 10)))
+        self.assertEquals(0,
+            Position(10, 10).angle_between(Position(15, 10)))

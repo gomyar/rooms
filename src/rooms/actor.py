@@ -1,6 +1,6 @@
 
 import gevent
-from gevent.event import AsyncResult
+from gevent.event import Event
 from gevent import GreenletExit
 
 from rooms.script import Script
@@ -19,6 +19,14 @@ class AlterPath(GreenletExit):
     pass
 
 
+def search_actor_test(actor, actor_type=None, state=None, visible=None):
+    t = not actor_type or actor_type == actor.actor_type
+    s = not state or \
+        all(item in actor.state.items() for item in state.items())
+    v = visible == None or actor.visible == visible
+    return t and s and v
+
+
 class Actor(object):
     def __init__(self, room, actor_type, script, username=None,
             actor_id=None, room_id=None, game_id=None, state=None,
@@ -32,11 +40,10 @@ class Actor(object):
         self.state = SyncDict(state or {})
         self.state._set_actor(self)
         self.path = []
-        self.vector = create_vector(Position(0, 0), Position(0, 0))
+        self._vector = create_vector(Position(0, 0), Position(0, 0))
         self.script = script
         self._speed = 1.0
         self.username = username
-        self.is_player = False
         self.docked_actors = set()
         self.docked_with = None
         self._docked_with = None
@@ -44,7 +51,11 @@ class Actor(object):
 
         self._script_gthread = None
         self._move_gthread = None
-        self._follow_event = None
+        self._follow_event = Event()
+
+    @property
+    def is_player(self):
+        return False
 
     def __repr__(self):
         return "<Actor %s %s in %s-%s owned by %s>" % (self.actor_type,
@@ -70,26 +81,13 @@ class Actor(object):
     def _start_move_gthread(self):
         self._move_gthread = gevent.spawn(self._move_update)
 
-    def _start_following_gthread(self, target_actor_id):
-        self._move_gthread = gevent.spawn(self._follow_target, target_actor_id)
-
-    def _follow_target(self, target_actor_id):
-        while target_actor_id in self.room.actors:
-            target = self.room.actors[target_actor_id]
-            event = target._get_follow_event()
-            event.get()
-            self.path = self.find_intercept_path(target)
-            self.vector = create_vector(self.path[0], self.path[1], self._speed)
-            self.room.vision.actor_vector_changed(self)
-            self._notify_followers()
+    def stop(self):
+        self._kill_move_gthread()
+        self.position = self.position
 
     def move_wait(self, position, path=None):
         self.move_to(position, path)
-        while self._move_gthread:
-            try:
-                self._move_gthread.join()
-            except GreenletExit, ge:
-                pass
+        self._move_gthread.join()
 
     def _move_update(self):
         from_point = self.path[0]
@@ -98,23 +96,11 @@ class Actor(object):
             to_point = self.path[1]
             end_time = from_time + \
                 time_to_position(from_point, to_point, self._speed)
-            self.vector = create_vector(from_point, to_point, self._speed)
-            self.room.vision.actor_vector_changed(self)
-            self._notify_followers()
+            self._set_vector(create_vector(from_point, to_point, self._speed))
             from_point = to_point
             from_time = end_time
             Timer.sleep_until(end_time)
             self.path.pop(0)
-
-    def _get_follow_event(self):
-        if not self._follow_event:
-            self._follow_event = AsyncResult()
-        return self._follow_event
-
-    def _notify_followers(self):
-        if self._follow_event:
-            self._follow_event.set()
-            self._follow_event = None
 
     @property
     def speed(self):
@@ -187,14 +173,34 @@ class Actor(object):
 
     @position.setter
     def position(self, pos):
-        self._set_position(pos)
+        self._set_vector(create_vector(pos, pos))
+
+    def distance_to(self, target):
+        return self.position.distance_to(target.position)
+
+    def _send_actor_vector_changed(self):
         if self.room:
             self.room.vision.actor_vector_changed(self)
 
     def _set_position(self, pos):
         if self.room:
             pos = self.room._correct_position(pos)
-        self.vector = create_vector(pos, pos)
+        self._vector = create_vector(pos, pos)
+
+    @property
+    def vector(self):
+        return self._vector
+
+    @vector.setter
+    def vector(self, vector):
+        self._set_vector(vector)
+        self._kill_move_gthread()
+
+    def _set_vector(self, vector):
+        self._vector = vector
+        self._send_actor_vector_changed()
+        self._follow_event.set()
+        self._follow_event.clear()
 
     def enter(self, door):
         self.room.actor_enters(self, door)
@@ -243,22 +249,16 @@ class Actor(object):
             actor.dock_with(self)
         return actor
 
-    def find_intercept_path(self, target):
-        return [self.position, target.vector.end_pos]
+    def find_matching_path(self, target):
+        diff_x = self.position.x - target.position.x
+        diff_y = self.position.y - target.position.y
+        diff_z = self.position.z - target.position.z
+        end_pos = target.vector.end_pos.add_coords(diff_x, diff_y, diff_z)
+        return [self.position, end_pos]
 
-    def intercept(self, target):
-        self.path = self.find_intercept_path(target)
-        self.vector = create_vector(self.path[0], self.path[1], self._speed)
-        self._kill_move_gthread()
-        self._start_following_gthread(target.actor_id)
+    def track_vector(self, target, sleep):
+        target._follow_event.wait(timeout=sleep)
 
-    def target_lost(self):
-        self.stop()
-
-    def stop(self):
-        if self._following_id and self._following_id in self.room.actors:
-            self.room.actors[self._following_id]._followers.remove(
-                self.actor_id)
-        self._following_id = None
-        self._kill_move_gthread()
-        self.position = self.position
+    def docked(self, actor_type=None, state=None, visible=None):
+        return [a for a in self.docked_actors if \
+            search_actor_test(a, actor_type, state, visible)]

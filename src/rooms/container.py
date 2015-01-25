@@ -274,14 +274,16 @@ class Container(object):
     def _build_player(self, data):
         script = self.node.scripts[data['script_name']] if self.node else None
         player = PlayerActor(None, data['actor_type'],
-            script,
-            data['username'], game_id=data['game_id'], actor_id=data['actor_id'],
-            room_id=data['room_id'])
+            script, visible=data['visible'],
+            username=data['username'], actor_id=data['actor_id'],
+            room_id=data['room_id'], game_id=data['game_id'])
+        player.parent_id = data['parent_id']
         player.state = data['state']
         player.state._set_actor(player)
         player.path = data['path']
         player.vector = data['vector']
         player._speed = data['speed']
+        player._docked_with = data['docked_with']
         return player
 
     # Room

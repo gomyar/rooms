@@ -29,6 +29,9 @@ class Position(object):
     def add_coords(self, x, y, z=0):
         return Position(self.x + x, self.y + y, self.z + z)
 
+    def add_position(self, pos):
+        return Position(self.x + pos.x, self.y + pos.y, self.z + pos.z)
+
     def is_within(self, topleft, bottomright):
         x, y, z = self.x, self.y, self.z
         return x >= topleft.x and x <= bottomright.x and \
@@ -40,3 +43,5 @@ class Position(object):
         y = self.y + distance * math.sin(yaw)
         return Position(x, y)
 
+    def angle_between(self, position):
+        return math.atan2(position.y - self.y, position.x - self.x)
