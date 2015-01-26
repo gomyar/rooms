@@ -44,4 +44,4 @@ class Position(object):
         return Position(x, y)
 
     def angle_between(self, position):
-        return math.atan2(position.y - self.y, position.x - self.x)
+        return math.atan2(self.y - position.y, self.x - position.x)

@@ -52,6 +52,7 @@ class Actor(object):
         self._script_gthread = None
         self._move_gthread = None
         self._follow_event = Event()
+        self._tracking = None
 
     @property
     def is_player(self):
@@ -257,8 +258,19 @@ class Actor(object):
         return [self.position, end_pos]
 
     def track_vector(self, target, sleep):
-        target._follow_event.wait(timeout=sleep)
+        try:
+            self._tracking = target
+            if target._tracking != self:
+                target._follow_event.wait(timeout=sleep)
+            else:
+                self.sleep(sleep)
+        finally:
+            self._tracking = None
 
     def docked(self, actor_type=None, state=None, visible=None):
         return [a for a in self.docked_actors if \
             search_actor_test(a, actor_type, state, visible)]
+
+    def log(self, msg, *args):
+        log.debug("Actor log: %s %s - " + str(msg), self.username,
+            self.actor_id, *args)

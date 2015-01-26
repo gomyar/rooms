@@ -81,7 +81,7 @@ class RoomTest(unittest.TestCase):
         geography.setup(self.room)
 
         self.assertEquals(
-            [Position(10, 20), Position(20, 30), Position(30, 40)],
+            [Position(10, 20), Position(30, 40)],
             self.room.find_path(Position(10, 20), Position(30, 40)))
 
     def testActorEnterDoor(self):
@@ -132,16 +132,6 @@ class RoomTest(unittest.TestCase):
 
         self.assertEquals([tag1, tag2, tag3], self.room.find_tags("tag"))
         self.assertEquals([tag1, tag2, tag3], self.room.find_tags(""))
-
-    def testSplitPathBasedOnVisionGridWidth(self):
-        self.room.vision.gridsize = 10
-
-        path = self.room.find_path(Position(10, 10), Position(20, 10))
-        self.assertEquals([Position(10, 10), Position(20, 10)], path)
-
-        path = self.room.find_path(Position(10, 10), Position(30, 10))
-        self.assertEquals([Position(10, 10), Position(20, 10), Position(30, 10)], path)
-
 
     def testActorsAddedToRoomOutsideBoundariesArePositionedInside(self):
         newactor1 = MockActor("new1")

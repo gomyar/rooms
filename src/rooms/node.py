@@ -262,7 +262,7 @@ class Node(object):
             player_conn.token, method, kwargs)
         actor = room.actors[player_conn.actor_id]
         if actor.script.has_method(method):
-            actor.script_request(method, actor, **kwargs)
+            return actor.script_request(method, actor, **kwargs)
         else:
             raise Exception("No such method %s" % (method,))
 

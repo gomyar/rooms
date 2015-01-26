@@ -337,6 +337,7 @@ class NodeTest(unittest.TestCase):
         self.assertEquals("actor_update", queue.get_nowait()['command'])
         self.assertEquals("actor_update", queue.get_nowait()['command'])
         self.assertEquals("remove_actor", queue.get_nowait()['command'])
+        self.assertEquals("remove_actor", queue.get_nowait()['command'])
         self.assertEquals("move_room", queue.get_nowait()['command'])
 
 
