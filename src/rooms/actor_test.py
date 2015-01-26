@@ -84,11 +84,16 @@ class ActorTest(unittest.TestCase):
             Position(10, 0),
         ], self.actor.path)
 
-        self.assertEquals([], self.vision.messages)
+        self.assertEquals([
+            ("actor_vector_changed", self.actor)
+        ], self.vision.messages)
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals([("actor_vector_changed", self.actor)],
+        self.assertEquals([
+            ("actor_vector_changed", self.actor),
+            ("actor_vector_changed", self.actor),
+            ],
             self.vision.messages)
 
         self.assertEquals(Position(1.0, 0), self.actor.position)
@@ -107,12 +112,16 @@ class ActorTest(unittest.TestCase):
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals([("actor_vector_changed", self.actor)],
+        self.assertEquals([
+            ("actor_vector_changed", self.actor),
+            ("actor_vector_changed", self.actor),
+            ],
             self.vision.messages)
 
         MockTimer.fast_forward(5)
 
         self.assertEquals([
+            ("actor_vector_changed", self.actor),
             ("actor_vector_changed", self.actor),
             ("actor_vector_changed", self.actor),
             ],
@@ -132,7 +141,10 @@ class ActorTest(unittest.TestCase):
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals([("actor_vector_changed", self.actor)],
+        self.assertEquals([
+            ("actor_vector_changed", self.actor),
+            ("actor_vector_changed", self.actor),
+            ],
             self.vision.messages)
 
     def testMoveWait(self):
@@ -218,7 +230,7 @@ class ActorTest(unittest.TestCase):
 
         self.actor.position = Position(-1, -1)
 
-        self.assertEquals(Position(0, 0), self.actor.position)
+        self.assertEquals(Position(-1, -1), self.actor.position)
 
     def testCreateChildActor(self):
         self.actor.username = "bob"
@@ -238,18 +250,6 @@ class ActorTest(unittest.TestCase):
         self.assertEquals(self.actor.actor_id, child.parent_id)
         self.assertEquals(None, self.actor.parent_id)
         self.assertEquals("bob", child.username)
-
-    def testIntercept(self):
-        self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
-            ActorTest))
-
-        self.actor.position = Position(10, 10)
-        self.actor2.position = Position(50, 50)
-        self.actor2.move_to(Position(80, 50))
-
-        path = self.actor.find_intercept_path(self.actor2)
-
-        self.assertEquals([Position(10, 10), Position(80, 50)], path)
 
     def testMoveUpdateGThread(self):
         self.actor.position = Position(10, 10)
@@ -290,11 +290,11 @@ class ActorTest(unittest.TestCase):
 
     def testTimeToVectorEnd(self):
         self.actor.move_to(Position(20, 10))
-        self.assertEquals(10, self.actor.time_to_vector_end())
+        self.assertEquals(22, round(self.actor.vector.time_to_destination()))
 
         self.actor.move_to(Position(30, 10),
             [Position(20, 10), Position(30, 10)])
-        self.assertEquals(10, self.actor.time_to_path_end())
+        self.assertEquals(10, self.actor.vector.time_to_destination())
 
     def testTrackTargetVector(self):
         self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
@@ -311,11 +311,6 @@ class ActorTest(unittest.TestCase):
         self.actor2.move_to(Position(50, 10))
 
         MockTimer.fast_forward(5)
-
-    def testThrowTargetLostIfTargetNotInRoom(self):
-        self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
-            ActorTest))
-        self.assertRaises(TargetLost, self.actor.distance_to, self.actor2)
 
     def testIfVectorOrPositionSetWhileMovingKillMoveGThread(self):
         pass
