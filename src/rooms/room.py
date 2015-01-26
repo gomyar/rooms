@@ -166,14 +166,8 @@ class Room(object):
         # to load them all in the correct order at the other end
 
     def move_actor_room(self, actor, room_id, exit_position):
-        # remove docked
-        # remove actor
-        # save all docked
-        # save actor
-        docked = list(actor.docked_actors)
-        self.remove_actor(actor)
-        for child in docked:
-            self.remove_actor(child)
+        self._remove_actor(actor)
+        docked = self._remove_docked(actor)
         for child in docked:
             self.node.save_actor_to_other_room(room_id, exit_position, child)
         self.node.save_actor_to_other_room(room_id, exit_position, actor)
@@ -181,15 +175,18 @@ class Room(object):
             for queue in self.vision.actor_queues[actor.actor_id]:
                 queue.put({"command": "move_room", "room_id": room_id})
 
-    def remove_actor(self, actor):
-        actor._follow_event.set()
-        actor._follow_event.clear()
+    def _remove_docked(self, actor):
+        docked = list(actor.docked_actors)
+        for child in actor.docked_actors:
+            docked.extend(self._remove_docked(child))
+            self._remove_actor(child)
+        return docked
+
+    def _remove_actor(self, actor):
+        actor._notify_trackers()
         self.actors.pop(actor.actor_id)
         actor._kill_gthreads()
         actor.room = None
-        if actor.docked_with:
-            actor.docked_with.docked_actors.remove(actor)
-            actor.docked_with = None
         self.vision.actor_removed(actor)
 
     def find_tags(self, tag_id):

@@ -2,6 +2,7 @@
  - instanced rooms
 
  - admin receiving everyone's updates again
+ - just refreshing the page for a non-existant room (deleted from dbase) will create the room (in either game or admin)
 
  - create objects for map creation and export scripts and normalize with api
     (i.e. Room() object is the same room in the app as the scripts)

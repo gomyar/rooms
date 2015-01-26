@@ -200,6 +200,9 @@ class Actor(object):
     def _set_vector(self, vector):
         self._vector = vector
         self._send_actor_vector_changed()
+        self._notify_trackers()
+
+    def _notify_trackers(self):
         self._follow_event.set()
         self._follow_event.clear()
 

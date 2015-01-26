@@ -115,7 +115,7 @@ class RoomTest(unittest.TestCase):
         self.room.put_actor(newactor1, Position(5, 5))
         self.room.put_actor(listener, Position(1, 1))
 
-        self.room.remove_actor(newactor1)
+        self.room._remove_actor(newactor1)
 
         self.assertEquals([("actor_removed", newactor1)], self.vision.messages)
 
@@ -147,18 +147,6 @@ class RoomTest(unittest.TestCase):
         self.assertEquals([
             Position(0, 0), Position(3, 4),
         ], path)
-
-    def testRemovingDockedActorRemovesRefs(self):
-        actor = self.room.create_actor("test", "rooms.room_test")
-        child = actor.create_actor("child", "rooms.room_test")
-
-        self.assertTrue(child in actor.docked_actors)
-        self.assertEquals(actor, child.docked_with)
-
-        self.room.remove_actor(child)
-
-        self.assertEquals(set(), actor.docked_actors)
-        self.assertEquals(None, child.docked_with)
 
     def testSendMessage(self):
         self.vision = GridVision(self.room, 10)
@@ -203,3 +191,16 @@ class RoomTest(unittest.TestCase):
         found = self.room.find_actors(actor_type="test1",
             state=dict(key="value1"))
         self.assertEquals(set([actor1]), set(found))
+
+    def testRemoveChildActors(self):
+        self.assertEquals(0, len(self.room.actors))
+        actor1 = self.room.create_actor("test1", "rooms.room_test")
+        child1 = actor1.create_actor("child1", "rooms.room_test")
+        child2 = child1.create_actor("child2", "rooms.room_test")
+
+        self.assertEquals(3, len(self.room.actors))
+
+        removed = self.room._remove_docked(actor1)
+
+        self.assertEquals([actor1], self.room.actors.values())
+        self.assertEquals([child1, child2], removed)

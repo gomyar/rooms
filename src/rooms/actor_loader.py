@@ -19,10 +19,16 @@ class ActorLoader(object):
             if actor:
                 log.debug("Loaded actor %s into room %s", actor, room_id)
                 if actor.actor_id not in room.actors:
-                    docked = self.node.container.load_docked_actors(game_id,
-                        actor.actor_id)
+                    docked = self._load_docked(game_id, actor)
                     log.debug("Loaded docked: %s", docked)
                     room.put_actor(actor)
                     for child in docked:
                         room.put_actor(child)
         Timer.sleep(0.1)
+
+    def _load_docked(self, game_id, actor):
+        docked = self.node.container.load_docked_actors(game_id,
+            actor.actor_id)
+        for child in list(docked):
+            docked.extend(self._load_docked(game_id, child))
+        return docked

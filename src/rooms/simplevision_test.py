@@ -57,7 +57,7 @@ class SimpleVisionTest(unittest.TestCase):
         self.assertEquals("actor_update", command['command'])
         self.assertTrue(queue.empty())
 
-        self.room.remove_actor(self.actor2)
+        self.room._remove_actor(self.actor2)
 
         command = queue.get_nowait()
         self.assertEquals("remove_actor", command['command'])

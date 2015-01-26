@@ -94,3 +94,70 @@ class ActorLoaderTest(unittest.TestCase):
         actor3 = room.actors['actor3']
 
         self.assertEquals(actor2, actor3.docked_with)
+
+    def testLoadDockedActorsWhichAlsoContainDockedActors(self):
+        self.dbase.dbases['actors']['actor1'] = \
+            {"__type__": "Actor", "_id": "actor1", "actor_id": "actor1",
+            "parent_id": None,
+            "game_id": "games_0", "room_id": "map1.room1",
+            "actor_type": "test", "model_type": "model",
+            "_loadstate": "limbo",   # <---
+            "speed": 1.0,
+            "username": "ned",
+            "docked_with": None,
+            "visible": True,
+            'state': {u'__type__': u'SyncDict'},
+            "path": [], "vector": {"__type__": "Vector",
+            "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "start_time": 0,
+            "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
+            "end_time": 10,
+            }, "script_name": "mock_script"}
+        self.dbase.dbases['actors']['actor2'] = \
+            {"__type__": "Actor", "_id": "actor2", "actor_id": "actor2",
+            "parent_id": None,
+            "game_id": "games_0", "room_id": "map1.room1",
+            "actor_type": "test", "model_type": "model",
+            "_loadstate": "limbo",   # <---
+            "speed": 1.0,
+            "username": "ned",
+            "docked_with": "actor1",
+            "visible": True,
+            'state': {u'__type__': u'SyncDict'},
+            "path": [], "vector": {"__type__": "Vector",
+            "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "start_time": 0,
+            "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
+            "end_time": 10,
+            }, "script_name": "mock_script"}
+        self.dbase.dbases['actors']['actor3'] = \
+            {"__type__": "Actor", "_id": "actor3", "actor_id": "actor3",
+            "parent_id": None,
+            "game_id": "games_0", "room_id": "map1.room1",
+            "actor_type": "test", "model_type": "model",
+            "_loadstate": "limbo",   # <---
+            "speed": 1.0,
+            "username": "ned",
+            "docked_with": "actor2",
+            "visible": True,
+            'state': {u'__type__': u'SyncDict'},
+            "path": [], "vector": {"__type__": "Vector",
+            "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "start_time": 0,
+            "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
+            "end_time": 10,
+            }, "script_name": "mock_script"}
+
+        self.loader._load_actors()
+
+        room = self.node.rooms['games_0', 'map1.room1']
+        self.assertEquals(3, len(room.actors))
+
+        actor1 = room.actors['actor1']
+        actor2 = room.actors['actor2']
+        actor3 = room.actors['actor3']
+
+        self.assertEquals(actor1, actor2.docked_with)
+        self.assertEquals(actor2, actor3.docked_with)
+
+
