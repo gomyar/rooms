@@ -2,7 +2,8 @@
  - instanced rooms
 
  - admin receiving everyone's updates again
- - just refreshing the page for a non-existant room (deleted from dbase) will create the room (in either game or admin)
+
+ - steering behaviour at edge of room causes loop lock
 
  - create objects for map creation and export scripts and normalize with api
     (i.e. Room() object is the same room in the app as the scripts)
@@ -18,8 +19,6 @@
  - add create_child() method on actor:
    child actors are actors which are saved as inner objects in mongo
    they act as docked actors
-
- - allow for invisible player actors to still receieve their own signals/events
 
  - change all objects and actors in a room to relative positioning
    (basically replace topleft and bottomright with width/height)

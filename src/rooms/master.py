@@ -127,10 +127,6 @@ class MasterController(object):
         return self.master.is_player_in_game(username, game_id)
 
     @request
-    def request_room(self, game_id, room_id):
-        return self.master.request_room(game_id, room_id)
-
-    @request
     def report_load_stats(self, host, port, server_load, node_info):
         return self.master.report_load_stats(host, port, server_load, node_info)
 
@@ -292,6 +288,7 @@ class Master(object):
         return {"token": token, "node": (node.host, node.port)}
 
     def request_admin_token(self, game_id, room_id):
+        self._check_game_exists(game_id)
         node = self._get_node_for_room(game_id, room_id)
         token = node.request_admin_token(game_id, room_id)
         return {"token": token, "node": (node.host, node.port)}
@@ -342,13 +339,6 @@ class Master(object):
 
     def is_player_in_game(self, username, game_id):
         return self.container.player_exists(username, game_id)
-
-    def request_room(self, game_id, room_id):
-        ''' Node calls this to request management of a new room '''
-        if (game_id, room_id) in self.rooms:
-            return self.rooms[game_id, room_id]
-        node = self._get_node_for_room(game_id, room_id)
-        return (node.host, node.port)
 
     def game_status(self, ws, game_id):
         for i in range(25):

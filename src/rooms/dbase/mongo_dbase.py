@@ -43,7 +43,7 @@ class MongoDBase(object):
         return bool(self.filter_one(collection_name, **search_fields))
 
     def object_exists_by_id(self, collection_name, object_id):
-        return bool(self._collection(collection_name).find(
+        return bool(self._collection(collection_name).find_one(
             {"_id": bson.ObjectId(object_id)}))
 
     def filter_one(self, collection_name, **search_fields):

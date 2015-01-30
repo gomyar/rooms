@@ -145,6 +145,9 @@ class Actor(object):
     def sleep(self, seconds):
         Timer.sleep(seconds)
 
+    def action(self, method, *args, **kwargs):
+        self.script_call(method, self, *args, **kwargs)
+
     def script_call(self, method, *args, **kwargs):
         self._kill_script_gthread()
         self._script_gthread = gevent.spawn(self._checked_script_call, method,

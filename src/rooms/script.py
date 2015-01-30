@@ -22,6 +22,15 @@ def request(func):
     return wrapped
 
 
+def action(func):
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        return func(*args, **kwargs)
+    wrapped.is_request = True
+    wrapped.args = inspect.getargspec(func).args
+    return wrapped
+
+
 
 
 class Script(object):
