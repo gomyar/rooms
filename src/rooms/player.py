@@ -10,3 +10,6 @@ class PlayerActor(Actor):
     def __repr__(self):
         return "<PlayerActor %s in game %s room %s>" % (self.username,
             self.game_id, self.room_id)
+
+    def remove(self):
+        raise Exception("Removing PlayerActors not allowed")

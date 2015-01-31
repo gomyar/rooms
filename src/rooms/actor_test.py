@@ -314,3 +314,23 @@ class ActorTest(unittest.TestCase):
 
     def testIfVectorOrPositionSetWhileMovingKillMoveGThread(self):
         pass
+
+    def testRemove(self):
+        self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
+            ActorTest))
+        self.room.put_actor(self.actor2, Position(30, 10))
+        self.actor2.remove()
+
+        self.assertEquals({'actors': {}, 'rooms': {}},
+            self.node.container.dbase.dbases)
+
+    def testRemoveDocked(self):
+        self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
+            ActorTest))
+        self.room.put_actor(self.actor2, Position(30, 10))
+        child1 = self.actor2.create_actor("child1", "actor_script")
+
+        self.actor2.remove()
+
+        self.assertEquals({'actors': {}, 'rooms': {}},
+            self.node.container.dbase.dbases)

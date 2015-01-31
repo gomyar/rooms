@@ -182,6 +182,9 @@ class Container(object):
         self.save_player(player)
         return player
 
+    def remove_actor(self, actor_id):
+        self.dbase.remove("actors", actor_id=actor_id)
+
     ## ---- Encoding method
 
     def _save_object(self, saved_object, dbase_name, **fields):

@@ -224,7 +224,10 @@ class Actor(object):
         actor._send_state_changed()
 
     def remove(self):
+        self.room.node.container.remove_actor(self.actor_id)
         self.room._remove_actor(self)
+        for child in self.docked_actors:
+            child.remove()
 
     def undock(self):
         if self.docked_with:

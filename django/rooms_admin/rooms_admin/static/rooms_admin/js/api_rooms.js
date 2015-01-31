@@ -23,11 +23,11 @@ api_rooms.Actor = function(actor)
         this[key] = actor[key];
 }
 
-api_rooms.Actor.prototype._calc_d = function(start_d, end_d)
+api_rooms.Actor.prototype._calc_d = function(start_d, end_d, start_t, end_t)
 {
     var now = api_rooms.get_now();
-    var start_time = this.vector.start_time * 1000;
-    var end_time = this.vector.end_time * 1000;
+    var start_time = start_t * 1000;
+    var end_time = end_t * 1000;
     if (now > end_time)
         return end_d;
     var diff_x = end_d - start_d;
@@ -43,7 +43,7 @@ api_rooms.Actor.prototype.x = function()
     var vector = this.vector;
     if (this.parent_actor())
         vector = this.parent_actor().vector;
-    return this._calc_d(vector.start_pos.x, vector.end_pos.x)
+    return this._calc_d(vector.start_pos.x, vector.end_pos.x, vector.start_time, vector.end_time)
 }
 
 api_rooms.Actor.prototype.y = function()
@@ -51,7 +51,7 @@ api_rooms.Actor.prototype.y = function()
     var vector = this.vector;
     if (this.parent_actor())
         vector = this.parent_actor().vector;
-    return this._calc_d(vector.start_pos.y, vector.end_pos.y)
+    return this._calc_d(vector.start_pos.y, vector.end_pos.y, vector.start_time, vector.end_time)
 }
 
 api_rooms.Actor.prototype.z = function()
@@ -59,7 +59,7 @@ api_rooms.Actor.prototype.z = function()
     var vector = this.vector;
     if (this.parent_actor())
         vector = this.parent_actor().vector;
-    return this._calc_d(vector.start_pos.z, vector.end_pos.z)
+    return this._calc_d(vector.start_pos.z, vector.end_pos.z, vector.start_time, vector.end_time)
 }
 
 api_rooms.Actor.prototype.parent_actor = function()
