@@ -223,6 +223,9 @@ class Actor(object):
         self._send_state_changed()
         actor._send_state_changed()
 
+    def remove(self):
+        self.room._remove_actor(self)
+
     def undock(self):
         if self.docked_with:
             self.position = self.docked_with.position

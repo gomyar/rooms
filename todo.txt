@@ -1,62 +1,46 @@
 
- - instanced rooms
-
- - admin receiving everyone's updates again
-
- - steering behaviour at edge of room causes loop lock
-
- - create objects for map creation and export scripts and normalize with api
-    (i.e. Room() object is the same room in the app as the scripts)
-
- - add room "recreate" which will rebuild the room from scratch (except for
-      any player actors) if the map/tags have changed
-      - might be tricky given some of the actors may have come from other rooms
-
- - if an actor containing docked actors is removed from a room, all the docked
-   actors should be removed, and if applicable serialized to be loaded by the
-   next room
-
- - add create_child() method on actor:
-   child actors are actors which are saved as inner objects in mongo
-   they act as docked actors
-
- - change all objects and actors in a room to relative positioning
-   (basically replace topleft and bottomright with width/height)
-
- - set position when moving should kill _move_update gthread
-
- - manage_room may be called twice, creating two rooms on node
-
- - the error reporting in this guy needs tidying
- - need ATs - inter-node movement etc
-
- - the queues are leaking messages (messages not be propagated are just left)
-
- - test move rooms
-
- - move sync to gridvision
-
- - possibly don't completely delete the actor on the client side for a while in case the data comes back again, and we can restore 
-
- - add version tag + version number to setup.py
-
- - sort out api_rooms.js
-   - stop sending username from client
-   - infer username from cookie
-   - cookie created by auth call on master
-     - basic auth just allows the username to be sent in plaintext
-
- - add check for existing scripts (scripts which are assumed to exist: game_script.py player_script.py)
-
- - load rooms from map.json + state from db
-
+State:
  - state object sends diff for all changes made
 
  - DictState ListState InventoryState
 
  - internal & external state
 
- - bug: admin console will create a room (and a game) if none exists
+ - expose all actor state to admin
+
+ - complex state objects (tiered, automatic updated for each)
+   - to be used for complex actor fields like inventory, chat, quest log etc.
+
+
+Dbase:
+ - container save queue
+
+
+Master:
+ - manage room queue - single gthread for managing rooms - requests for the rooms waits on the gthread for the room to come up
+
+
+Bugs:
+ - admin receiving everyone's updates again
+
+ - steering behaviour at edge of room causes loop lock
+
+ - manage_room may be called twice, creating two rooms on node
+
+ - the queues are leaking messages (messages not be propagated are just left)
+
+
+Nice to haves:
+ - create objects for map creation and export scripts and normalize with api
+    (i.e. Room() object is the same room in the app as the scripts)
+
+ - the error reporting in this guy needs tidying
+ - need ATs - inter-node movement etc
+
+ - add version tag + version number to setup.py
+
+ - add check for existing scripts (scripts which are assumed to exist: game_script.py player_script.py)
+
 
  - settings for map url
  - settings for master domain
@@ -66,21 +50,9 @@
 
  - learn how bower works
 
- - expose all actor state to admin
-
- - node need to deactivate if all players have disconnected
-
  - add master_domain to master and node
 
  - node polls dbase for actors entering rooms (mongo query-update)
-
- - might need a queued approach to transferring actors between rooms:
-   - game_id.room_id queue per room for actors
-   - game_id.room_id queue per room for players
-   - nodes listen on whatever room queues they are managing rooms for
-   - the queues are queues for entry to the room
-
- - node saves everything on exit
 
  - check RPCWaitsExceptions for:
    - player moves room to offline node
@@ -98,39 +70,9 @@
 
  - get a "connecting/loading" bit going on the js gui
 
- - actors move slowly on entering a room for some reason
-
- - since we're doing a bunch of extra http stuff with our rpc interface (http codes for redirection, retry etc) we might wanna expand the return value to include those code, etc, and not just be a dumb json dict assumption of success
-
- - node pushes load info to master every n seconds
-
- - add admin client
-
- - deactivate room if no players enter for period of time
-
- - container save queue
-
- - complex state objects (tiered, automatic updated for each)
-   - to be used for complex actor fields like inventory, chat, quest log etc.
-
  - automatic websocket keep alive
 
- - proxy
-   - on player connect, query master for node to connect to, bounce to node
-   - on player join, same
-
- - node
-   - player objects are conected to 1 room at a time
-     - player may interact with actors in that room
-     - PlayerActor is only actor the player directly controls / follows through doors
-
-   - if no nodes registered, players wait on queue for a room to be created
-
  - saves - save data to mongo on events etc
-
- - basic demo
-   - open to all
-   - players join a game, etc, redirect to a node, 
 
  - remove room when bored
 
@@ -138,3 +80,5 @@
    - implement room creation / remove as queue on single gthread
    - queue player connects behind room queue
      - waiting list
+
+ - instanced rooms
