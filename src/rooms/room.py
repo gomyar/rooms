@@ -167,6 +167,7 @@ class Room(object):
 
     def move_actor_room(self, actor, room_id, exit_position):
         self._remove_actor(actor)
+        actor._move_undock()
         docked = self._remove_docked(actor)
         for child in docked:
             self.node.save_actor_to_other_room(room_id, exit_position, child)
@@ -192,6 +193,11 @@ class Room(object):
     def find_tags(self, tag_id):
         return [tag for tag in self.tags if tag.tag_type.startswith(tag_id)]
 
+    def find_room_objects(self, object_type, **kwargs):
+        return [obj for obj in self.room_objects if \
+            obj.object_type == object_type and
+            all(item in obj.info.items() for item in kwargs)]
+
     def object_at(self, position):
         for room_object in self.room_objects:
             if position.is_within(room_object.topleft, room_object.bottomright):
@@ -201,6 +207,8 @@ class Room(object):
     def send_message(self, message_type, position, **data):
         self.vision.send_message(message_type, position, data)
 
-    def find_actors(self, actor_type=None, state=None, visible=None):
+    def find_actors(self, actor_type=None, state=None, visible=None,
+            distance=None, distance_to=None):
         return [a for a in self.actors.values() if \
-            search_actor_test(a, actor_type, state, visible)]
+            search_actor_test(a, actor_type, state, visible, distance,
+            distance_to)]

@@ -21,6 +21,9 @@ Master:
 
 
 Bugs:
+ - cannot load limboed actor if said actor is docked with another
+ - _loadstate left as "limbo" on room load
+
  - admin receiving everyone's updates again
 
  - steering behaviour at edge of room causes loop lock
@@ -28,6 +31,10 @@ Bugs:
  - manage_room may be called twice, creating two rooms on node
 
  - the queues are leaking messages (messages not be propagated are just left)
+
+
+Suggestions:
+ - Action methods, backed up by kickoff() method if things go pearshaped
 
 
 Nice to haves:

@@ -19,12 +19,15 @@ class AlterPath(GreenletExit):
     pass
 
 
-def search_actor_test(actor, actor_type=None, state=None, visible=None):
+def search_actor_test(actor, actor_type=None, state=None, visible=None,
+        distance=None, distance_to=None):
     t = not actor_type or actor_type == actor.actor_type
     s = not state or \
         all(item in actor.state.items() for item in state.items())
     v = visible == None or actor.visible == visible
-    return t and s and v
+    d = not distance or not distance_to or \
+        actor.position.distance_to(distance_to) <= distance
+    return t and s and v and d
 
 
 class Actor(object):
@@ -236,6 +239,14 @@ class Actor(object):
             self.docked_with._send_state_changed()
             self.docked_with = None
             self._send_state_changed()
+
+    def _move_undock(self):
+        if self.docked_with:
+            pos = self.docked_with.position
+            self._vector = create_vector(pos, pos)
+            self.docked_with.docked_actors.remove(self)
+            self.docked_with._send_state_changed()
+            self.docked_with = None
 
     @property
     def visible(self):
