@@ -9,6 +9,7 @@ from rooms.script import Script
 from rooms.vector import Vector
 from rooms.state import SyncDict
 from rooms.state import SyncList
+from rooms.actor_loader import ActorLoader
 
 import logging
 log = logging.getLogger("rooms.container")
@@ -57,8 +58,7 @@ class Container(object):
             room_id=room_id, docked_with=None)
         log.debug("Found %s actors", len(actors_list))
         for actor in actors_list:
-            docked_actors = self._load_filter("actors", game_id=game_id,
-                docked_with = actor.actor_id)
+            docked_actors = ActorLoader(self.node)._load_docked(game_id, actor)
             log.debug("Loaded docked actors: %s", docked_actors)
             room.put_actor(actor)
             for docked in docked_actors:

@@ -47,6 +47,9 @@ class ActorTest(unittest.TestCase):
         Timer.sleep(1)
         actor.state.log.append('c')
 
+    def action_test(actor, *args, **kwargs):
+        pass
+
     def testCreation(self):
         self.assertEquals(Vector(Position(0, 0), 0, Position(0, 0), 0),
             self.actor.vector)

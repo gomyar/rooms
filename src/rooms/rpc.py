@@ -12,6 +12,7 @@ from functools import wraps
 from mimetypes import guess_type
 
 from rooms.state import SyncDict
+from rooms.views import JsonView
 
 from gevent import pywsgi
 from geventwebsocket.handler import WebSocketHandler
@@ -80,6 +81,9 @@ def websocket(func):
     wrapped.is_websocket = True
     wrapped.args = inspect.getargspec(func).args[1:]
     return wrapped
+
+
+_view = JsonView()
 
 
 class WSGIRPCServer(object):
@@ -192,7 +196,7 @@ class WSGIRPCServer(object):
 
     def _json_return(self, response, returned):
         if returned != None:
-            returned = json.dumps(returned, default=self._encode_result)
+            returned = _view.dumps(returned)
         else:
             returned = "[]"
         headers = [
@@ -202,9 +206,6 @@ class WSGIRPCServer(object):
         self._add_optional_headers(headers)
         response('200 OK', headers)
         return returned
-
-    def _encode_result(self, obj):
-        return obj._data if isinstance(obj, SyncDict) else obj
 
     def _add_optional_headers(self, headers):
         if self.access_control_header:
