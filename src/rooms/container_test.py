@@ -275,7 +275,8 @@ class ContainerTest(unittest.TestCase):
 
     def testSaveActor(self):
         room = self.container.create_room("game1", "room2")
-        actor = room.create_actor("mock_actor", "mock_script")
+        actor = room.create_actor("mock_actor", "mock_script",
+            position=Position(20, 10))
 #        self.container.save_actor(actor)
         self.assertEquals({u'__type__': u'Actor',
             '_id': 'actors_0',
@@ -293,13 +294,13 @@ class ContainerTest(unittest.TestCase):
             u'state': {u'__type__': u'SyncDict'},
             u'vector': {u'__type__': u'Vector',
                         u'end_pos': {u'__type__': u'Position',
-                                    u'x': 0.0,
-                                    u'y': 0.0,
+                                    u'x': 10.0,
+                                    u'y': 10.0,
                                     u'z': 0.0},
                         u'end_time': 0.0,
                         u'start_pos': {u'__type__': u'Position',
-                                        u'x': 0.0,
-                                        u'y': 0.0,
+                                        u'x': 10.0,
+                                        u'y': 10.0,
                                         u'z': 0.0},
                         u'start_time': 0}}
             , self.dbase.dbases['actors']['actors_0'])

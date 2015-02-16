@@ -1,4 +1,8 @@
 
+Admin:
+ - Draw docked actors at slight offset
+ - Add current script call underneath actor
+
 State:
  - state object sends diff for all changes made
 

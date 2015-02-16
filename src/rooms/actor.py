@@ -167,6 +167,7 @@ class Actor(object):
         except:
             log.exception("Exception running script: %s(%s, %s)", method,
                 args, kwargs)
+            self.kick()
 
     def _send_state_changed(self):
         self.room.vision.actor_state_changed(self)

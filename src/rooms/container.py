@@ -82,11 +82,13 @@ class Container(object):
         return room
 
     def create_actor(self, room, actor_type, script_name, username=None,
-            state=None, visible=True, parent_id=None):
+            state=None, visible=True, parent_id=None, position=None):
         actor = Actor(room, actor_type, script_name, username, visible=visible,
             game_id=room.game_id)
         actor.state.update(state or {})
         actor.parent_id = parent_id
+        if position:
+            actor._set_position(position)
         self.save_actor(actor)
         return actor
 
@@ -266,7 +268,7 @@ class Container(object):
         return dict(x=position.x, y=position.y, z=position.z)
 
     def _build_position(self, data):
-        return Position(data['x'], data['y'], data['y'])
+        return Position(data['x'], data['y'], data['z'])
 
     # PlayerActor
     def _serialize_player(self, player):

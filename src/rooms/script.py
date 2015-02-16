@@ -31,8 +31,6 @@ def action(func):
     return wrapped
 
 
-
-
 class Script(object):
     def __init__(self, script_name, script_module):
         self.script_name = script_name

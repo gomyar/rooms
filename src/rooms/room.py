@@ -104,7 +104,7 @@ class Room(object):
         script = self.node.scripts[script_name]
         actor = self.node.container.create_actor(self, actor_type, script,
             username=username, state=state, visible=visible,
-            parent_id=parent_id)
+            parent_id=parent_id, position=position)
         actor.script.call("created", actor)
         actor.kick()
         self.put_actor(actor, position)
