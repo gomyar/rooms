@@ -392,7 +392,15 @@ gui.draw = function()
         if (!gui.should_draw_actor(actor))
             continue;
         gui.ctx.save();
-        gui.ctx.translate(gui.canvas_x(actor.x()), gui.canvas_y(actor.y()));
+        var ax = gui.canvas_x(actor.x());
+        var ay = gui.canvas_y(actor.y());
+        var docked_with_id = actor.docked_with;
+        while (docked_with_id && api_rooms.actors[docked_with_id])
+        {
+            docked_with_id = api_rooms.actors[docked_with_id].docked_with;
+            ay += 10;
+        }
+        gui.ctx.translate(ax, ay);
         gui.draw_actor(actor);
         gui.ctx.restore();
 
