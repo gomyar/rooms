@@ -63,7 +63,7 @@ rooms_admin.controller("AdminGameClientCtrl", ['$scope', '$http', '$location',
                 api_rooms.admin_connect(data.node[0], data.node[1],
                     data.token, game_callback);
                 gui.init($('#screen')[0]);
-                $scope.actor_list = [{"actor_type": 'argle'}];
+                $scope.actor_list = [];
                 $scope.selected_actor = null;
                 $scope.select_actor = function(actor)
                 {

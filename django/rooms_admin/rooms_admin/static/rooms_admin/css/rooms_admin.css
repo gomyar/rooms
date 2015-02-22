@@ -255,6 +255,23 @@ div#actor_list
     border : 1px solid white;
 }
 
+hr
+{
+    margin: 10px;
+    background-color :  grey;
+}
+
+div#actor_list div.listed_actor
+{
+    margin : 5px;
+    cursor : pointer;
+}
+
+div#actor_list div.listed_actor:hover
+{
+    background-color : grey;
+}
+
 div#selected_actor
 {
     position : absolute;

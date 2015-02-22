@@ -74,7 +74,6 @@ gui.canvas_mousemove = function(e)
             $(gui.canvas).css('cursor', 'pointer');
             if (!actors[0].docked_with && actors[0].visible)
                 gui.highlighted_actor = actors[0];
-            gui.show_actor_list(actors);
             gui.requestRedraw();
         }
         else
