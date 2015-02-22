@@ -90,18 +90,18 @@ gui.canvas_mousemove = function(e)
 gui.show_actor_list = function(actors)
 {
     // show list of selected actors
-    $(".actor_list").remove();
-    var actor_list = div("actor_list");
-    for (var i in actors)
-    {
-        var actor = actors[i];
-        if (gui.should_draw_actor(actor))
-            continue;
-        actor_list.append(
-            div('actor', {'text': actor.name ? actor.name : actor.actor_type})
-        );
-    }
-    $("#canvaswrapper").append(actor_list);
+    applyscope(function (scope){
+        scope.actor_list = actors;
+    });
+}
+
+function applyscope(func) {
+    getscope().$apply(func);
+}
+
+
+function getscope() {
+    return $(".gameview").scope();
 }
 
 gui.canvas_mousedown = function(e)
@@ -151,7 +151,7 @@ gui.canvas_clicked = function(e)
         }
         else if (actors.length == 1)
         {
-            gui.select_actor(actors[0]);
+            getscope().select_actor(actors[0]);
             $('.selected_actor_list').remove();
             gui.requestRedraw();
         }
@@ -195,12 +195,9 @@ gui.at_position = function(actor, x, y)
 }
 
 
-// Actor movey selecty
-gui.select_actor = function(actor)
+gui.get_selected_actor = function()
 {
-    gui.selected_actor = actor;
-    admin_actor_panel.init(actor);
-    logpanel.show_log(actor.actor_id);
+    return getscope().selected_actor;
 }
 
 
@@ -223,24 +220,9 @@ gui.find_all_actors_at = function(x, y)
 
 gui.show_selected_actor_list = function(actors)
 {
-    $(".selected_actor_list").remove();
-    var actor_list = [];
-    for (var i in actors)
-    {
-        var actor = actors[i];
-        if (!gui.should_draw_actor(actor))
-            continue;
-        var text = actor.name ? actor.name : actor.actor_type;
-        actor_list[actor_list.length] = div("actor", {'text': text}).click(
-            actor, function(e) {
-                gui.select_actor(e.data);
-                $(".selected_actor_list").remove();
-            }
-        );
-    }
-    $("#canvaswrapper").append(
-        div("selected_actor_list", {'text': 'Selected Actors:'}).append(actor_list)
-    );
+    applyscope(function (scope){
+        scope.actor_list = actors;
+    });
 }
 
 
@@ -408,8 +390,8 @@ gui.draw = function()
     }
     if (gui.highlighted_actor)
         gui.draw_rect(gui.canvas_x(gui.highlighted_actor.x()) - 15, gui.canvas_y(gui.highlighted_actor.y()) - 15, 32, 32, "rgb(150,150,250)");
-    if (gui.selected_actor)
-        gui.draw_rect(gui.canvas_x(gui.selected_actor.x()) - 15, gui.canvas_y(gui.selected_actor.y()) - 15, 32, 32, "rgb(150,250,150)");
+    if (gui.get_selected_actor())
+        gui.draw_rect(gui.canvas_x(gui.get_selected_actor().x()) - 15, gui.canvas_y(gui.get_selected_actor().y()) - 15, 32, 32, "rgb(150,250,150)");
 
     gui.draw_text_centered(50, 20, "Viewport: ("+parseInt(gui.viewport_x)+", "+parseInt(gui.viewport_y)+")", "white");
     gui.draw_text_centered(50, 60, "Mouse: ("+parseInt(gui.mouse_client_x)+", "+parseInt(gui.mouse_client_y)+")", "white");
