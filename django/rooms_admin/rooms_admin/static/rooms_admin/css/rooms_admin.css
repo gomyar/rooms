@@ -257,8 +257,13 @@ div#actor_list
 
 hr
 {
-    margin: 10px;
+    margin: 5px;
     background-color :  grey;
+}
+
+pre
+{
+    margin : 0;
 }
 
 div#actor_list div.listed_actor
@@ -278,8 +283,26 @@ div#selected_actor
     top : 10px;
     right : 10px;
     bottom : 10px;
-    width : 300px;
+    width : 350px;
     background-color : black;
     border : 1px solid white;
     overflow : auto;
+}
+
+div#selected_actor div.field
+{
+    width : 320px;
+    margin : 0;
+}
+
+div#selected_actor div.field div.name
+{
+    display : inline-block;
+    vertical-align : top;
+    color : lightblue;
+}
+
+div#selected_actor div.field pre.value
+{
+    display : inline-block;
 }

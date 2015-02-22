@@ -9,6 +9,8 @@
     <div id="selected_actor" ng-show="selected_actor">
         <div>Actor:  {{ selected_actor.actor_type }}</div>
         <hr></hr>
-        <pre>{{ selected_actor.state | json }}</pre>
+        <div ng-repeat="field in ['actor_id', 'username', 'visible', 'docked_with', 'path', 'vector', 'state']" class="field">
+            <div class="name">"{{ field }}":&nbsp;</div><pre class="value">{{ selected_actor[field] | json }}</pre>
+        </div>
     </div>
 </div>
