@@ -250,9 +250,10 @@ div#actor_list
     top : 10px;
     left : 10px;
     bottom : 10px;
-    width : 100px;
+    width : 200px;
     background-color : black;
     border : 1px solid white;
+    overflow : auto;
 }
 
 hr
@@ -272,6 +273,11 @@ div#actor_list div.listed_actor
     cursor : pointer;
 }
 
+div#actor_list div.listed_actor.player
+{
+    color : green;
+}
+
 div#actor_list div.listed_actor:hover
 {
     background-color : grey;
@@ -287,6 +293,16 @@ div#selected_actor
     background-color : black;
     border : 1px solid white;
     overflow : auto;
+}
+
+div#selected_actor div.title
+{
+    margin : 2px;
+}
+
+div#selected_actor div.title.player
+{
+    color : green;
 }
 
 div#selected_actor div.field

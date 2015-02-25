@@ -47,8 +47,14 @@ class ActorTest(unittest.TestCase):
         Timer.sleep(1)
         actor.state.log.append('c')
 
-    def action_test(actor, *args, **kwargs):
-        pass
+    def action_to_perform(self, actor, *args, **kwargs):
+        actor.state.val1 = args[0]
+
+    def testActionMethod(self):
+        self.actor.action(self.action_to_perform, "val1")
+        self.assertEquals(None, self.actor.state.val1)
+        MockTimer.fast_forward(0)
+        self.assertEquals("val1", self.actor.state.val1)
 
     def testCreation(self):
         self.assertEquals(Vector(Position(0, 0), 0, Position(0, 0), 0),
@@ -186,10 +192,14 @@ class ActorTest(unittest.TestCase):
 
         self.actor.move_to(Position(10, 0))
 
+        expected_vector = create_vector(Position(0, 0), Position(10.0, 0), 1)
         MockTimer.fast_forward(1)
 
         self.assertEquals(Position(1.0, 0), self.actor.position)
         self.assertEquals(Position(1.0, 0), self.actor2.position)
+
+        self.assertEquals(expected_vector, self.actor.vector)
+        self.assertEquals(expected_vector, self.actor2.vector)
 
     def testVisible(self):
         self.actor.visible = True

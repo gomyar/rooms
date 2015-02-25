@@ -41,9 +41,12 @@ class Script(object):
 
     def call(self, method, *args, **kwargs):
         if self.has_method(method):
-            return getattr(self.script_module, method)(*args, **kwargs)
+            return self.get_method(method)(*args, **kwargs)
         else:
             return None
+
+    def get_method(self, method):
+        return getattr(self.script_module, method)
 
     def has_method(self, method):
         return self.script_module and hasattr(self.script_module, method)

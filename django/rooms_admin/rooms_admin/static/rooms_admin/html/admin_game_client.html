@@ -2,12 +2,12 @@
     <canvas id="screen">
     </canvas>
     <div id="actor_list" ng-show="actor_list">
-        <div>Select Actor:</div>
+        <div class="title">Select Actor:</div>
         <hr></hr>
-        <div class="listed_actor" ng-repeat="actor in actor_list" ng-click="select_actor(actor)">{{ actor.actor_type }}</div>
+        <div class="listed_actor {{ {true:'player', false:''}[actor.actor_type=='player'] }}" ng-repeat="actor in actor_list" ng-click="select_actor(actor)">{{ actor.actor_type }} ({{ actor.username }})</div>
     </div>
     <div id="selected_actor" ng-show="selected_actor">
-        <div>Actor:  {{ selected_actor.actor_type }}</div>
+        <div class="title {{ {true:'player', false:''}[selected_actor.actor_type=='player'] }}">Actor:  {{ selected_actor.actor_type }} ({{ selected_actor.username }})</div>
         <hr></hr>
         <div ng-repeat="field in ['actor_id', 'username', 'visible', 'docked_with', 'path', 'vector', 'state']" class="field">
             <div class="name">"{{ field }}":&nbsp;</div><pre class="value">{{ selected_actor[field] | json }}</pre>

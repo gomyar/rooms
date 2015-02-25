@@ -151,10 +151,10 @@ gui.canvas_clicked = function(e)
         else if (actors.length == 1)
         {
             getscope().select_actor(actors[0]);
-            $('.selected_actor_list').remove();
             gui.requestRedraw();
         }
     }
+    console.log("clicked");
     gui.swallow_click = false;
 }
 

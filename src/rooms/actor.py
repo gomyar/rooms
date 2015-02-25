@@ -149,7 +149,25 @@ class Actor(object):
         Timer.sleep(seconds)
 
     def action(self, method, *args, **kwargs):
-        self.script_call(method, self, *args, **kwargs)
+        if callable(method):
+            self._action_call(method, args, kwargs)
+        else:
+            self._action_call(self.script.get_method(method), args, kwargs)
+
+    def _action_call(self, method, args, kwargs):
+        self._kill_script_gthread()
+        self._script_gthread = gevent.spawn(self._checked_action_call, method,
+            *args, **kwargs)
+
+    def _checked_action_call(self, method, *args, **kwargs):
+        try:
+            return method(self, *args, **kwargs)
+        except GreenletExit, ge:
+            pass
+        except:
+            log.exception("Exception running action: %s(%s, %s)", method,
+                args, kwargs)
+            self.kick()
 
     def script_call(self, method, *args, **kwargs):
         self._kill_script_gthread()
@@ -157,11 +175,11 @@ class Actor(object):
             *args, **kwargs)
 
     def script_request(self, method, *args, **kwargs):
-        return self._checked_script_call(method, *args, **kwargs)
+        return self.script.call(method, *args, **kwargs)
 
     def _checked_script_call(self, method, *args, **kwargs):
         try:
-            return self.script.call(method, *args, **kwargs)
+            return self.script_request(method, *args, **kwargs)
         except GreenletExit, ge:
             pass
         except:
@@ -197,7 +215,10 @@ class Actor(object):
 
     @property
     def vector(self):
-        return self._vector
+        if self.docked_with:
+            return self.docked_with.vector
+        else:
+            return self._vector
 
     @vector.setter
     def vector(self, vector):
