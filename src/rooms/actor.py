@@ -185,7 +185,6 @@ class Actor(object):
         except:
             log.exception("Exception running script: %s(%s, %s)", method,
                 args, kwargs)
-            self.kick()
 
     def _send_state_changed(self):
         self.room.vision.actor_state_changed(self)
@@ -282,8 +281,8 @@ class Actor(object):
             self._visible = isvisible
             self.room.vision.actor_becomes_visible(self)
         else:
-            self.room.vision.actor_becomes_invisible(self)
             self._visible = isvisible
+            self.room.vision.actor_becomes_invisible(self)
 
     def create_actor(self, actor_type, script_name, username=None,
             position=None, state=None, visible=False, docked=True):

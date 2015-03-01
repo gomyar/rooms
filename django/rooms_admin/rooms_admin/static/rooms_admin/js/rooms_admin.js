@@ -68,7 +68,6 @@ rooms_admin.controller("AdminGameClientCtrl", ['$scope', '$http', '$location',
                 $scope.select_actor = function(actor)
                 {
                     $scope.selected_actor = actor;
-                    $scope.$apply();
                 }
             }
             );
