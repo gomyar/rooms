@@ -24,3 +24,7 @@ class PositionTest(unittest.TestCase):
             Position(10, 10).angle_between(Position(5, 10)))
         self.assertEquals(math.pi,
             Position(10, 10).angle_between(Position(15, 10)))
+
+    def testPositionDifferenceCoords(self):
+        x, y, z = Position(10, 10, 10).difference(Position(11, 12, 13))
+        self.assertEquals((-1, -2, -3), (x, y, z))

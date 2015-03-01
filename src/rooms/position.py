@@ -45,3 +45,6 @@ class Position(object):
 
     def angle_between(self, position):
         return math.atan2(self.y - position.y, self.x - position.x)
+
+    def difference(self, position):
+        return self.x - position.x, self.y - position.y, self.z - position.z

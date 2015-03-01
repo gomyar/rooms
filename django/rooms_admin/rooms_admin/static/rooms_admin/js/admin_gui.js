@@ -150,6 +150,7 @@ gui.canvas_clicked = function(e)
         }
         else if (actors.length == 1)
         {
+            gui.clear_selected_actor_list();
             getscope().select_actor(actors[0]);
             gui.requestRedraw();
         }
@@ -221,6 +222,14 @@ gui.show_selected_actor_list = function(actors)
 {
     applyscope(function (scope){
         scope.actor_list = actors;
+    });
+}
+
+
+gui.clear_selected_actor_list = function()
+{
+    applyscope(function (scope){
+        scope.actor_list = [];
     });
 }
 
