@@ -453,7 +453,8 @@ gui.draw_player_actor = function(ctx, actor)
 gui.draw_npc_actor = function(ctx, actor)
 {
     var textcolor = actor.visible ? "white" : "gray";
-    gui.draw_text_centered(0, - 17, actor.actor_type, textcolor);
+    gui.draw_text_centered(0, - 17, actor.actor_type + ": " + actor.script,
+        textcolor);
 
     if (actor.health)
         gui.draw_health(ctx, actor);

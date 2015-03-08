@@ -261,7 +261,8 @@ class Node(object):
         log.debug("call in room: %s - %s: %s(%s)", room.room_id,
             player_conn.token, method, kwargs)
         actor = room.actors[player_conn.actor_id]
-        if actor.script.has_method(method):
+        if actor.script.has_method(method) and \
+                getattr(actor.script.get_method(method), "is_command"):
             return actor.script_request(method, actor, **kwargs)
         else:
             raise Exception("No such method %s" % (method,))
@@ -274,7 +275,8 @@ class Node(object):
         actor = room.actors[actor_id]
         log.debug("request in room: %s - %s", room, player_conn)
         player = room.actors[player_conn.actor_id]
-        if actor.script.has_method(method):
+        if actor.script.has_method(method) and \
+                getattr(actor.script.get_method(method), "is_request"):
             return actor.script_request(method, actor, player, **kwargs)
         else:
             raise Exception("No such method %s" % (method,))
