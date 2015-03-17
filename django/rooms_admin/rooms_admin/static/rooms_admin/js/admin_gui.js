@@ -152,6 +152,7 @@ gui.canvas_clicked = function(e)
         {
             gui.clear_selected_actor_list();
             getscope().select_actor(actors[0]);
+            getscope().$apply();
             gui.requestRedraw();
         }
     }
@@ -455,6 +456,8 @@ gui.draw_npc_actor = function(ctx, actor)
     var textcolor = actor.visible ? "white" : "gray";
     gui.draw_text_centered(0, - 17, actor.actor_type + ": " + actor.script,
         textcolor);
+    if (actor.exception)
+        gui.draw_text_centered(0, - 27, actor.exception, "red");
 
     if (actor.health)
         gui.draw_health(ctx, actor);

@@ -32,6 +32,7 @@ log = logging.getLogger("rooms")
 
 if __name__ == "__main__":
     master = None
+    container = None
     try:
         log.info("Starting server")
         parser = OptionParser()
@@ -67,6 +68,7 @@ if __name__ == "__main__":
         item_registry.load_from_directory(options.game)
         container = Container(dbase, geography, node, room_factory,
             item_registry=item_registry)
+        container.start_container()
         master = Master(container)
         master.load_scripts(os.path.join(options.game, "scripts"))
 
@@ -101,5 +103,6 @@ if __name__ == "__main__":
         log.debug("Master stopped")
         node.save_all()
         master.shutdown()
+        container.stop_container()
     except:
         log.exception("Exception starting server")

@@ -56,6 +56,7 @@ class Actor(object):
         self._move_gthread = None
         self._follow_event = Event()
         self._tracking = None
+        self._exception = None
 
     @property
     def is_player(self):
@@ -149,6 +150,7 @@ class Actor(object):
         Timer.sleep(seconds)
 
     def action(self, method, *args, **kwargs):
+        self._exception = None
         if callable(method):
             self._action_call(method, args, kwargs)
         else:
@@ -164,10 +166,10 @@ class Actor(object):
             return method(self, *args, **kwargs)
         except GreenletExit, ge:
             pass
-        except:
+        except Exception, e:
             log.exception("Exception running action: %s(%s, %s)", method,
                 args, kwargs)
-            self.kick()
+            self._exception = str(e)
 
     def script_call(self, method, *args, **kwargs):
         self._kill_script_gthread()

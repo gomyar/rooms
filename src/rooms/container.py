@@ -1,4 +1,6 @@
 import json
+import gevent
+from gevent.queue import Queue
 
 from rooms.game import Game
 from rooms.player import PlayerActor
@@ -45,6 +47,19 @@ class Container(object):
             SyncDict=self._build_syncdict,
             SyncList=self._build_synclist,
         )
+        self._remove_queue = Queue()
+        self._remove_gthread = None
+
+    def start_container(self):
+        self._running = True
+        self._remove_gthread = gevent.spawn(self._run_remove_queue)
+
+    def stop_container(self):
+        self._running = False
+        log.info("Stopping container - waiting for remove queue")
+        self._remove_gthread.put(None)
+        self._remove_gthread.join()
+        log.info("Container stopped")
 
     def load_room(self, game_id, room_id):
         room = self._load_filter_one("rooms", game_id=game_id, room_id=room_id)
@@ -185,7 +200,14 @@ class Container(object):
         return player
 
     def remove_actor(self, actor_id):
-        self.dbase.remove("actors", actor_id=actor_id)
+        self._remove_queue.put(actor_id)
+
+    def _run_remove_queue(self):
+        while self._running:
+            actor_id = self._remove_queue.get()
+            if actor_id:
+                log.debug("Removing actor: %s", actor_id)
+                self.dbase.remove("actors", actor_id=actor_id)
 
     ## ---- Encoding method
 

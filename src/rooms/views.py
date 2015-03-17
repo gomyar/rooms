@@ -53,6 +53,7 @@ class JsonView(object):
                 actor.docked_with else None,
             visible=actor.visible,
             script=actor.script.script_name,
+            exception=actor._exception,
         )
 
     def view_state(self, state):
