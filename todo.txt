@@ -1,4 +1,6 @@
 
+ - simplify scripts to module path include
+
 Admin:
  - Draw docked actors at slight offset
  - Add current script call underneath actor
@@ -18,6 +20,7 @@ State:
 
 Dbase:
  - container save queue
+ - change manage room from remote call to mongo upsert of new room
 
 
 Master:
