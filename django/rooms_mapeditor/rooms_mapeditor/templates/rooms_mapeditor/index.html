@@ -1,0 +1,44 @@
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="/static/rooms_mapeditor/css/mapeditor.css"/>
+    <script src="/static/rooms_mapeditor/js/jquery-1.9.1.js"></script>
+    <script src="/static/rooms_mapeditor/js/jquery.mousewheel.js"></script>
+    <script src="/static/rooms_mapeditor/js/angular.js"></script>
+    <script src="/static/rooms_mapeditor/js/angular-route.js"></script>
+
+    <script src="/static/rooms_mapeditor/js/mapeditor.js"></script>
+</head>
+
+<body>
+
+Mapeditor
+
+<div id="mapeditor">
+    <div id="controls">
+        <div id="select" class="control">Select</div>
+        <div id="newroom" class="control">New Room</div>
+        <div id="newobj" class="control">New Object</div>
+        <div id="newtag" class="control">New Tag</div>
+        <div id="delete" class="control">Delete</div>
+    </div>
+
+    <div id="mainmap">
+        <canvas id="mapcanvas"></canvas>
+    </div>
+
+    <div id="selected">
+        <div id="selectedroom">
+            <div class="field">
+                <div class="name">room_id</div>
+                <input id="room_id" class="value"></input>
+            </div>
+        </div>
+        <div id="selectedobj">
+        </div>
+        <div id="selectedtag">
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

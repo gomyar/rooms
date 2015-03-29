@@ -1,9 +1,16 @@
 
+Cleanup:
+ - single rooms.js file used by all - include as resource + collectable django static file + bower (maybe)
+ - demo django app which uses all the djano apps
+
  - simplify scripts to module path include
 
 Admin:
  - Draw docked actors at slight offset
  - Add current script call underneath actor
+ - Add "add actor" call
+ - Add "remove actor" call
+   - this wont work with player actors
 
 State:
  - state object sends diff for all changes made

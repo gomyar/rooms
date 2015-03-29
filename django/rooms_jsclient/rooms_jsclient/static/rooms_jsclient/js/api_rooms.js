@@ -4,11 +4,15 @@ var api_rooms = {};
 api_rooms.server_time = 0;
 api_rooms.local_time = 0;
 api_rooms.token = "";
+api_rooms.username = "";
+api_rooms.player_actor = {"actor_id": "admin"};
 
 api_rooms.actors = {};
 api_rooms.socket = null;
 
 api_rooms.master_url = "http://localhost:9999";
+api_rooms.node_host = null;
+api_rooms.node_port = null;
 
 
 api_rooms.Actor = function(actor)
@@ -17,11 +21,11 @@ api_rooms.Actor = function(actor)
         this[key] = actor[key];
 }
 
-api_rooms.Actor.prototype._calc_d = function(start_d, end_d)
+api_rooms.Actor.prototype._calc_d = function(start_d, end_d, start_t, end_t)
 {
     var now = api_rooms.get_now();
-    var start_time = this.vector.start_time * 1000;
-    var end_time = this.vector.end_time * 1000;
+    var start_time = start_t * 1000;
+    var end_time = end_t * 1000;
     if (now > end_time)
         return end_d;
     var diff_x = end_d - start_d;
@@ -34,23 +38,32 @@ api_rooms.Actor.prototype._calc_d = function(start_d, end_d)
 
 api_rooms.Actor.prototype.x = function()
 {
-    return this._calc_d(this.vector.start_pos.x, this.vector.end_pos.x)
+    var vector = this.vector;
+    if (this.parent_actor())
+        vector = this.parent_actor().vector;
+    return this._calc_d(vector.start_pos.x, vector.end_pos.x, vector.start_time, vector.end_time)
 }
 
 api_rooms.Actor.prototype.y = function()
 {
-    return this._calc_d(this.vector.start_pos.y, this.vector.end_pos.y)
+    var vector = this.vector;
+    if (this.parent_actor())
+        vector = this.parent_actor().vector;
+    return this._calc_d(vector.start_pos.y, vector.end_pos.y, vector.start_time, vector.end_time)
 }
 
 api_rooms.Actor.prototype.z = function()
 {
-    return this._calc_d(this.vector.start_pos.z, this.vector.end_pos.z)
+    var vector = this.vector;
+    if (this.parent_actor())
+        vector = this.parent_actor().vector;
+    return this._calc_d(vector.start_pos.z, vector.end_pos.z, vector.start_time, vector.end_time)
 }
 
 api_rooms.Actor.prototype.parent_actor = function()
 {
-    if (this.parent_id != null && this.parent_id in api_rooms.actors)
-        return api_rooms.actors[this.parent_id];
+    if (this.docked_with != null && this.docked_with in api_rooms.actors)
+        return api_rooms.actors[this.docked_with];
     else
         return null;
 }
@@ -65,6 +78,19 @@ api_rooms.Actor.prototype.atPosition = function(x, y)
 }
 
 
+api_rooms.Actor.prototype.docked = function(actor_type)
+{
+    var docked = [];
+    for (var actor_id in api_rooms.actors)
+    {
+        var actor = api_rooms.actors[actor_id];
+        if (actor.docked_with == this.actor_id && actor_type && actor.actor_type == actor_type)
+            docked[docked.length] = actor;
+    }
+    return docked;
+}
+
+
 api_rooms.get_now = function()
 {
     var local_now = new Date().getTime();
@@ -76,7 +102,6 @@ api_rooms.set_now = function(now_time)
 {
     api_rooms.server_time = now_time * 1000;
     api_rooms.local_time = new Date().getTime();
-    gui.redraw_until = api_rooms.get_now();
     console.log("Server time : "+new Date(api_rooms.server_time));
     console.log("Local time : "+new Date(api_rooms.local_time));
 }
@@ -113,11 +138,10 @@ api_rooms.onerror = function()
     console.log("Connection error");
 }
 
-api_rooms.connect = function(server_url, game_id, username, callback)
+api_rooms.connect = function(master_url, game_id, callback)
 {
     api_rooms.game_id = game_id;
-    api_rooms.username = username;
-    api_rooms.master_url = server_url;
+    api_rooms.master_url = master_url;
     api_rooms.game_callback = callback;
 
     api_rooms.request_connection();
@@ -125,7 +149,8 @@ api_rooms.connect = function(server_url, game_id, username, callback)
 
 api_rooms.request_connection = function()
 {
-    api_rooms.service_call(api_rooms.master_url + "/player_connects/" + api_rooms.username + "/" + api_rooms.game_id, {},
+    console.log("Requesting connection");
+    api_rooms.service_call(api_rooms.master_url + "/player_connects", {"game_id": api_rooms.game_id},
             function(data) {
                 api_rooms.node_host = data.node[0];
                 api_rooms.node_port = data.node[1];
@@ -137,7 +162,8 @@ api_rooms.request_connection = function()
 
 api_rooms.connect_node = function()
 {
-    api_rooms.socket = new WebSocket("ws://" + api_rooms.node_host + ":" + api_rooms.node_port + "/node_game/player_connects/" + api_rooms.game_id + "/" + api_rooms.username + "/" + api_rooms.token);
+    console.log("Connecting to Node " + api_rooms.node_host + ":" + api_rooms.node_port);
+    api_rooms.socket = new WebSocket("ws://" + api_rooms.node_host + ":" + api_rooms.node_port + "/node_game/player_connects/" + api_rooms.game_id + "/" + api_rooms.token);
     api_rooms.socket.onmessage = api_rooms.message_callback;
     api_rooms.socket.onopen = api_rooms.onopen;
     api_rooms.socket.onclose = api_rooms.onclose;
@@ -149,8 +175,9 @@ api_rooms.admin_connect = function(host, port, token, game_callback)
     console.log("Connecting to : "+ host + ":" + port + " " + token);
     api_rooms.actors = {};
     api_rooms.game_id = null;
-    api_rooms.username = 'admin';
     api_rooms.token = token;
+    api_rooms.node_host = host;
+    api_rooms.node_port = port;
 
     api_rooms.socket = new WebSocket("ws://"+host+":"+port+"/node_game/admin_connects/"+token);
     api_rooms.socket.onmessage = api_rooms.message_callback;
@@ -165,12 +192,24 @@ api_rooms.admin_connect = function(host, port, token, game_callback)
 
 api_rooms.command_sync = function(message)
 {
+    api_rooms.actors = {};
     api_rooms.set_now(message.data.now);
+    api_rooms.username = message.data.username;
+    if (message.data.player_actor)
+    {
+        api_rooms.player_actor = new api_rooms.Actor(message.data.player_actor);
+        api_rooms.actors[api_rooms.player_actor.actor_id] = api_rooms.player_actor;
+    }
 }
 
 
 api_rooms.command_actor_update = function(message)
 {
+    if (message.actor_id == api_rooms.player_actor.actor_id)
+    {
+        for (var f in message.data)
+            api_rooms.player_actor[f] = message.data[f];
+    }
     if (message.actor_id in api_rooms.actors)
     {
         for (var f in message.data)
@@ -185,16 +224,11 @@ api_rooms.command_remove_actor = function(message)
     delete api_rooms.actors[message.actor_id];
 }
 
-api_rooms.command_moved_node = function(message)
-{
-    window.location = "http://"+message.node[0]+":"+message.node[1]+"/assets/index.html?token="+message.token+"&game_id="+api_rooms.game_id+"&username="+api_rooms.username;
-}
-
 api_rooms.commands = {
     "sync": api_rooms.command_sync,
     "actor_update": api_rooms.command_actor_update,
     "remove_actor": api_rooms.command_remove_actor,
-    "redirect": api_rooms.command_moved_node
+    "redirect_to_master": api_rooms.request_connection
 };
 
 api_rooms.message_callback = function(msgevent)
@@ -208,14 +242,14 @@ api_rooms.message_callback = function(msgevent)
 
 
 // *** API Calls
-api_rooms.call_command = function(actor_id, command, args, callback)
+api_rooms.call_command = function(command, args, callback)
 {
-    api_rooms.service_call("http://" + api_rooms.node_host + ":" + api_rooms.node_port + "/node_game/actor_call/" + api_rooms.game_id + "/" + api_rooms.username + "/" + actor_id + "/" + api_rooms.token + "/" + command, args, callback);
+    api_rooms.service_call("http://" + api_rooms.node_host + ":" + api_rooms.node_port + "/node_game/actor_call/" + api_rooms.game_id + "/" + api_rooms.token + "/" + command, args, callback);
 }
 
 api_rooms.actor_request = function(actor_id, command, args, callback)
 {
-    api_rooms.service_call("/actors/"+actor_id+"/"+command, args, callback)
+    api_rooms.service_call("http://" + api_rooms.node_host + ":" + api_rooms.node_port + "/node_game/actor_request/" + api_rooms.game_id + "/" + api_rooms.token + "/" + actor_id + "/" + command, args, callback);
 }
 
 api_rooms.actors_by_type = function()
@@ -225,20 +259,33 @@ api_rooms.actors_by_type = function()
     {
         var actor = api_rooms.actors[i];
         if (!(actor.actor_type in actors))
-            actors[actor.actor_type] = {};
-        actors[actor.actor_type][actor.name + ": "+actor.actor_id] = actor;
+            actors[actor.actor_type] = [];
+        actors[actor.actor_type][actors[actor.actor_type].length] = actor;
     }
     return actors;
 }
 
-api_rooms.player_actors = function()
+api_rooms.find_actors = function(actor_type, name, value)
 {
     var actors = [];
     for (var i in api_rooms.actors)
     {
         var actor = api_rooms.actors[i];
-        if (actor.username == api_rooms.username)
+        if (actor.actor_type == actor_type && (name==null || actor.state[name] == value))
             actors[actors.length] = actor;
     }
     return actors;
 }
+
+api_rooms.docked_actors = function(actor_type)
+{
+    var docked = [];
+    for (var i in api_rooms.actors)
+    {
+        var actor = api_rooms.actors[i];
+        if (api_rooms.player_actor && actor.parent_id == api_rooms.player_actor.actor_id && actor_type == actor.actor_type)
+            docked[docked.length] = actor;
+    }
+    return docked;
+}
+

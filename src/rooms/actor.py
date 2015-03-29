@@ -89,6 +89,7 @@ class Actor(object):
     def stop(self):
         self._kill_move_gthread()
         self.position = self.position
+        self.path = []
 
     def move_wait(self, position, path=None):
         self.move_to(position, path)

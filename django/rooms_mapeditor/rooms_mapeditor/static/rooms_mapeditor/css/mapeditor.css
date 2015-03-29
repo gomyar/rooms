@@ -1,0 +1,47 @@
+
+div#mapeditor
+{
+    margin : 0px;
+    padding : 0px;
+    border : 0px;
+    position : absolute;
+    top : 0px;
+    bottom : 0px;
+    left : 0px;
+    right : 0px;
+    background-color : purple;
+}
+
+div#controls
+{
+    position : absolute;
+    top : 10px;
+    left : 10px;
+    width : 50px;
+    background-color : green;
+}
+
+div#controls div.control
+{
+    width : 45px;
+    height : 45px;
+    margin : 2px;
+    background-color : blue;
+    color : white;
+}
+
+
+div#selected
+{
+    position : absolute;
+    top : 10px;
+    bottom : 10px;
+    right : 10px;
+    width : 300px;
+    background-color : red;
+}
+
+div#selected div.name
+{
+    
+}

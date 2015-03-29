@@ -57,7 +57,7 @@ class Container(object):
     def stop_container(self):
         self._running = False
         log.info("Stopping container - waiting for remove queue")
-        self._remove_gthread.put(None)
+        self._remove_queue.put(None)
         self._remove_gthread.join()
         log.info("Container stopped")
 
