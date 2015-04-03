@@ -1,19 +1,18 @@
 <html>
 <head>
     <link rel="stylesheet" type="text/css" href="/static/rooms_mapeditor/css/mapeditor.css"/>
-    <script src="/static/rooms_mapeditor/js/jquery-1.9.1.js"></script>
-    <script src="/static/rooms_mapeditor/js/jquery.mousewheel.js"></script>
-    <script src="/static/rooms_mapeditor/js/angular.js"></script>
-    <script src="/static/rooms_mapeditor/js/angular-route.js"></script>
+    <script src="/static/rooms_jsclient/jquery/jquery-1.9.1.js"></script>
+    <script src="/static/rooms_jsclient/jquery/jquery.mousewheel.js"></script>
+    <script src="/static/rooms_jsclient/angular/angular.js"></script>
+    <script src="/static/rooms_jsclient/angular/angular-route.js"></script>
 
     <script src="/static/rooms_mapeditor/js/mapeditor.js"></script>
+    <script src="/static/rooms_mapeditor/js/mapedit_gui.js"></script>
 </head>
 
-<body>
+<body ng-app="RoomsMapEditor">
 
-Mapeditor
-
-<div id="mapeditor">
+<div ng-controller="MapEditCtrl" id="mapeditor">
     <div id="controls">
         <div id="select" class="control">Select</div>
         <div id="newroom" class="control">New Room</div>
@@ -23,8 +22,15 @@ Mapeditor
     </div>
 
     <div id="mainmap">
-        <canvas id="mapcanvas"></canvas>
+        <canvas id="screen"></canvas>
     </div>
+
+    <div id="maplist">
+        <select ng-options="map_id as map_id for map_id in all_maps track by map_id" ng-model="selected_map">
+        </select>
+        <div class="button" ng-click="load_selected_map()">Load</div>
+    </div>
+
 
     <div id="selected">
         <div id="selectedroom">
@@ -39,6 +45,12 @@ Mapeditor
         </div>
     </div>
 </div>
+
+
+
+</body>
+
+<body>
 
 </body>
 </html>

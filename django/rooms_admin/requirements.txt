@@ -1,2 +1,3 @@
 django
 rooms
+rooms_jsclient

@@ -9,7 +9,22 @@ div#mapeditor
     bottom : 0px;
     left : 0px;
     right : 0px;
-    background-color : purple;
+    background-color : darkblue;
+}
+
+div#maplist
+{
+    
+}
+
+div#mainmap 
+{
+    position : absolute;
+    top : 40px;
+    left : 70px;
+    bottom : 10px;
+    right : 320px;
+    background-color : black;
 }
 
 div#controls
@@ -18,7 +33,7 @@ div#controls
     top : 10px;
     left : 10px;
     width : 50px;
-    background-color : green;
+    background-color : darkblue;
 }
 
 div#controls div.control
@@ -26,10 +41,44 @@ div#controls div.control
     width : 45px;
     height : 45px;
     margin : 2px;
-    background-color : blue;
+    background-color : darkblue;
     color : white;
 }
 
+div#maplist
+{
+    position : absolute;
+    top : 10px;
+    right : 320px;
+    width : 200px;
+}
+
+div#maplist select
+{
+    width : 120px;
+    background-color : white;
+    height : 20px;
+    display : inline-block;
+}
+
+div.button
+{
+    display : inline-block;
+    padding : 3px;
+    border : 1px solid black;
+    color : white;
+    font-weight : bold;
+    font-size : 12px;
+    background-color : green;
+    min-width : 50px;
+    text-align : center;
+}
+
+div.button:hover
+{
+    background-color : lightgreen;
+    cursor : pointer;
+}
 
 div#selected
 {
@@ -38,7 +87,7 @@ div#selected
     bottom : 10px;
     right : 10px;
     width : 300px;
-    background-color : red;
+    background-color : black;
 }
 
 div#selected div.name
