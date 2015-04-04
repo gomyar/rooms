@@ -6,6 +6,12 @@ mapeditor.controller("MapEditCtrl", ['$scope', '$http', '$location',
         console.log("Show Maps");
         $scope.all_maps = [];
         $scope.selected_map = null;
+
+        $scope.selected_room = null;
+        $scope.selected_object = null;
+        $scope.selected_rooms_list = [];
+        $scope.selected_objects_list = [];
+
         $scope.load_maps = function() {
             $http.get("/rooms_mapeditor/maps").success(function(data) {
                 $scope.all_maps = data;
@@ -15,7 +21,7 @@ mapeditor.controller("MapEditCtrl", ['$scope', '$http', '$location',
 
         $scope.load_selected_map = function() {
             $http.get("/rooms_mapeditor/maps/" + $scope.selected_map).success(function(data) {
-                $scope.current_map = data;
+                $scope.map_data = data;
                 // center view on map data
                 gui.init($('#screen')[0]);
                 gui.center_view(data);
@@ -45,3 +51,8 @@ mapeditor.config(['$httpProvider', function($httpProvider) {
     $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';    }
 ]);
 
+
+function get_map_data()
+{
+    return getscope().map_data;
+}

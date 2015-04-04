@@ -32,6 +32,18 @@
         <div class="button" ng-click="load_selected_map()">Load</div>
     </div>
 
+    <div id="selected_rooms_list" class="selected_objects_list" ng-show="selected_rooms_list">
+        <div ng-repeat="room_id in selected_rooms_list" class="selected_item">
+           {{ room_id }}
+        </div>
+    </div>
+
+    <div id="selected_objects_list" class="selected_objects_list" ng-show="selected_objects_list">
+        <div ng-repeat="object_id in selected_objects_list" class="selected_item">
+            argle {{ object_id }}
+        </div>
+    </div>
+
 
     <div id="selected">
         <div id="selectedroom">

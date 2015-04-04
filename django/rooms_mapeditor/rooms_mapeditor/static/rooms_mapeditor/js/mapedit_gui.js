@@ -19,7 +19,8 @@ gui.swallow_click = false;
 gui.redraw_until = null;
 gui.redraw_timeout = null;
 
-gui.highlighted_object = null;
+gui.highlighted_rooms = [];
+gui.highlighted_objects = [];
 
 
 gui.init = function(canvas)
@@ -77,30 +78,17 @@ gui.canvas_mousemove = function(e)
 
         if (Math.abs(moved_x) > 1 || Math.abs(moved_y) > 1)
             gui.swallow_click = true;
-
-        gui.requestRedraw();
     }
     else
     {
         var click_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
         var click_y = gui.real_y((e.clientY - $(gui.canvas).offset().top));
 
-/*        var actors = gui.find_all_actors_at(click_x, click_y);
-        if (actors.length > 0)
-        {
-            $(gui.canvas).css('cursor', 'pointer');
-            if (!actors[0].docked_with && actors[0].visible)
-                gui.highlighted_actor = actors[0];
-            gui.requestRedraw();
-        }
-        else
-        {
-            $(gui.canvas).css('cursor', 'auto');
-            gui.highlighted_actor = null;
-            $('.actor_list').remove();
-            gui.requestRedraw();
-        }*/
+        // if room not selected, and room clicked, select room
+        gui.highlighted_rooms = gui.find_rooms_at(click_x, click_y);
+        gui.highlighted_objects = gui.find_objects_at(click_x, click_y);
     }
+    gui.requestRedraw();
 }
 
 gui.show_actor_list = function(actors)
@@ -159,20 +147,33 @@ gui.canvas_clicked = function(e)
         var click_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
         var click_y = gui.real_y((e.clientY - $(gui.canvas).offset().top));
 
-/*
-        var actors = gui.find_all_actors_at(click_x, click_y);
-        if (actors.length > 1)
+        // check room
+        if (gui.highlighted_rooms.length == 1)
         {
-            gui.show_selected_actor_list(actors);
-            gui.requestRedraw();
+            applyscope(function (scope){
+                scope.selected_room = scope.map_data.rooms[gui.highlighted_rooms[0]];
+            });
         }
-        else if (actors.length == 1)
+        else if (gui.highlighted_rooms.length > 1)
         {
-            gui.clear_selected_actor_list();
-            getscope().select_actor(actors[0]);
-            getscope().$apply();
-            gui.requestRedraw();
-        }*/
+            applyscope(function (scope){
+                scope.selected_rooms_list = gui.highlighted_rooms;
+            });
+        }
+
+        if (gui.highlighted_objects.length == 1)
+        {
+            applyscope(function (scope){
+                scope.selected_object = scope.selected_room[gui.highlighted_objects[0]];
+            });
+        }
+        else if (gui.highlighted_objects.length > 1)
+        {
+            applyscope(function (scope){
+                scope.selected_objects_list = gui.highlighted_objects;
+            });
+        }
+
     }
     console.log("clicked");
     gui.swallow_click = false;
@@ -188,23 +189,15 @@ gui.canvas_mouseout = function(e)
     gui.mouse_down = false;
 }
 
-
-gui.find_actor = function(x, y)
+gui.room_at = function(room, x, y)
 {
-    var actors = [];
-    for (var i in api_rooms.actors)
-        if (gui.at_position(api_rooms.actors[i], x, y))
-            return api_rooms.actors[i];
-    return null;
+    return x >= room.topleft.x && y >= room.topleft.y && x <= room.bottomright.x && y <= room.bottomright.y;
 }
 
-gui.at_position = function(actor, x, y)
+
+gui.object_at = function(object, x, y)
 {
-    x1 = actor.x() - 12 * gui.zoom;
-    y1 = actor.y() - 12 * gui.zoom;
-    x2 = x1 + 25 * gui.zoom;
-    y2 = y1 + 25 * gui.zoom;
-    return x > x1 && x < x2 && y > y1 && y < y2;
+    return x >= object.topleft.x && y >= object.topleft.y && x <= object.bottomright.x && y <= object.bottomright.y;
 }
 
 
@@ -214,13 +207,34 @@ gui.get_selected_actor = function()
 }
 
 
-gui.find_all_actors_at = function(x, y)
+gui.find_rooms_at = function(x, y)
 {
-    var actors = [];
-    for (var i in api_rooms.actors)
-        if (gui.at_position(api_rooms.actors[i], x, y))
-            actors[actors.length] = api_rooms.actors[i];
-    return actors;
+    var rooms = [];
+    var map_data = get_map_data();
+    for (var room_id in map_data.rooms)
+    {
+        var room = map_data.rooms[room_id];
+        if (gui.room_at(room, x, y))
+            rooms[rooms.length] = room_id;
+    }
+    return rooms;
+}
+
+
+gui.find_objects_at = function(x, y)
+{
+    var objects = [];
+    if (getscope().selected_room != null)
+    {
+        var room_objects = getscope().selected_room.room_objects;
+        for (var object_id in room_objects)
+        {
+            var object = room_objects[object_id];
+            if (gui.object_at(object, x, y))
+                objects[objects.length] = object_id;
+        }
+    }
+    return objects;
 }
 
 
@@ -316,16 +330,12 @@ gui.draw = function()
     gui.ctx.clearRect(0, 0, gui.canvas.width, gui.canvas.height);
 
     // Draw other rooms in map
-    for (var room_id in getscope().current_map.rooms)
+    for (var room_id in get_map_data().rooms)
     {
-        var room = getscope().current_map.rooms[room_id];
-        gui.ctx.strokeStyle = "rgb(80, 80, 80)";
-        var width = room.bottomright.x - room.topleft.x;
-        var height = room.bottomright.y - room.topleft.y;
-        gui.ctx.strokeRect(gui.canvas_x(room.topleft.x), gui.canvas_y(room.topleft.y), width / gui.zoom, height / gui.zoom)
-
-        // Draw current room
-        gui.ctx.strokeStyle = "rgb(255, 255, 255)";
+        var room = get_map_data().rooms[room_id];
+        gui.ctx.strokeStyle = "rgb(100, 100, 255)";
+        if (gui.highlighted_rooms.indexOf(room_id) != -1)
+            gui.ctx.strokeStyle = "rgb(255, 255, 255)";
         var width = room.bottomright.x - room.topleft.x;
         var height = room.bottomright.y - room.topleft.y;
         gui.ctx.strokeRect(gui.canvas_x(room.topleft.x), gui.canvas_y(room.topleft.y), width / gui.zoom, height / gui.zoom)
@@ -348,6 +358,9 @@ gui.draw = function()
             var map_object = room.room_objects[object_id];
             var width = map_object.bottomright.x - map_object.topleft.x;
             var height = map_object.bottomright.y - map_object.topleft.y;
+            var color = "rgb(150, 200, 50)";
+            if (gui.highlighted_objects.indexOf(object_id) != -1)
+                color = "rgb(200, 250, 150)";
             width = Math.max(width, 2);
             height = Math.max(height, 2);
             gui.ctx.globalAlpha = 0.1;
@@ -356,7 +369,7 @@ gui.draw = function()
                 gui.canvas_y(map_object.topleft.y),
                 width / gui.zoom,
                 height / gui.zoom,
-                "rgb(150, 200, 50)"
+                color
             );
             gui.ctx.globalAlpha = 1.0;
             gui.draw_rect(
@@ -364,9 +377,9 @@ gui.draw = function()
                 gui.canvas_y(map_object.topleft.y),
                 width / gui.zoom,
                 height / gui.zoom,
-                "rgb(150, 200, 50)"
+                color
             );
-            gui.draw_text_centered((gui.canvas_x(map_object.topleft.x) + gui.canvas_x(map_object.bottomright.x)) / 2, gui.canvas_y(map_object.topleft.y) + 10, map_object.object_type, "rgb(150, 200, 50)");
+            gui.draw_text_centered((gui.canvas_x(map_object.topleft.x) + gui.canvas_x(map_object.bottomright.x)) / 2, gui.canvas_y(map_object.topleft.y) + 10, map_object.object_type, color);
         }
 
     }

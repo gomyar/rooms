@@ -89,3 +89,20 @@ div#selected div.name
 {
     
 }
+
+div.selected_objects_list
+{
+    position : absolute;
+    top : 50px;
+    right : 350px;
+    width : 200px;
+    border : 1px solid white;
+    background-color : black;
+}
+
+div.selected_objects_list div.selected_item
+{
+    width : 190px;
+    height : 20px;
+    color : white;
+}

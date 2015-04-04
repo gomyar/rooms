@@ -1,4 +1,10 @@
 
+mapeditor:
+ - select room (highlight add object/tag)
+ - select object/tag
+ - add room
+ - add object / tag
+
 Cleanup:
  - single rooms.js file used by all - include as resource + collectable django static file + bower (maybe)
  - demo django app which uses all the djano apps

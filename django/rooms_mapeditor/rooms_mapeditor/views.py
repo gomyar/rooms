@@ -33,7 +33,17 @@ def maps(request):
         if os.path.exists(map_path):
             raise Exception("Map already exists")
         map_file = open(map_path, "w")
-        map_file.write(json.dumps({"map_id": map_id, "rooms": {}}))
+        map_file.write(json.dumps({"map_id": map_id,
+            "rooms": {map_id + ".room1":
+                {
+                    "info": {},
+                    "topleft": {"x": -10, "y": -10},
+                    "bottomright": {"x": 10, "y": 10},
+                    "tags": {},
+                    "room_objects": {},
+                    "doors": {},
+                }
+        }}))
         map_file.close()
     else:
         return [os.path.splitext(m)[0] for m in os.listdir(map_root)]
