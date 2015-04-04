@@ -39,6 +39,28 @@ gui.init = function(canvas)
 }
 
 
+gui.center_view = function(map_data)
+{
+    var x1 = null;
+    var y1 = null;
+    var x2 = null;
+    var y2 = null;
+
+    for (var room_id in map_data.rooms)
+    {
+        var room = map_data.rooms[room_id];
+        if (room.topleft.x < x1 || x1 == null) x1 = room.topleft.x;
+        if (room.topleft.y < y1 || y1 == null) y1 = room.topleft.y;
+        if (room.bottomright.x > x2 || x2 == null) x2 = room.bottomright.x;
+        if (room.bottomright.y > y2 || y2 == null) y2 = room.bottomright.y;
+    }
+    gui.viewport_x = (x1 + x2) / 2;
+    gui.viewport_y = (y1 + y2) / 2;
+    gui.zoom = 1.2 * (y2 - y1) / gui.canvas.height;
+    gui.requestRedraw();
+}
+
+
 gui.canvas_mousemove = function(e)
 {
     gui.mouse_client_x = (e.clientX - $(gui.canvas).offset().left);

@@ -13,8 +13,9 @@ mapeditor.controller("MapEditCtrl", ['$scope', '$http', '$location',
         $scope.load_selected_map = function() {
             $http.get("/rooms_mapeditor/maps/" + $scope.selected_map).success(function(data) {
                 $scope.current_map = data;
+                // center view on map data
                 gui.init($('#screen')[0]);
+                gui.center_view(data);
             });
         };
     }]);
-
