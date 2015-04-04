@@ -12,11 +12,6 @@ div#mapeditor
     background-color : darkblue;
 }
 
-div#maplist
-{
-    
-}
-
 div#mainmap 
 {
     position : absolute;
@@ -50,7 +45,7 @@ div#maplist
     position : absolute;
     top : 10px;
     right : 320px;
-    width : 200px;
+    width : 300px;
 }
 
 div#maplist select

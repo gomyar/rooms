@@ -26,6 +26,7 @@
     </div>
 
     <div id="maplist">
+        <div class="button" ng-click="create_map()">Create Map</div>
         <select ng-options="map_id as map_id for map_id in all_maps track by map_id" ng-model="selected_map">
         </select>
         <div class="button" ng-click="load_selected_map()">Load</div>

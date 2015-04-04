@@ -24,10 +24,22 @@ def index(request):
 @responsejson
 def maps(request):
     map_root = getattr(settings, "ROOMS_MAP_ROOT", "maps")
-    return os.listdir(map_root)
+    if request.method == 'POST':
+        params = json.loads(request.body)
+        map_id = params.get('map_id')
+        if not map_id:
+            raise Exception("No map_id")
+        map_path = os.path.join(map_root, map_id + ".json")
+        if os.path.exists(map_path):
+            raise Exception("Map already exists")
+        map_file = open(map_path, "w")
+        map_file.write(json.dumps({"map_id": map_id, "rooms": {}}))
+        map_file.close()
+    else:
+        return [os.path.splitext(m)[0] for m in os.listdir(map_root)]
 
 
 @permission_required("is_staff")
 def load_map(request, map_id):
     map_root = getattr(settings, "ROOMS_MAP_ROOT", "maps")
-    return HttpResponse(open(os.path.join(map_root, map_id)).read())
+    return HttpResponse(open(os.path.join(map_root, map_id + ".json")).read())
