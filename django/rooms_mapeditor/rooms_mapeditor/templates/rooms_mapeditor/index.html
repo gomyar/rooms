@@ -12,6 +12,8 @@
 
 <body ng-app="RoomsMapEditor">
 
+{% verbatim %}
+
 <div ng-controller="MapEditCtrl" id="mapeditor">
     <div id="controls">
         <div id="select" class="control">Select</div>
@@ -33,14 +35,14 @@
     </div>
 
     <div id="selected_rooms_list" class="selected_objects_list" ng-show="selected_rooms_list">
-        <div ng-repeat="room_id in selected_rooms_list" class="selected_item">
-           {{ room_id }}
+        <div ng-repeat="room in selected_rooms_list" class="selected_item">
+           {{ room.room_id }}
         </div>
     </div>
 
-    <div id="selected_objects_list" class="selected_objects_list" ng-show="selected_objects_list">
-        <div ng-repeat="object_id in selected_objects_list" class="selected_item">
-            argle {{ object_id }}
+    <div id="selected_objects_list" class="selected_objects_list" ng-show="selected_objects_list" ng-style="{left: selected_objects_list_x + 20, top: selected_objects_list_y }">
+        <div ng-repeat="obj in selected_objects_list" class="selected_item" ng-mouseenter="highlight_object(obj)" ng-click="select_object(obj)">
+            <span>{{obj.object_type}}</span>
         </div>
     </div>
 
@@ -59,6 +61,7 @@
     </div>
 </div>
 
+{% endverbatim %}
 
 
 </body>

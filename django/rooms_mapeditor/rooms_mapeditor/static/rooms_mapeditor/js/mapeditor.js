@@ -10,7 +10,11 @@ mapeditor.controller("MapEditCtrl", ['$scope', '$http', '$location',
         $scope.selected_room = null;
         $scope.selected_object = null;
         $scope.selected_rooms_list = [];
+        $scope.selected_rooms_list_x = 0;
+        $scope.selected_rooms_list_y = 0;
         $scope.selected_objects_list = [];
+        $scope.selected_objects_list_x = 0;
+        $scope.selected_objects_list_y = 0;
 
         $scope.load_maps = function() {
             $http.get("/rooms_mapeditor/maps").success(function(data) {
@@ -41,6 +45,17 @@ mapeditor.controller("MapEditCtrl", ['$scope', '$http', '$location',
                         $scope.load_selected_map();
                     });
                 }
+        };
+
+        $scope.highlight_object = function(obj) {
+            gui.highlighted_objects=[obj];
+            gui.requestRedraw();
+        };
+
+
+        $scope.select_object = function(obj) {
+            $scope.selected_object = obj;
+            $scope.selected_objects_list=[];
         };
     }]);
 

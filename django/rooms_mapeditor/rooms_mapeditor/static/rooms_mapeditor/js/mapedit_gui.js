@@ -151,26 +151,30 @@ gui.canvas_clicked = function(e)
         if (gui.highlighted_rooms.length == 1)
         {
             applyscope(function (scope){
-                scope.selected_room = scope.map_data.rooms[gui.highlighted_rooms[0]];
+                scope.selected_room = gui.highlighted_rooms[0];
             });
         }
         else if (gui.highlighted_rooms.length > 1)
         {
             applyscope(function (scope){
                 scope.selected_rooms_list = gui.highlighted_rooms;
+                scope.selected_rooms_list_x = e.clientX;
+                scope.selected_rooms_list_y = e.clientY;
             });
         }
 
         if (gui.highlighted_objects.length == 1)
         {
             applyscope(function (scope){
-                scope.selected_object = scope.selected_room[gui.highlighted_objects[0]];
+                scope.selected_object = gui.highlighted_objects[0];
             });
         }
         else if (gui.highlighted_objects.length > 1)
         {
             applyscope(function (scope){
                 scope.selected_objects_list = gui.highlighted_objects;
+                scope.selected_objects_list_x = e.clientX;
+                scope.selected_objects_list_y = e.clientY;
             });
         }
 
@@ -215,7 +219,7 @@ gui.find_rooms_at = function(x, y)
     {
         var room = map_data.rooms[room_id];
         if (gui.room_at(room, x, y))
-            rooms[rooms.length] = room_id;
+            rooms[rooms.length] = room;
     }
     return rooms;
 }
@@ -231,7 +235,7 @@ gui.find_objects_at = function(x, y)
         {
             var object = room_objects[object_id];
             if (gui.object_at(object, x, y))
-                objects[objects.length] = object_id;
+                objects[objects.length] = object;
         }
     }
     return objects;
@@ -323,6 +327,23 @@ gui.real_y = function(canvas_y)
     return gui.canvas_top() + canvas_y * gui.zoom;
 }
 
+gui.is_room_highlighted = function(room_id)
+{
+    for (var i in gui.highlighted_rooms)
+        if (gui.highlighted_rooms[i].room_id == room_id)
+            return true;
+    return false;
+}
+
+gui.is_object_highlighted = function(object)
+{
+    for (var i in gui.highlighted_objects)
+        if (gui.highlighted_objects[i] == object)
+            return true;
+    return false;
+}
+
+
 gui.draw = function()
 {
     gui.redraw_timeout = null;
@@ -334,7 +355,9 @@ gui.draw = function()
     {
         var room = get_map_data().rooms[room_id];
         gui.ctx.strokeStyle = "rgb(100, 100, 255)";
-        if (gui.highlighted_rooms.indexOf(room_id) != -1)
+        if (gui.is_room_highlighted(room_id))
+            gui.ctx.strokeStyle = "rgb(255, 255, 255)";
+        if (room == getscope().selected_room)
             gui.ctx.strokeStyle = "rgb(255, 255, 255)";
         var width = room.bottomright.x - room.topleft.x;
         var height = room.bottomright.y - room.topleft.y;
@@ -359,8 +382,10 @@ gui.draw = function()
             var width = map_object.bottomright.x - map_object.topleft.x;
             var height = map_object.bottomright.y - map_object.topleft.y;
             var color = "rgb(150, 200, 50)";
-            if (gui.highlighted_objects.indexOf(object_id) != -1)
+            if (gui.is_object_highlighted(map_object))
                 color = "rgb(200, 250, 150)";
+            if (map_object == getscope().selected_object)
+                color = "rgb(255, 255, 255)";
             width = Math.max(width, 2);
             height = Math.max(height, 2);
             gui.ctx.globalAlpha = 0.1;
