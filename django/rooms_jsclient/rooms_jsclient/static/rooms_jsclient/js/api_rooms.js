@@ -11,8 +11,8 @@ api_rooms.actors = {};
 api_rooms.socket = null;
 
 api_rooms.master_url = "http://localhost:9999";
-api_rooms.node_host = null;
-api_rooms.node_port = null;
+api_rooms.node_host = location.hostname;
+api_rooms.node_port = 80;
 
 
 api_rooms.Actor = function(actor)
@@ -152,8 +152,8 @@ api_rooms.request_connection = function()
     console.log("Requesting connection");
     api_rooms.service_call(api_rooms.master_url + "/player_connects", {"game_id": api_rooms.game_id},
             function(data) {
-                api_rooms.node_host = data.node[0];
-                api_rooms.node_port = data.node[1];
+//                api_rooms.node_host = data.node[0];
+//                api_rooms.node_port = data.node[1];
                 api_rooms.token = data.token;
                 api_rooms.connect_node();
             }
