@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 requirements = open("requirements.txt")
 
 setup(
-    name='Rooms',
+    name='rooms',
     version='0.1',
     description='Networked Game Engine.',
     packages=find_packages("src"),
