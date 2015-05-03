@@ -56,7 +56,11 @@ if __name__ == "__main__":
         host, port = options.address.split(":")
         master_host, master_port = options.master.split(":")
 
-        dbase = MongoDBase()
+        config = load_config(os.path.join(options.game, "game.conf"))
+
+        dbase = MongoDBase(host=config.get("db", "dbhost"),
+            port=config.getint("db", "dbport"),
+            dbname=config.get("db", "dbname"))
         dbase.init_mongo()
         geography = BasicGeography()
 

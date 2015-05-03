@@ -49,7 +49,12 @@ if __name__ == "__main__":
                 format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
         host, port = options.address.split(":")
-        dbase = MongoDBase()
+
+        config = load_config(os.path.join(options.game, "game.conf"))
+
+        dbase = MongoDBase(host=config.get("db", "dbhost"),
+            port=config.getint("db", "dbport"),
+            dbname=config.get("db", "dbname"))
         dbase.init_mongo()
 
         item_registry = ItemRegistry()

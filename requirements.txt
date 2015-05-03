@@ -1,5 +1,5 @@
-gevent
-gevent-websocket
-ws4py
-pymongo
-setuptools
+gevent==1.0.1
+gevent-websocket==0.9.3
+ws4py==0.3.4
+pymongo==2.7.2
+setuptools==2.2

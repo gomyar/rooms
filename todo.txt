@@ -1,4 +1,10 @@
 
+ - change report_load_stats to save directly to mongo
+ - change master to work from mongo
+
+ - change map json format:
+   - simplify room_id (map1.room1 -> room1)
+
 mapeditor:
  - select room (highlight add object/tag)
  - select object/tag

@@ -30,6 +30,12 @@ import logging.config
 log = logging.getLogger("rooms")
 
 
+def load_config(config_path):
+    parser = ConfigParser()
+    parser.read(config_path)
+    return parser
+
+
 if __name__ == "__main__":
     master = None
     container = None
@@ -55,11 +61,15 @@ if __name__ == "__main__":
             logging.basicConfig(level=logging.DEBUG,
                 format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-        host, port = options.address.split(":")
-        dbase = MongoDBase()
+        config = load_config(os.path.join(options.game, "game.conf"))
+
+        dbase = MongoDBase(host=config.get("db", "dbhost"),
+            port=config.getint("db", "dbport"),
+            dbname=config.get("db", "dbname"))
         dbase.init_mongo()
         geography = BasicGeography()
 
+        host, port = options.address.split(":")
         node = Node(host, port, host, port)
         room_factory = RoomFactory(FileMapSource(os.path.join(options.game,
             "maps")), node)
