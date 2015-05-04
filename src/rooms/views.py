@@ -52,7 +52,7 @@ class JsonView(object):
             docked_with=actor.docked_with.actor_id if \
                 actor.docked_with else None,
             visible=actor.visible,
-            script=actor.script.script_name,
+            script=actor.script.script_name if actor.script else "",
             exception=actor._exception,
         )
 

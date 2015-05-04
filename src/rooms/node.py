@@ -92,11 +92,14 @@ class NodeController(object):
 
 
 class Node(object):
-    def __init__(self, host, port, master_host, master_port):
+    def __init__(self, host, port, master_host, master_port,
+            external_host=None, external_port=None):
         self.host = host
         self.port = port
         self.master_host = master_host
         self.master_port = master_port
+        self.external_host = external_host or host
+        self.external_port = external_port or port
         self.rooms = dict()
         self.player_connections = dict()
         self.connections = dict()
@@ -116,7 +119,8 @@ class Node(object):
         self.scripts.load_scripts(script_path)
 
     def connect_to_master(self):
-        self.master_conn.call("register_node", host=self.host, port=self.port)
+        self.master_conn.call("register_node", host=self.host, port=self.port,
+            external_host=self.external_host, external_port=self.external_port)
 
     def start(self):
         self.start_reporting()

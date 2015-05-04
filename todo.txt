@@ -1,4 +1,6 @@
 
+ - switching up to websocket from localhost master to ray-dev node didn't give 404
+
  - change report_load_stats to save directly to mongo
  - change master to work from mongo
 

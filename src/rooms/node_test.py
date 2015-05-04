@@ -98,7 +98,8 @@ class NodeTest(unittest.TestCase):
         self.node.connect_to_master()
 
         self.assertEquals([
-            ('register_node', {'host': '10.10.10.1', 'port': 8000})],
+            ('register_node', {'host': '10.10.10.1', 'port': 8000,
+            'external_host': '10.10.10.1', 'external_port': 8000})],
             self.mock_rpc.called)
 
     def testDeregister(self):

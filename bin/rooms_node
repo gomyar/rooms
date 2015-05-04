@@ -8,7 +8,7 @@ from gevent import monkey
 monkey.patch_socket()
 
 from optparse import OptionParser
-from ConfigParser import ConfigParser
+from ConfigParser import SafeConfigParser
 
 from rooms.node import Node
 from rooms.node import GameController
@@ -26,17 +26,26 @@ import logging.config
 log = logging.getLogger("rooms.node")
 
 
+def load_config(config_path):
+    defaults = {
+        "internal_host": "localhost",
+        "internal_port": "9999",
+        "external_host": "localhost",
+        "external_port": "9999",
+        "dbname": "rooms_db",
+        "dbhost": "localhost",
+        "dbport": "27017",
+    }
+
+    parser = SafeConfigParser(defaults)
+    parser.read(config_path)
+    return parser
+
 if __name__ == "__main__":
     node = None
     try:
         log.info("Starting Node")
         parser = OptionParser()
-
-        parser.add_option("-a", "--address", dest="address",
-            help="Address of node", default="localhost:8000")
-
-        parser.add_option("-m", "--master", dest="master",
-            help="Address of master", default="localhost:9999")
 
         parser.add_option("-g", "--game", dest="game",
             help="Path to game dir", default=".")
@@ -53,10 +62,16 @@ if __name__ == "__main__":
             logging.basicConfig(level=logging.DEBUG,
                 format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-        host, port = options.address.split(":")
-        master_host, master_port = options.master.split(":")
-
         config = load_config(os.path.join(options.game, "game.conf"))
+
+        node_host = config.get("node", "internal_host")
+        node_port = config.get("node", "internal_port")
+        external_node_host = config.get("node", "external_host")
+        external_node_port = config.get("node", "external_port")
+        master_host = config.get("master", "internal_host")
+        master_port = config.get("master", "internal_port")
+        external_master_host = config.get("master", "external_host")
+        external_master_port = config.get("master", "external_port")
 
         dbase = MongoDBase(host=config.get("db", "dbhost"),
             port=config.getint("db", "dbport"),
@@ -64,7 +79,8 @@ if __name__ == "__main__":
         dbase.init_mongo()
         geography = BasicGeography()
 
-        node = Node(host, port, master_host, master_port)
+        node = Node(node_host, node_port, master_host, master_port,
+            external_node_host, external_node_port)
         room_factory = RoomFactory(FileMapSource(os.path.join(options.game,
             "maps")), node)
         node.room_factory = room_factory
@@ -76,7 +92,9 @@ if __name__ == "__main__":
         node.container = container
         node.load_scripts(os.path.join(options.game, "scripts"))
 
-        server = WSGIRPCServer(host, port, access_control_header="*")
+        server = WSGIRPCServer(node_host, node_port,
+            access_control_header="%s:%s" % (
+            master_host, master_port))
         # node routes
         server.add_controller("node_control", NodeController(node))
         server.add_controller("node_game", GameController(node))

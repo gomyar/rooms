@@ -8,7 +8,7 @@ from gevent import monkey
 monkey.patch_socket()
 
 from optparse import OptionParser
-from ConfigParser import ConfigParser
+from ConfigParser import SafeConfigParser
 
 import rooms
 from rooms.master import Master
@@ -24,14 +24,27 @@ import logging.config
 log = logging.getLogger("rooms.master")
 
 
+def load_config(config_path):
+    defaults = {
+        "internal_host": "localhost",
+        "internal_port": "9999",
+        "external_host": "localhost",
+        "external_port": "9999",
+        "dbname": "rooms_db",
+        "dbhost": "localhost",
+        "dbport": "27017",
+    }
+
+    parser = SafeConfigParser(defaults)
+    parser.read(config_path)
+    return parser
+
+
 if __name__ == "__main__":
     master = None
     try:
         log.info("Starting server")
         parser = OptionParser()
-
-        parser.add_option("-a", "--address", dest="address",
-            help="Address of master", default="localhost:9999")
 
         parser.add_option("-g", "--game", dest="game",
             help="Path to game config file", default=".")
@@ -48,9 +61,16 @@ if __name__ == "__main__":
             logging.basicConfig(level=logging.DEBUG,
                 format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-        host, port = options.address.split(":")
-
         config = load_config(os.path.join(options.game, "game.conf"))
+
+        node_host = config.get("node", "internal_host")
+        node_port = config.get("node", "internal_port")
+        external_node_host = config.get("node", "external_host")
+        external_node_port = config.get("node", "external_port")
+        master_host = config.get("master", "internal_host")
+        master_port = config.get("master", "internal_port")
+        external_master_host = config.get("master", "external_host")
+        external_master_port = config.get("master", "external_port")
 
         dbase = MongoDBase(host=config.get("db", "dbhost"),
             port=config.getint("db", "dbport"),
@@ -64,7 +84,8 @@ if __name__ == "__main__":
             item_registry=item_registry))
         master.load_scripts(os.path.join(options.game, "scripts"))
 
-        server = WSGIRPCServer(host, port, access_control_header="*")
+        server = WSGIRPCServer(master_host, master_port,
+            access_control_header="*")
         server.add_controller("master_control", MasterController(master))
         server.add_controller("master_game", PlayerController(master))
 
