@@ -254,6 +254,9 @@ class Node(object):
                             self.master_port)))
         except WebSocketError, wse:
             log.debug("Websocket socket dead: %s", str(wse))
+        except Exception, e:
+            log.exception("Unexpected exception in player connection")
+            raise
         finally:
             room.vision.disconnect_vision_queue(player_conn.actor_id, queue)
 
