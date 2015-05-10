@@ -1,0 +1,34 @@
+
+ - msg: "What kind sir?"
+   test:
+     buying_cheese: true
+   choices:
+     - say: "Brie"
+       msg: "No Brie"
+       set:
+         cheeses.brie: true
+       test:
+         cheeses.brie: null
+     - say: "Cannonbear"
+       msg: "No Cannonbear"
+       set:
+         cheeses.canonbear: true
+       test:
+         cheeses.canonbear: null
+     - say: "Stilton"
+       msg: "No Stilton"
+       set:
+         cheeses.stilton: true
+       test:
+         cheeses.stilton: null
+
+
+ - msg: "Hello Sir"
+   choices:
+    - say: "I'd like to buy some cheese please"
+      msg: "What kind sir?"
+      test:
+        cheeses: null
+      set:
+        cheeses: {}
+        buying_cheese: true

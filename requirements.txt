@@ -3,3 +3,4 @@ gevent-websocket==0.9.3
 ws4py==0.3.4
 pymongo==2.7.2
 setuptools==2.2
+pyyaml==3.11

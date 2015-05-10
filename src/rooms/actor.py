@@ -75,7 +75,9 @@ class Actor(object):
         return self.room.game_id if self.room else self._game_id
 
     def kick(self):
-        self.script_call("kickoff", self)
+        self._kill_script_gthread()
+        self._script_gthread = gevent.spawn(self._checked_script_call,
+            'kickoff')
 
     def move_to(self, position, path=None):
         self.path = path or self.room.find_path(self.position, position)
@@ -172,13 +174,11 @@ class Actor(object):
                 args, kwargs)
             self._exception = str(e)
 
-    def script_call(self, method, *args, **kwargs):
-        self._kill_script_gthread()
-        self._script_gthread = gevent.spawn(self._checked_script_call, method,
-            *args, **kwargs)
-
     def script_request(self, method, *args, **kwargs):
         return self.script.call(method, *args, **kwargs)
+
+    def script_call(self, method, *args, **kwargs):
+        return self.script_request(method, self, *args, **kwargs)
 
     def _checked_script_call(self, method, *args, **kwargs):
         try:
@@ -321,3 +321,23 @@ class Actor(object):
     def log(self, msg, *args):
         log.debug("Actor log: %s %s - " + str(msg), self.username,
             self.actor_id, *args)
+
+    def _get_state_val(self, pathitems, current=None):
+        if not current:
+            current = self.state
+        if len(pathitems) > 1 and pathitems[0] in current:
+            return self._get_state_val(pathitems[1:], current[pathitems[0]])
+        elif pathitems and pathitems[0] in current:
+            return current[pathitems[0]]
+        else:
+            return None
+
+    def _set_state_val(self, pathitems, value, current=None):
+        if not current:
+            current = self.state
+        if len(pathitems) > 1:
+            if pathitems[0] not in current:
+                current[pathitems[0]] = {}
+            self._set_state_val(pathitems[1:], value, current[pathitems[0]])
+        else:
+            current[pathitems[0]] = value

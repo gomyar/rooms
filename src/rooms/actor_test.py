@@ -367,3 +367,28 @@ class ActorTest(unittest.TestCase):
 
         self.assertEquals({'actors': {}, 'rooms': {}},
             self.node.container.dbase.dbases)
+
+    def testStateitems(self):
+        self.actor.state.inner = {}
+        self.actor.state.inner.something = {}
+        self.actor.state.inner.something.value = "hello"
+
+        self.assertEquals("hello",
+            self.actor._get_state_val("inner.something.value".split('.')))
+
+        self.assertEquals(None, self.actor._get_state_val(
+            "inner.nope".split('.')))
+        self.assertEquals(None, self.actor._get_state_val(
+            "nope.nope".split('.')))
+        self.assertEquals(None,
+            self.actor._get_state_val(
+                "inner.something.value.toofar".split('.')))
+
+    def testSetStateItem(self):
+        self.actor.state.inner = {}
+        self.actor.state.inner.something = {}
+        self.actor.state.inner.something.value = "hello"
+
+        self.actor._set_state_val("inner.something.value".split('.'), "there")
+
+        self.assertEquals("there", self.actor.state.inner.something.value)
