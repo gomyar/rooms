@@ -77,7 +77,7 @@ class Actor(object):
     def kick(self):
         self._kill_script_gthread()
         self._script_gthread = gevent.spawn(self._checked_script_call,
-            'kickoff')
+            'kickoff', self)
 
     def move_to(self, position, path=None):
         self.path = path or self.room.find_path(self.position, position)
