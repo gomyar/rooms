@@ -16,6 +16,7 @@ from rooms.player import PlayerActor
 from rooms.script import Script
 from rooms.testutils import MockGridVision
 from rooms.actor import Actor
+from testutils import MockTimer
 
 
 class RoomTest(unittest.TestCase):
@@ -31,6 +32,7 @@ class RoomTest(unittest.TestCase):
         self.vision = MockGridVision()
         self.room.vision = self.vision
         MockIDFactory.setup_mock()
+        MockTimer.setup_mock()
 
     def tearDown(self):
         MockIDFactory.teardown_mock()
@@ -106,6 +108,7 @@ class RoomTest(unittest.TestCase):
         self.assertEquals("new1", self.room.actors.values()[0].actor_id)
         self.assertEquals(Position(5, 5), self.room.actors['new1'].vector.start_pos)
         self.assertEquals(Position(5, 5), self.room.actors['new1'].vector.end_pos)
+        MockTimer.fast_forward(0)
         self.assertEquals([('kickoff', (newactor1,), {})],
             newactor1.script.called)
 

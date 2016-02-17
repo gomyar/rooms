@@ -19,11 +19,9 @@ log = logging.getLogger("rooms.master")
 
 
 class RegisteredNode(object):
-    def __init__(self, host, port, rpc_conn, external_host, external_port):
+    def __init__(self, host, port, rpc_conn):
         self.host = host
         self.port = port
-        self.external_host = external_host
-        self.external_port = external_port
         self.rpc_conn = rpc_conn
         self.rooms = []
         self.online = True
@@ -97,9 +95,8 @@ class MasterController(object):
         return self.master.all_players()
 
     @request
-    def register_node(self, host, port, external_host=None, external_port=None):
-        return self.master.register_node(host, port, external_host,
-            external_port)
+    def register_node(self, host, port):
+        return self.master.register_node(host, port)
 
     @request
     def offline_node(self, host, port):
@@ -209,12 +206,12 @@ class Master(object):
             "room_id": p.room_id} for \
             p in self.container.all_players()])
 
-    def register_node(self, host, port, external_host=None, external_port=None):
+    def register_node(self, host, port):
         ''' Node calls this to register with cluster '''
         if (host, port) in self.nodes:
             raise RPCException("Node already registered %s:%s" % (host, port))
         self.nodes[host, port] = RegisteredNode(host, port,
-            self._create_rpc_conn(host, port), external_host, external_port)
+            self._create_rpc_conn(host, port))
 
     def offline_node(self, host, port):
         ''' Node calls this prior to calling deregister node, to allow time
@@ -289,14 +286,14 @@ class Master(object):
         token = node.request_token(username, game_id)
         log.debug(" ------------ got token for %s: %s", username, token)
         return {"token": token,
-            "node": (node.external_host, node.external_port)}
+            "node": (node.host, node.port)}
 
     def request_admin_token(self, game_id, room_id):
         self._check_game_exists(game_id)
         node = self._get_node_for_room(game_id, room_id)
         token = node.request_admin_token(game_id, room_id)
         return {"token": token,
-            "node": (node.external_host, node.external_port)}
+            "node": (node.host, node.port)}
 
     def _check_can_join(self, username, game_id):
         if self.container.player_exists(username, game_id):

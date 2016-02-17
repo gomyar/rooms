@@ -30,8 +30,6 @@ def load_config(config_path):
     defaults = {
         "internal_host": "localhost",
         "internal_port": "9999",
-        "external_host": "localhost",
-        "external_port": "9999",
         "dbname": "rooms_db",
         "dbhost": "localhost",
         "dbport": "27017",
@@ -66,12 +64,8 @@ if __name__ == "__main__":
 
         node_host = config.get("node", "internal_host")
         node_port = config.get("node", "internal_port")
-        external_node_host = config.get("node", "external_host")
-        external_node_port = config.get("node", "external_port")
         master_host = config.get("master", "internal_host")
         master_port = config.get("master", "internal_port")
-        external_master_host = config.get("master", "external_host")
-        external_master_port = config.get("master", "external_port")
 
         dbase = MongoDBase(host=config.get("db", "dbhost"),
             port=config.getint("db", "dbport"),
@@ -79,8 +73,7 @@ if __name__ == "__main__":
         dbase.init_mongo()
         geography = BasicGeography()
 
-        node = Node(node_host, node_port, master_host, master_port,
-            external_node_host, external_node_port)
+        node = Node(node_host, node_port, master_host, master_port)
         room_factory = RoomFactory(FileMapSource(os.path.join(options.game,
             "maps")), node)
         node.room_factory = room_factory

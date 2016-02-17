@@ -40,6 +40,10 @@ class ActorTest(unittest.TestCase):
         MockIDFactory.teardown_mock()
 
     @staticmethod
+    def created(actor):
+        actor.state.log = []
+
+    @staticmethod
     def kickoff(actor):
         actor.state.log.append('a')
         Timer.sleep(1)
@@ -354,8 +358,10 @@ class ActorTest(unittest.TestCase):
         self.room.put_actor(self.actor2, Position(30, 10))
         self.actor2.remove()
 
-        self.assertEquals({'actors': {}, 'rooms': {}},
-            self.node.container.dbase.dbases)
+        self.assertTrue('id2' in
+            self.node.container._remove_queue.queue)
+#        self.assertEquals({'actors': {}, 'rooms': {}},
+#            self.node.container.dbase.dbases)
 
     def testRemoveDocked(self):
         self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
@@ -365,8 +371,12 @@ class ActorTest(unittest.TestCase):
 
         self.actor2.remove()
 
-        self.assertEquals({'actors': {}, 'rooms': {}},
-            self.node.container.dbase.dbases)
+        self.assertTrue('id2' in
+            self.node.container._remove_queue.queue)
+        self.assertTrue('id3' in
+            self.node.container._remove_queue.queue)
+#        self.assertEquals({'actors': {}, 'rooms': {}},
+#            self.node.container.dbase.dbases)
 
     def testStateitems(self):
         self.actor.state.inner = {}

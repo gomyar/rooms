@@ -25,10 +25,13 @@
 
  - msg: "Hello Sir"
    choices:
-    - say: "I'd like to buy some cheese please"
-      msg: "What kind sir?"
+    - say: "I was sitting in the library and I thought to myself..."
+      msg: "Pardon sir?"
       test:
         cheeses: null
-      set:
-        cheeses: {}
-        buying_cheese: true
+      choices:
+        - say: "I'd like to buy some cheese"
+          msg: "What kind sir?"
+          set:
+            cheeses: {}
+          buying_cheese: true

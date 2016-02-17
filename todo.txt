@@ -1,4 +1,12 @@
 
+ - move chat stuff to utils
+ - need proper version control for django util apps
+ - need proper tests for django apps
+
+ - might need a tool for creating games in the DB
+   - command line (rooms create_game)
+   - web admin
+
  - switching up to websocket from localhost master to ray-dev node didn't give 404
 
  - change report_load_stats to save directly to mongo
@@ -6,6 +14,12 @@
 
  - change map json format:
    - simplify room_id (map1.room1 -> room1)
+
+
+simplify:
+ - move registered node / managed room map to mongo
+ - 
+
 
 mapeditor:
  - select room (highlight add object/tag)

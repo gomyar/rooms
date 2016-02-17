@@ -98,8 +98,7 @@ class NodeTest(unittest.TestCase):
         self.node.connect_to_master()
 
         self.assertEquals([
-            ('register_node', {'host': '10.10.10.1', 'port': 8000,
-            'external_host': '10.10.10.1', 'external_port': 8000})],
+            ('register_node', {'host': '10.10.10.1', 'port': 8000})],
             self.mock_rpc.called)
 
     def testDeregister(self):
@@ -153,6 +152,8 @@ class NodeTest(unittest.TestCase):
                u'username': u'bob',
                u'docked_with': None,
                u'visible': True,
+               u'exception': None,
+               u'script': u'mock_script',
                u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
                            u'end_time': 0.0,
                            u'start_pos': {u'x': 0.0,

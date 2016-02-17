@@ -18,7 +18,7 @@ class Chat(object):
     def _filter_choices(self, snippet, player, actor):
         return {"msg": snippet['msg'],
             "choices": [(index, choice) for (index, choice) in \
-                enumerate(snippet['choices']) if \
+                enumerate(snippet.get('choices', [])) if \
                 self._is_current_snippet(choice, player, actor)]
         }
 
