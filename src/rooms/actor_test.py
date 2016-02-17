@@ -208,7 +208,24 @@ class ActorTest(unittest.TestCase):
     def testMultiLayeredVectorChange(self):
         # test if a is docked with b is docked with c that:
         # changes to a's vector is the only actor_update that occurs
-        self.fail("todo")
+        self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
+            ActorTest))
+        self.actor2.state.log = []
+        self.actor2.room = self.room
+
+        self.actor2.dock_with(self.actor)
+
+        self.vision.messages = []
+
+        self.actor.move_to(Position(10, 0))
+
+        expected_vector = create_vector(Position(0, 0), Position(10.0, 0), 1)
+        MockTimer.fast_forward(1)
+
+        self.assertEquals([
+            ('actor_vector_changed', self.actor),
+            ('actor_vector_changed', self.actor)], # second update is admin q
+            self.vision.messages)
 
     def testDockedPlayerMovesRoomWithParent(self):
         # test of player is docked with B that:
