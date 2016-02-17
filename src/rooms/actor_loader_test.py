@@ -6,10 +6,12 @@ from rooms.container import Container
 from rooms.room import Room
 from rooms.position import Position
 from rooms.testutils import MockDbase
+from testutils import MockTimer
 
 
 class ActorLoaderTest(unittest.TestCase):
     def setUp(self):
+        MockTimer.setup_mock()
         self.node = Node("localhost", 8000, "master", 7000)
         self.loader = ActorLoader(self.node)
         self.dbase = MockDbase()
@@ -58,6 +60,9 @@ class ActorLoaderTest(unittest.TestCase):
             "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
             "end_time": 10,
             }, "script_name": "mock_script"}
+
+    def tearDown(self):
+        MockTimer.teardown_mock()
 
     def testLoader(self):
         self.loader._load_actors()

@@ -6,6 +6,7 @@
  - might need a tool for creating games in the DB
    - command line (rooms create_game)
    - web admin
+ - try find a way to move the django apps as non-required utils of rooms main
 
  - switching up to websocket from localhost master to ray-dev node didn't give 404
 
@@ -18,7 +19,6 @@
 
 simplify:
  - move registered node / managed room map to mongo
- - 
 
 
 mapeditor:

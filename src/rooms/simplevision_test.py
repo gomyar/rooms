@@ -83,3 +83,10 @@ class SimpleVisionTest(unittest.TestCase):
         command = queue.get_nowait()
         self.assertEquals("remove_actor", command['command'])
         self.assertTrue(queue.empty())
+
+    def testMultiLayeredDockingVisibility(self):
+        # test if a is docked with b is docked with c that:
+        # c is visible to all
+        # b is invisible to all, but visible to a
+        # a is invisible to all, but visible to a
+        self.fail("todo")

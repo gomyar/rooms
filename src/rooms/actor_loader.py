@@ -24,7 +24,7 @@ class ActorLoader(object):
                     room.put_actor(actor)
                     for child in docked:
                         room.put_actor(child)
-        Timer.sleep(0.1)
+        Timer.sleep(10)
 
     def _load_docked(self, game_id, actor):
         docked = self.node.container.load_docked_actors(game_id,

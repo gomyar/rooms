@@ -205,13 +205,6 @@ class ActorTest(unittest.TestCase):
         self.assertEquals(expected_vector, self.actor.vector)
         self.assertEquals(expected_vector, self.actor2.vector)
 
-    def testMultiLayeredDockingVisibility(self):
-        # test if a is docked with b is docked with c that:
-        # c is visible to all
-        # b is invisible to all, but visible to a
-        # a is invisible to all, but visible to a
-        self.fail("todo")
-
     def testMultiLayeredVectorChange(self):
         # test if a is docked with b is docked with c that:
         # changes to a's vector is the only actor_update that occurs
@@ -221,9 +214,6 @@ class ActorTest(unittest.TestCase):
         # test of player is docked with B that:
         # when B moves room player moves as well and is restored docked
         self.fail("todo")
-
-    def testParentNoLongerNEeded(self):
-        self.fail("delete the parent field in actor")
 
     def testVisible(self):
         self.actor.visible = True

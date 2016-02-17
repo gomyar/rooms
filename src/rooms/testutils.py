@@ -133,6 +133,12 @@ class MockScript(object):
     def has_method(self, method):
         return True
 
+    def get_method(self, method):
+        def mock_method(*args, **kwargs):
+            self.called.append((method, args, kwargs))
+        mock_method.is_command = True
+        return mock_method
+
 
 class MockRpcClient(object):
     def __init__(self, expect=None, exceptions=None):
