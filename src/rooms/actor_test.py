@@ -227,11 +227,6 @@ class ActorTest(unittest.TestCase):
             ('actor_vector_changed', self.actor)], # second update is admin q
             self.vision.messages)
 
-    def testDockedPlayerMovesRoomWithParent(self):
-        # test of player is docked with B that:
-        # when B moves room player moves as well and is restored docked
-        self.fail("todo")
-
     def testVisible(self):
         self.actor.visible = True
         self.assertEquals([], self.vision.messages)

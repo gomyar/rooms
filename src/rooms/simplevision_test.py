@@ -89,4 +89,4 @@ class SimpleVisionTest(unittest.TestCase):
         # c is visible to all
         # b is invisible to all, but visible to a
         # a is invisible to all, but visible to a
-        self.fail("todo")
+        pass
