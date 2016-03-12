@@ -7,7 +7,7 @@ from rooms.position import Position
 from rooms.testutils import MockTimer
 from rooms.testutils import MockGeog
 from rooms.testutils import MockIDFactory
-from rooms.testutils import MockGridVision
+from rooms.testutils import MockVision
 from rooms.testutils import MockNode
 from rooms.testutils import MockContainer
 from rooms.timer import Timer
@@ -32,7 +32,7 @@ class ActorTest(unittest.TestCase):
             ActorTest))
         self.room.put_actor(self.actor)
         self.actor.state.log = []
-        self.vision = MockGridVision()
+        self.vision = MockVision()
         self.room.vision = self.vision
 
     def tearDown(self):

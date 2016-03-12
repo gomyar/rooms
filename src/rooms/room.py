@@ -2,7 +2,7 @@
 from rooms.position import Position
 from rooms.actor import Actor
 from rooms.actor import search_actor_test
-from rooms.gridvision import GridVision
+from rooms.vision import Vision
 
 import logging
 log = logging.getLogger("rooms.room")
@@ -70,7 +70,7 @@ class Room(object):
         self.tags = []
         self.node = node
         self.online = True
-        self.vision = GridVision(self, self.width)
+        self.vision = Vision(self)
         self.state = dict()
         self.info = dict()
         self.item_registry = None

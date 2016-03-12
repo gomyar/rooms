@@ -4,7 +4,7 @@ import unittest
 from rooms.room import Room
 from rooms.room import Door
 from rooms.room import Tag
-from rooms.gridvision import GridVision
+from rooms.vision import Vision
 from rooms.position import Position
 from rooms.testutils import MockGeog
 from rooms.testutils import MockNode
@@ -14,7 +14,7 @@ from rooms.testutils import MockIDFactory
 from rooms.geography.basic_geography import BasicGeography
 from rooms.player import PlayerActor
 from rooms.script import Script
-from rooms.testutils import MockGridVision
+from rooms.testutils import MockVision
 from rooms.actor import Actor
 from testutils import MockTimer
 
@@ -29,7 +29,7 @@ class RoomTest(unittest.TestCase):
             self.node)
         self.geography = MockGeog()
         self.room.geography = self.geography
-        self.vision = MockGridVision()
+        self.vision = MockVision()
         self.room.vision = self.vision
         MockIDFactory.setup_mock()
         MockTimer.setup_mock()
@@ -152,7 +152,7 @@ class RoomTest(unittest.TestCase):
         ], path)
 
     def testSendMessage(self):
-        self.vision = GridVision(self.room, 10)
+        self.vision = Vision(self.room)
         self.room.vision = self.vision
 
         actor = self.room.create_actor("test", "rooms.room_test")

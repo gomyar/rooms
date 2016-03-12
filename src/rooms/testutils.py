@@ -10,7 +10,7 @@ from rooms.position import Position
 from rooms.timer import Timer
 from rooms.container import Container
 from rooms.utils import IDFactory
-from rooms.gridvision import GridVision
+from rooms.vision import Vision
 from rooms.player_connection import PlayerConnection
 from rooms.node import Node
 
@@ -89,7 +89,7 @@ class MockRoom(Room):
         self.actors = dict()
         self.topleft = Position(0, 0)
         self.bottomright = Position(10, 10)
-        self.vision = GridVision(self)
+        self.vision = Vision(self)
         self.node = MockNode()
 
     def kick(self):
@@ -271,7 +271,7 @@ class MockIDFactory(IDFactory):
         return "id%s" % self.index
 
 
-class MockGridVision(object):
+class MockVision(object):
     def __init__(self):
         self.messages = []
         self.gridsize = 10
