@@ -1,5 +1,12 @@
 
  - move chat stuff to utils
+ - remove gridvision
+ - add geographies back in
+ - move actor/room/node management to mongo and remove master apis
+ - move room/node management to mongo and remove master apis
+ - bounce client to correct node directly on room change
+   - redirect to master if not found, redirect again
+
  - need proper version control for django util apps
  - need proper tests for django apps
 

@@ -7,7 +7,7 @@ from rooms.room import RoomObject
 from rooms.room import Tag
 from rooms.room import Door
 from rooms.position import Position
-from rooms.simplevision import Vision
+from rooms.vision import Vision
 
 
 class FileMapSource(object):

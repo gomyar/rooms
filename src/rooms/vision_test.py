@@ -5,7 +5,7 @@ from rooms.room import Room
 from rooms.position import Position
 from rooms.vector import build_vector
 from rooms.actor import Actor
-from rooms.simplevision import Vision
+from rooms.vision import Vision
 
 
 class SimpleVisionTest(unittest.TestCase):
