@@ -1,11 +1,19 @@
 
- - move chat stuff to utils
- - remove gridvision
+ - fix internal / external host/port in coookiecutter apps
+   - hostname showing up as localhost
+   - player_actor not loading on server
+
+
+ - defo need a game admin section where an admin can create/manage games
+
+ - simplify script objects
  - add geographies back in
  - move actor/room/node management to mongo and remove master apis
  - move room/node management to mongo and remove master apis
  - bounce client to correct node directly on room change
    - redirect to master if not found, redirect again
+
+ - get rid of recapcha settings in cookiecutter
 
  - need proper version control for django util apps
  - need proper tests for django apps

@@ -62,8 +62,6 @@ class Script(object):
         return methods
 
 
-
-
 class NullScript(Script):
     def __init__(self):
         self.script_name = ""
