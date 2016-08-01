@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 import gevent
 from gevent.queue import Queue
 
@@ -12,6 +13,7 @@ from rooms.vector import Vector
 from rooms.state import SyncDict
 from rooms.state import SyncList
 from rooms.actor_loader import ActorLoader
+from rooms.online_node import OnlineNode
 
 import logging
 log = logging.getLogger("rooms.container")
@@ -35,6 +37,7 @@ class Container(object):
             Vector=self._serialize_vector,
             SyncDict=self._serialize_syncdict,
             SyncList=self._serialize_synclist,
+            OnlineNode=self._serialize_onlinenode,
         )
         self.builders = dict(
             Game=self._build_game,
@@ -46,6 +49,7 @@ class Container(object):
             Vector=self._build_vector,
             SyncDict=self._build_syncdict,
             SyncList=self._build_synclist,
+            OnlineNode=self._build_onlinenode,
         )
         self._remove_queue = Queue()
         self._remove_gthread = None
@@ -316,7 +320,8 @@ class Container(object):
     # Room
     def _serialize_room(self, room):
         return dict(game_id=room.game_id, room_id=room.room_id,
-            state=room.state)
+            state=room.state, last_modified=datetime.isoformat(datetime.now()),
+            node=self.node.name)
 
     def _build_room(self, data):
         room = self.room_factory.create(data['game_id'], data['room_id'])
@@ -400,3 +405,14 @@ class Container(object):
         synclist = SyncList()
         synclist._data = data['data']
         return synclist
+
+    # OnlineNode
+    def _serialize_onlinenode(self, onlinenode):
+        return dict(name=onlinenode.name)
+
+    def _build_onlinenode(self, data):
+        return OnlineNode(name=data['name'])
+
+    def load_next_available_room(self):
+        return self.dbase.find_and_modify("rooms", "_state", "active",
+            _state="pending", sort=[('last_modified', pymongo.DESCENDING)])

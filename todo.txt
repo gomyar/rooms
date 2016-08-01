@@ -1,4 +1,8 @@
 
+ - move master.py state to mongo
+ - move node.py state to mongo
+
+
  - fix internal / external host/port in coookiecutter apps
    - hostname showing up as localhost
    - player_actor not loading on server

@@ -53,10 +53,10 @@ class MongoDBase(object):
         return self._collection(collection_name).find(search_fields)
 
     def find_and_modify(self, collection_name, modify_name, modify_value,
-            **search_fields):
+            sort=[], **search_fields):
         return self._collection(collection_name).find_and_modify(
             search_fields, {"$set": {modify_name: modify_value}},
-            new=True)
+            new=True, sort=sort)
 
     def update_object(self, collection_name, obj, update_key, update_obj):
         try:

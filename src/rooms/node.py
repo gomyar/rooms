@@ -93,6 +93,7 @@ class NodeController(object):
 
 class Node(object):
     def __init__(self, host, port, master_host, master_port):
+        self.name = "node"
         self.host = host
         self.port = port
         self.master_host = master_host

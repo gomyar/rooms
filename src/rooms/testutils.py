@@ -31,7 +31,7 @@ class MockDbase(object):
     def load_object(self, obj_id, collection_name):
         return self.dbases.get(collection_name, dict()).get(obj_id).copy()
 
-    def save_object(self, obj_dict, collection_name, db_id):
+    def save_object(self, obj_dict, collection_name, db_id=None):
         obj_dict = obj_dict.copy()
         if collection_name not in self.dbases:
             self.dbases[collection_name] = dict()
@@ -108,6 +108,7 @@ class MockNode(Node):
         self.admin_connections = {}
         self.rooms = {}
         self._updates = []
+        self.name = "test_node"
 
     def move_actor_room(self, actor, game_id, exit_room_id, exit_room_position):
         self._updates.append((actor, game_id, exit_room_id, exit_room_position))
