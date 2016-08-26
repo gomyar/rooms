@@ -3,6 +3,10 @@ from rooms.actor import Actor
 
 
 class PlayerActor(Actor):
+    def __init__(self, *args, **kwargs):
+        super(PlayerActor, self).__init__(*args, **kwargs)
+        self.status = None
+
     @property
     def is_player(self):
         return True

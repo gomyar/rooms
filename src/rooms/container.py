@@ -136,9 +136,11 @@ class Container(object):
         return self._load_filter_one("actors", actor_id=actor_id)
 
     def load_limbo_actor(self, game_id, room_id):
-        enc_actor = self.dbase.find_and_modify("actors", "_loadstate", "",
-            game_id=game_id, room_id=room_id, _loadstate="limbo",
-            docked_with=None)
+        enc_actor = self.dbase.find_and_modify("actors",
+            query={'game_id': game_id, 'room_id': room_id,
+                   '_loadstate': "limbo", 'docked_with': None},
+            update={"_loadstate": ""},
+        )
         return self._decode_enc_dict(enc_actor) if enc_actor else None
 
     def load_docked_actors(self, game_id, parent_actor_id):
@@ -181,8 +183,8 @@ class Container(object):
     def save_game(self, game):
         self._save_object(game, "games")
 
-    def create_game(self, owner_id):
-        game = Game(owner_id)
+    def create_game(self, owner_id, name=None, description=None, access='open'):
+        game = Game(owner_id, name, description, access)
         self.save_game(game)
         return game
 
@@ -282,10 +284,11 @@ class Container(object):
     # Game
     def _serialize_game(self, game):
         return dict(owner_id=game.owner_id, name=game.name,
-            description=game.description)
+            description=game.description, access=game.access)
 
     def _build_game(self, data):
-        game = Game(data['owner_id'], data.get("name"), data.get("description"))
+        game = Game(data['owner_id'], data.get("name"), data.get("description"),
+                    data.get('access'))
         game.item_registry = self.item_registry
         return game
 
@@ -299,7 +302,7 @@ class Container(object):
     # PlayerActor
     def _serialize_player(self, player):
         data = self._serialize_actor(player)
-        data['game_id'] = player.game_id
+        data['status'] = player.status
         return data
 
     def _build_player(self, data):
@@ -315,13 +318,14 @@ class Container(object):
         player.vector = data['vector']
         player._speed = data['speed']
         player._docked_with = data['docked_with']
+        player.status = data['status']
         return player
 
     # Room
     def _serialize_room(self, room):
         return dict(game_id=room.game_id, room_id=room.room_id,
             state=room.state, last_modified=datetime.isoformat(datetime.now()),
-            node=self.node.name)
+            node_name=self.node.name)
 
     def _build_room(self, data):
         room = self.room_factory.create(data['game_id'], data['room_id'])
@@ -408,11 +412,48 @@ class Container(object):
 
     # OnlineNode
     def _serialize_onlinenode(self, onlinenode):
-        return dict(name=onlinenode.name)
+        return dict(name=onlinenode.name, host=onlinenode.host)
 
     def _build_onlinenode(self, data):
-        return OnlineNode(name=data['name'])
+        return OnlineNode(name=data['name'], host=data['host'])
 
     def load_next_available_room(self):
-        return self.dbase.find_and_modify("rooms", "_state", "active",
-            _state="pending", sort=[('last_modified', pymongo.DESCENDING)])
+        return self.dbase.find_and_modify("rooms",
+            query={_state:"pending",
+                   sort:[('last_modified', pymongo.DESCENDING)]},
+            update={"_state": "active"},
+        )
+
+    def load_node(self, name):
+        return self._load_filter_one('online_nodes', name=name)
+
+    def save_node(self, online_node):
+        self._save_object(online_node, "online_nodes")
+
+    def find_and_modify_object(self, collection_name, obj, query=None,
+                               set_fields=None, set_on_insert=None,
+                               upsert=False):
+        ''' Will perform a find_and_modify on the collection. If upserting,
+            will use the serialized form of the given obj as setOnInsert,
+            otherwise will only set what's in set_fields
+        '''
+        set_fields = set_fields or {}
+        set_on_insert = set_on_insert or {}
+
+        if not query and hasattr(obj, '_id'):
+            query = {'_id': bson.ObjectId(obj._id)}
+        obj_data = self._obj_to_dict(obj)
+        if set_on_insert:
+            obj_data.update(set_on_insert)
+
+        update = {}
+        if set_fields:
+            update['$set'] = set_fields
+        if upsert:
+            for key in set_fields:
+                if key in obj_data:
+                    obj_data.pop(key)
+            update['$setOnInsert'] = obj_data
+        new = self.dbase.find_and_modify(collection_name, query, update=update,
+            upsert=upsert)
+        return self._dict_to_obj(new)

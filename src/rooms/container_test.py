@@ -43,6 +43,7 @@ class ContainerTest(unittest.TestCase):
 
         self.assertEquals({'games_0': {u'__type__': u'Game',
             '_id': 'games_0',
+            'access': None,
             u'name': "Bob's game",
             u'description': "A game by Bob",
             u'owner_id': u'bob'}},
@@ -67,6 +68,7 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals({'actors_0': {u'__type__': u'PlayerActor',
               '_id': 'actors_0',
               u'actor_id': u'id1',
+              u'status': None,
               u'parent_id': None,
               u'actor_type': u'player',
               u'game_id': u'games_0',
@@ -97,6 +99,7 @@ class ContainerTest(unittest.TestCase):
             '_id': 'id1',
             u'actor_id': u'id1',
             u'actor_type': u'player',
+            u'status': None,
             u'game_id': u'games_1',
             u'script_name': u'mock_script',
             u'room_id': u'rooms_10',
@@ -400,3 +403,29 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals("actor2", actor.actor_id)
 
         self.assertEquals(None, self.container.load_limbo_actor("games_0", "room1"))
+
+    def testQueryUpdate(self):
+        self.player = PlayerActor(self.room2, "player", MockScript(),
+            "bob", game_id="games_0")
+
+        self.dbase.dbases['actors'] = {}
+        self.container.find_and_modify_object('actors', self.player,
+            query={'username': 'bob'}, upsert=True)
+
+        actor_data = self.dbase.dbases['actors']['actors_0']
+        self.assertEquals('id1', actor_data['actor_id'])
+        self.assertEquals('bob', actor_data['username'])
+        self.assertEquals('player', actor_data['actor_type'])
+        self.assertEquals(None, actor_data['parent_id'])
+
+        self.player.parent_id = 'id2'
+        self.container.find_and_modify_object('actors', self.player,
+            query={'username': 'bob'}, set_fields={'parent_id': 'id2'},
+            upsert=True)
+
+        self.assertEquals(1, len(self.container.dbase.dbases['actors']))
+        actor_data = self.dbase.dbases['actors']['actors_0']
+        self.assertEquals('id1', actor_data['actor_id'])
+        self.assertEquals('bob', actor_data['username'])
+        self.assertEquals('player', actor_data['actor_type'])
+        self.assertEquals('id2', actor_data['parent_id'])

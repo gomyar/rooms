@@ -2,10 +2,11 @@
 
 class Game(object):
     def __init__(self, owner_id, name=None,
-            description=None):
+                 description=None, access=None):
         self.owner_id = owner_id
         self.name = name
         self.description = description
+        self.access = access
         self.item_registry = None
         self._id = None
 

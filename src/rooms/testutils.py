@@ -56,7 +56,7 @@ class MockDbase(object):
         return bool(self.filter(collection_name, **search_fields))
 
     def object_exists_by_id(self, collection_name, object_id):
-        return bool(self.dbases[collection_name].get(object_id))
+        return bool(self.dbases.get(collection_name, dict()).get(object_id))
 
     def remove(self, collection_name, **fields):
         dbase = self.dbases.get(collection_name, [])
@@ -70,14 +70,28 @@ class MockDbase(object):
         objdata = self.dbases.get(collection_name, dict()).get(obj._id)
         objdata.update(fields)
 
-    def find_and_modify(self, collection_name, modify_name, modify_value,
-            **search_fields):
+    def find_and_modify(self, collection_name, query, update,
+            sort=[], upsert=False, new=True):
         found = self.dbases.get(collection_name, dict()).values()
         found = [o for o in found if all([i in o.items() for \
-            i in search_fields.items()])]
+            i in query.items()])]
         found = found[0] if found else None
         if found:
-            found[modify_name] = modify_value
+            if '$setOnInsert' in update:
+                update.pop('$setOnInsert')
+            if '$set' in update:
+                found.update(update['$set'])
+            else:
+                found.update(update)
+        elif upsert:
+            found = {}
+            if '$setOnInsert' in update:
+                found.update(update.pop('$setOnInsert'))
+            if '$set' in update:
+                found.update(update['$set'])
+            else:
+                found.update(update)
+            self.save_object(found, collection_name)
         return found.copy() if found else None
 
 
