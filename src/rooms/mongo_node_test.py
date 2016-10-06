@@ -15,6 +15,15 @@ class NodeTest(unittest.TestCase):
         self.node = Node(self.container)
 
     def testRunLoadSkeletonRoom(self):
+        # add room data to db
+
+        # call
+
+        # assert room init called
+        # assert room active
+        # assert room db entry active
+
+
         #self.node.init_next_skeleton_room()
 
         # load next available skeleton room - save node name (find_and_modify)

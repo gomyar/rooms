@@ -43,7 +43,6 @@ class ContainerTest(unittest.TestCase):
 
         self.assertEquals({'games_0': {u'__type__': u'Game',
             '_id': 'games_0',
-            'access': None,
             u'name': "Bob's game",
             u'description': "A game by Bob",
             u'owner_id': u'bob'}},

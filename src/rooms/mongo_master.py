@@ -12,9 +12,8 @@ class Master(object):
     def _new_token(self):
         return str(uuid.uuid1())
 
-    def create_game(self, owner_username, name, description, access):
-        game = self.container.create_game(owner_username, name, description,
-                                          access)
+    def create_game(self, owner_username, name, description):
+        game = self.container.create_game(owner_username, name, description)
         return game.game_id
 
     def join_game(self, game_id, username, **kwargs):
@@ -22,18 +21,12 @@ class Master(object):
             return {'error': 'no such game'}
         game = self.container.load_game(game_id)
         room_id = self.game_script.start_room(**kwargs)
-        if game.access == 'open':
-            player = self._get_player(game_id, username, room_id)
+        player = self._get_player(game_id, username, room_id)
+        room = self._get_room(game_id, player['room_id'])
+        if room.get('node_name'):
+            return {'host': self._get_node(room['node_name'])['host']}
         else:
-            player = self._get_invited_player(game_id, username, room_id)
-        if player:
-            room = self._get_room(game_id, player['room_id'])
-            if room.get('node_name'):
-                return {'host': self._get_node(room['node_name'])['host']}
-            else:
-                return {'wait': True}
-        else:
-            return {'error': 'no access'}
+            return {'wait': True}
 
     def list_games(self, username):
         games = self.container.games_owned_by(username)
@@ -43,19 +36,6 @@ class Master(object):
     def list_players(self, username):
         players = self.container.all_players_for(username)
         return [{'game_id': p.game_id, 'status': p.status} for p in players]
-
-    def invite_player(self, game_id, username):
-        player = self.container.dbase.find_and_modify(
-            'actors',
-            query={'game_id': game_id, 'username': username,
-                   '__type__': 'PlayerActor'},
-            update={
-                '$setOnInsert': self._new_player_data(game_id, None,
-                                                      username, 'invited')},
-            upsert=True,
-            new=True,
-        )
-        return player
 
     def connect_player(self, game_id, username):
         player = self.container.dbase.find_and_modify(
@@ -99,6 +79,7 @@ class Master(object):
             },
             'actor_id': IDFactory.create_id(),
             '__type__': 'PlayerActor',
+            '_loadstate': 'limbo',
         }
 
     def _get_player(self, game_id, username, room_id):
@@ -112,18 +93,6 @@ class Master(object):
                 '$set':{'token': self._new_token()},
             },
             upsert=True,
-            new=True,
-        )
-
-    def _get_invited_player(self, game_id, username, room_id):
-        return self.container.dbase.find_and_modify(
-            'actors',
-            query={'game_id': game_id, 'username': username,
-                   '__type__': 'PlayerActor', 'status': 'invited'},
-            update={
-                '$set':{'token': self._new_token(),
-                        'status': 'active'},
-            },
             new=True,
         )
 

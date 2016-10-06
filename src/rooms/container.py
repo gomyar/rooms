@@ -183,8 +183,8 @@ class Container(object):
     def save_game(self, game):
         self._save_object(game, "games")
 
-    def create_game(self, owner_id, name=None, description=None, access='open'):
-        game = Game(owner_id, name, description, access)
+    def create_game(self, owner_id, name=None, description=None):
+        game = Game(owner_id, name, description)
         self.save_game(game)
         return game
 
@@ -284,11 +284,10 @@ class Container(object):
     # Game
     def _serialize_game(self, game):
         return dict(owner_id=game.owner_id, name=game.name,
-            description=game.description, access=game.access)
+            description=game.description)
 
     def _build_game(self, data):
-        game = Game(data['owner_id'], data.get("name"), data.get("description"),
-                    data.get('access'))
+        game = Game(data['owner_id'], data.get("name"), data.get("description"))
         game.item_registry = self.item_registry
         return game
 
