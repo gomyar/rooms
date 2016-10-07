@@ -84,21 +84,41 @@ class Container(object):
                 room.put_actor(docked)
 
     def save_room(self, room):
-        self._save_object(room, "rooms")
+        self._save_object(room, "rooms", active=False, requested=False)
 
     def save_actors(self, actors):
         for actor in actors:
             self.save_actor(actor)
 
-    def create_room(self, game_id, room_id):
+    def create_room_with_actors(self, game_id, room_id):
         if self.room_exists(game_id, room_id):
             raise Exception("Room %s %s already exists" % (game_id, room_id))
+        room = self.create_room(game_id, room_id)
+        self._load_actors_for_room(room, game_id, room_id)
+        return room
+
+    # deprecated
+    def create_room(self, game_id, room_id):
         room = self.room_factory.create(game_id, room_id)
         room.geography = self.geography
         room.item_registry = self.item_registry
         self.save_room(room)
-        self._load_actors_for_room(room, game_id, room_id)
         return room
+
+    def request_create_room(self, game_id, room_id):
+        # push into dbase
+        return self.dbase.find_and_modify(
+            'rooms',
+            query={'game_id': game_id, '__type__': 'Room'},
+            update={
+                '$set':{'requested':True},
+                '$setOnInsert':{'active': False,'node_name': None,
+                    '__type__': 'Room', 'state': {}, 'game_id': game_id,
+                    'room_id': room_id},
+            },
+            upsert=True,
+            new=True,
+        )
 
     def create_actor(self, room, actor_type, script_name, username=None,
             state=None, visible=True, parent_id=None, position=None):
@@ -119,6 +139,9 @@ class Container(object):
 
     def update_actor(self, actor, **fields):
         self.dbase.update_object_fields("actors", actor, **fields)
+
+    def update_room(self, room, **fields):
+        self.dbase.update_object_fields("rooms", room, **fields)
 
     def room_exists(self, game_id, room_id):
         return self.dbase.object_exists("rooms", game_id=game_id,

@@ -87,6 +87,9 @@ class MockDbase(object):
             found = {}
             if '$setOnInsert' in update:
                 found.update(update.pop('$setOnInsert'))
+                db_id = collection_name + "_" + \
+                    str(len(self.dbases[collection_name]))
+                found['_id'] = db_id
             if '$set' in update:
                 found.update(update['$set'])
             else:

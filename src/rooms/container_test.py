@@ -218,7 +218,7 @@ class ContainerTest(unittest.TestCase):
 
 
     def testCreateRoom(self):
-        room = self.container.create_room("game1", "room2")
+        room = self.container.create_room_with_actors("game1", "room2")
         room_dict = self.dbase.dbases['rooms']['rooms_0']
         self.assertEquals('room2', room_dict['room_id'])
         self.assertEquals(self.node, room.node)
@@ -232,7 +232,7 @@ class ContainerTest(unittest.TestCase):
             "bottomright": {"__type__": "Position", "x": 10, "y": 10, "z": 0},
             }
 
-        self.assertRaises(Exception, self.container.create_room, "games_0",
+        self.assertRaises(Exception, self.container.create_room_with_actors, "games_0",
             "room1")
 
     def testSaveRoom(self):
@@ -276,7 +276,7 @@ class ContainerTest(unittest.TestCase):
         self.assertTrue(self.dbase.dbases['rooms'])
 
     def testSaveActor(self):
-        room = self.container.create_room("game1", "room2")
+        room = self.container.create_room_with_actors("game1", "room2")
         actor = room.create_actor("mock_actor", "mock_script",
             position=Position(20, 10))
 #        self.container.save_actor(actor)
@@ -336,6 +336,21 @@ class ContainerTest(unittest.TestCase):
             self.dbase.dbases['actors']['actor1'])
         self.assertEquals({'_id': "actor2"},
             self.dbase.dbases['actors']['actor2'])
+
+    def testUpdateRoom(self):
+        room = MockRoom("game1", "room1")
+        room._id = "room1"
+
+        self.dbase.dbases['rooms'] = {}
+        self.dbase.dbases['rooms']['room1'] = {'_id': "room1", "status": "inactive"}
+        self.dbase.dbases['rooms']['room2'] = {'_id': "room2", "status": "inactive"}
+
+        self.container.update_room(room, status="pending")
+
+        self.assertEquals({'_id': "room1", "status": "pending"},
+            self.dbase.dbases['rooms']['room1'])
+        self.assertEquals({'_id': "room2", "status": "inactive"},
+            self.dbase.dbases['rooms']['room2'])
 
     def testLoadPlayerVSLoadActor(self):
         room = MockRoom("game1", "room1")

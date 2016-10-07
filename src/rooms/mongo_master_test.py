@@ -85,9 +85,16 @@ class MasterTest(unittest.TestCase):
         self.master.join_game(game_id, "bob")
 
         self.assertEquals(1, len(self.db.dbases['rooms']))
-        self.assertEquals({'active': False, 'requested': True,
-                           '_id': 'rooms_0', 'node_name': None},
-            self.db.dbases['rooms']['rooms_0'])
+        self.assertEquals({
+            '__type__': 'Room',
+            '_id': 'rooms_0',
+            'active': False,
+            'game_id': 'games_0',
+            'node_name': None,
+            'requested': True,
+            'room_id': 'room1',
+            'state': {}}, self.db.dbases['rooms']['rooms_0'])
+        self.assertEquals('bob', self.db.dbases['actors']['actors_0']['username'])
 
     def testPlayerTriesToJoinNonExistingGame(self):
         result = self.master.join_game('nonexitant', "ned")

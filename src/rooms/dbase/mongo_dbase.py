@@ -55,8 +55,7 @@ class MongoDBase(object):
     def find_and_modify(self, collection_name, query, update,
             sort=[], upsert=False, new=True):
         return self._collection(collection_name).find_and_modify(
-            query, update, upsert=upsert,
-            new=new, sort=sort)
+            query, update, upsert=upsert, new=new, sort=sort)
 
     def update_object(self, collection_name, obj, update_key, update_obj):
         try:

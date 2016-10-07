@@ -98,13 +98,4 @@ class Master(object):
 
     def _get_room(self, game_id, room_id):
         # create/upsert room
-        return self.container.dbase.find_and_modify(
-            'rooms',
-            query={'game_id': game_id, '__type__': 'Room'},
-            update={
-                '$set':{'requested':True},
-                '$setOnInsert':{'active': False,'node_name': None},
-            },
-            upsert=True,
-            new=True,
-        )
+        return self.container.request_create_room(game_id, room_id)
