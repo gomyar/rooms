@@ -10,8 +10,8 @@ from rooms.testutils import MockNode
 class LinearOpenGeographyTest(unittest.TestCase):
     def setUp(self):
         self.geography = LinearOpenGeography()
-        self.room = Room("game1", "room1", Position(0, 0), Position(100, 100),
-            MockNode())
+        self.room = Room("game1", "room1", MockNode())
+        self.room.coords(0, 0, 100, 100)
         self.room.geog = self.geography
 
     def testGetPath(self):

@@ -38,10 +38,10 @@ class NodeTest(unittest.TestCase):
         self.node.scripts['game_script'] = self.game_script
         self.node.scripts['mock_script'] = self.mock_script
         self.node.master_conn = self.mock_rpc
-        self.room1 = Room("game1", "map1.room1", Position(0, 0), Position(10, 10),
-            self.node)
-        self.room2 = Room("game1", "map1.room2", Position(0, 0), Position(10, 10),
-            self.node)
+        self.room1 = Room("game1", "map1.room1", self.node)
+        self.room1.coords(0, 0, 10, 10)
+        self.room2 = Room("game1", "map1.room2", self.node)
+        self.room2.coords(0, 0, 10, 10)
         self.container = MockContainer(
             room_factory=RoomFactory(
             FileMapSource(os.path.join(os.path.dirname(__file__),

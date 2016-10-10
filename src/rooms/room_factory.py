@@ -44,9 +44,10 @@ class RoomFactory(object):
         return self.map_source.load_map(map_id)
 
     def _create_room(self, room_json, game_id, room_id):
-        room = Room(game_id, room_id, self._create_pos(room_json['topleft']),
-            self._create_pos(room_json['bottomright']), self.node)
+        room = Room(game_id, room_id, self.node)
         room.info = room_json.get('info', {})
+        room.topleft = self._create_pos(room_json['topleft'])
+        room.bottomright = self._create_pos(room_json['bottomright'])
         if self.positioning == RoomFactory.POS_TOPLEFT:
             self.origin = self._create_pos(room_json['topleft'])
         for map_object_json in room_json['room_objects']:

@@ -5,39 +5,32 @@ from mock import Mock
 
 from rooms.container import Container
 from rooms.mongo_node import Node
+from rooms.room import Room
 from rooms.geography.basic_geography import BasicGeography
 from rooms.testutils import MockDbase
 from rooms.testutils import MockRoomFactory
 from rooms.testutils import MockRoom
+from rooms.testutils import MockNode
 
 
 class NodeTest(unittest.TestCase):
     def setUp(self):
         self.dbase = MockDbase()
-        self.container = Container(self.dbase, BasicGeography(),
-            None, MockRoomFactory(MockRoom('game1', 'room1')))
-        self.container.node = None
+        self.room = Room('game1', 'room1', self) # script
+
+        self.container = Mock(Container)
 
         self.node = Node(self.container, 'alpha')
 
     def testLoadRoomInitScript(self):
         room = self.container.request_create_room('game1', 'room1')
+        self.container.load_next_pending_room.return_value = self.room
 
         self.assertEquals(0, len(self.node.rooms))
         self.node.load_next_pending_room()
         self.assertEquals(1, len(self.node.rooms))
 
-        room_data = self.container.dbase.dbases['rooms']['rooms_0']
-        self.assertTrue(room_data['active'])
-        self.assertFalse(room_data['requested'])
-        self.assertEquals('alpha', room_data['node'])
-
-        # load next available pending room - save node name (find_and_modify)
-        # load all the actors
-        pass
-
-    def testLoadRoomAlreadyInited(self):
-        pass
+        # test run init script
 
     def testPlayerConnects(self):
         self.node.player_connects("bob", "game1")

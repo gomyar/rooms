@@ -36,17 +36,9 @@ class Node(object):
         self.rooms = dict()
 
     def load_next_pending_room(self):
-        room_data = self.container.dbase.find_and_modify(
-            'rooms',
-            query={'active': False, 'requested': True, '__type__': 'Room'},
-            update={
-                '$set':{'active': True, 'requested': False, 'node': self.name},
-                '$setOnInsert':{'active': False,'node_name': None},
-            },
-            new=True,
-        )
-        room = self.container._decode_enc_dict(room_data)
-        self.rooms[room.game_id, room.room_id] = room
+        room = self.container.load_next_pending_room(self.name)
+        if room:
+            self.rooms[room.game_id, room.room_id] = room
 
     def player_connects(self, username, game_id):
         pass

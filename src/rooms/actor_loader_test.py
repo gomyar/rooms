@@ -18,11 +18,11 @@ class ActorLoaderTest(unittest.TestCase):
         self.container = Container(self.dbase, None, self.node, None)
         self.node.container = self.container
 
-        self.room1 = Room("game1", "room1", Position(0, 0), Position(50, 50),
-            self.node)
+        self.room1 = Room("game1", "room1", self.node)
+        self.room1.coords(0, 0, 50, 50)
         self.node.rooms['games_0', 'map1.room1'] = self.room1
-        self.room2 = Room("game1", "room2", Position(0, 0), Position(50, 50),
-            self.node)
+        self.room2 = Room("game1", "room2", self.node)
+        self.room2.coords(0, 0, 50, 50)
         self.node.rooms['games_0', 'map1.room2'] = self.room2
 
         self.dbase.dbases['actors'] = {}

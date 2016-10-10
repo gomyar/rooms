@@ -10,8 +10,8 @@ from rooms.vision import Vision
 
 class SimpleVisionTest(unittest.TestCase):
     def setUp(self):
-        self.room = Room("game1", "map1.room1", Position(0, 0),
-            Position(100, 100), None)
+        self.room = Room("game1", "map1.room1", None)
+        self.room.coords(0, 0, 100, 100)
         self.vision = Vision(self.room)
         self.room.vision = self.vision
 

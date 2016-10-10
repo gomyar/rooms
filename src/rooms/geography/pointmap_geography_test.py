@@ -11,8 +11,8 @@ from rooms.testutils import MockNode
 class PointmapGeogTest(unittest.TestCase):
     def setUp(self):
         self.geog = PointmapGeography(point_spacing=10)
-        self.room = Room("game1", "room1", Position(0, 0), Position(50, 50),
-            MockNode())
+        self.room = Room("game1", "room1", MockNode())
+        self.room.coords(0, 0, 50, 50)
 
     def testGetPath(self):
         path = self.geog.find_path(self.room, (10, 10), (20, 20))
@@ -26,8 +26,8 @@ class PointmapGeogTest(unittest.TestCase):
         self.assertEquals([(10, 10), (20, 20), (20, 30), (20, 40)], path)
 
     def testCreatePointMapRelativeToRoomCoords(self):
-        self.room = Room("game1", "room1", Position(100, 200),
-            Position(150, 250), MockNode())
+        self.room = Room("game1", "room1", MockNode())
+        self.room.coords(100, 200, 150, 250)
 
         path = self.geog.find_path(self.room, (10, 10), (20, 40))
         self.assertEquals([], path)

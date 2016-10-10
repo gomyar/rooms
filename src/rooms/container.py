@@ -120,6 +120,21 @@ class Container(object):
             new=True,
         )
 
+    def load_next_pending_room(self, node_name):
+        room_data = self.dbase.find_and_modify(
+            'rooms',
+            query={'active': False, 'requested': True, '__type__': 'Room'},
+            update={
+                '$set':{'active': True, 'requested': False, 'node': node_name},
+                '$setOnInsert':{'active': False,'node_name': None},
+            },
+            new=True,
+        )
+        if room_data:
+            return self._decode_enc_dict(room_data)
+        else:
+            return None
+
     def create_actor(self, room, actor_type, script_name, username=None,
             state=None, visible=True, parent_id=None, position=None):
         actor = Actor(room, actor_type, script_name, username, visible=visible,

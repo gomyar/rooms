@@ -24,8 +24,8 @@ class ContainerTest(unittest.TestCase):
         self.geography = MockGeog()
         self.node = MockNode()
         self.node.scripts["mock_script"] = MockScript()
-        self.room2 = Room("games_0", "room2", Position(0, 0), Position(10, 10),
-            self.node)
+        self.room2 = Room("games_0", "room2", self.node)
+        self.room2.coords(0, 0, 10, 10)
         self.mock_room_factory = MockRoomFactory(self.room2)
         self.container = Container(self.dbase, self.geography, self.node,
             self.mock_room_factory)
@@ -236,8 +236,8 @@ class ContainerTest(unittest.TestCase):
             "room1")
 
     def testSaveRoom(self):
-        room = Room("game1", "room1", Position(0, 0), Position(10, 10),
-            self.node)
+        room = Room("game1", "room1", self.node)
+        room.coords(0, 0, 10, 10)
         actor = room.create_actor("mock_actor", "mock_script")
         self.container.save_room(room)
         room_dict = self.dbase.dbases['rooms']['rooms_0']
@@ -271,8 +271,9 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals(expected, actor_dict)
 
     def testOkWeveGotTheIdea(self):
-        self.container.save_room(Room("games_0", "rooms_0", Position(0, 0),
-            Position(50, 50), self.node))
+        room = Room("games_0", "rooms_0", self.node)
+        room.coords(0, 0, 50, 50)
+        self.container.save_room(room)
         self.assertTrue(self.dbase.dbases['rooms'])
 
     def testSaveActor(self):
@@ -443,3 +444,28 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals('bob', actor_data['username'])
         self.assertEquals('player', actor_data['actor_type'])
         self.assertEquals('id2', actor_data['parent_id'])
+
+    def testRequestOrCreateRoom(self):
+        self.assertEquals(0, len(self.dbase.dbases['rooms']))
+
+        self.container.request_create_room("game1", "room1")
+
+        self.assertEquals(1, len(self.dbase.dbases['rooms']))
+        self.assertEquals("game1", self.dbase.dbases['rooms']['rooms_0']['game_id'])
+
+        # dont create if exists
+        self.container.request_create_room("game1", "room1")
+        self.assertEquals(1, len(self.dbase.dbases['rooms']))
+        self.assertEquals("game1", self.dbase.dbases['rooms']['rooms_0']['game_id'])
+
+    def testLoadNextPendingRoom(self):
+        room = self.container.load_next_pending_room('alpha')
+        self.assertEquals(None, room)
+
+        self.container.request_create_room("game1", "room1")
+
+        room = self.container.load_next_pending_room('alpha')
+        room_data = self.container.dbase.dbases['rooms']['rooms_0']
+        self.assertTrue(room_data['active'])
+        self.assertFalse(room_data['requested'])
+        self.assertEquals('alpha', room_data['node'])

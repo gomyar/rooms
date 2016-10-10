@@ -58,11 +58,11 @@ class Door(object):
 
 
 class Room(object):
-    def __init__(self, game_id, room_id, topleft, bottomright, node):
+    def __init__(self, game_id, room_id, node):
         self.game_id = game_id
         self.room_id = room_id
-        self.topleft = topleft
-        self.bottomright = bottomright
+        self.topleft = Position(0, 0)
+        self.bottomright = Position(0, 0)
         self.geography = None
         self.actors = dict()
         self.room_objects = []
@@ -93,6 +93,10 @@ class Room(object):
             self.topleft.y + (self.bottomright.y - self.topleft.y) / 2,
             self.topleft.z + (self.bottomright.z - self.topleft.z) / 2,
         )
+
+    def coords(self, x1, y1, x2, y2):
+        self.topleft = Position(x1, y1)
+        self.bottomright = Position(x2, y2)
 
     def kick(self):
         log.debug("Kicking room (%s actors)", len(self.actors))

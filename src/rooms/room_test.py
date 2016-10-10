@@ -25,8 +25,8 @@ class RoomTest(unittest.TestCase):
         self.node = MockNode()
         self.node.scripts['rooms.room_test'] = self.script
         self.node.container = MockContainer()
-        self.room = Room("game1", "room1", Position(0, 0), Position(50, 50),
-            self.node)
+        self.room = Room("game1", "room1", self.node)
+        self.room.coords(0, 0, 50, 50)
         self.geography = MockGeog()
         self.room.geography = self.geography
         self.vision = MockVision()

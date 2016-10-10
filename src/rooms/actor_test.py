@@ -25,8 +25,8 @@ class ActorTest(unittest.TestCase):
         self.node = MockNode()
         self.node.container = MockContainer()
         self.node.scripts['actor_script'] = Script("actor_script", ActorTest)
-        self.room = Room("game1", "map1.room1", Position(0, 0),
-            Position(100, 100), self.node)
+        self.room = Room("game1", "map1.room1", self.node)
+        self.room.coords(0, 0, 100, 100)
         self.room.geography = MockGeog()
         self.actor = Actor(self.room, "mock_actor", Script("actor_script",
             ActorTest))
