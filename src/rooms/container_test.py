@@ -1,4 +1,5 @@
 
+import os
 import unittest
 
 from rooms.container import Container
@@ -8,13 +9,14 @@ from rooms.room import Room
 from rooms.position import Position
 from rooms.testutils import MockGeog
 from rooms.testutils import MockNode
-from rooms.testutils import MockRoomFactory
 from rooms.testutils import MockRoom
 from rooms.testutils import MockTimer
 from rooms.testutils import MockActor
 from rooms.testutils import MockDbase
 from rooms.testutils import MockScript
 from rooms.testutils import MockIDFactory
+from rooms.room_factory import FileMapSource
+from rooms.room_factory import RoomFactory
 from rooms.actor import Actor
 
 
@@ -26,9 +28,11 @@ class ContainerTest(unittest.TestCase):
         self.node.scripts["mock_script"] = MockScript()
         self.room2 = Room("games_0", "room2", self.node)
         self.room2.coords(0, 0, 10, 10)
-        self.mock_room_factory = MockRoomFactory(self.room2)
+        self.map_source = FileMapSource(os.path.join(os.path.dirname(__file__),
+            "test_maps"))
+        self.factory = RoomFactory(self.map_source, self.node)
         self.container = Container(self.dbase, self.geography, self.node,
-            self.mock_room_factory)
+            self.factory)
         self.node.container = self.container
         MockTimer.setup_mock()
         MockIDFactory.setup_mock()
@@ -136,14 +140,14 @@ class ContainerTest(unittest.TestCase):
     def testLoadRoom(self):
         self.dbase.dbases['rooms'] = {}
         self.dbase.dbases['rooms']['rooms_0'] = { "_id": "rooms_0",
-            "__type__": "Room", "room_id": "room1", "game_id": "games_0",
+            "__type__": "Room", "room_id": "map1.room1", "game_id": "games_0",
             'state': {u'__type__': u'SyncDict'},
             }
         self.dbase.dbases['actors'] = {}
         self.dbase.dbases['actors']['actor1'] = \
             {"__type__": "Actor", "_id": "actor1", "actor_id": None,
             "parent_id": None,
-            "game_id": "games_0", "room_id": "room1",
+            "game_id": "games_0", "room_id": "map1.room1",
             "actor_type": "test", "model_type": "model",
             "speed": 1.0,
             "username": "ned",
@@ -156,25 +160,25 @@ class ContainerTest(unittest.TestCase):
             "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
             "end_time": 10,
             }, "script_name": "mock_script"}
-        room = self.container.load_room("games_0", "room1")
+        room = self.container.load_room("games_0", "map1.room1")
         self.assertEquals(self.geography, room.geography)
         self.assertEquals(room, self.geography.room)
         self.assertEquals(1, len(room.actors))
         self.assertEquals(room, room.actors.values()[0].room)
         self.assertEquals(self.node, room.node)
-        self.assertEquals(0, len(room.doors))
+        self.assertEquals(1, len(room.doors))
 
     def testLoadRoomDockedActors(self):
         self.dbase.dbases['rooms'] = {}
         self.dbase.dbases['rooms']['rooms_0'] = { "_id": "rooms_0",
-            "__type__": "Room", "room_id": "room1", "game_id": "games_0",
+            "__type__": "Room", "room_id": "map1.room1", "game_id": "games_0",
             'state': {u'__type__': u'SyncDict'},
             }
         self.dbase.dbases['actors'] = {}
         self.dbase.dbases['actors']['actor1'] = \
             {"__type__": "Actor", "_id": "actor1", "actor_id": None,
             "parent_id": None,
-            "game_id": "games_0", "room_id": "room1",
+            "game_id": "games_0", "room_id": "map1.room1",
             "actor_type": "test", "model_type": "model",
             "speed": 1.0,
             "username": "ned",
@@ -203,13 +207,13 @@ class ContainerTest(unittest.TestCase):
             "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
             "end_time": 10,
             }, "script_name": "mock_script"}
-        room = self.container.load_room("games_0", "room1")
+        room = self.container.load_room("games_0", "map1.room1")
         self.assertEquals(self.geography, room.geography)
         self.assertEquals(room, self.geography.room)
         self.assertEquals(2, len(room.actors))
         self.assertEquals(room, room.actors.values()[0].room)
         self.assertEquals(self.node, room.node)
-        self.assertEquals(0, len(room.doors))
+        self.assertEquals(1, len(room.doors))
 
         self.assertEquals("id1", room.actors['id1'].actor_id)
         self.assertEquals("id2", room.actors['id2'].actor_id)
@@ -218,9 +222,9 @@ class ContainerTest(unittest.TestCase):
 
 
     def testCreateRoom(self):
-        room = self.container.create_room_with_actors("game1", "room2")
+        room = self.container.create_room_with_actors("game1", "map1.room2")
         room_dict = self.dbase.dbases['rooms']['rooms_0']
-        self.assertEquals('room2', room_dict['room_id'])
+        self.assertEquals('map1.room2', room_dict['room_id'])
         self.assertEquals(self.node, room.node)
         self.assertEquals(self.geography, room.geography)
 
@@ -277,7 +281,7 @@ class ContainerTest(unittest.TestCase):
         self.assertTrue(self.dbase.dbases['rooms'])
 
     def testSaveActor(self):
-        room = self.container.create_room_with_actors("game1", "room2")
+        room = self.container.create_room_with_actors("game1", "map1.room2")
         actor = room.create_actor("mock_actor", "mock_script",
             position=Position(20, 10))
 #        self.container.save_actor(actor)
@@ -286,10 +290,10 @@ class ContainerTest(unittest.TestCase):
             u'actor_id': "id1",
             u'parent_id': None,
             u'actor_type': u'mock_actor',
-            u'game_id': u'games_0',
+            u'game_id': u'game1',
             u'path': [],
             u'username': None,
-            u'room_id': u'room2',
+            u'room_id': u'map1.room2',
             u'script_name': u'mock_script',
             u'speed': 1.0,
             u'visible': True,
@@ -297,12 +301,12 @@ class ContainerTest(unittest.TestCase):
             u'state': {u'__type__': u'SyncDict'},
             u'vector': {u'__type__': u'Vector',
                         u'end_pos': {u'__type__': u'Position',
-                                    u'x': 10.0,
+                                    u'x': 50.0,
                                     u'y': 10.0,
                                     u'z': 0.0},
                         u'end_time': 0.0,
                         u'start_pos': {u'__type__': u'Position',
-                                        u'x': 10.0,
+                                        u'x': 50.0,
                                         u'y': 10.0,
                                         u'z': 0.0},
                         u'start_time': 0}}
@@ -448,13 +452,13 @@ class ContainerTest(unittest.TestCase):
     def testRequestOrCreateRoom(self):
         self.assertEquals(0, len(self.dbase.dbases['rooms']))
 
-        self.container.request_create_room("game1", "room1")
+        self.container.request_create_room("game1", "map1.room1")
 
         self.assertEquals(1, len(self.dbase.dbases['rooms']))
         self.assertEquals("game1", self.dbase.dbases['rooms']['rooms_0']['game_id'])
 
         # dont create if exists
-        self.container.request_create_room("game1", "room1")
+        self.container.request_create_room("game1", "map1.room1")
         self.assertEquals(1, len(self.dbase.dbases['rooms']))
         self.assertEquals("game1", self.dbase.dbases['rooms']['rooms_0']['game_id'])
 
@@ -462,7 +466,7 @@ class ContainerTest(unittest.TestCase):
         room = self.container.load_next_pending_room('alpha')
         self.assertEquals(None, room)
 
-        self.container.request_create_room("game1", "room1")
+        self.container.request_create_room("game1", "map1.room1")
 
         room = self.container.load_next_pending_room('alpha')
         room_data = self.container.dbase.dbases['rooms']['rooms_0']

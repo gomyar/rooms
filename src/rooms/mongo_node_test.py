@@ -11,26 +11,46 @@ from rooms.testutils import MockDbase
 from rooms.testutils import MockRoomFactory
 from rooms.testutils import MockRoom
 from rooms.testutils import MockNode
+from rooms.script import Script
 
 
 class NodeTest(unittest.TestCase):
     def setUp(self):
         self.dbase = MockDbase()
-        self.room = Room('game1', 'room1', self) # script
 
         self.container = Mock(Container)
+        self.mock_script = Script("room_script", self)
 
         self.node = Node(self.container, 'alpha')
+        self.room = Room('game1', 'room1', self.node, self.mock_script)
 
-    def testLoadRoomInitScript(self):
-        room = self.container.request_create_room('game1', 'room1')
+    @staticmethod
+    def room_created(room):
+        room.state['testcreated'] = True
+
+    def testLoadRoomNotInitialized(self):
         self.container.load_next_pending_room.return_value = self.room
 
         self.assertEquals(0, len(self.node.rooms))
         self.node.load_next_pending_room()
         self.assertEquals(1, len(self.node.rooms))
 
-        # test run init script
+        # test run init script if room.initialized == False
+        self.assertTrue(self.room.state['testcreated'])
+        # test room.kick() called
+
+    def testLoadRoomAlreadyInitialized(self):
+        self.room.initialized = True
+        self.room.state['testcreated'] = False
+        self.container.load_next_pending_room.return_value = self.room
+
+        self.assertEquals(0, len(self.node.rooms))
+        self.node.load_next_pending_room()
+        self.assertEquals(1, len(self.node.rooms))
+
+        # test run init script if room.initialized == False
+        self.assertFalse(self.room.state['testcreated'])
+        # test room.kick() called
 
     def testPlayerConnects(self):
         self.node.player_connects("bob", "game1")

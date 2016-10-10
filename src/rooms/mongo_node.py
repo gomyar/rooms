@@ -39,6 +39,13 @@ class Node(object):
         room = self.container.load_next_pending_room(self.name)
         if room:
             self.rooms[room.game_id, room.room_id] = room
+            if not room.initialized:
+                room.script.call("room_created", room)
+                room.initialized = True
+                self.container.save_room(room)
+            else:
+                self.container.load_actors_for_room(room)
+            room.kick()
 
     def player_connects(self, username, game_id):
         pass

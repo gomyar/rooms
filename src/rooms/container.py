@@ -68,10 +68,12 @@ class Container(object):
     def load_room(self, game_id, room_id):
         room = self._load_filter_one("rooms", game_id=game_id, room_id=room_id)
         room.item_registry = self.item_registry
-        self._load_actors_for_room(room, game_id, room_id)
+        self.load_actors_for_room(room)
         return room
 
-    def _load_actors_for_room(self, room, game_id, room_id):
+    def load_actors_for_room(self, room):
+        game_id = room.game_id
+        room_id = room.room_id
         log.debug("Load actors for room: %s %s", game_id, room_id)
         actors_list = self._load_filter("actors", game_id=game_id,
             room_id=room_id, docked_with=None)
@@ -94,7 +96,7 @@ class Container(object):
         if self.room_exists(game_id, room_id):
             raise Exception("Room %s %s already exists" % (game_id, room_id))
         room = self.create_room(game_id, room_id)
-        self._load_actors_for_room(room, game_id, room_id)
+        self.load_actors_for_room(room)
         return room
 
     # deprecated
@@ -126,7 +128,8 @@ class Container(object):
             query={'active': False, 'requested': True, '__type__': 'Room'},
             update={
                 '$set':{'active': True, 'requested': False, 'node': node_name},
-                '$setOnInsert':{'active': False,'node_name': None},
+                '$setOnInsert':{'active': False,'node_name': None,
+                                'initialized': False},
             },
             new=True,
         )
@@ -362,11 +365,12 @@ class Container(object):
     def _serialize_room(self, room):
         return dict(game_id=room.game_id, room_id=room.room_id,
             state=room.state, last_modified=datetime.isoformat(datetime.now()),
-            node_name=self.node.name)
+            node_name=self.node.name, initialized=room.initialized)
 
     def _build_room(self, data):
         room = self.room_factory.create(data['game_id'], data['room_id'])
         room.state = data['state']
+        room.initialized = data.get('initialized', False)
         room.geography = self.geography
         self.geography.setup(room)
         return room

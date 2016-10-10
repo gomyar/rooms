@@ -3,6 +3,7 @@ from rooms.position import Position
 from rooms.actor import Actor
 from rooms.actor import search_actor_test
 from rooms.vision import Vision
+from rooms.script import NullScript
 
 import logging
 log = logging.getLogger("rooms.room")
@@ -58,9 +59,12 @@ class Door(object):
 
 
 class Room(object):
-    def __init__(self, game_id, room_id, node):
+    def __init__(self, game_id, room_id, node, script=None):
         self.game_id = game_id
         self.room_id = room_id
+        self.node = node
+        self.script = script or NullScript()
+        self.initialized = False
         self.topleft = Position(0, 0)
         self.bottomright = Position(0, 0)
         self.geography = None
@@ -68,7 +72,6 @@ class Room(object):
         self.room_objects = []
         self.doors = []
         self.tags = []
-        self.node = node
         self.online = True
         self.vision = Vision(self)
         self.state = dict()

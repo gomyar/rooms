@@ -269,7 +269,10 @@ class MockRoomFactory(object):
         self.room = room
 
     def create(self, room_id, game_id):
-        return self.room
+        if self.room:
+            return self.room
+        else:
+            return Room(room_id, game_id, None)
 
 
 class MockIDFactory(IDFactory):
