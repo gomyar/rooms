@@ -1,5 +1,5 @@
 
-
+import os
 import unittest
 from mock import Mock
 
@@ -11,25 +11,39 @@ from rooms.testutils import MockDbase
 from rooms.testutils import MockRoomFactory
 from rooms.testutils import MockRoom
 from rooms.testutils import MockNode
+from rooms.testutils import MockGeog
+from rooms.room_factory import FileMapSource
+from rooms.room_factory import RoomFactory
 from rooms.script import Script
 
 
 class NodeTest(unittest.TestCase):
     def setUp(self):
         self.dbase = MockDbase()
+        self.geography = MockGeog()
 
-        self.container = Mock(Container)
+        self.map_source = FileMapSource(os.path.join(os.path.dirname(__file__),
+            "test_maps"))
+        self.factory = RoomFactory(self.map_source, None)
+        self.container = Container(self.dbase, self.geography, None,
+            self.factory)
+
         self.mock_script = Script("room_script", self)
 
         self.node = Node(self.container, 'alpha')
+        self.container.node = self.node
+        self.factory.node = self.node
+
         self.room = Room('game1', 'room1', self.node, self.mock_script)
+        self.room.kick = Mock()
 
     @staticmethod
     def room_created(room):
         room.state['testcreated'] = True
+        room.create_actor("test", None)
 
     def testLoadRoomNotInitialized(self):
-        self.container.load_next_pending_room.return_value = self.room
+        self.container.load_next_pending_room = Mock(return_value=self.room)
 
         self.assertEquals(0, len(self.node.rooms))
         self.node.load_next_pending_room()
@@ -37,12 +51,14 @@ class NodeTest(unittest.TestCase):
 
         # test run init script if room.initialized == False
         self.assertTrue(self.room.state['testcreated'])
-        # test room.kick() called
+        self.assertEquals(1, len(self.room.actors))
+        self.assertEquals('test', self.room.actors.values()[0].actor_type)
+        self.assertTrue(self.room.kick.called)
 
     def testLoadRoomAlreadyInitialized(self):
         self.room.initialized = True
         self.room.state['testcreated'] = False
-        self.container.load_next_pending_room.return_value = self.room
+        self.container.load_next_pending_room = Mock(return_value=self.room)
 
         self.assertEquals(0, len(self.node.rooms))
         self.node.load_next_pending_room()
@@ -50,7 +66,41 @@ class NodeTest(unittest.TestCase):
 
         # test run init script if room.initialized == False
         self.assertFalse(self.room.state['testcreated'])
-        # test room.kick() called
+        self.assertEquals(0, len(self.room.actors))
+        self.assertTrue(self.room.kick.called)
+
+    def testLoadRoomAlreadyInitializedWithActors(self):
+        self.dbase.dbases['actors'] = {}
+        self.dbase.dbases['actors']['actor1'] = \
+            {"__type__": "Actor", "_id": "actor1", "actor_id": "actor1",
+            "parent_id": None,
+            "game_id": "game1", "room_id": "room1",
+            "actor_type": "loaded", "model_type": "model",
+            "speed": 1.0,
+            "username": "ned",
+            "docked_with": None,
+            "visible": True,
+            'state': {u'__type__': u'SyncDict'},
+            "path": [], "vector": {"__type__": "Vector",
+            "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "start_time": 0,
+            "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
+            "end_time": 10,
+            }, "script_name": "mock_script"}
+
+        self.room.initialized = True
+        self.room.state['testcreated'] = False
+        self.container.load_next_pending_room = Mock(return_value=self.room)
+
+        self.assertEquals(0, len(self.node.rooms))
+        self.node.load_next_pending_room()
+        self.assertEquals(1, len(self.node.rooms))
+
+        self.assertFalse(self.room.state['testcreated'])
+        self.assertEquals(1, len(self.room.actors))
+        self.assertEquals('loaded', self.room.actors.values()[0].actor_type)
+        self.assertTrue(self.room.kick.called)
+
 
     def testPlayerConnects(self):
         self.node.player_connects("bob", "game1")

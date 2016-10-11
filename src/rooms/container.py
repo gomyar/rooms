@@ -138,9 +138,9 @@ class Container(object):
         else:
             return None
 
-    def create_actor(self, room, actor_type, script_name, username=None,
+    def create_actor(self, room, actor_type, script, username=None,
             state=None, visible=True, parent_id=None, position=None):
-        actor = Actor(room, actor_type, script_name, username, visible=visible,
+        actor = Actor(room, actor_type, script, username, visible=visible,
             game_id=room.game_id)
         actor.state.update(state or {})
         actor.parent_id = parent_id
