@@ -2,6 +2,7 @@
 
 import os
 import sys
+import traceback
 
 import gevent.backdoor
 from gevent import monkey
@@ -14,8 +15,8 @@ import rooms
 from rooms.master import Master
 from rooms.node import Node
 from rooms.geography.basic_geography import BasicGeography
-from rooms.room_factory import RoomFactory
-from rooms.room_factory import FileMapSource
+from rooms.room_builder import RoomBuilder
+from rooms.room_builder import FileMapSource
 from rooms.master import MasterController
 from rooms.master import PlayerController
 from rooms.node import GameController
@@ -34,7 +35,6 @@ def load_config(config_path):
     parser = ConfigParser()
     parser.read(config_path)
     return parser
-
 
 if __name__ == "__main__":
     master = None
@@ -71,9 +71,8 @@ if __name__ == "__main__":
 
         host, port = options.address.split(":")
         node = Node(host, port, host, port)
-        room_factory = RoomFactory(FileMapSource(os.path.join(options.game,
+        room_builder = RoomBuilder(FileMapSource(os.path.join(options.game,
             "maps")), node)
-        node.room_factory = room_factory
         item_registry = ItemRegistry()
         item_registry.load_from_directory(options.game)
         container = Container(dbase, node)
@@ -117,4 +116,5 @@ if __name__ == "__main__":
         master.shutdown()
         container.stop_container()
     except:
+        traceback.print_exc()
         log.exception("Exception starting server")

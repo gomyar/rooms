@@ -17,8 +17,8 @@ from rooms.container import Container
 from rooms.dbase.mongo_dbase import MongoDBase
 from rooms.rpc import WSGIRPCServer
 from rooms.geography.basic_geography import BasicGeography
-from rooms.room_factory import RoomFactory
-from rooms.room_factory import FileMapSource
+from rooms.room_builder import RoomBuilder
+from rooms.room_builder import FileMapSource
 from rooms.item_registry import ItemRegistry
 
 import logging
@@ -74,12 +74,11 @@ if __name__ == "__main__":
         geography = BasicGeography()
 
         node = Node(node_host, node_port, master_host, master_port)
-        room_factory = RoomFactory(FileMapSource(os.path.join(options.game,
+        room_builder = RoomBuilder(FileMapSource(os.path.join(options.game,
             "maps")), node)
-        node.room_factory = room_factory
         item_registry = ItemRegistry()
         item_registry.load_from_directory(options.game)
-        container = Container(dbase, geography, node, room_factory,
+        container = Container(dbase, geography, node, room_builder,
             item_registry=item_registry)
 
         node.container = container
