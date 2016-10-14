@@ -15,7 +15,7 @@ class ActorLoaderTest(unittest.TestCase):
         self.node = Node("localhost", 8000, "master", 7000)
         self.loader = ActorLoader(self.node)
         self.dbase = MockDbase()
-        self.container = Container(self.dbase, None, self.node, None)
+        self.container = Container(self.dbase, self.node)
         self.node.container = self.container
 
         self.room1 = Room("game1", "room1", self.node)

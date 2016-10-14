@@ -109,7 +109,7 @@ class Node(object):
 
         self.scripts = ScriptSet()
         self.container = None
-        self.room_factory = None
+        self.room_builder = None
         self._report_gthread = None
         self._actorload_gthread = None
 
@@ -335,4 +335,4 @@ class Node(object):
         if token not in self.admin_connections:
             raise Exception("Not authorized")
         admin_conn = self.admin_connections[token]
-        return self.room_factory.load_map(map_id)
+        return self.room_builder.load_map(map_id)

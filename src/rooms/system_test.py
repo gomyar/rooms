@@ -2,7 +2,7 @@ import unittest
 import gevent
 import os
 
-from rooms.testutils import MockRpcClient, MockContainer, MockTimer
+from rooms.testutils import MockRpcClient, MockDbase, MockTimer
 from rooms.testutils import MockWebsocket, MockGeog, MockScript
 from rooms.testutils import MockIDFactory
 from rooms.node import Node
@@ -12,8 +12,9 @@ from rooms.position import Position
 from rooms.actor import Actor
 import rooms.actor
 from rooms.script import Script
-from rooms.room_factory import RoomFactory
-from rooms.room_factory import FileMapSource
+from rooms.container import Container
+from rooms.room_builder import RoomBuilder
+from rooms.room_builder import FileMapSource
 
 import logging
 log = logging.getLogger("rooms.test")
@@ -36,11 +37,12 @@ class SystemTest():#unittest.TestCase):
             Position(0, 0), Position(50, 50), self.node)
         self.room1.geography = MockGeog()
 
-        self.container = MockContainer(
-            room_factory=RoomFactory(
+        self.dbase = MockDbase()
+        self.container = Container(self.dbase, self.node)
+        self.container.room_builder = RoomBuilder(
             FileMapSource(os.path.join(os.path.dirname(__file__),
-            "test_maps")), self.node))
-        self.container.node = self.node
+            "test_maps")), self.node)
+
         self.container.save_room(self.room1)
 
         self.container.save_actor(PlayerActor(self.room1,
@@ -217,7 +219,7 @@ class SystemTest():#unittest.TestCase):
         self.room1.geography = MockGeog()
 
         self.container = MockContainer(
-            room_factory=RoomFactory(
+            room_builder=RoomBuilder(
             FileMapSource(os.path.join(os.path.dirname(__file__),
             "test_maps")), self.node))
         self.container.node = self.node

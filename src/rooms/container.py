@@ -14,19 +14,21 @@ from rooms.state import SyncDict
 from rooms.state import SyncList
 from rooms.actor_loader import ActorLoader
 from rooms.online_node import OnlineNode
+from rooms.item_registry import ItemRegistry
+from rooms.geography.basic_geography import BasicGeography
+from rooms.room_builder import SimpleRoomBuilder
 
 import logging
 log = logging.getLogger("rooms.container")
 
 
 class Container(object):
-    def __init__(self, dbase, geography, node, room_factory,
-            item_registry=None):
+    def __init__(self, dbase, node):
         self.dbase = dbase
-        self.geography = geography
+        self.geography = BasicGeography()
         self.node = node
-        self.room_factory = room_factory
-        self.item_registry = item_registry
+        self.room_builder = SimpleRoomBuilder()
+        self.item_registry = ItemRegistry()
         self.serializers = dict(
             Game=self._serialize_game,
             PlayerActor=self._serialize_player,
@@ -101,7 +103,7 @@ class Container(object):
 
     # deprecated
     def create_room(self, game_id, room_id):
-        room = self.room_factory.create(game_id, room_id)
+        room = self.room_builder.create(game_id, room_id)
         room.geography = self.geography
         room.item_registry = self.item_registry
         self.save_room(room)
@@ -368,7 +370,7 @@ class Container(object):
             node_name=self.node.name, initialized=room.initialized)
 
     def _build_room(self, data):
-        room = self.room_factory.create(data['game_id'], data['room_id'])
+        room = self.room_builder.create(data['game_id'], data['room_id'])
         room.state = data['state']
         room.initialized = data.get('initialized', False)
         room.geography = self.geography

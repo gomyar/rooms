@@ -16,12 +16,12 @@ from rooms.node import Node
 
 
 class MockContainer(Container):
-    def __init__(self, rooms=None, games=None, room_factory=None,
+    def __init__(self, rooms=None, games=None, room_builder=None,
             actors=None, player_actors=None):
-        super(MockContainer, self).__init__(MockDbase(), MockGeog(),
-            MockNode(),
-            room_factory or MockRoomFactory(MockRoom("mock_game_1",
-                "mock_room_1")))
+        super(MockContainer, self).__init__(MockDbase(), MockNode())
+        self.geography = MockGeog()
+        self.room_builder = room_builder or MockRoomBuilder(MockRoom("mock_game_1",
+                "mock_room_1"))
 
 
 class MockDbase(object):
@@ -264,7 +264,7 @@ class MockWebsocket(object):
         self.closed = True
 
 
-class MockRoomFactory(object):
+class MockRoomBuilder(object):
     def __init__(self, room):
         self.room = room
 

@@ -15,8 +15,8 @@ from rooms.testutils import MockActor
 from rooms.testutils import MockDbase
 from rooms.testutils import MockScript
 from rooms.testutils import MockIDFactory
-from rooms.room_factory import FileMapSource
-from rooms.room_factory import RoomFactory
+from rooms.room_builder import FileMapSource
+from rooms.room_builder import RoomBuilder
 from rooms.actor import Actor
 
 
@@ -30,9 +30,10 @@ class ContainerTest(unittest.TestCase):
         self.room2.coords(0, 0, 10, 10)
         self.map_source = FileMapSource(os.path.join(os.path.dirname(__file__),
             "test_maps"))
-        self.factory = RoomFactory(self.map_source, self.node)
-        self.container = Container(self.dbase, self.geography, self.node,
-            self.factory)
+        self.room_builder = RoomBuilder(self.map_source, self.node)
+        self.container = Container(self.dbase, self.node)
+        self.container.geography = self.geography
+        self.container.room_builder = self.room_builder
         self.node.container = self.container
         MockTimer.setup_mock()
         MockIDFactory.setup_mock()

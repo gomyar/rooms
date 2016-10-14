@@ -76,8 +76,10 @@ if __name__ == "__main__":
         node.room_factory = room_factory
         item_registry = ItemRegistry()
         item_registry.load_from_directory(options.game)
-        container = Container(dbase, geography, node, room_factory,
-            item_registry=item_registry)
+        container = Container(dbase, node)
+        container.geography = geography
+        container.room_builder = room_builder
+        container.item_registry = item_registry
         container.start_container()
         master = Master(container)
         master.load_scripts(os.path.join(options.game, "scripts"))

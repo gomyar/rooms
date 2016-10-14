@@ -6,7 +6,7 @@ from rooms.container import Container
 from rooms.geography.basic_geography import BasicGeography
 from rooms.dbase.mongo_dbase import MongoDBase
 from rooms.mongo_master import Master
-from rooms.testutils import MockDbase, MockRoom, MockRoomFactory
+from rooms.testutils import MockDbase, MockRoom, MockRoomBuilder
 from rooms.online_node import OnlineNode
 
 from rooms.test_scripts import master_test_script
@@ -19,7 +19,7 @@ class MasterTest(unittest.TestCase):
 
     def setUp(self):
         self.db = MockDbase()
-        self.container = Container(self.db, None, None, None)
+        self.container = Container(self.db, None)
         self.container.save_node(OnlineNode('alpha', '10.0.0.1'))
 
         self.master = Master(self.container, master_test_script)

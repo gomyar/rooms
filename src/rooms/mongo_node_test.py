@@ -8,12 +8,12 @@ from rooms.mongo_node import Node
 from rooms.room import Room
 from rooms.geography.basic_geography import BasicGeography
 from rooms.testutils import MockDbase
-from rooms.testutils import MockRoomFactory
+from rooms.testutils import MockRoomBuilder
 from rooms.testutils import MockRoom
 from rooms.testutils import MockNode
 from rooms.testutils import MockGeog
-from rooms.room_factory import FileMapSource
-from rooms.room_factory import RoomFactory
+from rooms.room_builder import FileMapSource
+from rooms.room_builder import RoomBuilder
 from rooms.script import Script
 
 
@@ -24,9 +24,9 @@ class NodeTest(unittest.TestCase):
 
         self.map_source = FileMapSource(os.path.join(os.path.dirname(__file__),
             "test_maps"))
-        self.factory = RoomFactory(self.map_source, None)
-        self.container = Container(self.dbase, self.geography, None,
-            self.factory)
+        self.factory = RoomBuilder(self.map_source, None)
+        self.container = Container(self.dbase, None)
+        self.container.room_builder = self.factory
 
         self.mock_script = Script("room_script", self)
 

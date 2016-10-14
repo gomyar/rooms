@@ -5,9 +5,10 @@ import os
 from rooms.master import Master
 from rooms.master import RegisteredNode
 from rooms.player import PlayerActor
+from rooms.container import Container
 from rooms.rpc import RPCException
 from rooms.rpc import RPCWaitException
-from rooms.testutils import MockContainer
+from rooms.testutils import MockDbase
 from rooms.testutils import MockRpcClient
 from rooms.testutils import MockGame
 from rooms.testutils import MockRoom
@@ -30,8 +31,8 @@ class MockNodeRpcClient(object):
 
 class MasterTest(unittest.TestCase):
     def setUp(self):
-        self.container = MockContainer()
-        self.container.node = None
+        self.dbase = MockDbase()
+        self.container = Container(self.dbase, None)
         self.rpc_conn = MockRpcClient(expect={"player_joins": "TOKEN",
             "request_token": "TOKEN"})
 

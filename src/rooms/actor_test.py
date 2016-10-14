@@ -9,11 +9,12 @@ from rooms.testutils import MockGeog
 from rooms.testutils import MockIDFactory
 from rooms.testutils import MockVision
 from rooms.testutils import MockNode
-from rooms.testutils import MockContainer
+from rooms.testutils import MockDbase
 from rooms.timer import Timer
 from rooms.vector import Vector
 from rooms.vector import create_vector
 from rooms.room import Door
+from rooms.container import Container
 from rooms import actor
 from rooms.script import Script
 
@@ -22,8 +23,9 @@ class ActorTest(unittest.TestCase):
     def setUp(self):
         MockTimer.setup_mock()
         MockIDFactory.setup_mock()
+        self.dbase = MockDbase()
         self.node = MockNode()
-        self.node.container = MockContainer()
+        self.node.container = Container(self.dbase, self.node)
         self.node.scripts['actor_script'] = Script("actor_script", ActorTest)
         self.room = Room("game1", "map1.room1", self.node)
         self.room.coords(0, 0, 100, 100)

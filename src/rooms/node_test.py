@@ -15,15 +15,15 @@ from rooms.testutils import MockRoom
 from rooms.testutils import MockTimer
 from rooms.testutils import MockWebsocket
 from rooms.testutils import MockActor
-from rooms.testutils import MockRoomFactory
+from rooms.testutils import MockRoomBuilder
 from rooms.testutils import MockIDFactory
 from rooms.rpc import RPCException
 from rooms.rpc import RPCWaitException
 from rooms.position import Position
 from rooms.actor import Actor
 from rooms.node import PlayerConnection
-from rooms.room_factory import RoomFactory
-from rooms.room_factory import FileMapSource
+from rooms.room_builder import RoomBuilder
+from rooms.room_builder import FileMapSource
 
 
 class NodeTest(unittest.TestCase):
@@ -43,7 +43,7 @@ class NodeTest(unittest.TestCase):
         self.room2 = Room("game1", "map1.room2", self.node)
         self.room2.coords(0, 0, 10, 10)
         self.container = MockContainer(
-            room_factory=RoomFactory(
+            room_builder=RoomBuilder(
             FileMapSource(os.path.join(os.path.dirname(__file__),
             "test_maps")), self.node))
         self.container.save_room(self.room1)

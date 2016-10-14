@@ -6,17 +6,17 @@ import json
 from rooms.testutils import MockNode
 from rooms.room import Room
 from rooms.room import Tag
-from rooms.room_factory import RoomFactory
-from rooms.room_factory import FileMapSource
+from rooms.room_builder import RoomBuilder
+from rooms.room_builder import FileMapSource
 from rooms.position import Position
 
 
-class RoomFactoryTest(unittest.TestCase):
+class RoomBuilderTest(unittest.TestCase):
     def setUp(self):
         self.node = MockNode()
         self.map_source = FileMapSource(os.path.join(os.path.dirname(__file__),
             "test_maps"))
-        self.factory = RoomFactory(self.map_source, self.node)
+        self.factory = RoomBuilder(self.map_source, self.node)
 
     def testCreateRoom(self):
         room = self.factory.create("game1", "map1.room1")
@@ -51,7 +51,7 @@ class RoomFactoryTest(unittest.TestCase):
     def testCreateRoomAbsolute(self):
         self.map_source = FileMapSource(os.path.join(os.path.dirname(__file__),
             "test_maps"))
-        self.factory = RoomFactory(self.map_source, self.node)
+        self.factory = RoomBuilder(self.map_source, self.node)
 
         room = self.factory.create("game1", "map1_absolute.room1")
 
@@ -70,7 +70,7 @@ class RoomFactoryTest(unittest.TestCase):
     def testCreateRoomAbsolute2(self):
         self.map_source = FileMapSource(os.path.join(os.path.dirname(__file__),
             "test_maps"))
-        self.factory = RoomFactory(self.map_source, self.node)
+        self.factory = RoomBuilder(self.map_source, self.node)
 
         room = self.factory.create("game1", "map1_absolute.room2")
 
