@@ -2,6 +2,7 @@
 
 from rooms.actor import Actor
 from rooms.scriptset import ScriptSet
+from rooms.actor_loader import ActorLoader
 
 
 ROOM_LOAD_STATES = ['inactive', 'pending', 'active', 'deactivating']
@@ -36,6 +37,7 @@ class Node(object):
         self.name = name
         self.rooms = dict()
         self.scripts = ScriptSet()
+        self.actor_loader = ActorLoader(self)
 
     def load_next_pending_room(self):
         room = self.container.load_next_pending_room(self.name)

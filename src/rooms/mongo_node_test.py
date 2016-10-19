@@ -15,6 +15,7 @@ from rooms.testutils import MockGeog
 from rooms.room_builder import FileMapSource
 from rooms.room_builder import RoomBuilder
 from rooms.script import Script
+from rooms.player import PlayerActor
 
 
 class NodeTest(unittest.TestCase):
@@ -22,20 +23,18 @@ class NodeTest(unittest.TestCase):
         self.dbase = MockDbase()
         self.geography = MockGeog()
 
-        self.map_source = FileMapSource(os.path.join(os.path.dirname(__file__),
-            "test_maps"))
-        self.factory = RoomBuilder(self.map_source, None)
         self.container = Container(self.dbase, None)
-        self.container.room_builder = self.factory
 
         self.mock_script = Script("room_script", self)
 
         self.node = Node(self.container, 'alpha')
         self.container.node = self.node
-        self.factory.node = self.node
 
         self.room = Room('game1', 'room1', self.node, self.mock_script)
         self.room.kick = Mock()
+
+        self.container.load_next_pending_room = Mock(return_value=self.room)
+        self.player1 = PlayerActor(self.room, "test", self.mock_script)
 
     @staticmethod
     def room_created(room):
@@ -43,7 +42,6 @@ class NodeTest(unittest.TestCase):
         room.create_actor("test", None)
 
     def testLoadRoomNotInitialized(self):
-        self.container.load_next_pending_room = Mock(return_value=self.room)
 
         self.assertEquals(0, len(self.node.rooms))
         self.node.load_next_pending_room()
@@ -58,7 +56,6 @@ class NodeTest(unittest.TestCase):
     def testLoadRoomAlreadyInitialized(self):
         self.room.initialized = True
         self.room.state['testcreated'] = False
-        self.container.load_next_pending_room = Mock(return_value=self.room)
 
         self.assertEquals(0, len(self.node.rooms))
         self.node.load_next_pending_room()
@@ -90,7 +87,6 @@ class NodeTest(unittest.TestCase):
 
         self.room.initialized = True
         self.room.state['testcreated'] = False
-        self.container.load_next_pending_room = Mock(return_value=self.room)
 
         self.assertEquals(0, len(self.node.rooms))
         self.node.load_next_pending_room()
@@ -101,6 +97,16 @@ class NodeTest(unittest.TestCase):
         self.assertEquals('loaded', self.room.actors.values()[0].actor_type)
         self.assertTrue(self.room.kick.called)
 
+    def testPlayerEntersRoom(self):
+        # poll for limbo player_actor in managed room
+        self.node.load_next_pending_room()
+
+        self.assertEquals(1, len(self.node.rooms['game1', 'room1'].actors))
+
+        self.container.load_limbo_actor = Mock(return_value=self.player1)
+        self.node.actor_loader._load_actors()
+
+        self.assertEquals(2, len(self.node.rooms['game1', 'room1'].actors))
 
     def testPlayerConnects(self):
         self.node.player_connects("bob", "game1")
@@ -124,7 +130,6 @@ class NodeTest(unittest.TestCase):
         # first time, with a websocket connection, and a new websocket
         # connection to the same player actor the second time
         pass
-
 
     def testGetNextPendingRoom(self):
         # queryupdate mongo for next pending room:

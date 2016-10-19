@@ -24,6 +24,8 @@ class ActorLoader(object):
                     room.put_actor(actor)
                     for child in docked:
                         room.put_actor(child)
+                else:
+                    raise Exception('Actor %s,%s already loaded' % (game_id, room_id))
         Timer.sleep(1)
 
     def _load_docked(self, game_id, actor):
