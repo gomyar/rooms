@@ -39,6 +39,13 @@ class Node(object):
         self.scripts = ScriptSet()
         self.actor_loader = ActorLoader(self)
 
+    def start(self):
+        self.start_actor_loader()
+
+    def start_actor_loader(self):
+        loader = ActorLoader(self)
+        self._actorload_gthread = gevent.spawn(loader.load_loop)
+
     def load_next_pending_room(self):
         room = self.container.load_next_pending_room(self.name)
         if room:
@@ -51,5 +58,5 @@ class Node(object):
                 self.container.load_actors_for_room(room)
             room.kick()
 
-    def player_connects(self, username, game_id):
+    def player_connects(self, username, game_id, token):
         pass

@@ -70,11 +70,24 @@ class MockDbase(object):
         objdata = self.dbases.get(collection_name, dict()).get(obj._id)
         objdata.update(fields)
 
+    def _queryfilter(self, items, query):
+        def cmpf(o, i):
+            k, v = i
+            if isinstance(v, dict):
+                if '$lt' in v:
+                    return o[k] < v['$lt']
+                elif '$gt' in v:
+                    return o[k] > v['$gt']
+            else:
+                return i in o.items()
+        found = [o for o in items if all([cmpf(o, i) for \
+            i in query.items()])]
+        return found
+
     def find_and_modify(self, collection_name, query, update,
             sort=[], upsert=False, new=True):
         found = self.dbases.get(collection_name, dict()).values()
-        found = [o for o in found if all([i in o.items() for \
-            i in query.items()])]
+        found = self._queryfilter(found, query)
         found = found[0] if found else None
         if found:
             if '$setOnInsert' in update:
@@ -88,7 +101,7 @@ class MockDbase(object):
             if '$setOnInsert' in update:
                 found.update(update.pop('$setOnInsert'))
                 db_id = collection_name + "_" + \
-                    str(len(self.dbases[collection_name]))
+                    str(len(self.dbases.get(collection_name, dict())))
                 found['_id'] = db_id
             if '$set' in update:
                 found.update(update['$set'])

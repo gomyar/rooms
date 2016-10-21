@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 import gevent
+import uuid
 from gevent.queue import Queue
 
 from rooms.game import Game
@@ -15,8 +16,10 @@ from rooms.state import SyncList
 from rooms.actor_loader import ActorLoader
 from rooms.online_node import OnlineNode
 from rooms.item_registry import ItemRegistry
+from rooms.player_connection import PlayerConnection
 from rooms.geography.basic_geography import BasicGeography
 from rooms.room_builder import SimpleRoomBuilder
+from rooms.timer import Timer
 
 import logging
 log = logging.getLogger("rooms.container")
@@ -40,6 +43,7 @@ class Container(object):
             SyncDict=self._serialize_syncdict,
             SyncList=self._serialize_synclist,
             OnlineNode=self._serialize_onlinenode,
+            PlayerConnection=self._serialize_player_connection,
         )
         self.builders = dict(
             Game=self._build_game,
@@ -52,6 +56,7 @@ class Container(object):
             SyncDict=self._build_syncdict,
             SyncList=self._build_synclist,
             OnlineNode=self._build_onlinenode,
+            PlayerConnection=self._build_player_connection,
         )
         self._remove_queue = Queue()
         self._remove_gthread = None
@@ -66,6 +71,26 @@ class Container(object):
         self._remove_queue.put(None)
         self._remove_gthread.join()
         log.info("Container stopped")
+
+    def new_token(self):
+        return str(uuid.uuid1())
+
+    def get_player_connection(self, game_id, username, timeout_seconds):
+        enc_conn = self.dbase.find_and_modify(
+            'player_connections',
+            query={'game_id': game_id, '__type__': 'PlayerConnection',
+                   'timeout_time': {'$gt': Timer.now()},
+                   },
+            update={
+                '$setOnInsert':{'__type__': 'PlayerConnection',
+                    'game_id': game_id, 'username': username,
+                    'timeout_time': Timer.now() + timeout_seconds,
+                    'token': self.new_token()},
+            },
+            upsert=True,
+            new=True,
+        )
+        return self._decode_enc_dict(enc_conn) if enc_conn else None
 
     def load_room(self, game_id, room_id):
         room = self._load_filter_one("rooms", game_id=game_id, room_id=room_id)
@@ -459,6 +484,16 @@ class Container(object):
 
     def _build_onlinenode(self, data):
         return OnlineNode(name=data['name'], host=data['host'])
+
+    # PlayerConnection
+    def _serialize_player_connection(self, playerconn):
+        return dict(game_id=playerconn.game_id, username=playerconn.username,
+                    token=playerconn.token,
+                    timeout_time=playerconn.timeout_time)
+
+    def _build_player_connection(self, data):
+        return PlayerConnection(data['game_id'], data['username'],
+            data['token'], None, None, data['timeout_time'])
 
     def load_next_available_room(self):
         return self.dbase.find_and_modify("rooms",

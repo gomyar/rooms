@@ -14,6 +14,6 @@ class PlayerConnectionTest(unittest.TestCase):
         self.actor.room = self.room
         self.actor2 = Actor(self.room, "test", None)
         self.actor2.room = self.room
-        self.conn = PlayerConnection("game1", "bob", self.room, self.actor,
-            "TOKEN1")
+        self.conn = PlayerConnection("game1", "bob", "TOKEN1",
+            self.room, self.actor)
 

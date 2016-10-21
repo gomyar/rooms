@@ -24,11 +24,13 @@ def command_redirect(host, port):
 
 
 class PlayerConnection(object):
-    def __init__(self, game_id, username, room_id, actor_id, token):
+    def __init__(self, game_id, username, token, room_id, actor_id,
+                 timeout_time=None):
         self.game_id = game_id
         self.username = username
-        self.actor_id = actor_id
-        self.room_id = room_id
+        self.timeout_time = timeout_time
+        self.actor_id = actor_id # think this can go
+        self.room_id = room_id # think this can go
         self.token = token
 
     def __repr__(self):

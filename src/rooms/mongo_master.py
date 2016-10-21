@@ -1,6 +1,5 @@
 
 import time
-import uuid
 from rooms.utils import IDFactory
 
 
@@ -8,9 +7,6 @@ class Master(object):
     def __init__(self, container, game_script):
         self.container = container
         self.game_script = game_script
-
-    def _new_token(self):
-        return str(uuid.uuid1())
 
     def create_game(self, owner_username, name, description):
         game = self.container.create_game(owner_username, name, description)
@@ -42,13 +38,15 @@ class Master(object):
             'actors',
             query={'game_id': game_id, 'username': username,
                    '__type__': 'PlayerActor'},
-            update={'$set':{'token': self._new_token()}},
+            update={'$set':{'token': self.container.new_token()}},
             new=True,
         )
         if player:
             room = self._get_room(game_id, player['room_id'])
             if room.get('node_name'):
-                return {'host': self._get_node(room['node_name']).host}
+                return {'host': self._get_node(room['node_name']).host,
+                        'actor_id': player['actor_id'],
+                        'token': player['token']}
             else:
                 return {'wait': True}
         else:
@@ -90,7 +88,7 @@ class Master(object):
             update={
                 '$setOnInsert': self._new_player_data(game_id, room_id,
                                                       username, 'active'),
-                '$set':{'token': self._new_token()},
+                '$set':{'token': self.container.new_token()},
             },
             upsert=True,
             new=True,

@@ -109,7 +109,7 @@ class NodeTest(unittest.TestCase):
         self.assertEquals(2, len(self.node.rooms['game1', 'room1'].actors))
 
     def testPlayerConnects(self):
-        self.node.player_connects("bob", "game1")
+        self.node.player_connects("bob", "game1", "TOKEN1")
 
         # get room for player/game_id
         # add/get player_actor to room - check token against saved token

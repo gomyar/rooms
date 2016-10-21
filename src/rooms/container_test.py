@@ -130,6 +130,29 @@ class ContainerTest(unittest.TestCase):
         self.assertRaises(Exception,
             self.container.load_player, "ned", "nonexistant")
 
+    def testGetOrCreatePlayerConnection(self):
+        self.container.new_token = lambda: "TOKEN"
+        # basic create
+        player_conn = self.container.get_player_connection('game1', 'ned', 10)
+        self.assertEquals('game1', player_conn.game_id)
+        self.assertEquals('ned', player_conn.username)
+        self.assertEquals('TOKEN', player_conn.token)
+
+        self.container.new_token = lambda: "NEWTOKEN"
+
+        # re-query gives same connection
+        player_conn = self.container.get_player_connection('game1', 'ned', 10)
+        self.assertEquals('game1', player_conn.game_id)
+        self.assertEquals('ned', player_conn.username)
+        self.assertEquals('TOKEN', player_conn.token)
+
+        # fast forward past timeout, re-query gives new connection
+        MockTimer.fast_forward(11)
+        player_conn = self.container.get_player_connection('game1', 'ned', 11)
+        self.assertEquals('game1', player_conn.game_id)
+        self.assertEquals('ned', player_conn.username)
+        self.assertEquals('NEWTOKEN', player_conn.token)
+
     def testCreatePlayer(self):
         player = self.container.create_player(self.room2, "player",
             MockScript(), "ned", game_id="games_0")

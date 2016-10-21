@@ -7,6 +7,7 @@ from rooms.geography.basic_geography import BasicGeography
 from rooms.dbase.mongo_dbase import MongoDBase
 from rooms.mongo_master import Master
 from rooms.testutils import MockDbase, MockRoom, MockRoomBuilder
+from rooms.testutils import MockIDFactory
 from rooms.online_node import OnlineNode
 
 from rooms.test_scripts import master_test_script
@@ -23,6 +24,11 @@ class MasterTest(unittest.TestCase):
         self.container.save_node(OnlineNode('alpha', '10.0.0.1'))
 
         self.master = Master(self.container, master_test_script)
+
+        MockIDFactory.setup_mock()
+
+    def tearDown(self):
+        MockIDFactory.teardown_mock()
 
     def testPlayerCreatesGame(self):
         self.assertEquals({}, self.db.dbases['actors'])
@@ -101,6 +107,7 @@ class MasterTest(unittest.TestCase):
         self.assertEquals({'error': 'no such game'}, result)
 
     def testPlayerConnectsToGame(self):
+        self.container.new_token = lambda: "TOKEN1"
         game_id = self.master.create_game("bob", '', '')
         result = self.master.join_game(game_id, "ned")
         self.assertEquals({'wait': True}, result)
@@ -111,7 +118,7 @@ class MasterTest(unittest.TestCase):
         }
 
         result = self.master.connect_player(game_id, 'ned')
-        self.assertEquals({'host': '10.0.0.1'}, result)
+        self.assertEquals({'actor_id': 'id1', 'host': u'10.0.0.1', 'token': 'TOKEN1'}, result)
 
     def testPlayerCallsJoinTwice(self):
         # player accidentally calls join game twice

@@ -165,4 +165,5 @@ class ActorLoaderTest(unittest.TestCase):
         self.assertEquals(actor1, actor2.docked_with)
         self.assertEquals(actor2, actor3.docked_with)
 
-
+    def testLoadPlayerActor(self):
+        pass

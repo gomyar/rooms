@@ -199,8 +199,8 @@ class Node(object):
     def _create_player_conn(self, username, game_id, room_id, actor_id):
         conn_key = username, game_id
         if conn_key not in self.player_connections:
-            player_conn = PlayerConnection(game_id, username, room_id,
-                actor_id, self._create_token())
+            player_conn = PlayerConnection(game_id, username,
+                self._create_token(), room_id, actor_id)
             self.player_connections[conn_key] = player_conn
             self.connections[player_conn.token] = player_conn
         return self.player_connections[conn_key]
