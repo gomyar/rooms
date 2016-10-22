@@ -6,6 +6,8 @@ class PlayerActor(Actor):
     def __init__(self, *args, **kwargs):
         super(PlayerActor, self).__init__(*args, **kwargs)
         self.status = None
+        self.token = None
+        self.timeout_time = None
 
     @property
     def is_player(self):

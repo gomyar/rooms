@@ -39,23 +39,23 @@ class MongoDBase(object):
     def remove_by_id(self, collection_name, object_id):
         self._collection(collection_name).remove(bson.ObjectId(object_id))
 
-    def object_exists(self, collection_name, **search_fields):
-        return bool(self.filter_one(collection_name, **search_fields))
+    def object_exists(self, collection_name, query, fields=None):
+        return bool(self.filter_one(collection_name, query=query, fields=fields))
 
     def object_exists_by_id(self, collection_name, object_id):
         return bool(self._collection(collection_name).find_one(
             {"_id": bson.ObjectId(object_id)}))
 
-    def filter_one(self, collection_name, **search_fields):
-        return self._collection(collection_name).find_one(search_fields)
+    def filter_one(self, collection_name, query, fields=None):
+        return self._collection(collection_name).find_one(query=query, fields=fields)
 
-    def filter(self, collection_name, **search_fields):
-        return self._collection(collection_name).find(search_fields)
+    def filter(self, collection_name, query):
+        return self._collection(collection_name).find(query)
 
     def find_and_modify(self, collection_name, query, update,
-            sort=[], upsert=False, new=True):
+            sort=[], upsert=False, new=True, fields=None):
         return self._collection(collection_name).find_and_modify(
-            query, update, upsert=upsert, new=new, sort=sort)
+            query, update, upsert=upsert, new=new, sort=sort, fields=fields)
 
     def update_object(self, collection_name, obj, update_key, update_obj):
         try:

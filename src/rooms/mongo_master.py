@@ -34,19 +34,13 @@ class Master(object):
         return [{'game_id': p.game_id, 'status': p.status} for p in players]
 
     def connect_player(self, game_id, username):
-        player = self.container.dbase.find_and_modify(
-            'actors',
-            query={'game_id': game_id, 'username': username,
-                   '__type__': 'PlayerActor'},
-            update={'$set':{'token': self.container.new_token()}},
-            new=True,
-        )
-        if player:
-            room = self._get_room(game_id, player['room_id'])
+        player_conn = self.container.create_player_token(game_id, username, 300)
+        if player_conn:
+            room = self._get_room(game_id, player_conn['room_id'])
             if room.get('node_name'):
                 return {'host': self._get_node(room['node_name']).host,
-                        'actor_id': player['actor_id'],
-                        'token': player['token']}
+                        'actor_id': player_conn['actor_id'],
+                        'token': player_conn['token']}
             else:
                 return {'wait': True}
         else:

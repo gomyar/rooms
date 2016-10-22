@@ -16,7 +16,6 @@ from rooms.state import SyncList
 from rooms.actor_loader import ActorLoader
 from rooms.online_node import OnlineNode
 from rooms.item_registry import ItemRegistry
-from rooms.player_connection import PlayerConnection
 from rooms.geography.basic_geography import BasicGeography
 from rooms.room_builder import SimpleRoomBuilder
 from rooms.timer import Timer
@@ -43,7 +42,6 @@ class Container(object):
             SyncDict=self._serialize_syncdict,
             SyncList=self._serialize_synclist,
             OnlineNode=self._serialize_onlinenode,
-            PlayerConnection=self._serialize_player_connection,
         )
         self.builders = dict(
             Game=self._build_game,
@@ -56,7 +54,6 @@ class Container(object):
             SyncDict=self._build_syncdict,
             SyncList=self._build_synclist,
             OnlineNode=self._build_onlinenode,
-            PlayerConnection=self._build_player_connection,
         )
         self._remove_queue = Queue()
         self._remove_gthread = None
@@ -75,25 +72,32 @@ class Container(object):
     def new_token(self):
         return str(uuid.uuid1())
 
-    def get_player_connection(self, game_id, username, timeout_seconds):
+    def create_player_token(self, game_id, username, timeout_seconds):
         enc_conn = self.dbase.find_and_modify(
-            'player_connections',
-            query={'game_id': game_id, '__type__': 'PlayerConnection',
-                   'timeout_time': {'$gt': Timer.now()},
-                   },
+            'actors',
+            query={'game_id': game_id, '__type__': 'PlayerActor'},
             update={
-                '$setOnInsert':{'__type__': 'PlayerConnection',
-                    'game_id': game_id, 'username': username,
+                '$set':{
                     'timeout_time': Timer.now() + timeout_seconds,
                     'token': self.new_token()},
             },
-            upsert=True,
             new=True,
+            fields=['game_id', 'username', 'token', 'timeout_time', 'room_id'],
         )
-        return self._decode_enc_dict(enc_conn) if enc_conn else None
+        return enc_conn
+
+    def get_player_token(self, game_id, username):
+        player = self.dbase.filter_one(
+            'actors',
+            query={'game_id': game_id, 'username': username,
+                   'timeout_time': {'$gt': Timer.now()},
+                   '__type__': 'PlayerActor'},
+            fields=['game_id', 'username', 'token', 'timeout_time', 'room_id'],
+        )
+        return player
 
     def load_room(self, game_id, room_id):
-        room = self._load_filter_one("rooms", game_id=game_id, room_id=room_id)
+        room = self._load_filter_one("rooms", dict(game_id=game_id, room_id=room_id))
         room.item_registry = self.item_registry
         self.load_actors_for_room(room)
         return room
@@ -102,8 +106,8 @@ class Container(object):
         game_id = room.game_id
         room_id = room.room_id
         log.debug("Load actors for room: %s %s", game_id, room_id)
-        actors_list = self._load_filter("actors", game_id=game_id,
-            room_id=room_id, docked_with=None)
+        actors_list = self._load_filter("actors", dict(game_id=game_id,
+            room_id=room_id, docked_with=None))
         log.debug("Found %s actors", len(actors_list))
         for actor in actors_list:
             docked_actors = ActorLoader(self.node)._load_docked(game_id, actor)
@@ -189,19 +193,19 @@ class Container(object):
         self.dbase.update_object_fields("rooms", room, **fields)
 
     def room_exists(self, game_id, room_id):
-        return self.dbase.object_exists("rooms", game_id=game_id,
-            room_id=room_id)
+        return self.dbase.object_exists("rooms", dict(game_id=game_id,
+            room_id=room_id))
 
     def load_player(self, username, game_id):
-        return self._load_filter_one("actors", username=username,
-            game_id=game_id, __type__="PlayerActor")
+        return self._load_filter_one("actors", dict(username=username,
+            game_id=game_id, __type__="PlayerActor"))
 
     def load_players_for_room(self, game_id, room_id):
         return self._load_filter("actors", game_id=game_id, room_id=room_id,
             __type__="PlayerActor")
 
     def load_actor(self, actor_id):
-        return self._load_filter_one("actors", actor_id=actor_id)
+        return self._load_filter_one("actors", dict(actor_id=actor_id))
 
     def load_limbo_actor(self, game_id, room_id):
         enc_actor = self.dbase.find_and_modify("actors",
@@ -212,8 +216,8 @@ class Container(object):
         return self._decode_enc_dict(enc_actor) if enc_actor else None
 
     def load_docked_actors(self, game_id, parent_actor_id):
-        object_dicts = self.dbase.filter("actors", game_id=game_id,
-            docked_with=parent_actor_id)
+        object_dicts = self.dbase.filter("actors", dict(game_id=game_id,
+            docked_with=parent_actor_id))
         objects = [self._decode_enc_dict(enc_dict) for enc_dict in object_dicts]
         return objects
 
@@ -221,8 +225,8 @@ class Container(object):
         self._save_object(player, "actors")
 
     def player_exists(self, username, game_id):
-        return self.dbase.object_exists("actors", username=username,
-            game_id=game_id)
+        return self.dbase.object_exists("actors", dict(username=username,
+            game_id=game_id))
 
     def players_in_game(self, game_id):
         return self._find_players(game_id=game_id)
@@ -240,8 +244,9 @@ class Container(object):
         return self._find_objects("games", "Game", **kwargs)
 
     def _find_objects(self, collection, object_type, **kwargs):
-        object_dicts = self.dbase.filter(collection, __type__=object_type,
-            **kwargs)
+        query = kwargs.copy()
+        query['__type__'] = object_type
+        object_dicts = self.dbase.filter(collection, query)
         objects = [self._decode_enc_dict(enc_dict) for enc_dict in object_dicts]
         return objects
 
@@ -260,7 +265,7 @@ class Container(object):
         return self.dbase.object_exists_by_id("games", game_id)
 
     def all_games(self):
-        game_dicts = self.dbase.filter("games")
+        game_dicts = self.dbase.filter("games", {})
         games = [self._decode_enc_dict(enc_dict) for enc_dict in game_dicts]
         return games
 
@@ -329,16 +334,16 @@ class Container(object):
                 raise TypeError("No such type:%s" % obj_type)
         return data
 
-    def _load_filter_one(self, collection, **fields):
-        enc_dict = self.dbase.filter_one(collection, **fields)
+    def _load_filter_one(self, collection, query):
+        enc_dict = self.dbase.filter_one(collection, query)
         if enc_dict:
             return self._decode_enc_dict(enc_dict)
         else:
             raise Exception("No such object in collection %s: %s" % (
                 collection, fields))
 
-    def _load_filter(self, collection, **fields):
-        enc_list = self.dbase.filter(collection, **fields)
+    def _load_filter(self, collection, query):
+        enc_list = self.dbase.filter(collection, query)
         return [self._decode_enc_dict(enc) for enc in enc_list]
 
     def _decode_enc_dict(self, enc_dict):
@@ -370,6 +375,8 @@ class Container(object):
     def _serialize_player(self, player):
         data = self._serialize_actor(player)
         data['status'] = player.status
+        data['token'] = player.token
+        data['timeout_time'] = player.timeout_time
         return data
 
     def _build_player(self, data):
@@ -386,6 +393,8 @@ class Container(object):
         player._speed = data['speed']
         player._docked_with = data['docked_with']
         player.status = data['status']
+        player.token = data.get('token')
+        player.timeout_time = data.get('timeout_time')
         return player
 
     # Room
@@ -485,16 +494,6 @@ class Container(object):
     def _build_onlinenode(self, data):
         return OnlineNode(name=data['name'], host=data['host'])
 
-    # PlayerConnection
-    def _serialize_player_connection(self, playerconn):
-        return dict(game_id=playerconn.game_id, username=playerconn.username,
-                    token=playerconn.token,
-                    timeout_time=playerconn.timeout_time)
-
-    def _build_player_connection(self, data):
-        return PlayerConnection(data['game_id'], data['username'],
-            data['token'], None, None, data['timeout_time'])
-
     def load_next_available_room(self):
         return self.dbase.find_and_modify("rooms",
             query={_state:"pending",
@@ -503,7 +502,7 @@ class Container(object):
         )
 
     def load_node(self, name):
-        return self._load_filter_one('online_nodes', name=name)
+        return self._load_filter_one('online_nodes', dict(name=name))
 
     def save_node(self, online_node):
         self._save_object(online_node, "online_nodes")

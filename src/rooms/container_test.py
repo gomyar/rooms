@@ -69,7 +69,7 @@ class ContainerTest(unittest.TestCase):
         self.container.save_player(self.player)
         self.assertTrue(self.container.player_exists("bob", "games_0"))
 
-        self.assertEquals({'actors_0': {u'__type__': u'PlayerActor',
+        expected = {'actors_0': {u'__type__': u'PlayerActor',
               '_id': 'actors_0',
               u'actor_id': u'id1',
               u'status': None,
@@ -85,6 +85,8 @@ class ContainerTest(unittest.TestCase):
               u'username': u'bob',
               u'docked_with': None,
               u'visible': True,
+              u'token': None,
+              u'timeout_time': None,
               u'vector': {u'__type__': u'Vector',
                           u'end_pos': {u'__type__': u'Position',
                                        u'x': 0.0,
@@ -96,7 +98,7 @@ class ContainerTest(unittest.TestCase):
                                          u'y': 0.0,
                                          u'z': 0.0},
                           u'start_time': 0}}}
-            , self.dbase.dbases['actors'])
+        self.assertEquals(expected, self.dbase.dbases['actors'])
 
     def testLoadPlayer(self):
         self.dbase.dbases['actors'] = {'id1': {u'__type__': u'PlayerActor',
@@ -118,6 +120,8 @@ class ContainerTest(unittest.TestCase):
             "start_time": 0,
             "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
             "end_time": 10,
+            "token": None,
+            "timeout_time": None,
             },
             u'username': u'ned'}}
 
@@ -131,27 +135,28 @@ class ContainerTest(unittest.TestCase):
             self.container.load_player, "ned", "nonexistant")
 
     def testGetOrCreatePlayerConnection(self):
+        self.container.create_player(None, 'test', MockScript(), 'ned', 'game1')
         self.container.new_token = lambda: "TOKEN"
         # basic create
-        player_conn = self.container.get_player_connection('game1', 'ned', 10)
-        self.assertEquals('game1', player_conn.game_id)
-        self.assertEquals('ned', player_conn.username)
-        self.assertEquals('TOKEN', player_conn.token)
+        player_conn = self.container.create_player_token('game1', 'ned', 10)
+        self.assertEquals('game1', player_conn['game_id'])
+        self.assertEquals('ned', player_conn['username'])
+        self.assertEquals('TOKEN', player_conn['token'])
 
         self.container.new_token = lambda: "NEWTOKEN"
 
-        # re-query gives same connection
-        player_conn = self.container.get_player_connection('game1', 'ned', 10)
-        self.assertEquals('game1', player_conn.game_id)
-        self.assertEquals('ned', player_conn.username)
-        self.assertEquals('TOKEN', player_conn.token)
+        player_conn = self.container.create_player_token('game1', 'ned', 11)
+        self.assertEquals('game1', player_conn['game_id'])
+        self.assertEquals('ned', player_conn['username'])
+        self.assertEquals('NEWTOKEN', player_conn['token'])
 
-        # fast forward past timeout, re-query gives new connection
+        player_conn = self.container.get_player_token('game1', 'ned')
+        self.assertEquals('game1', player_conn['game_id'])
+        self.assertEquals('ned', player_conn['username'])
+        self.assertEquals('NEWTOKEN', player_conn['token'])
+
         MockTimer.fast_forward(11)
-        player_conn = self.container.get_player_connection('game1', 'ned', 11)
-        self.assertEquals('game1', player_conn.game_id)
-        self.assertEquals('ned', player_conn.username)
-        self.assertEquals('NEWTOKEN', player_conn.token)
+        self.assertEquals(None, self.container.get_player_token('game1', 'ned'))
 
     def testCreatePlayer(self):
         player = self.container.create_player(self.room2, "player",

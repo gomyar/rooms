@@ -41,19 +41,18 @@ class MockDbase(object):
         self.dbases[collection_name][db_id] = obj_dict
         return db_id
 
-    def filter(self, collection_name, **fields):
+    def filter(self, collection_name, query, fields=None):
         found = self.dbases.get(collection_name, dict()).values()
-        found = [o for o in found if all([i in o.items() for \
-            i in fields.items()])]
+        found = self._queryfilter(found, query)
         found = [o.copy() for o in found]
         return found
 
-    def filter_one(self, collection_name, **fields):
-        result = self.filter(collection_name, **fields)
+    def filter_one(self, collection_name, query, fields=None):
+        result = self.filter(collection_name, query, fields)
         return result[0] if result else None
 
-    def object_exists(self, collection_name, **search_fields):
-        return bool(self.filter(collection_name, **search_fields))
+    def object_exists(self, collection_name, query):
+        return bool(self.filter(collection_name, query))
 
     def object_exists_by_id(self, collection_name, object_id):
         return bool(self.dbases.get(collection_name, dict()).get(object_id))
@@ -85,7 +84,7 @@ class MockDbase(object):
         return found
 
     def find_and_modify(self, collection_name, query, update,
-            sort=[], upsert=False, new=True):
+            sort=[], upsert=False, new=True, fields=None):
         found = self.dbases.get(collection_name, dict()).values()
         found = self._queryfilter(found, query)
         found = found[0] if found else None
