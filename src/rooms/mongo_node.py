@@ -6,6 +6,7 @@ from rooms.actor import Actor
 from rooms.scriptset import ScriptSet
 from rooms.actor_loader import ActorLoader
 from rooms.views import jsonview
+from rooms.player_connection import command_redirect
 
 import logging
 log = logging.getLogger("rooms.node")
@@ -89,8 +90,7 @@ class Node(object):
                             player_conn['actor_id'])
                     else:
                         log.debug("Redirecting to master")
-                        ws.send(json.dumps(command_redirect(self.master_host,
-                            self.master_port)))
+                        ws.send(json.dumps({'command': 'redirect_to_master'}))
         except WebSocketError, wse:
             log.debug("Websocket socket dead: %s", str(wse))
         except Exception, e:

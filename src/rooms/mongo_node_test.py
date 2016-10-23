@@ -181,6 +181,23 @@ class NodeTest(unittest.TestCase):
             [{u'command': u'move_room', u'room_id': u'room2'}, {u'do': u'something'}],
             ws.updates)
 
+    def testPlayerMovesRoomOtherNode(self):
+        self.node.load_next_pending_room()
+
+        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+
+        player_data = self.container.create_player_token("game1", "bob", 10)
+        self.dbase.dbases['actors']['actors_1']['room_id'] = "room1"
+        ws = MockWebsocket()
+        WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
+
+        self.room.vision.queue.put({'command': 'move_room', 'room_id': 'room2'})
+        MockTimer.fast_forward(1)
+
+        self.assertEquals([
+            {u'command': u'move_room', u'room_id': u'room2'},
+            {'command': 'redirect_to_master'}], ws.updates)
+
     def testPlayerMovesRoom(self):
         # query for room node - change to pending (find_and_modify)
         # bounce to node if exists
