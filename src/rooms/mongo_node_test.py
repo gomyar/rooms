@@ -171,14 +171,14 @@ class NodeTest(unittest.TestCase):
         self.room.vision.queue.put({'command': 'move_room', 'room_id': 'room2'})
         MockTimer.fast_forward(1)
 
-        self.assertEquals([{'command': 'move_room', 'room_id': 'room2'}], ws.updates)
+        self.assertEquals([], ws.updates)
 
         # listening to messages from room2 queue
         self.room2.vision.queue.put({'do': "something"})
         MockTimer.fast_forward(1)
 
         self.assertEquals(
-            [{u'command': u'move_room', u'room_id': u'room2'}, {u'do': u'something'}],
+            [{u'do': u'something'}],
             ws.updates)
 
     def testPlayerMovesRoomOtherNode(self):
@@ -195,7 +195,6 @@ class NodeTest(unittest.TestCase):
         MockTimer.fast_forward(1)
 
         self.assertEquals([
-            {u'command': u'move_room', u'room_id': u'room2'},
             {'command': 'redirect_to_master'}], ws.updates)
 
     def testPlayerMovesRoom(self):

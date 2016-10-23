@@ -76,10 +76,10 @@ class Node(object):
             connected = True
             while connected:
                 message = queue.get()
-                ws.send(json.dumps(jsonview(message)))
-                if message.get("command") in ['disconnect', 'redirect']:
+                if message.get("command") == 'disconnect':
                     connected = False
-                if message.get("command") == 'move_room':
+                    ws.send(json.dumps(jsonview(message)))
+                elif message.get("command") == 'move_room':
                     log.debug("Moving room for %s to %s", player_conn['username'],
                         message['room_id'])
                     if (game_id, message['room_id']) in self.rooms:
@@ -91,6 +91,8 @@ class Node(object):
                     else:
                         log.debug("Redirecting to master")
                         ws.send(json.dumps({'command': 'redirect_to_master'}))
+                else:
+                    ws.send(json.dumps(jsonview(message)))
         except WebSocketError, wse:
             log.debug("Websocket socket dead: %s", str(wse))
         except Exception, e:
