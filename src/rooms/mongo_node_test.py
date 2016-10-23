@@ -197,6 +197,17 @@ class NodeTest(unittest.TestCase):
         self.assertEquals([
             {'command': 'redirect_to_master'}], ws.updates)
 
+    def testWrongPlayerConnects(self):
+        self.dbase.dbases['actors'] = {'actors_1': {'room_id': "room2"}}
+        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+        self.dbase.dbases['actors']['actors_1']['room_id'] = "room1"
+        try:
+            player_data = self.container.create_player_token("game1", "bob", 10)
+            ws = MockWebsocket()
+            self.node.player_connects(ws, player_data['token'])
+        except Exception, e:
+            self.assertEquals('No room for player: game1, room1', str(e))
+
     def testPlayerMovesRoom(self):
         # query for room node - change to pending (find_and_modify)
         # bounce to node if exists

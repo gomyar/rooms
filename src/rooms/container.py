@@ -82,7 +82,8 @@ class Container(object):
                     'token': self.new_token()},
             },
             new=True,
-            fields=['game_id', 'username', 'token', 'timeout_time', 'room_id'],
+            fields=['game_id', 'username', 'token', 'timeout_time', 'room_id',
+                    'actor_id', 'node_name'],
         )
         return enc_conn
 
@@ -92,7 +93,8 @@ class Container(object):
             query={'token': token,
                    'timeout_time': {'$gt': Timer.now()},
                    '__type__': 'PlayerActor'},
-            fields=['game_id', 'username', 'token', 'timeout_time', 'room_id'],
+            fields=['game_id', 'username', 'token', 'timeout_time', 'room_id',
+                    'actor_id', 'node_name'],
         )
         return player
 
