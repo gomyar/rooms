@@ -86,10 +86,10 @@ class Container(object):
         )
         return enc_conn
 
-    def get_player_token(self, game_id, username):
+    def get_player_token(self, token):
         player = self.dbase.filter_one(
             'actors',
-            query={'game_id': game_id, 'username': username,
+            query={'token': token,
                    'timeout_time': {'$gt': Timer.now()},
                    '__type__': 'PlayerActor'},
             fields=['game_id', 'username', 'token', 'timeout_time', 'room_id'],

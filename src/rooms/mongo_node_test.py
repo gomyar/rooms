@@ -12,6 +12,11 @@ from rooms.testutils import MockRoomBuilder
 from rooms.testutils import MockRoom
 from rooms.testutils import MockNode
 from rooms.testutils import MockGeog
+from rooms.testutils import MockScript
+from rooms.testutils import MockWebsocket
+from rooms.testutils import MockTimer
+from rooms.testutils import WebsocketTest
+from rooms.testutils import MockVision
 from rooms.room_builder import FileMapSource
 from rooms.room_builder import RoomBuilder
 from rooms.script import Script
@@ -35,6 +40,14 @@ class NodeTest(unittest.TestCase):
 
         self.container.load_next_pending_room = Mock(return_value=self.room)
         self.player1 = PlayerActor(self.room, "test", self.mock_script)
+
+        self.vision = MockVision()
+        self.room.vision = self.vision
+
+        MockTimer.setup_mock()
+
+    def tearDown(self):
+        MockTimer.teardown_mock()
 
     @staticmethod
     def room_created(room):
@@ -109,11 +122,64 @@ class NodeTest(unittest.TestCase):
         self.assertEquals(2, len(self.node.rooms['game1', 'room1'].actors))
 
     def testPlayerConnects(self):
-        self.node.player_connects("bob", "game1", "TOKEN1")
+        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+        self.node.load_next_pending_room()
 
-        # get room for player/game_id
-        # add/get player_actor to room - check token against saved token
-        # establish websocket
+        player_data = self.container.create_player_token("game1", "bob", 10)
+        self.dbase.dbases['actors']['actors_0']['room_id'] = "room1"
+        ws = MockWebsocket()
+
+        WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
+
+        # messages in queue propagated to websocket
+        self.room.vision.queue.put({'do': 'somthing'})
+        MockTimer.fast_forward(1)
+
+        self.assertEquals([{u'do': u'somthing'}], ws.updates)
+        self.assertTrue(self.vision.connected)
+
+    def testPlayerDisconnted(self):
+        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+        self.node.load_next_pending_room()
+
+        player_data = self.container.create_player_token("game1", "bob", 10)
+        self.dbase.dbases['actors']['actors_0']['room_id'] = "room1"
+        ws = MockWebsocket()
+
+        WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
+
+        self.room.vision.queue.put({'command': 'disconnect'})
+        MockTimer.fast_forward(1)
+
+        self.assertEquals([{u'command': u'disconnect'}], ws.updates)
+        self.assertFalse(self.vision.connected)
+
+    def testPlayerMovesRoomSameNode(self):
+        self.room2 = Room('game1', 'room2', self.node, self.mock_script)
+        self.room2.vision = MockVision()
+
+        self.node.load_next_pending_room()
+        self.node.rooms['game1', 'room2'] = self.room2
+
+        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+
+        player_data = self.container.create_player_token("game1", "bob", 10)
+        self.dbase.dbases['actors']['actors_1']['room_id'] = "room1"
+        ws = MockWebsocket()
+        WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
+
+        self.room.vision.queue.put({'command': 'move_room', 'room_id': 'room2'})
+        MockTimer.fast_forward(1)
+
+        self.assertEquals([{'command': 'move_room', 'room_id': 'room2'}], ws.updates)
+
+        # listening to messages from room2 queue
+        self.room2.vision.queue.put({'do': "something"})
+        MockTimer.fast_forward(1)
+
+        self.assertEquals(
+            [{u'command': u'move_room', u'room_id': u'room2'}, {u'do': u'something'}],
+            ws.updates)
 
     def testPlayerMovesRoom(self):
         # query for room node - change to pending (find_and_modify)

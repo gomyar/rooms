@@ -1,8 +1,14 @@
 
+import json
+from geventwebsocket import WebSocketError
 
 from rooms.actor import Actor
 from rooms.scriptset import ScriptSet
 from rooms.actor_loader import ActorLoader
+from rooms.views import jsonview
+
+import logging
+log = logging.getLogger("rooms.node")
 
 
 ROOM_LOAD_STATES = ['inactive', 'pending', 'active', 'deactivating']
@@ -58,5 +64,39 @@ class Node(object):
                 self.container.load_actors_for_room(room)
             room.kick()
 
-    def player_connects(self, username, game_id, token):
-        pass
+    def player_connects(self, ws, token):
+        player_conn = self.container.get_player_token(token)
+        game_id = player_conn['game_id']
+        username = player_conn['username']
+        room = self.rooms[game_id, player_conn['room_id']]
+        queue = room.vision.connect_vision_queue(player_conn['actor_id'])
+
+        try:
+            connected = True
+            while connected:
+                message = queue.get()
+                ws.send(json.dumps(jsonview(message)))
+                if message.get("command") in ['disconnect', 'redirect']:
+                    connected = False
+                if message.get("command") == 'move_room':
+                    log.debug("Moving room for %s to %s", player_conn['username'],
+                        message['room_id'])
+                    if (game_id, message['room_id']) in self.rooms:
+                        log.debug("Room already managed: %s",
+                            message['room_id'])
+                        room = self.rooms[game_id, message['room_id']]
+                        queue = room.vision.connect_vision_queue(
+                            player_conn['actor_id'])
+                    else:
+                        log.debug("Redirecting to master")
+                        ws.send(json.dumps(command_redirect(self.master_host,
+                            self.master_port)))
+        except WebSocketError, wse:
+            log.debug("Websocket socket dead: %s", str(wse))
+        except Exception, e:
+            log.exception("Unexpected exception in player connection")
+            raise
+        finally:
+            room.vision.disconnect_vision_queue(player_conn['actor_id'], queue)
+
+

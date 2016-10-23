@@ -150,13 +150,13 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals('ned', player_conn['username'])
         self.assertEquals('NEWTOKEN', player_conn['token'])
 
-        player_conn = self.container.get_player_token('game1', 'ned')
+        player_conn = self.container.get_player_token('NEWTOKEN')
         self.assertEquals('game1', player_conn['game_id'])
         self.assertEquals('ned', player_conn['username'])
         self.assertEquals('NEWTOKEN', player_conn['token'])
 
         MockTimer.fast_forward(11)
-        self.assertEquals(None, self.container.get_player_token('game1', 'ned'))
+        self.assertEquals(None, self.container.get_player_token('NEWTOKEN'))
 
     def testCreatePlayer(self):
         player = self.container.create_player(self.room2, "player",

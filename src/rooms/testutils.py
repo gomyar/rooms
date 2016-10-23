@@ -1,6 +1,7 @@
 
 import gevent
 from gevent.event import Event
+from gevent.queue import Queue
 import json
 
 from rooms.player import PlayerActor
@@ -74,9 +75,9 @@ class MockDbase(object):
             k, v = i
             if isinstance(v, dict):
                 if '$lt' in v:
-                    return o[k] < v['$lt']
+                    return o.get(k) < v['$lt']
                 elif '$gt' in v:
-                    return o[k] > v['$gt']
+                    return o.get(k) > v['$gt']
             else:
                 return i in o.items()
         found = [o for o in items if all([cmpf(o, i) for \
@@ -309,6 +310,14 @@ class MockVision(object):
         self.messages = []
         self.gridsize = 10
         self.actor_queues = []
+        self.queue = Queue()
+        self.connected = True
+
+    def connect_vision_queue(self, actor_id):
+        return self.queue
+
+    def disconnect_vision_queue(self, actor_id, queue):
+        self.connected = False
 
     def actor_update(self, actor):
         self.messages.append(("actor_update", actor))
@@ -333,3 +342,11 @@ class MockVision(object):
 
     def remove_actor(self, actor):
         pass
+
+
+class WebsocketTest(object):
+    def __init__(self):
+        self.exp = None
+
+    def call(self, func, ws, *args, **kwargs):
+        gevent.spawn(func, ws, *args, **kwargs)
