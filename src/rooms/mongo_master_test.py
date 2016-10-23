@@ -10,8 +10,6 @@ from rooms.testutils import MockDbase, MockRoom, MockRoomBuilder
 from rooms.testutils import MockIDFactory
 from rooms.online_node import OnlineNode
 
-from rooms.test_scripts import master_test_script
-
 
 class MasterTest(unittest.TestCase):
     # The difference between joining a game and connecting to a game is
@@ -23,7 +21,7 @@ class MasterTest(unittest.TestCase):
         self.container = Container(self.db, None)
         self.container.save_node(OnlineNode('alpha', '10.0.0.1'))
 
-        self.master = Master(self.container, master_test_script)
+        self.master = Master(self.container)
 
         MockIDFactory.setup_mock()
 
@@ -98,7 +96,7 @@ class MasterTest(unittest.TestCase):
             'game_id': 'games_0',
             'node_name': None,
             'requested': True,
-            'room_id': 'room1',
+            'room_id': None,
             'state': {}}, self.db.dbases['rooms']['rooms_0'])
         self.assertEquals('bob', self.db.dbases['actors']['actors_0']['username'])
 

@@ -167,7 +167,7 @@ class WSGIRPCServer(object):
             returned = "Cannot connect to: %s" % (path,)
             response('500', [
                 ('content-type', 'text/javascript'),
-                ('content-length', len(returned)),
+                ('content-length', str(len(returned))),
             ])
         except:
             log.exception("Exception calling %s", environ)
@@ -179,14 +179,15 @@ class WSGIRPCServer(object):
             returned += "".join(trace)
             response('500', [
                 ('content-type', 'text/javascript'),
-                ('content-length', len(returned)),
+                ('content-length', str(len(returned))),
             ])
             return returned
 
     def www_file(self, root, path, response):
         filepath = os.path.join(root, *path)
         if os.path.exists(filepath):
-            headers = [('content-type', guess_type(filepath))]
+            content_type, _ = guess_type(filepath)
+            headers = [('content-type', content_type)]
             self._add_optional_headers(headers)
             response('200 OK', headers)
             return [open(filepath).read()]
@@ -201,7 +202,7 @@ class WSGIRPCServer(object):
             returned = "[]"
         headers = [
             ('content-type', 'application/json'),
-            ('content-length', len(returned)),
+            ('content-length', str(len(returned))),
         ]
         self._add_optional_headers(headers)
         response('200 OK', headers)

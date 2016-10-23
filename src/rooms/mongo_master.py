@@ -1,12 +1,45 @@
 
 import time
 from rooms.utils import IDFactory
+from rooms.scriptset import ScriptSet
+from rooms.rpc import request
+
+
+class MasterController(object):
+    def __init__(self, node):
+        self.node = node
+
+    @request
+    def create_game(self, owner_username, name, description):
+        return self.node.create_game(owner_username, name, description)
+
+    @request
+    def join_game(self, game_id, username, **kwargs):
+        return self.node.join_game(game_id, username, **kwargs)
+
+    @request
+    def list_games(self, username):
+        return self.node.list_games(username)
+
+    @request
+    def list_players(self, username):
+        return self.node.list_players(username)
+
+    @request
+    def connect_player(self, game_id, username):
+        return self.node.connect_player(game_id, username)
 
 
 class Master(object):
-    def __init__(self, container, game_script):
+    def __init__(self, container):
         self.container = container
-        self.game_script = game_script
+        self.scripts = ScriptSet()
+
+    def start(self):
+        pass
+
+    def load_scripts(self, script_path):
+        self.scripts.load_scripts(script_path)
 
     def create_game(self, owner_username, name, description):
         game = self.container.create_game(owner_username, name, description)
@@ -16,7 +49,7 @@ class Master(object):
         if not self.container.game_exists(game_id):
             return {'error': 'no such game'}
         game = self.container.load_game(game_id)
-        room_id = self.game_script.start_room(**kwargs)
+        room_id = self.scripts['game_script'].call("start_room", **kwargs)
         player = self._get_player(game_id, username, room_id)
         room = self._get_room(game_id, player['room_id'])
         if room.get('node_name'):

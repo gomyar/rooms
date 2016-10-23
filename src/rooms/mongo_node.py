@@ -1,4 +1,5 @@
 
+import gevent
 import json
 from geventwebsocket import WebSocketError
 
@@ -7,6 +8,9 @@ from rooms.scriptset import ScriptSet
 from rooms.actor_loader import ActorLoader
 from rooms.views import jsonview
 from rooms.player_connection import command_redirect
+
+from rooms.rpc import request
+from rooms.rpc import websocket
 
 import logging
 log = logging.getLogger("rooms.node")
@@ -34,8 +38,22 @@ class Room(object):
         self.deactivating_state = False
 
 
-class Player(Actor):
-    pass
+class NodeController(object):
+    def __init__(self, node):
+        self.node = node
+
+    @websocket
+    def player_connects(self, ws, token):
+        return self.node.player_connects(ws, token)
+
+    @request
+    def actor_call(self, game_id, token, method, **kwargs):
+        return self.node.actor_call(game_id, token, method, **kwargs)
+
+    @request
+    def actor_request(self, game_id, token, actor_id, method, **kwargs):
+        return self.node.actor_request(game_id, token, actor_id, method,
+            **kwargs)
 
 
 class Node(object):

@@ -12,15 +12,13 @@ from optparse import OptionParser
 from ConfigParser import ConfigParser
 
 import rooms
-from rooms.master import Master
-from rooms.node import Node
+from rooms.mongo_master import Master
+from rooms.mongo_node import Node
 from rooms.geography.basic_geography import BasicGeography
 from rooms.room_builder import RoomBuilder
 from rooms.room_builder import FileMapSource
-from rooms.master import MasterController
-from rooms.master import PlayerController
-from rooms.node import GameController
-from rooms.node import NodeController
+from rooms.mongo_master import MasterController
+from rooms.mongo_node import NodeController
 from rooms.container import Container
 from rooms.dbase.mongo_dbase import MongoDBase
 from rooms.rpc import WSGIRPCServer
@@ -70,12 +68,13 @@ if __name__ == "__main__":
         geography = BasicGeography()
 
         host, port = options.address.split(":")
-        node = Node(host, port, host, port)
+        container = Container(dbase, None)
+        node = Node(container, "dagon")
+        container.node = node
         room_builder = RoomBuilder(FileMapSource(os.path.join(options.game,
             "maps")), node)
         item_registry = ItemRegistry()
         item_registry.load_from_directory(options.game)
-        container = Container(dbase, node)
         container.geography = geography
         container.room_builder = room_builder
         container.item_registry = item_registry
@@ -84,15 +83,13 @@ if __name__ == "__main__":
         master.load_scripts(os.path.join(options.game, "scripts"))
 
         node.container = container
-        node.load_scripts(os.path.join(options.game, "scripts"))
+#        node.load_scripts(os.path.join(options.game, "scripts"))
 
         server = WSGIRPCServer(host, port, access_control_header="*")
         # master routes
-        server.add_controller("master_control", MasterController(master))
-        server.add_controller("master_game", PlayerController(master))
+        server.add_controller("master", MasterController(master))
         # node routes
-        server.add_controller("node_control", NodeController(node))
-        server.add_controller("node_game", GameController(node))
+        server.add_controller("node", NodeController(node))
         # dev server serves game files:
         server.add_file_root("assets", os.path.join(options.game, "assets"))
         server.add_file_root("maps", os.path.join(options.game, "maps"))
@@ -106,7 +103,6 @@ if __name__ == "__main__":
                 int(options.backdoor)), locals=dict(master=master, node=node))
             backdoor.start()
 
-        node.connect_to_master()
         node.start()
 
         server.serve_forever()

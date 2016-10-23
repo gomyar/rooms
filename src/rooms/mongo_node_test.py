@@ -208,16 +208,6 @@ class NodeTest(unittest.TestCase):
         except Exception, e:
             self.assertEquals('No room for player: game1, room1', str(e))
 
-    def testPlayerMovesRoom(self):
-        # query for room node - change to pending (find_and_modify)
-        # bounce to node if exists
-        # else wait (refer to master? or wait at node until other room comes up)
-
-        # addendum to this test - if a player connects to a node where the
-        # playeractor just got moved and hasn't yet been picked up by the
-        # normal actor load queue, the playeractor is immediately loaded
-        pass
-
     def testPlayerConnectsTwice(self):
         # a player which connects twice should get a new player_actor the
         # first time, with a websocket connection, and a new websocket

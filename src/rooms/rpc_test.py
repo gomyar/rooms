@@ -107,7 +107,7 @@ class RPCTest(unittest.TestCase):
 
         self.assertEquals('200 OK', self._server_code)
         self.assertEquals([('content-type', 'application/json'),
-            ('content-length', 13)], self._server_lines)
+            ('content-length', '13')], self._server_lines)
         self.assertEquals('{"result": 1}', result)
 
         self.assertEquals("howdy", self.mock_controller.called)
@@ -170,7 +170,7 @@ class RPCTest(unittest.TestCase):
 
         self.assertEquals('200 OK', self._server_code)
         self.assertEquals([('content-type', 'application/json'),
-            ('content-length', 4)], self._server_lines)
+            ('content-length', '4')], self._server_lines)
         self.assertEquals('"OK"', result)
 
         self.assertEquals("howdy", self.mock_controller.called)
@@ -188,7 +188,7 @@ class RPCTest(unittest.TestCase):
 
         self.assertEquals('500', self._server_code)
         self.assertEquals([('content-type', 'text/javascript'),
-            ('content-length', 438)], self._server_lines)
+            ('content-length', '438')], self._server_lines)
         self.assertTrue(
             'Server Error calling controller1/callme():\nTraceback' in result)
 
@@ -224,7 +224,7 @@ class RPCTest(unittest.TestCase):
             self._server_response)
 
         self.assertEquals('200 OK', self._server_code)
-        self.assertEquals([('content-type', ('text/html', None))],
+        self.assertEquals([('content-type', 'text/html')],
             self._server_lines)
 
     def testWaitExceptionTemporarilyUnavailable(self):
@@ -252,7 +252,7 @@ class RPCTest(unittest.TestCase):
             self._server_response)
 
         self.assertEquals('200 OK', self._server_code)
-        self.assertEquals([('content-type', ('text/html', None))],
+        self.assertEquals([('content-type', 'text/html')],
             self._server_lines)
         self.assertEquals(["<html>test</html>\n"], result)
 
@@ -269,7 +269,7 @@ class RPCTest(unittest.TestCase):
 
         self.assertEquals('200 OK', self._server_code)
         self.assertEquals([('content-type', 'application/json'),
-            ('content-length', 13)], self._server_lines)
+            ('content-length', '13')], self._server_lines)
         self.assertEquals('{"result": 1}', result)
 
         self.assertEquals(("value1", "value2", "howdy", "there"),
@@ -290,7 +290,7 @@ class RPCTest(unittest.TestCase):
         self.assertEquals('200 OK', self._server_code)
         self.assertEquals([
             ('content-type', 'application/json'),
-            ('content-length', 13),
+            ('content-length', '13'),
             ('Access-Control-Allow-Origin', 'http://foreign.domain.com'),
             ], self._server_lines)
         self.assertEquals('{"result": 1}', result)
@@ -306,7 +306,7 @@ class RPCTest(unittest.TestCase):
             self._server_response)
 
         self.assertEquals('200 OK', self._server_code)
-        self.assertEquals([('content-type', ('text/html', None)),
+        self.assertEquals([('content-type', 'text/html'),
             ('Access-Control-Allow-Origin', 'http://foreign.domain.com')],
             self._server_lines)
         self.assertEquals(["<html>test</html>\n"], result)
