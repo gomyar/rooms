@@ -2,11 +2,11 @@
 import os
 import unittest
 from mock import Mock
+from mock import patch
 
 from rooms.container import Container
 from rooms.mongo_node import Node
 from rooms.room import Room
-from rooms.geography.basic_geography import BasicGeography
 from rooms.testutils import MockDbase
 from rooms.testutils import MockRoomBuilder
 from rooms.testutils import MockRoom
@@ -26,13 +26,12 @@ from rooms.player import PlayerActor
 class NodeTest(unittest.TestCase):
     def setUp(self):
         self.dbase = MockDbase()
-        self.geography = MockGeog()
 
         self.container = Container(self.dbase, None)
 
         self.mock_script = Script("room_script", self)
 
-        self.node = Node(self.container, 'alpha')
+        self.node = Node(self.container, 'alpha', '192.168.0.11')
         self.container.node = self.node
 
         self.room = Room('game1', 'room1', self.node, self.mock_script)
@@ -54,8 +53,18 @@ class NodeTest(unittest.TestCase):
         room.state['testcreated'] = True
         room.create_actor("test", None)
 
-    def testLoadRoomNotInitialized(self):
+    @patch("gevent.spawn")
+    def testStartNode(self, spawn):
+        self.node.start()
 
+        self.assertEquals(self.node.node_updater.update_loop,
+                          spawn.call_args_list[0][0][0])
+        self.assertEquals(self.node.actor_loader.load_loop,
+                          spawn.call_args_list[1][0][0])
+        self.assertEquals(self.node.room_loader.load_loop,
+                          spawn.call_args_list[2][0][0])
+
+    def testLoadRoomNotInitialized(self):
         self.assertEquals(0, len(self.node.rooms))
         self.node.load_next_pending_room()
         self.assertEquals(1, len(self.node.rooms))

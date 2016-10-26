@@ -8,10 +8,13 @@ log = logging.getLogger("rooms.actorloader")
 class ActorLoader(object):
     def __init__(self, node):
         self.node = node
+        self.running = False
 
     def load_loop(self):
-        while True:
+        self.running = True
+        while self.running:
             self._load_actors()
+            Timer.sleep(1)
 
     def _load_actors(self):
         for ((game_id, room_id), room) in self.node.rooms.items():
@@ -26,7 +29,6 @@ class ActorLoader(object):
                         room.put_actor(child)
                 else:
                     raise Exception('Actor %s,%s already loaded' % (game_id, room_id))
-        Timer.sleep(1)
 
     def _load_docked(self, game_id, actor):
         docked = self.node.container.load_docked_actors(game_id,

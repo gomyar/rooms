@@ -342,7 +342,7 @@ class Container(object):
             return self._decode_enc_dict(enc_dict)
         else:
             raise Exception("No such object in collection %s: %s" % (
-                collection, fields))
+                collection, query))
 
     def _load_filter(self, collection, query):
         enc_list = self.dbase.filter(collection, query)
@@ -491,14 +491,18 @@ class Container(object):
 
     # OnlineNode
     def _serialize_onlinenode(self, onlinenode):
-        return dict(name=onlinenode.name, host=onlinenode.host)
+        return dict(name=onlinenode.name, host=onlinenode.host,
+            load=onlinenode.load, uptime=onlinenode.uptime)
 
     def _build_onlinenode(self, data):
-        return OnlineNode(name=data['name'], host=data['host'])
+        node = OnlineNode(name=data['name'], host=data['host'])
+        node.load = data['load']
+        node.uptime = data['uptime']
+        return node
 
     def load_next_available_room(self):
         return self.dbase.find_and_modify("rooms",
-            query={_state:"pending",
+            query={"_state":"pending",
                    sort:[('last_modified', pymongo.DESCENDING)]},
             update={"_state": "active"},
         )
@@ -508,6 +512,20 @@ class Container(object):
 
     def save_node(self, online_node):
         self._save_object(online_node, "online_nodes")
+
+    def onlinenode_update(self, name, host, load):
+        return self.dbase.find_and_modify("online_nodes",
+            query={"name": name},
+            update={
+                '$set':{
+                    "host": host, "load": load,
+                    'uptime': Timer.now(),
+                },
+                '$setOnInsert': {"name": name},
+            },
+            upsert=True,
+            new=True,
+        )
 
     def find_and_modify_object(self, collection_name, obj, query=None,
                                set_fields=None, set_on_insert=None,

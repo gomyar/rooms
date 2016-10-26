@@ -83,7 +83,7 @@ if __name__ == "__main__":
         master.load_scripts(os.path.join(options.game, "scripts"))
 
         node.container = container
-#        node.load_scripts(os.path.join(options.game, "scripts"))
+        node.load_scripts(os.path.join(options.game, "scripts"))
 
         server = WSGIRPCServer(host, port, access_control_header="*")
         # master routes

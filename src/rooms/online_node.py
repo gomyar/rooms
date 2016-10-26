@@ -5,3 +5,4 @@ class OnlineNode(object):
         self.name = name
         self.host = host
         self.load = 0.0
+        self.uptime = 0.0

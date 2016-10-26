@@ -6,6 +6,8 @@ from geventwebsocket import WebSocketError
 from rooms.actor import Actor
 from rooms.scriptset import ScriptSet
 from rooms.actor_loader import ActorLoader
+from rooms.room_loader import RoomLoader
+from rooms.node_updater import NodeUpdater
 from rooms.views import jsonview
 from rooms.player_connection import command_redirect
 
@@ -57,19 +59,33 @@ class NodeController(object):
 
 
 class Node(object):
-    def __init__(self, container, name):
+    def __init__(self, container, name, host):
         self.container = container
         self.name = name
         self.rooms = dict()
         self.scripts = ScriptSet()
+        self.node_updater = NodeUpdater(self)
         self.actor_loader = ActorLoader(self)
+        self.room_loader = RoomLoader(self)
+        self.host = host
+        self.load = 0.0
 
     def start(self):
+        self.start_node_update()
         self.start_actor_loader()
+        self.start_room_loader()
+
+    def load_scripts(self, script_path):
+        self.scripts.load_scripts(script_path)
+
+    def start_node_update(self):
+        self._nodeupdater_gthread = gevent.spawn(self.node_updater.update_loop)
 
     def start_actor_loader(self):
-        loader = ActorLoader(self)
-        self._actorload_gthread = gevent.spawn(loader.load_loop)
+        self._actorload_gthread = gevent.spawn(self.actor_loader.load_loop)
+
+    def start_room_loader(self):
+        self._roomload_gthread = gevent.spawn(self.room_loader.load_loop)
 
     def load_next_pending_room(self):
         room = self.container.load_next_pending_room(self.name)
