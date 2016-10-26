@@ -102,6 +102,9 @@ class Node(object):
     def player_connects(self, ws, token):
         player_conn = self.container.get_player_token(token)
 
+        if player_conn is None:
+            raise Exception("Unauthorized")
+
         game_id = player_conn['game_id']
         username = player_conn['username']
         if (game_id, player_conn['room_id']) not in self.rooms:

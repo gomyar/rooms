@@ -518,10 +518,9 @@ class Container(object):
             query={"name": name},
             update={
                 '$set':{
-                    "host": host, "load": load,
-                    'uptime': Timer.now(),
+                    "host": host, "load": load, 'uptime': Timer.now(),
                 },
-                '$setOnInsert': {"name": name},
+                '$setOnInsert': {"name": name, "__type__": "OnlineNode"},
             },
             upsert=True,
             new=True,

@@ -27,5 +27,5 @@ class NodeUpdaterTest(unittest.TestCase):
         self.updater.send_onlinenode_update()
         self.assertEquals(
             {'_id': 'online_nodes_0', 'host': '192.168.0.11', 'name': 'alpha',
-             'uptime': 0, 'load': 0.0},
+             'uptime': 0, 'load': 0.0, '__type__': 'OnlineNode',},
             self.container.dbase.dbases['online_nodes']['online_nodes_0'])

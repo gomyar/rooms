@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
         host, port = options.address.split(":")
         container = Container(dbase, None)
-        node = Node(container, "dagon")
+        node = Node(container, "dagon", options.address)
         container.node = node
         room_builder = RoomBuilder(FileMapSource(os.path.join(options.game,
             "maps")), node)

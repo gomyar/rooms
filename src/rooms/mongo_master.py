@@ -3,6 +3,7 @@ import time
 from rooms.utils import IDFactory
 from rooms.scriptset import ScriptSet
 from rooms.rpc import request
+from rooms.timer import Timer
 
 
 class MasterController(object):
@@ -53,7 +54,9 @@ class Master(object):
         player = self._get_player(game_id, username, room_id)
         room = self._get_room(game_id, player['room_id'])
         if room.get('node_name'):
-            return {'host': self._get_node(room['node_name'])['host']}
+            return {'host': self._get_node(room['node_name']).host,
+                    'actor_id': player['actor_id'],
+                    'token': player['token']}
         else:
             return {'wait': True}
 
@@ -115,7 +118,8 @@ class Master(object):
             update={
                 '$setOnInsert': self._new_player_data(game_id, room_id,
                                                       username, 'active'),
-                '$set':{'token': self.container.new_token()},
+                '$set':{'token': self.container.new_token(),
+                    'timeout_time': Timer.now() + 300,}
             },
             upsert=True,
             new=True,

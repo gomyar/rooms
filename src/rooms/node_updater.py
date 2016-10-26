@@ -1,4 +1,6 @@
 
+from rooms.timer import Timer
+
 
 class NodeUpdater(object):
     def __init__(self, node):
