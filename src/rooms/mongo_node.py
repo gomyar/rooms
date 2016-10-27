@@ -107,6 +107,7 @@ class Node(object):
 
         game_id = player_conn['game_id']
         username = player_conn['username']
+
         if (game_id, player_conn['room_id']) not in self.rooms:
             log.warning("No room for player: %s, %s",
                 game_id, player_conn['room_id'])

@@ -2,8 +2,10 @@ import json
 from datetime import datetime
 import gevent
 import uuid
+import time
 from gevent.queue import Queue
 
+from rooms.utils import IDFactory
 from rooms.game import Game
 from rooms.player import PlayerActor
 from rooms.room import Room, Door
@@ -97,6 +99,47 @@ class Container(object):
                     'actor_id', 'node_name'],
         )
         return player
+
+    def get_or_create_player(self, game_id, username, room_id):
+        return self.dbase.find_and_modify(
+            'actors',
+            query={'game_id': game_id, 'username': username,
+                   '__type__': 'PlayerActor'},
+            update={
+                '$setOnInsert': self._new_player_data(game_id, room_id,
+                                                      username, 'active'),
+                '$set':{'token': self.new_token(),
+                    'timeout_time': Timer.now() + 300,}
+            },
+            upsert=True,
+            new=True,
+        )
+
+    def _new_player_data(self, game_id, room_id, username, status):
+        return {
+            'game_id': game_id,
+            'username': username,
+            'room_id':room_id,
+            'status': status,
+            'actor_type': 'player',
+            'visible': True,
+            'parent_id': None,
+            'state': {"__type__" : "SyncDict"},
+            'path': [],
+            'speed': 1.0,
+            'docked_with': None,
+            'vector': {
+                "__type__" : "Vector",
+                "start_time": time.time(),
+                "start_pos": {"x": 0, "y": 0, "z": 0, "__type__": "Position"},
+                "end_time": time.time(),
+                "end_pos": {"x": 0, "y": 0, "z": 0, "__type__": "Position"},
+            },
+            'actor_id': IDFactory.create_id(),
+            '__type__': 'PlayerActor',
+            '_loadstate': 'limbo',
+            'script_name': 'player_script',
+        }
 
     def load_room(self, game_id, room_id):
         room = self._load_filter_one("rooms", dict(game_id=game_id, room_id=room_id))
@@ -213,7 +256,7 @@ class Container(object):
         enc_actor = self.dbase.find_and_modify("actors",
             query={'game_id': game_id, 'room_id': room_id,
                    '_loadstate': "limbo", 'docked_with': None},
-            update={"_loadstate": ""},
+            update={"$set": {"_loadstate": ""}},
         )
         return self._decode_enc_dict(enc_actor) if enc_actor else None
 
@@ -504,7 +547,7 @@ class Container(object):
         return self.dbase.find_and_modify("rooms",
             query={"_state":"pending",
                    sort:[('last_modified', pymongo.DESCENDING)]},
-            update={"_state": "active"},
+            update={"$set": {"_state": "active"}},
         )
 
     def load_node(self, name):

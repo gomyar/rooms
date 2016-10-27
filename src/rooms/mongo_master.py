@@ -1,6 +1,4 @@
 
-import time
-from rooms.utils import IDFactory
 from rooms.scriptset import ScriptSet
 from rooms.rpc import request
 from rooms.timer import Timer
@@ -85,45 +83,8 @@ class Master(object):
     def _get_node(self, node_name):
         return self.container.load_node(node_name)
 
-    def _new_player_data(self, game_id, room_id, username, status):
-        return {
-            'game_id': game_id,
-            'username': username,
-            'room_id':room_id,
-            'status': status,
-            'actor_type': 'player',
-            'visible': True,
-            'parent_id': None,
-            'state': {"__type__" : "SyncDict"},
-            'path': [],
-            'speed': 1.0,
-            'docked_with': None,
-            'vector': {
-                "__type__" : "Vector",
-                "start_time": time.time(),
-                "start_pos": {"x": 0, "y": 0, "z": 0, "__type__": "Position"},
-                "end_time": time.time(),
-                "end_pos": {"x": 0, "y": 0, "z": 0, "__type__": "Position"},
-            },
-            'actor_id': IDFactory.create_id(),
-            '__type__': 'PlayerActor',
-            '_loadstate': 'limbo',
-        }
-
     def _get_player(self, game_id, username, room_id):
-        return self.container.dbase.find_and_modify(
-            'actors',
-            query={'game_id': game_id, 'username': username,
-                   '__type__': 'PlayerActor'},
-            update={
-                '$setOnInsert': self._new_player_data(game_id, room_id,
-                                                      username, 'active'),
-                '$set':{'token': self.container.new_token(),
-                    'timeout_time': Timer.now() + 300,}
-            },
-            upsert=True,
-            new=True,
-        )
+        return self.container.get_or_create_player(game_id, username, room_id)
 
     def _get_room(self, game_id, room_id):
         # create/upsert room
