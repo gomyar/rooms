@@ -452,6 +452,11 @@ class ContainerTest(unittest.TestCase):
 
         self.assertEquals(None, self.container.load_limbo_actor("games_0", "room1"))
 
+        # actor1 hasn't been affected (not in 'limbo')
+        self.assertTrue('_loadstate' not in self.dbase.dbases['actors']['actor1'])
+        # actor2 _loadstate blanked
+        self.assertEquals("", self.dbase.dbases['actors']['actor2']['_loadstate'])
+
     def testQueryUpdate(self):
         self.player = PlayerActor(self.room2, "player", MockScript(),
             "bob", game_id="games_0")
@@ -502,3 +507,9 @@ class ContainerTest(unittest.TestCase):
         self.assertTrue(room_data['active'])
         self.assertFalse(room_data['requested'])
         self.assertEquals('alpha', room_data['node'])
+
+    def testLoadActorsForRoom(self):
+        # loads some actors
+
+        # assert _loadstate = ""
+        pass

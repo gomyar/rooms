@@ -108,7 +108,7 @@ if __name__ == "__main__":
         server.serve_forever()
     except KeyboardInterrupt, ke:
         log.debug("Master stopped")
-        node.save_all()
+        node.shutdown()
         master.shutdown()
         container.stop_container()
     except:

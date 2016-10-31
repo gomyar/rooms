@@ -15,6 +15,16 @@ import logging
 log = logging.getLogger("rooms.actor")
 
 
+def _safe_kill_gthread(gthread):
+    try:
+        if gthread:
+            gthread.kill()
+    except GreenletExit, ge:
+        pass
+    except:
+        log.exception("Exception killing script gthread")
+
+
 class AlterPath(GreenletExit):
     pass
 
@@ -121,21 +131,12 @@ class Actor(object):
             self.move_to(self.path[-1])
 
     def _kill_move_gthread(self):
-        self._safe_kill_gthread(self._move_gthread)
+        _safe_kill_gthread(self._move_gthread)
         self._move_gthread = None
 
     def _kill_script_gthread(self):
-        self._safe_kill_gthread(self._script_gthread)
+        _safe_kill_gthread(self._script_gthread)
         self._script_gthread = None
-
-    def _safe_kill_gthread(self, gthread):
-        try:
-            if gthread:
-                gthread.kill()
-        except GreenletExit, ge:
-            pass
-        except:
-            log.exception("Exception killing script gthread")
 
     def _kill_gthreads(self):
         self._kill_move_gthread()

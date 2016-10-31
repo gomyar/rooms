@@ -219,3 +219,7 @@ class Room(object):
         return [a for a in self.actors.values() if \
             search_actor_test(a, actor_type, state, visible, distance,
             distance_to)]
+
+    def stop_all(self):
+        for actor in self.actors.values():
+            actor.stop()

@@ -445,7 +445,8 @@ class Container(object):
     # Room
     def _serialize_room(self, room):
         return dict(game_id=room.game_id, room_id=room.room_id,
-            state=room.state, last_modified=datetime.isoformat(datetime.now()),
+            state=room.state, last_modified=datetime.isoformat(
+                datetime.utcfromtimestamp(Timer.now())),
             node_name=self.node.name, initialized=room.initialized)
 
     def _build_room(self, data):

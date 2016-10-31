@@ -217,6 +217,31 @@ class NodeTest(unittest.TestCase):
         except Exception, e:
             self.assertEquals('No room for player: game1, room1', str(e))
 
+    def testShutdownRoomsAndActorsSaved(self):
+        room1 = Room('game1', 'room1', self.node, MockScript())
+        self.node.rooms['game1', 'room1'] = room1
+
+        self.node.shutdown()
+
+        self.assertEquals({'rooms_0': {u'__type__': u'Room',
+                            '_id': 'rooms_0',
+                            'active': False,
+                            u'game_id': u'game1',
+                            u'initialized': False,
+                            u'last_modified': u'1970-01-01T00:00:00',
+                            u'node_name': u'alpha',
+                            'requested': False,
+                            u'room_id': u'room1',
+                            u'state': {}}}
+        , self.container.dbase.dbases['rooms'])
+
+    def testShutdownSendDisconnectToPlayerConnections(self):
+        pass
+
+    def testActorsLoadedNoLongerInLimbo(self):
+        # container.load_actors_for_room() doesn't update _loadstate
+        pass
+
     def testPlayerConnectsTwice(self):
         # a player which connects twice should get a new player_actor the
         # first time, with a websocket connection, and a new websocket

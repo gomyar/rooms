@@ -70,6 +70,10 @@ class Node(object):
         self.host = host
         self.load = 0.0
 
+        self._nodeupdater_gthread = None
+        self._actorload_gthread = None
+        self._roomload_gthread = None
+
     def start(self):
         self.start_node_update()
         self.start_actor_loader()
@@ -145,3 +149,27 @@ class Node(object):
             raise
         finally:
             room.vision.disconnect_vision_queue(player_conn['actor_id'], queue)
+
+    def shutdown(self):
+        # stop all gthreads
+        self.actor_loader.running = False
+        self.room_loader.running = False
+        self.node_updater.running = False
+
+        if self._actorload_gthread:
+            self._actorload_gthread.join()
+        if self._roomload_gthread:
+            self._roomload_gthread.join()
+        if self._nodeupdater_gthread:
+            self._nodeupdater_gthread.join()
+
+        for room in self.rooms.values():
+            room.stop_all()
+
+        # send disconnect to player queues
+
+        # save actors - wait for actor save queue to end
+
+        # deactivate rooms
+        for room in self.rooms.values():
+            self.container.save_room(room)
