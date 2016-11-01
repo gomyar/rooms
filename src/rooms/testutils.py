@@ -70,6 +70,12 @@ class MockDbase(object):
         objdata = self.dbases.get(collection_name, dict()).get(obj._id)
         objdata.update(fields)
 
+    def update_many_fields(self, collection_name, query, update):
+        found = self.dbases.get(collection_name, dict()).values()
+        found = self._queryfilter(found, query)
+        for item in found:
+            item.update(update)
+
     def _queryfilter(self, items, query):
         def cmpf(o, i):
             k, v = i

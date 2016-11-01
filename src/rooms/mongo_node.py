@@ -75,9 +75,13 @@ class Node(object):
         self._roomload_gthread = None
 
     def start(self):
+        self.disassociate_rooms()
         self.start_node_update()
         self.start_actor_loader()
         self.start_room_loader()
+
+    def disassociate_rooms(self):
+        self.container.disassociate_rooms(self.name)
 
     def load_scripts(self, script_path):
         self.scripts.load_scripts(script_path)

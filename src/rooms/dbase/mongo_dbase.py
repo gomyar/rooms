@@ -86,6 +86,18 @@ class MongoDBase(object):
                 collection_name, update_obj)
             raise
 
+    def update_many_fields(self, collection_name, query, update):
+        try:
+            self._collection(collection_name).update(query,
+                {
+                    '$set': update,
+                }
+            )
+        except:
+            log.exception("Exception updating object in %s.update_key: %s",
+                collection_name, update_obj)
+            raise
+
     def remove_object(self, collection_name, obj, remove_key):
         try:
             self._collection(collection_name).update(

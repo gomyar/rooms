@@ -201,7 +201,7 @@ class Container(object):
     def load_next_pending_room(self, node_name):
         room_data = self.dbase.find_and_modify(
             'rooms',
-            query={'active': False, 'requested': True, '__type__': 'Room'},
+            query={'active': False, 'requested': True, '__type__': 'Room', 'node_name': None},
             update={
                 '$set':{'active': True, 'requested': False, 'node': node_name},
                 '$setOnInsert':{'active': False,'node_name': None,
@@ -213,6 +213,11 @@ class Container(object):
             return self._decode_enc_dict(room_data)
         else:
             return None
+
+    def disassociate_rooms(self, node_name):
+        self.dbase.update_many_fields(
+            'rooms', {'__type__': 'Room', 'node_name': node_name},
+            {'node_name': None})
 
     def create_actor(self, room, actor_type, script, username=None,
             state=None, visible=True, parent_id=None, position=None):

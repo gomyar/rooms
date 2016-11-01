@@ -235,6 +235,34 @@ class NodeTest(unittest.TestCase):
                             u'state': {}}}
         , self.container.dbase.dbases['rooms'])
 
+    def testStartupCleanDBRoomsWithNodeName(self):
+        self.dbase.dbases['rooms'] = {
+            'rooms_0': {u'__type__': u'Room',
+                        '_id': 'rooms_0',
+                        'active': False,
+                        u'game_id': u'game1',
+                        u'initialized': False,
+                        u'last_modified': u'1970-01-01T00:00:00',
+                        u'node_name': u'alpha',
+                        'requested': False,
+                        u'room_id': u'room1',
+                        u'state': {}},
+            'rooms_1': {u'__type__': u'Room',
+                        '_id': 'rooms_0',
+                        'active': False,
+                        u'game_id': u'game1',
+                        u'initialized': False,
+                        u'last_modified': u'1970-01-01T00:00:00',
+                        u'node_name': u'beta',
+                        'requested': False,
+                        u'room_id': u'room1',
+                        u'state': {}},
+        }
+        self.node.start()
+
+        self.assertEquals(None, self.dbase.dbases['rooms']['rooms_0']['node_name'])
+        self.assertEquals('beta', self.dbase.dbases['rooms']['rooms_1']['node_name'])
+
     def testShutdownSendDisconnectToPlayerConnections(self):
         pass
 
@@ -265,3 +293,16 @@ class NodeTest(unittest.TestCase):
         # when a node starts up, check for 'active' rooms with its node id
         # if any found, mark all as 'pending'
         pass
+
+    def testOnMoveRoomTryToPickUpRoomIfNotAlreadyInService(self):
+        pass
+
+    def testOnMoveRoomIfRoomInServiceRedirectToOtherNode(self):
+        pass
+
+    def testDontLoadRoomIfMemoryGreaterThen80(self):
+        pass
+
+    def testSerializeRoomIfUnconnectedAndmemoryGreaterThen60(self):
+        pass
+        

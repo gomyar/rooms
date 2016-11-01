@@ -508,6 +508,27 @@ class ContainerTest(unittest.TestCase):
         self.assertFalse(room_data['requested'])
         self.assertEquals('alpha', room_data['node'])
 
+    def testLoadNextPendingRoomDontLoadAssociatedRoom(self):
+        self.container.request_create_room("game1", "map1.room1")
+        self.container.dbase.dbases['rooms']['rooms_0']['node_name'] = 'beta'
+
+        room = self.container.load_next_pending_room('alpha')
+        self.assertEquals(None, room)
+
+    def testUpdateMany(self):
+        self.dbase.dbases['rooms']['rooms_0'] = {'__type__': 'Room',
+                                           'node_name': 'alpha'}
+        self.dbase.dbases['rooms']['rooms_1'] = {'__type__': 'Room',
+                                           'node_name': 'dead_node'}
+        self.dbase.dbases['rooms']['rooms_2'] = {'__type__': 'Room',
+                                           'node_name': 'dead_node'}
+        self.dbase.update_many_fields('rooms', {'node_name': 'dead_node'},
+                                          {'node_name': None})
+
+        self.assertEquals('alpha', self.dbase.dbases['rooms']['rooms_0']['node_name'])
+        self.assertEquals(None, self.dbase.dbases['rooms']['rooms_1']['node_name'])
+        self.assertEquals(None, self.dbase.dbases['rooms']['rooms_2']['node_name'])
+
     def testLoadActorsForRoom(self):
         # loads some actors
 
