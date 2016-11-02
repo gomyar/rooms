@@ -16,7 +16,7 @@ from rooms.testutils import MockScript
 from rooms.testutils import MockWebsocket
 from rooms.testutils import MockTimer
 from rooms.testutils import WebsocketTest
-from rooms.testutils import MockVision
+from rooms.testutils import MockIDFactory
 from rooms.room_builder import FileMapSource
 from rooms.room_builder import RoomBuilder
 from rooms.script import Script
@@ -40,13 +40,12 @@ class NodeTest(unittest.TestCase):
         self.container.load_next_pending_room = Mock(return_value=self.room)
         self.player1 = PlayerActor(self.room, "test", self.mock_script)
 
-        self.vision = MockVision()
-        self.room.vision = self.vision
-
         MockTimer.setup_mock()
+        MockIDFactory.setup_mock()
 
     def tearDown(self):
         MockTimer.teardown_mock()
+        MockIDFactory.teardown_mock()
 
     @staticmethod
     def room_created(room):
@@ -141,11 +140,11 @@ class NodeTest(unittest.TestCase):
         WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
 
         # messages in queue propagated to websocket
-        self.room.vision.queue.put({'do': 'somthing'})
+        MockTimer.fast_forward(1)
+        self.room.vision._send_command("id1", {'do': 'somthing'})
         MockTimer.fast_forward(1)
 
         self.assertEquals([{u'do': u'somthing'}], ws.updates)
-        self.assertTrue(self.vision.connected)
 
     def testPlayerDisconnted(self):
         self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
@@ -157,15 +156,16 @@ class NodeTest(unittest.TestCase):
 
         WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
 
-        self.room.vision.queue.put({'command': 'disconnect'})
+        MockTimer.fast_forward(1)
+        self.room.vision._send_command("id1", {'command': 'disconnect'})
         MockTimer.fast_forward(1)
 
         self.assertEquals([{u'command': u'disconnect'}], ws.updates)
-        self.assertFalse(self.vision.connected)
+        # empty queue means actor was disconnected
+        self.assertEquals({}, self.room.vision.actor_queues)
 
     def testPlayerMovesRoomSameNode(self):
         self.room2 = Room('game1', 'room2', self.node, self.mock_script)
-        self.room2.vision = MockVision()
 
         self.node.load_next_pending_room()
         self.node.rooms['game1', 'room2'] = self.room2
@@ -177,17 +177,19 @@ class NodeTest(unittest.TestCase):
         ws = MockWebsocket()
         WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
 
-        self.room.vision.queue.put({'command': 'move_room', 'room_id': 'room2'})
+        MockTimer.fast_forward(0)
+        self.room.vision._send_command("id2", {'command': 'move_room', 'room_id': 'room2'})
         MockTimer.fast_forward(1)
 
-        self.assertEquals([], ws.updates)
+        self.assertEquals([{u'command': u'move_room', u'room_id': u'room2'}], ws.updates)
 
         # listening to messages from room2 queue
-        self.room2.vision.queue.put({'do': "something"})
+        self.room2.vision._send_command("id2", {'do': "something"})
         MockTimer.fast_forward(1)
 
-        self.assertEquals(
-            [{u'do': u'something'}],
+        self.assertEquals([
+            {u'command': u'move_room', u'room_id': u'room2'},
+            {u'do': u'something'}],
             ws.updates)
 
     def testPlayerMovesRoomOtherNode(self):
@@ -200,7 +202,8 @@ class NodeTest(unittest.TestCase):
         ws = MockWebsocket()
         WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
 
-        self.room.vision.queue.put({'command': 'move_room', 'room_id': 'room2'})
+        MockTimer.fast_forward(0)
+        self.room.vision._send_command("id2", {'command': 'move_room', 'room_id': 'room2'})
         MockTimer.fast_forward(1)
 
         self.assertEquals([
@@ -264,7 +267,41 @@ class NodeTest(unittest.TestCase):
         self.assertEquals('beta', self.dbase.dbases['rooms']['rooms_1']['node_name'])
 
     def testShutdownSendDisconnectToPlayerConnections(self):
-        pass
+        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+        self.node.load_next_pending_room()
+
+        player_data = self.container.create_player_token("game1", "bob", 10)
+        self.dbase.dbases['actors']['actors_0']['room_id'] = "room1"
+        ws = MockWebsocket()
+
+        WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
+
+        MockTimer.fast_forward(1)
+
+        ' assert room in node'
+        self.node.shutdown()
+
+        MockTimer.fast_forward(1)
+
+        self.assertEquals([
+            {u'actor_id': u'id2',
+                u'command': u'actor_update',
+                u'data': {u'actor_id': u'id2',
+                            u'actor_type': u'test',
+                            u'docked_with': None,
+                            u'exception': None,
+                            u'game_id': u'game1',
+                            u'parent_id': None,
+                            u'script': u'',
+                            u'speed': 1.0,
+                            u'state': {},
+                            u'username': None,
+                            u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
+                                        u'end_time': 1.0,
+                                        u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
+                                        u'start_time': 1},
+                            u'visible': True}},
+            {u'command': u'disconnect'}], ws.updates)
 
     def testActorsLoadedNoLongerInLimbo(self):
         # container.load_actors_for_room() doesn't update _loadstate

@@ -315,8 +315,7 @@ class MockVision(object):
     def __init__(self):
         self.messages = []
         self.gridsize = 10
-        self.actor_queues = []
-        self.queue = Queue()
+        self.actor_queues = {}
         self.connected = True
 
     def connect_vision_queue(self, actor_id):

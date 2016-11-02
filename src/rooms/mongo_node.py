@@ -139,6 +139,7 @@ class Node(object):
                         log.debug("Room already managed: %s",
                             message['room_id'])
                         room = self.rooms[game_id, message['room_id']]
+                        ws.send(json.dumps(jsonview(message)))
                         queue = room.vision.connect_vision_queue(
                             player_conn['actor_id'])
                     else:
@@ -171,6 +172,10 @@ class Node(object):
             room.stop_all()
 
         # send disconnect to player queues
+        for room in self.rooms.values():
+            for queues in room.vision.actor_queues.values():
+                for queue in queues:
+                    queue.put({'command': 'disconnect'})
 
         # save actors - wait for actor save queue to end
 
