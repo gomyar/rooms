@@ -203,9 +203,8 @@ class Container(object):
             'rooms',
             query={'active': False, 'requested': True, '__type__': 'Room', 'node_name': None},
             update={
-                '$set':{'active': True, 'requested': False, 'node': node_name},
-                '$setOnInsert':{'active': False,'node_name': None,
-                                'initialized': False},
+                '$set':{'active': True, 'requested': False, 'node_name': node_name},
+                '$setOnInsert':{'active': False, 'initialized': False},
             },
             new=True,
         )

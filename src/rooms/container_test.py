@@ -506,7 +506,7 @@ class ContainerTest(unittest.TestCase):
         room_data = self.container.dbase.dbases['rooms']['rooms_0']
         self.assertTrue(room_data['active'])
         self.assertFalse(room_data['requested'])
-        self.assertEquals('alpha', room_data['node'])
+        self.assertEquals('alpha', room_data['node_name'])
 
     def testLoadNextPendingRoomDontLoadAssociatedRoom(self):
         self.container.request_create_room("game1", "map1.room1")

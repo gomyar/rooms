@@ -37,6 +37,9 @@ class Master(object):
     def start(self):
         pass
 
+    def shutdown(self):
+        pass
+
     def load_scripts(self, script_path):
         self.scripts.load_scripts(script_path)
 
