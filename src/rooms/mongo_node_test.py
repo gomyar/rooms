@@ -35,7 +35,7 @@ class NodeTest(unittest.TestCase):
         self.container.node = self.node
 
         self.room = Room('game1', 'room1', self.node, self.mock_script)
-        self.room.kick = Mock()
+        self.room.start_actors = Mock()
 
         self.container.load_next_pending_room = Mock(return_value=self.room)
         self.player1 = PlayerActor(self.room, "test", self.mock_script)
@@ -58,10 +58,8 @@ class NodeTest(unittest.TestCase):
 
         self.assertEquals(self.node.node_updater.update_loop,
                           spawn.call_args_list[0][0][0])
-        self.assertEquals(self.node.actor_loader.load_loop,
-                          spawn.call_args_list[1][0][0])
         self.assertEquals(self.node.room_loader.load_loop,
-                          spawn.call_args_list[2][0][0])
+                          spawn.call_args_list[1][0][0])
 
     def testLoadRoomNotInitialized(self):
         self.assertEquals(0, len(self.node.rooms))
@@ -72,7 +70,7 @@ class NodeTest(unittest.TestCase):
         self.assertTrue(self.room.state['testcreated'])
         self.assertEquals(1, len(self.room.actors))
         self.assertEquals('test', self.room.actors.values()[0].actor_type)
-        self.assertTrue(self.room.kick.called)
+        self.assertTrue(self.room.start_actors.called)
 
     def testLoadRoomAlreadyInitialized(self):
         self.room.initialized = True
@@ -85,7 +83,7 @@ class NodeTest(unittest.TestCase):
         # test run init script if room.initialized == False
         self.assertFalse(self.room.state['testcreated'])
         self.assertEquals(0, len(self.room.actors))
-        self.assertTrue(self.room.kick.called)
+        self.assertTrue(self.room.start_actors.called)
 
     def testLoadRoomAlreadyInitializedWithActors(self):
         self.dbase.dbases['actors'] = {}
@@ -116,18 +114,13 @@ class NodeTest(unittest.TestCase):
         self.assertFalse(self.room.state['testcreated'])
         self.assertEquals(1, len(self.room.actors))
         self.assertEquals('loaded', self.room.actors.values()[0].actor_type)
-        self.assertTrue(self.room.kick.called)
+        self.assertTrue(self.room.start_actors.called)
 
     def testPlayerEntersRoom(self):
         # poll for limbo player_actor in managed room
         self.node.load_next_pending_room()
 
         self.assertEquals(1, len(self.node.rooms['game1', 'room1'].actors))
-
-        self.container.load_limbo_actor = Mock(return_value=self.player1)
-        self.node.actor_loader._load_actors()
-
-        self.assertEquals(2, len(self.node.rooms['game1', 'room1'].actors))
 
     def testPlayerConnects(self):
         self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
@@ -320,6 +313,8 @@ class NodeTest(unittest.TestCase):
         pass
 
     def testDeactivateRoom(self):
+        # need to stop actor loading for that room - change ActorLoader
+
         # mark rooms as internally inactive (won't accept any more players)
         # stop gthreads
         # write state='inactive', node_id=None to room
@@ -342,4 +337,3 @@ class NodeTest(unittest.TestCase):
 
     def testSerializeRoomIfUnconnectedAndmemoryGreaterThen60(self):
         pass
-        

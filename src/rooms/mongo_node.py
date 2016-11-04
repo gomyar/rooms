@@ -5,7 +5,6 @@ from geventwebsocket import WebSocketError
 
 from rooms.actor import Actor
 from rooms.scriptset import ScriptSet
-from rooms.actor_loader import ActorLoader
 from rooms.room_loader import RoomLoader
 from rooms.node_updater import NodeUpdater
 from rooms.views import jsonview
@@ -65,19 +64,16 @@ class Node(object):
         self.rooms = dict()
         self.scripts = ScriptSet()
         self.node_updater = NodeUpdater(self)
-        self.actor_loader = ActorLoader(self)
         self.room_loader = RoomLoader(self)
         self.host = host
         self.load = 0.0
 
         self._nodeupdater_gthread = None
-        self._actorload_gthread = None
         self._roomload_gthread = None
 
     def start(self):
         self.disassociate_rooms()
         self.start_node_update()
-        self.start_actor_loader()
         self.start_room_loader()
 
     def disassociate_rooms(self):
@@ -88,9 +84,6 @@ class Node(object):
 
     def start_node_update(self):
         self._nodeupdater_gthread = gevent.spawn(self.node_updater.update_loop)
-
-    def start_actor_loader(self):
-        self._actorload_gthread = gevent.spawn(self.actor_loader.load_loop)
 
     def start_room_loader(self):
         self._roomload_gthread = gevent.spawn(self.room_loader.load_loop)
@@ -105,7 +98,18 @@ class Node(object):
                 self.container.save_room(room)
             else:
                 self.container.load_actors_for_room(room)
-            room.kick()
+            room.start()
+
+    def save_actor_to_other_room(self, exit_room_id, exit_position, actor):
+        actor._game_id = actor.game_id
+        actor.position = exit_position
+        actor._room_id = exit_room_id
+        actor.room = None
+        self.container.save_actor(actor, limbo=True) # (, async=False) ?
+        if actor.is_player and (actor.game_id, exit_room_id) not in self.rooms:
+            conn = self.player_connections.pop((actor.username, actor.game_id))
+            self.connections.pop(conn.token)
+            log.debug("Removed conn: %s", conn)
 
     def player_connects(self, ws, token):
         player_conn = self.container.get_player_token(token)
@@ -157,19 +161,16 @@ class Node(object):
 
     def shutdown(self):
         # stop all gthreads
-        self.actor_loader.running = False
         self.room_loader.running = False
         self.node_updater.running = False
 
-        if self._actorload_gthread:
-            self._actorload_gthread.join()
         if self._roomload_gthread:
             self._roomload_gthread.join()
         if self._nodeupdater_gthread:
             self._nodeupdater_gthread.join()
 
         for room in self.rooms.values():
-            room.stop_all()
+            room.stop()
 
         # send disconnect to player queues
         for room in self.rooms.values():

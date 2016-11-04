@@ -155,7 +155,7 @@ class Container(object):
             room_id=room_id, docked_with=None))
         log.debug("Found %s actors", len(actors_list))
         for actor in actors_list:
-            docked_actors = ActorLoader(self.node)._load_docked(game_id, actor)
+            docked_actors = ActorLoader(room)._load_docked(game_id, actor)
             log.debug("Loaded docked actors: %s", docked_actors)
             room.put_actor(actor)
             for docked in docked_actors:

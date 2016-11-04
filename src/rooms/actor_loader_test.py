@@ -13,23 +13,24 @@ class ActorLoaderTest(unittest.TestCase):
     def setUp(self):
         MockTimer.setup_mock()
         self.node = Node("localhost", 8000, "master", 7000)
-        self.loader = ActorLoader(self.node)
         self.dbase = MockDbase()
         self.container = Container(self.dbase, self.node)
         self.node.container = self.container
 
-        self.room1 = Room("game1", "room1", self.node)
+        self.room1 = Room("game1", "map1.room1", self.node)
         self.room1.coords(0, 0, 50, 50)
-        self.node.rooms['games_0', 'map1.room1'] = self.room1
+        self.node.rooms['game1', 'map1.room1'] = self.room1
         self.room2 = Room("game1", "room2", self.node)
         self.room2.coords(0, 0, 50, 50)
-        self.node.rooms['games_0', 'map1.room2'] = self.room2
+        self.node.rooms['game1', 'map1.room2'] = self.room2
+
+        self.loader = ActorLoader(self.room1)
 
         self.dbase.dbases['actors'] = {}
         self.dbase.dbases['actors']['actor1'] = \
             {"__type__": "Actor", "_id": "actor1", "actor_id": "actor1",
             "parent_id": None,
-            "game_id": "games_0", "room_id": "map1.room1",
+            "game_id": "game1", "room_id": "map1.room1",
             "actor_type": "test", "model_type": "model",
             "speed": 1.0,
             "username": "ned",
@@ -46,7 +47,7 @@ class ActorLoaderTest(unittest.TestCase):
         self.dbase.dbases['actors']['actor2'] = \
             {"__type__": "Actor", "_id": "actor1", "actor_id": "actor2",
             "parent_id": None,
-            "game_id": "games_0", "room_id": "map1.room1",
+            "game_id": "game1", "room_id": "map1.room1",
             "actor_type": "test", "model_type": "model",
             "_loadstate": "limbo",   # <---
             "speed": 1.0,
@@ -67,14 +68,14 @@ class ActorLoaderTest(unittest.TestCase):
     def testLoader(self):
         self.loader._load_actors()
 
-        room = self.node.rooms['games_0', 'map1.room1']
+        room = self.node.rooms['game1', 'map1.room1']
         self.assertEquals(1, len(room.actors))
 
     def testLoaderDockedActors(self):
         self.dbase.dbases['actors']['actor3'] = \
             {"__type__": "Actor", "_id": "actor3", "actor_id": "actor3",
             "parent_id": None,
-            "game_id": "games_0", "room_id": "map1.room1",
+            "game_id": "game1", "room_id": "map1.room1",
             "actor_type": "test", "model_type": "model",
             "_loadstate": "limbo",   # <---
             "speed": 1.0,
@@ -92,7 +93,7 @@ class ActorLoaderTest(unittest.TestCase):
 
         self.loader._load_actors()
 
-        room = self.node.rooms['games_0', 'map1.room1']
+        room = self.node.rooms['game1', 'map1.room1']
         self.assertEquals(2, len(room.actors))
 
         actor2 = room.actors['actor2']
@@ -104,7 +105,7 @@ class ActorLoaderTest(unittest.TestCase):
         self.dbase.dbases['actors']['actor1'] = \
             {"__type__": "Actor", "_id": "actor1", "actor_id": "actor1",
             "parent_id": None,
-            "game_id": "games_0", "room_id": "map1.room1",
+            "game_id": "game1", "room_id": "map1.room1",
             "actor_type": "test", "model_type": "model",
             "_loadstate": "limbo",   # <---
             "speed": 1.0,
@@ -121,7 +122,7 @@ class ActorLoaderTest(unittest.TestCase):
         self.dbase.dbases['actors']['actor2'] = \
             {"__type__": "Actor", "_id": "actor2", "actor_id": "actor2",
             "parent_id": None,
-            "game_id": "games_0", "room_id": "map1.room1",
+            "game_id": "game1", "room_id": "map1.room1",
             "actor_type": "test", "model_type": "model",
             "_loadstate": "limbo",   # <---
             "speed": 1.0,
@@ -138,7 +139,7 @@ class ActorLoaderTest(unittest.TestCase):
         self.dbase.dbases['actors']['actor3'] = \
             {"__type__": "Actor", "_id": "actor3", "actor_id": "actor3",
             "parent_id": None,
-            "game_id": "games_0", "room_id": "map1.room1",
+            "game_id": "game1", "room_id": "map1.room1",
             "actor_type": "test", "model_type": "model",
             "_loadstate": "limbo",   # <---
             "speed": 1.0,
@@ -155,7 +156,7 @@ class ActorLoaderTest(unittest.TestCase):
 
         self.loader._load_actors()
 
-        room = self.node.rooms['games_0', 'map1.room1']
+        room = self.node.rooms['game1', 'map1.room1']
         self.assertEquals(3, len(room.actors))
 
         actor1 = room.actors['actor1']
@@ -166,4 +167,5 @@ class ActorLoaderTest(unittest.TestCase):
         self.assertEquals(actor2, actor3.docked_with)
 
     def testLoadPlayerActor(self):
+        # add to playeractor dict so player can connect
         pass

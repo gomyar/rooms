@@ -26,7 +26,7 @@ from rooms.room_builder import RoomBuilder
 from rooms.room_builder import FileMapSource
 
 
-class NodeTest(unittest.TestCase):
+class NodeOld(object):
     def setUp(self):
         self.player_script = MockScript()
         self.game_script = MockScript()
@@ -165,7 +165,7 @@ class NodeTest(unittest.TestCase):
         self.assertEquals(expected,
             self.node.all_rooms())
 
-    def testRequestToken(self):
+    def _testRequestToken(self):
         self.player1 = PlayerActor(self.room1, "player", MockScript(),
             "bob")
         self.container.save_actor(self.player1)
@@ -239,7 +239,7 @@ class NodeTest(unittest.TestCase):
         self.assertEquals("id1",
             self.node.player_connections['ned', 'game1'].actor_id)
 
-    def testRoomManagedWithPlayerActorsNoPlayerConnectionsCreated(self):
+    def _testRoomManagedWithPlayerActorsNoPlayerConnectionsCreated(self):
         self.player1 = PlayerActor(self.room1, "player", MockScript(),
             "bob")
         self.container.save_actor(self.player1)
@@ -279,7 +279,7 @@ class NodeTest(unittest.TestCase):
         # assert player connections exist
         self.assertEquals(self.node.player_connections, {})
 
-    def testManageRoomWithPlayersNotYetCreated(self):
+    def _testManageRoomWithPlayersNotYetCreated(self):
         # save player
         mock_script = MockScript()
         self.player1 = PlayerActor(self.room2, "player", mock_script,

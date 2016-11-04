@@ -121,7 +121,7 @@ class Node(object):
 
     def start(self):
         self.start_reporting()
-        self.start_actor_loader()
+        #self.start_actor_loader()
 
     def start_reporting(self):
         self._report_gthread = gevent.spawn(self._start_reporting)
@@ -134,8 +134,9 @@ class Node(object):
                 node_info=json.dumps(self._compile_node_info()))
 
     def start_actor_loader(self):
-        loader = ActorLoader(self)
-        self._actorload_gthread = gevent.spawn(loader.load_loop)
+        pass
+        #loader = ActorLoader(self)
+        #self._actorload_gthread = gevent.spawn(loader.load_loop)
 
     def _compile_node_info(self):
         node_info = dict()
@@ -183,7 +184,7 @@ class Node(object):
             room = self.container.create_room_with_actors(game_id, room_id)
             self.scripts['game_script'].call("room_created", room)
         self.rooms[game_id, room_id] = room
-        room.kick()
+        room.start_actors()
 
     def player_joins(self, username, game_id, room_id, **kwargs):
         room = self.rooms[game_id, room_id]

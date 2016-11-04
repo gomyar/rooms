@@ -128,7 +128,7 @@ class MockRoom(Room):
         self.vision = Vision(self)
         self.node = MockNode()
 
-    def kick(self):
+    def start_actors(self):
         self._kicked_off = True
 
     def find_path(self, from_pos, to_pos):

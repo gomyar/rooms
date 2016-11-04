@@ -1,5 +1,7 @@
 
 import unittest
+from mock import patch
+from mock import Mock
 
 from rooms.room import Room
 from rooms.room import Door
@@ -11,20 +13,27 @@ from rooms.testutils import MockNode
 from rooms.testutils import MockActor
 from rooms.testutils import MockContainer
 from rooms.testutils import MockIDFactory
+from rooms.testutils import MockDbase
+from rooms.container import Container
 from rooms.geography.basic_geography import BasicGeography
 from rooms.player import PlayerActor
 from rooms.script import Script
 from rooms.testutils import MockVision
 from rooms.actor import Actor
+from rooms.mongo_node import Node
 from testutils import MockTimer
 
 
 class RoomTest(unittest.TestCase):
     def setUp(self):
         self.script = Script("room_test", RoomTest)
-        self.node = MockNode()
+        self.dbase = MockDbase()
+        self.container = Container(self.dbase, None)
+
+        self.node = Node(self.container, 'alpha', '192.168.0.11')
         self.node.scripts['rooms.room_test'] = self.script
-        self.node.container = MockContainer()
+        self.container.node = self.node
+
         self.room = Room("game1", "room1", self.node)
         self.room.coords(0, 0, 50, 50)
         self.geography = MockGeog()
@@ -207,3 +216,16 @@ class RoomTest(unittest.TestCase):
 
         self.assertEquals([actor1], self.room.actors.values())
         self.assertEquals([child1, child2], removed)
+
+    @patch("gevent.spawn")
+    def testStartStopRoomLoaderActors(self, spawn):
+        # make sure start starts all the actors
+        # and the actorloader
+        mock_actor = MockActor('actor1')
+        mock_actor.kick = Mock()
+        self.room.actors['actor1'] = mock_actor
+        self.room.start()
+
+        self.assertEquals(self.room.actor_loader.load_loop,
+                          spawn.call_args_list[0][0][0])
+        self.assertTrue(mock_actor.kick.called)

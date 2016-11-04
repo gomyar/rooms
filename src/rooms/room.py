@@ -1,9 +1,11 @@
 
+import gevent
 from rooms.position import Position
 from rooms.actor import Actor
 from rooms.actor import search_actor_test
 from rooms.vision import Vision
 from rooms.script import NullScript
+from rooms.actor_loader import ActorLoader
 
 import logging
 log = logging.getLogger("rooms.room")
@@ -77,9 +79,36 @@ class Room(object):
         self.state = dict()
         self.info = dict()
         self.item_registry = None
+        self.actor_loader = ActorLoader(self)
+        self._actorload_gthread = None
 
     def __repr__(self):
         return "<Room %s %s>" % (self.game_id, self.room_id)
+
+    def start(self):
+        self.start_actorloader()
+        self.start_actors()
+
+    def start_actorloader(self):
+        self._actorload_gthread = gevent.spawn(self.actor_loader.load_loop)
+
+    def start_actors(self):
+        log.debug("Kicking room (%s actors)", len(self.actors))
+        for actor in self.actors.values():
+            actor.kick()
+
+    def stop(self):
+        self.stop_actors()
+        self.stop_actorloader()
+
+    def stop_actorloader(self):
+        self.actor_loader.running = False
+        if self._actorload_gthread:
+            self._actorload_gthread.join()
+
+    def stop_actors(self):
+        for actor in self.actors.values():
+            actor.stop()
 
     @property
     def width(self):
@@ -100,11 +129,6 @@ class Room(object):
     def coords(self, x1, y1, x2, y2):
         self.topleft = Position(x1, y1)
         self.bottomright = Position(x2, y2)
-
-    def kick(self):
-        log.debug("Kicking room (%s actors)", len(self.actors))
-        for actor in self.actors.values():
-            actor.kick()
 
     def create_actor(self, actor_type, script_name=None, username=None,
             position=None, state=None, visible=True, parent_id=None):
@@ -219,7 +243,3 @@ class Room(object):
         return [a for a in self.actors.values() if \
             search_actor_test(a, actor_type, state, visible, distance,
             distance_to)]
-
-    def stop_all(self):
-        for actor in self.actors.values():
-            actor.stop()
