@@ -216,7 +216,7 @@ class Container(object):
     def disassociate_rooms(self, node_name):
         self.dbase.update_many_fields(
             'rooms', {'__type__': 'Room', 'node_name': node_name},
-            {'node_name': None})
+            {'node_name': None, 'active': False, 'requested': False})
 
     def create_actor(self, room, actor_type, script, username=None,
             state=None, visible=True, parent_id=None, position=None):

@@ -1,4 +1,5 @@
 
+bulk write actor saver
  - listen for exceptions from worker gthreads (actor_loader)
 
  - move master.py state to mongo

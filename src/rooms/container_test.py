@@ -529,6 +529,24 @@ class ContainerTest(unittest.TestCase):
         self.assertEquals(None, self.dbase.dbases['rooms']['rooms_1']['node_name'])
         self.assertEquals(None, self.dbase.dbases['rooms']['rooms_2']['node_name'])
 
+    def testDisassociateRooms(self):
+        self.dbase.dbases['rooms']['rooms_0'] = {'__type__': 'Room',
+                                           'node_name': 'alpha'}
+        self.dbase.dbases['rooms']['rooms_1'] = {'__type__': 'Room',
+                                           'node_name': 'dead_node'}
+        self.dbase.dbases['rooms']['rooms_2'] = {'__type__': 'Room',
+                                           'node_name': 'dead_node'}
+        self.container.disassociate_rooms('dead_node')
+
+        self.assertEquals({'__type__': 'Room', 'node_name': 'alpha'},
+                          self.dbase.dbases['rooms']['rooms_0'])
+        self.assertEquals(
+            {'active': False, 'requested': False, '__type__': 'Room',
+             'node_name': None}, self.dbase.dbases['rooms']['rooms_1'])
+        self.assertEquals(
+            {'active': False, 'requested': False, '__type__': 'Room',
+             'node_name': None}, self.dbase.dbases['rooms']['rooms_2'])
+
     def testLoadActorsForRoom(self):
         # loads some actors
 
