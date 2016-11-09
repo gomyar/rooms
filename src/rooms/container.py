@@ -337,6 +337,31 @@ class Container(object):
                 log.debug("Removing actor: %s", actor_id)
                 self.dbase.remove("actors", actor_id=actor_id)
 
+    ## ---- Admin methods
+
+    def list_nodes(self):
+        return self._load_filter('online_nodes', {})
+
+    def list_rooms(self, node_name=None):
+        query = {}
+        if node_name:
+            query['node_name'] = node_name
+        return self._load_filter('rooms', query)
+
+    def list_games(self, owner_id=None, node_name=None):
+        query = {}
+        if owner_id:
+            query['owner_id'] = owner_id
+        if node_name:
+            query['node_name'] = node_name
+        return self._load_filter('games', query)
+
+    def list_players(self, node_name=None):
+        query = {'__type__': 'PlayerActor'}
+        if node_name:
+            query['node_name'] = node_name
+        return self._load_filter('actors', query)
+
     ## ---- Encoding method
 
     def _save_object(self, saved_object, dbase_name, **fields):

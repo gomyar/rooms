@@ -19,6 +19,8 @@ class JsonView(object):
             SyncDict=self.view_syncdict,
             SyncList=self.view_synclist,
             Item=self.view_item,
+            OnlineNode=self.view_onlinenode,
+            Room=self.view_room,
         )
 
     @staticmethod
@@ -78,3 +80,10 @@ class JsonView(object):
     def view_item(self, item):
         return dict(category=item.category, item_type=item.item_type,
             data=item.data)
+
+    def view_onlinenode(self, onlinenode):
+        return dict(name=onlinenode.name, host=onlinenode.host,
+            load=onlinenode.load, uptime=onlinenode.uptime)
+
+    def view_room(self, room):
+        return dict(game_id=room.game_id, room_id=room.room_id)

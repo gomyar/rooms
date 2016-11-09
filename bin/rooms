@@ -18,6 +18,7 @@ from rooms.geography.basic_geography import BasicGeography
 from rooms.room_builder import RoomBuilder
 from rooms.room_builder import FileMapSource
 from rooms.mongo_master import MasterController
+from rooms import admin
 from rooms.mongo_node import NodeController
 from rooms.container import Container
 from rooms.dbase.mongo_dbase import MongoDBase
@@ -93,6 +94,12 @@ if __name__ == "__main__":
         # dev server serves game files:
         server.add_file_root("assets", os.path.join(options.game, "assets"))
         server.add_file_root("maps", os.path.join(options.game, "maps"))
+
+        # add admin
+        server.add_controller("admin", admin.AdminController(container))
+        server.add_file_root("adminfiles", os.path.join(
+            os.path.dirname(admin.__file__), "assets/adminfiles"))
+
         log.info("Starting Rooms Master")
         master.start()
         server.start()

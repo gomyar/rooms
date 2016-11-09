@@ -1,0 +1,42 @@
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="/adminfiles/css/rooms_admin.css"/>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-mousewheel/3.1.13/jquery.mousewheel.min.js"></script>
+    <script src="/adminfiles/js/turtlegui.js"></script>
+
+    <script src="/adminfiles/js/api_rooms.js"></script>
+
+    <script src="/adminfiles/js/admin_gui.js"></script>
+    <script src="/adminfiles/js/admin_game_client.js"></script>
+    <script src="/adminfiles/js/rooms_admin.js"></script>
+</head>
+
+<body>
+
+<div class="rooms_admin">
+    <h1>Rooms Admin Interface</h1>
+
+    <div class="pageheader">
+        <div class="link" onclick="admin.switch_tab('nodes');"><span>Nodes</span></div>
+        <div class="link" onclick="admin.switch_tab('games');"><span>Games</span></div>
+        <div class="link" onclick="admin.switch_tab('items');"><span>Items</span></div>
+    </div>
+
+    <div>
+        <div class="gui-show" data-src="admin.data.tab=='nodes'">
+            <div class="gui-include" data-url="nodes.html"></div>
+        </div>
+        <div class="gui-show" data-src="admin.data.tab=='games'">
+            <div class="gui-include" data-url="games.html"></div>
+        </div>
+        <div class="gui-show" data-src="admin.data.tab=='items'">
+            <div class="gui-include" data-url="items.html"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>
