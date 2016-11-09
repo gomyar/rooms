@@ -158,6 +158,9 @@ class ContainerTest(unittest.TestCase):
         MockTimer.fast_forward(11)
         self.assertEquals(None, self.container.get_player_token('NEWTOKEN'))
 
+    def testGetOrCreateAdminConnections(self):
+        pass
+
     def testCreatePlayer(self):
         player = self.container.create_player(self.room2, "player",
             MockScript(), "ned", game_id="games_0")
@@ -551,4 +554,16 @@ class ContainerTest(unittest.TestCase):
         # loads some actors
 
         # assert _loadstate = ""
+        pass
+
+    def testListNodes(self):
+        pass
+
+    def testListGames(self):
+        pass
+
+    def testListPLayers(self):
+        pass
+
+    def testListActors(self):
         pass

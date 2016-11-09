@@ -1,16 +1,41 @@
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="/adminfiles/css/rooms_admin.css"/>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-mousewheel/3.1.13/jquery.mousewheel.min.js"></script>
+    <script src="/adminfiles/js/turtlegui.js"></script>
+
+    <script src="/adminfiles/js/api_rooms.js"></script>
+    <script src="/adminfiles/js/admin_gui.js"></script>
+    <script src="/adminfiles/js/admin_game_client.js"></script>
+</head>
+
+<body>
+
 <div class="gameview">
     <canvas id="screen">
     </canvas>
-    <div id="actor_list" ng-show="actor_list">
+    <div id="actor_list" class="gui-show" data-src="admin.data.actor_list">
         <div class="title">Select Actor:</div>
         <hr></hr>
-        <div class="listed_actor {{ {true:'player', false:''}[actor.actor_type=='player'] }}" ng-repeat="actor in actor_list" ng-click="select_actor(actor)">{{ actor.actor_type }}: {{actor.script}} {{ actor.username ? '(' + actor.username + ')' : '' }}</div>
+        <div class="gui-list" data-src="admin.data.actor_list" data-itervar="actor">
+            <div  data-class="actor.actor_type=='player'?'player':''" class="listed_actor" gui-click="select_actor(actor)">
+                <div class="gui-text" data-src="actor.actor_type"></div>:<div class="gui-text" data-src="actor.script"></div> <div class="gui-text" data-src="actor.username ? '(' + actor.username + ')' : ''"></div>
+            </div>
+        </div>
     </div>
-    <div id="selected_actor" ng-show="selected_actor">
-        <div class="title {{ {true:'player', false:''}[selected_actor.actor_type=='player'] }}">Actor:  {{ selected_actor.actor_type }} ({{ selected_actor.username }})</div>
+    <div id="selected_actor" class="gui-show" data-src="admin.data.selected_actor">
+        <div class="title" data-class="selected_actor.actor_type=='player'?'player':''">Actor:  <div class="gui-text" data-src="selected_actor.actor_type + selected_actor.username"></div></div>
         <hr></hr>
-        <div ng-repeat="field in ['actor_id', 'username', 'visible', 'docked_with', 'path', 'vector', 'state']" class="field">
-            <div class="name">"{{ field }}":&nbsp;</div><pre class="value">{{ selected_actor[field] | json }}</pre>
+        <div class="gui-list" data-src="['actor_id', 'username', 'visible', 'docked_with', 'path', 'vector', 'state']" data-itervar="field">
+            <div class="field">
+                <div class="name gui-text" data-src='field'></div>:&nbsp;<pre class="value gui-text" data-src="selected_actor[field]"></pre>
+            </div>
         </div>
     </div>
 </div>
+
+</body>
+
+</html>

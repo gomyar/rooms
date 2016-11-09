@@ -5,28 +5,32 @@ from rooms.timer import Timer
 
 
 class MasterController(object):
-    def __init__(self, node):
-        self.node = node
+    def __init__(self, master):
+        self.master = master
 
     @request
     def create_game(self, owner_username, name, description):
-        return self.node.create_game(owner_username, name, description)
+        return self.master.create_game(owner_username, name, description)
 
     @request
     def join_game(self, game_id, username, **kwargs):
-        return self.node.join_game(game_id, username, **kwargs)
+        return self.master.join_game(game_id, username, **kwargs)
 
     @request
     def list_games(self, username):
-        return self.node.list_games(username)
+        return self.master.list_games(username)
 
     @request
     def list_players(self, username):
-        return self.node.list_players(username)
+        return self.master.list_players(username)
 
     @request
     def connect_player(self, game_id, username):
-        return self.node.connect_player(game_id, username)
+        return self.master.connect_player(game_id, username)
+
+    @request
+    def connect_admin(self, game_id):
+        return self.master.connect_admin(game_id)
 
 
 class Master(object):
@@ -82,6 +86,18 @@ class Master(object):
                 return {'wait': True}
         else:
             return {'error': 'not joined'}
+
+    def connect_admin(self, game_id, room_id):
+        admin_conn = self.container.create_admin_token(game_id, room_id)
+        room = self._get_room(game_id, admin_conn['room_id'])
+        if room.get('node_name'):
+            return {'host': self._get_node(room['node_name']).host,
+                    'node_name': admin_conn['node_name'],
+                    'token': admin_conn['token'],
+                    'game_id': admin_conn['game_id'],
+                    'room_id': admin_conn['room_id']}
+        else:
+            return {'wait': True}
 
     def _get_node(self, node_name):
         return self.container.load_node(node_name)

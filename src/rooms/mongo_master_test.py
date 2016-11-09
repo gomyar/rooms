@@ -121,3 +121,6 @@ class MasterTest(unittest.TestCase):
     def testPlayerCallsJoinTwice(self):
         # player accidentally calls join game twice
         pass
+
+    def testConnectAdmin(self):
+        pass

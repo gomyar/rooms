@@ -337,3 +337,9 @@ class NodeTest(unittest.TestCase):
 
     def testSerializeRoomIfUnconnectedAndmemoryGreaterThen60(self):
         pass
+
+    def testAdminConnects(self):
+        # request admin token
+
+        # connect with admin token
+        pass

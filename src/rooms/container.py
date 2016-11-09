@@ -20,6 +20,7 @@ from rooms.online_node import OnlineNode
 from rooms.item_registry import ItemRegistry
 from rooms.geography.basic_geography import BasicGeography
 from rooms.room_builder import SimpleRoomBuilder
+from rooms.admin_token import AdminToken
 from rooms.timer import Timer
 
 import logging
@@ -44,6 +45,7 @@ class Container(object):
             SyncDict=self._serialize_syncdict,
             SyncList=self._serialize_synclist,
             OnlineNode=self._serialize_onlinenode,
+            AdminToken=self._serialize_admintoken,
         )
         self.builders = dict(
             Game=self._build_game,
@@ -56,6 +58,7 @@ class Container(object):
             SyncDict=self._build_syncdict,
             SyncList=self._build_synclist,
             OnlineNode=self._build_onlinenode,
+            AdminToken=self._build_admintoken,
         )
         self._remove_queue = Queue()
         self._remove_gthread = None
@@ -89,6 +92,22 @@ class Container(object):
         )
         return enc_conn
 
+    def create_admin_token(self, game_id, room_id):
+        enc_conn = self.dbase.find_and_modify(
+            'admin_tokens',
+            query={'game_id': game_id, 'room_id': room_id, '__type__': 'AdminToken'},
+            update={
+                '$set':{
+                    'timeout_time': Timer.now() + timeout_seconds,
+                    'token': self.new_token()},
+                '$setOnInsert': {
+                    'room_id': room_id, 'game_id': game_id, '__type__': 'AdminToken'
+                }
+            },
+            new=True
+        )
+        return enc_conn
+
     def get_player_token(self, token):
         player = self.dbase.filter_one(
             'actors',
@@ -99,6 +118,15 @@ class Container(object):
                     'actor_id', 'node_name'],
         )
         return player
+
+    def get_admin_token(self, token):
+        admin = self.dbase.filter_one(
+            'admin_tokens',
+            query={'token': token,
+                   'timeout_time': {'$gt': Timer.now()},
+                   '__type__': 'AdminToken'},
+        )
+        return admin
 
     def get_or_create_player(self, game_id, username, room_id):
         return self.dbase.find_and_modify(
@@ -572,6 +600,16 @@ class Container(object):
         node.load = data['load']
         node.uptime = data['uptime']
         return node
+
+    # AdminToken
+    def _serialize_admintoken(self, admintoken):
+        return dict(node_name=admintoken.node_name, token=admintoken.token,
+                    game_id=admintoken.game_id, room_id=admintoken.room_id)
+
+    def _build_admintoken(self, data):
+        admintoken = AdminToken(node_name=data['node_name'], token=data['token'],
+                                game_id=data['game_id'], room_id=data['room_id'])
+        return admintoken
 
     def load_next_available_room(self):
         return self.dbase.find_and_modify("rooms",

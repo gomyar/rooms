@@ -47,6 +47,10 @@ class NodeController(object):
     def player_connects(self, ws, token):
         return self.node.player_connects(ws, token)
 
+    @websocket
+    def admin_connects(self, ws, token):
+        return self.node.admin_connects(ws, token)
+
     @request
     def actor_call(self, game_id, token, method, **kwargs):
         return self.node.actor_call(game_id, token, method, **kwargs)
@@ -183,3 +187,25 @@ class Node(object):
         # deactivate rooms
         for room in self.rooms.values():
             self.container.save_room(room)
+
+    def admin_connects(self, ws, token):
+        admin_conn = self.container.get_admin_token(token)
+
+        if admin_conn is None:
+            raise Exception("Unauthorized")
+
+        log.debug("Admin conects: %s", token)
+        room = self.rooms[admin_conn.game_id, admin_conn.room_id]
+        queue = room.vision.connect_admin_queue()
+        admin_conn.send_sync_to_websocket(ws, room, "admin")
+        try:
+            connected = True
+            while connected:
+                message = queue.get()
+                ws.send(json.dumps(jsonview(message)))
+                if message.get("command") in ['disconnect', 'redirect']:
+                    connected = False
+        except WebSocketError, wse:
+            log.debug("Admin Websocket socket dead: %s", str(wse))
+        finally:
+            room.vision.disconnect_admin_queue(queue)
