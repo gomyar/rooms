@@ -39,7 +39,7 @@ gui.init = function(canvas)
     $(gui.canvas).mouseout(gui.canvas_mouseout);
     $(gui.canvas).mousewheel(gui.canvas_mousewheel);
 
-    $(window).resize(function() { gui.resetCanvas(); gui.draw(); });
+    $(window).resize(function() { gui.resetCanvas();  });
     gui.resetCanvas();
 }
 

@@ -69,7 +69,8 @@ class JsonView(object):
         return dict(x=position.x, y=position.y, z=position.z)
 
     def view_game(self, game):
-        return dict(game_id=str(game._id), owner_id=game.owner_id)
+        return dict(game_id=str(game._id), owner_id=game.owner_id,
+                    name=game.name)
 
     def view_syncdict(self, syncdict):
         return syncdict._data

@@ -9,6 +9,7 @@ from rooms.room_loader import RoomLoader
 from rooms.node_updater import NodeUpdater
 from rooms.views import jsonview
 from rooms.player_connection import command_redirect
+from rooms.player_connection import AdminConnection
 
 from rooms.rpc import request
 from rooms.rpc import websocket
@@ -189,14 +190,17 @@ class Node(object):
             self.container.save_room(room)
 
     def admin_connects(self, ws, token):
-        admin_conn = self.container.get_admin_token(token)
+        import ipdb; ipdb.set_trace()
+        admin_token = self.container.get_admin_token(token)
 
-        if admin_conn is None:
+        if admin_token is None:
             raise Exception("Unauthorized")
 
         log.debug("Admin conects: %s", token)
-        room = self.rooms[admin_conn.game_id, admin_conn.room_id]
+        room = self.rooms[admin_token.game_id, admin_token.room_id]
         queue = room.vision.connect_admin_queue()
+        admin_conn = AdminConnection(admin_token.game_id, admin_token.room_id,
+                                     admin_token.token)
         admin_conn.send_sync_to_websocket(ws, room, "admin")
         try:
             connected = True
@@ -207,5 +211,8 @@ class Node(object):
                     connected = False
         except WebSocketError, wse:
             log.debug("Admin Websocket socket dead: %s", str(wse))
+        except Exception, e:
+            log.exception("Unexpected exception in player connection")
+            raise
         finally:
             room.vision.disconnect_admin_queue(queue)

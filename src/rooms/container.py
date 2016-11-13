@@ -92,7 +92,7 @@ class Container(object):
         )
         return enc_conn
 
-    def create_admin_token(self, game_id, room_id):
+    def create_admin_token(self, game_id, room_id, timeout_seconds):
         enc_conn = self.dbase.find_and_modify(
             'admin_tokens',
             query={'game_id': game_id, 'room_id': room_id, '__type__': 'AdminToken'},
@@ -104,6 +104,7 @@ class Container(object):
                     'room_id': room_id, 'game_id': game_id, '__type__': 'AdminToken'
                 }
             },
+            upsert=True,
             new=True
         )
         return enc_conn
@@ -120,13 +121,12 @@ class Container(object):
         return player
 
     def get_admin_token(self, token):
-        admin = self.dbase.filter_one(
+        return self._load_filter_one(
             'admin_tokens',
             query={'token': token,
                    'timeout_time': {'$gt': Timer.now()},
                    '__type__': 'AdminToken'},
         )
-        return admin
 
     def get_or_create_player(self, game_id, username, room_id):
         return self.dbase.find_and_modify(
@@ -370,10 +370,12 @@ class Container(object):
     def list_nodes(self):
         return self._load_filter('online_nodes', {})
 
-    def list_rooms(self, node_name=None):
-        query = {}
+    def list_rooms(self, active = True, node_name=None, game_id=None):
+        query = {"active": active}
         if node_name:
             query['node_name'] = node_name
+        if game_id:
+            query['game_id'] = game_id
         return self._load_filter('rooms', query)
 
     def list_games(self, owner_id=None, node_name=None):
@@ -603,12 +605,12 @@ class Container(object):
 
     # AdminToken
     def _serialize_admintoken(self, admintoken):
-        return dict(node_name=admintoken.node_name, token=admintoken.token,
-                    game_id=admintoken.game_id, room_id=admintoken.room_id)
+        return dict(token=admintoken.token, game_id=admintoken.game_id,
+                    room_id=admintoken.room_id, timeout_time=admintoken.timeout_time)
 
     def _build_admintoken(self, data):
-        admintoken = AdminToken(node_name=data['node_name'], token=data['token'],
-                                game_id=data['game_id'], room_id=data['room_id'])
+        admintoken = AdminToken(token=data['token'], game_id=data['game_id'],
+                                room_id=data['room_id'], timeout_time=data['timeout_time'])
         return admintoken
 
     def load_next_available_room(self):

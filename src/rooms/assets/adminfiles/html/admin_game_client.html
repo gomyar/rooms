@@ -16,16 +16,16 @@
 <div class="gameview">
     <canvas id="screen">
     </canvas>
-    <div id="actor_list" class="gui-show" data-src="admin.data.actor_list">
+    <div id="actor_list" class="gui-show" data-src="admin.actor_list">
         <div class="title">Select Actor:</div>
         <hr></hr>
-        <div class="gui-list" data-src="admin.data.actor_list" data-itervar="actor">
+        <div class="gui-list" data-src="admin.actor_list" data-itervar="actor">
             <div  data-class="actor.actor_type=='player'?'player':''" class="listed_actor" gui-click="select_actor(actor)">
                 <div class="gui-text" data-src="actor.actor_type"></div>:<div class="gui-text" data-src="actor.script"></div> <div class="gui-text" data-src="actor.username ? '(' + actor.username + ')' : ''"></div>
             </div>
         </div>
     </div>
-    <div id="selected_actor" class="gui-show" data-src="admin.data.selected_actor">
+    <div id="selected_actor" class="gui-show" data-src="admin.selected_actor">
         <div class="title" data-class="selected_actor.actor_type=='player'?'player':''">Actor:  <div class="gui-text" data-src="selected_actor.actor_type + selected_actor.username"></div></div>
         <hr></hr>
         <div class="gui-list" data-src="['actor_id', 'username', 'visible', 'docked_with', 'path', 'vector', 'state']" data-itervar="field">

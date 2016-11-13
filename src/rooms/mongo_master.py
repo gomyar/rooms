@@ -29,8 +29,8 @@ class MasterController(object):
         return self.master.connect_player(game_id, username)
 
     @request
-    def connect_admin(self, game_id):
-        return self.master.connect_admin(game_id)
+    def connect_admin(self, game_id, room_id):
+        return self.master.connect_admin(game_id, room_id)
 
 
 class Master(object):
@@ -88,11 +88,11 @@ class Master(object):
             return {'error': 'not joined'}
 
     def connect_admin(self, game_id, room_id):
-        admin_conn = self.container.create_admin_token(game_id, room_id)
+        admin_conn = self.container.create_admin_token(game_id, room_id, 300)
         room = self._get_room(game_id, admin_conn['room_id'])
         if room.get('node_name'):
             return {'host': self._get_node(room['node_name']).host,
-                    'node_name': admin_conn['node_name'],
+                    'node_name': room['node_name'],
                     'token': admin_conn['token'],
                     'game_id': admin_conn['game_id'],
                     'room_id': admin_conn['room_id']}

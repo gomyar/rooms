@@ -161,7 +161,7 @@ api_rooms.request_connection = function()
 api_rooms.connect_node = function()
 {
     console.log("Connecting to Node " + api_rooms.node_host);
-    api_rooms.socket = new WebSocket("ws://" + api_rooms.node_host + "/node_game/player_connects/" + api_rooms.token);
+    api_rooms.socket = new WebSocket("ws://" + api_rooms.node_host + "/node/player_connects/" + api_rooms.token);
     api_rooms.socket.onmessage = api_rooms.message_callback;
     api_rooms.socket.onopen = api_rooms.onopen;
     api_rooms.socket.onclose = api_rooms.onclose;
@@ -176,7 +176,7 @@ api_rooms.admin_connect = function(host, token, game_callback)
     api_rooms.token = token;
     api_rooms.node_host = host;
 
-    api_rooms.socket = new WebSocket("ws://"+host+"/node_game/admin_connects/"+token);
+    api_rooms.socket = new WebSocket("ws://"+host+"/node/admin_connects/"+token);
     api_rooms.socket.onmessage = api_rooms.message_callback;
     api_rooms.socket.onopen = api_rooms.onopen;
     api_rooms.socket.onclose = api_rooms.onclose;
