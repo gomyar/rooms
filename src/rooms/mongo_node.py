@@ -190,7 +190,6 @@ class Node(object):
             self.container.save_room(room)
 
     def admin_connects(self, ws, token):
-        import ipdb; ipdb.set_trace()
         admin_token = self.container.get_admin_token(token)
 
         if admin_token is None:

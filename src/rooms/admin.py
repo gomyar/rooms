@@ -22,3 +22,7 @@ class AdminController(object):
     @request
     def list_players(self, node_name=None):
         return self.container.list_players(node_name)
+
+    @request
+    def room_map(self, room_id):
+        return {}
