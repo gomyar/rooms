@@ -1,7 +1,9 @@
 
 var admin = {
     actor_list: [],
-    selected_actor: null
+    selected_actor: null,
+    selected_actor_list: [],
+    mapdata: {}
 };
 
 
@@ -24,10 +26,19 @@ var getUrlParameter = function getUrlParameter(sParam) {
 
 admin.load_room = function(room_id) {
     console.log("Load room" + room_id);
+    var map_id = room_id.split('.')[0];
+
+    $.get("/admin/room_map/" + map_id).success(function(data) {
+        admin.mapdata = data;
+        api_rooms.room = data['rooms'][room_id];
+        gui.requestRedraw();
+    });
 }
 
 
 admin.game_callback = function(message) {
+    console.log("Callback:");
+    console.log(message);
     if (message.command == "actor_update")
     {
         gui.requestRedraw(api_rooms.actors[message.data.actor_id].vector.end_time * 1000);
@@ -44,9 +55,9 @@ admin.game_callback = function(message) {
     }
     if (message.command == "sync")
     {
+        gui.init($('#screen')[0]);
         admin.load_room(message.data.room_id);
-        gui.zoom = 0.1;
-        gui.requestRedraw();
+        gui.zoom = 1.0;
         turtlegui.reload();
     }
 }

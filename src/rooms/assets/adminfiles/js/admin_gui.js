@@ -29,6 +29,7 @@ gui.draw_invisible_actors = false;
 
 gui.init = function(canvas)
 {
+    console.log("GUI Init");
     gui.canvas = canvas;
 
     $(gui.canvas).click(gui.canvas_clicked);
@@ -89,19 +90,10 @@ gui.canvas_mousemove = function(e)
 gui.show_actor_list = function(actors)
 {
     // show list of selected actors
-    applyscope(function (scope){
-        scope.actor_list = actors;
-    });
+    admin.actor_list = actors;
+    turtlegui.reload();
 }
 
-function applyscope(func) {
-    getscope().$apply(func);
-}
-
-
-function getscope() {
-    return $(".gameview").scope();
-}
 
 gui.canvas_mousedown = function(e)
 {
@@ -143,6 +135,8 @@ gui.canvas_clicked = function(e)
         var click_y = gui.real_y((e.clientY - $(gui.canvas).offset().top));
 
         var actors = gui.find_all_actors_at(click_x, click_y);
+        console.log("found");
+        console.log(actors);
         if (actors.length > 1)
         {
             gui.show_selected_actor_list(actors);
@@ -151,9 +145,8 @@ gui.canvas_clicked = function(e)
         else if (actors.length == 1)
         {
             gui.clear_selected_actor_list();
-            getscope().select_actor(actors[0]);
-            getscope().$apply();
-            gui.requestRedraw();
+            admin.selected_actor = actors[0];
+            turtlegui.reload();
         }
     }
     console.log("clicked");
@@ -198,7 +191,7 @@ gui.at_position = function(actor, x, y)
 
 gui.get_selected_actor = function()
 {
-    return getscope().selected_actor;
+    return admin.selected_actor;
 }
 
 
@@ -221,17 +214,15 @@ gui.find_all_actors_at = function(x, y)
 
 gui.show_selected_actor_list = function(actors)
 {
-    applyscope(function (scope){
-        scope.actor_list = actors;
-    });
+    admin.selected_actor_list = actors;
+    turtlegui.reload();
 }
 
 
 gui.clear_selected_actor_list = function()
 {
-    applyscope(function (scope){
-        scope.actor_list = [];
-    });
+    admin.selected_actor_list = [];
+    turtlegui.reload();
 }
 
 

@@ -96,7 +96,8 @@ if __name__ == "__main__":
         server.add_file_root("maps", os.path.join(options.game, "maps"))
 
         # add admin
-        server.add_controller("admin", admin.AdminController(container))
+        server.add_controller("admin", admin.AdminController(container,
+            os.path.join(options.game, "maps")))
         server.add_file_root("adminfiles", os.path.join(
             os.path.dirname(admin.__file__), "assets/adminfiles"))
 

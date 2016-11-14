@@ -183,7 +183,6 @@ api_rooms.admin_connect = function(host, token, game_callback)
     api_rooms.socket.onerror = api_rooms.onerror;
 
     api_rooms.game_callback = game_callback;
-
 }
 
 

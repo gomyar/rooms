@@ -1,10 +1,14 @@
 
+import os
+import json
+
 from rooms.rpc import request
 
 
 class AdminController(object):
-    def __init__(self, container):
+    def __init__(self, container, mappath):
         self.container = container
+        self.mappath = mappath
 
     @request
     def list_nodes(self):
@@ -25,4 +29,5 @@ class AdminController(object):
 
     @request
     def room_map(self, room_id):
-        return {}
+        map_file = open(os.path.join(self.mappath, "%s.json" % (room_id,)))
+        return json.loads(map_file.read())
