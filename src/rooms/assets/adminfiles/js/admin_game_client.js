@@ -68,12 +68,16 @@ admin.game_callback = function(message) {
 }
 
 
-admin.admin_connect = function(node_host, token)
+admin.admin_connect = function(game_id, room_id)
 {
-    api_rooms.admin_connect(node_host, token, admin.game_callback);
+    $.post('/master/connect_admin', {game_id:game_id, room_id:room_id}, function(data, status) {
+        var token = data.token;
+        var host = data.host;
+        api_rooms.admin_connect(host, token, admin.game_callback);
+    });
 }
 
 
 $( document ).ready(function() {
-    admin.admin_connect(getUrlParameter('node_host'), getUrlParameter('token'));
+    admin.admin_connect(getUrlParameter('game_id'), getUrlParameter('room_id'));
 });
