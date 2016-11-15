@@ -167,6 +167,7 @@ turtlegui.reload = function(elem, rel_data) {
             elem.show();
         } else {
             elem.hide();
+            return;
         }
     }
     if (elem.hasClass('gui-click')) {

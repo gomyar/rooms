@@ -128,7 +128,7 @@ gui.canvas_mousewheel = function(e, delta, deltaX, deltaY)
 
 gui.canvas_clicked = function(e)
 {
-    $(".selected_actor_list").remove();
+    $(".actor_list").remove();
     if (!gui.swallow_click)
     {
         var click_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
@@ -139,14 +139,14 @@ gui.canvas_clicked = function(e)
         console.log(actors);
         if (actors.length > 1)
         {
-            gui.show_selected_actor_list(actors);
+            gui.show_actor_list(actors);
             gui.requestRedraw();
         }
         else if (actors.length == 1)
         {
-            gui.clear_selected_actor_list();
-            admin.selected_actor = actors[0];
-            turtlegui.reload();
+            console.log("Single");
+            gui.clear_actor_list();
+            admin.select_actor(actors[0]);
         }
     }
     console.log("clicked");
@@ -212,16 +212,16 @@ gui.find_all_actors_at = function(x, y)
 }
 
 
-gui.show_selected_actor_list = function(actors)
+gui.show_actor_list = function(actors)
 {
-    admin.selected_actor_list = actors;
+    admin.actor_list = actors;
     turtlegui.reload();
 }
 
 
-gui.clear_selected_actor_list = function()
+gui.clear_actor_list = function()
 {
-    admin.selected_actor_list = [];
+    admin.actor_list = [];
     turtlegui.reload();
 }
 

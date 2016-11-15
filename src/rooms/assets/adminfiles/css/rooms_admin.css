@@ -275,6 +275,11 @@ div#actor_list div.listed_actor
     cursor : pointer;
 }
 
+div#actor_list div.listed_actor div
+{
+    display: inline-block;
+}
+
 div#actor_list div.listed_actor.player
 {
     color : green;

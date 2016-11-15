@@ -2,7 +2,6 @@
 var admin = {
     actor_list: [],
     selected_actor: null,
-    selected_actor_list: [],
     mapdata: {}
 };
 
@@ -22,6 +21,12 @@ var getUrlParameter = function getUrlParameter(sParam) {
         }
     }
 };
+
+
+admin.select_actor = function(actor) {
+    admin.selected_actor = actor;
+    turtlegui.reload();
+}
 
 
 admin.load_room = function(room_id) {
