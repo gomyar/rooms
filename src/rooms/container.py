@@ -46,9 +46,33 @@ class Container(object):
         return str(uuid.uuid1())
 
     def create_player_token(self, game_id, username, timeout_seconds):
+        player = self.get_token_for_player(game_id, username)
+        if player:
+            return player
+        else:
+            return self._update_player_token(game_id, username, timeout_seconds)
+
+    def get_token_for_player(self, game_id, username):
+        player = self.dbase.filter_one(
+            'actors',
+            query={'game_id': game_id, 'username': username,
+                   'timeout_time': {'$gt': Timer.now()},
+                   '__type__': 'PlayerActor'},
+            fields=['game_id', 'username', 'token', 'timeout_time', 'room_id',
+                    'actor_id', 'node_name'],
+        )
+        return player
+
+    def _update_player_token(self, game_id, username, timeout_seconds):
         enc_conn = self.dbase.find_and_modify(
             'actors',
-            query={'game_id': game_id, '__type__': 'PlayerActor'},
+            query={'game_id': game_id, 'username': username,
+                   '__type__': 'PlayerActor',
+                   '$or': [{'timeout_time': {'$lt': Timer.now()}},
+                           {'token': {'$exists': False}},
+                           {'token': None},
+                          ]
+                  },
             update={
                 '$set':{
                     'timeout_time': Timer.now() + timeout_seconds,
@@ -77,7 +101,7 @@ class Container(object):
         )
         return enc_conn
 
-    def get_player_token(self, token):
+    def get_player_for_token(self, token):
         player = self.dbase.filter_one(
             'actors',
             query={'token': token,
@@ -104,8 +128,6 @@ class Container(object):
             update={
                 '$setOnInsert': self._new_player_data(game_id, room_id,
                                                       username, 'active'),
-                '$set':{'token': self.new_token(),
-                    'timeout_time': Timer.now() + 300,}
             },
             upsert=True,
             new=True,

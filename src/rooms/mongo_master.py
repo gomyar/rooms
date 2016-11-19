@@ -58,12 +58,7 @@ class Master(object):
         room_id = self.scripts['game_script'].call("start_room", **kwargs)
         player = self._get_player(game_id, username, room_id)
         room = self._get_room(game_id, player['room_id'])
-        if room.get('node_name'):
-            return {'host': self._get_node(room['node_name']).host,
-                    'actor_id': player['actor_id'],
-                    'token': player['token']}
-        else:
-            return {'wait': True}
+        return {'joined': True}
 
     def list_games(self, username):
         games = self.container.games_owned_by(username)

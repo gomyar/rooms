@@ -76,17 +76,22 @@ class MockDbase(object):
         for item in found:
             item.update(update)
 
+    def _cmpf(self, o, i):
+        k, v = i
+        if k == '$or':
+            return any(self._cmpf(o, i.items()[0]) for i in v)
+        if isinstance(v, dict):
+            if '$lt' in v:
+                return o.get(k) < v['$lt']
+            elif '$gt' in v:
+                return o.get(k) > v['$gt']
+            elif '$exists' in v:
+                return k in o == v['$exists']
+        else:
+            return i in o.items()
+
     def _queryfilter(self, items, query):
-        def cmpf(o, i):
-            k, v = i
-            if isinstance(v, dict):
-                if '$lt' in v:
-                    return o.get(k) < v['$lt']
-                elif '$gt' in v:
-                    return o.get(k) > v['$gt']
-            else:
-                return i in o.items()
-        found = [o for o in items if all([cmpf(o, i) for \
+        found = [o for o in items if all([self._cmpf(o, i) for \
             i in query.items()])]
         return found
 

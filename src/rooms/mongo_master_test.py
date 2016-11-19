@@ -108,7 +108,7 @@ class MasterTest(unittest.TestCase):
         self.container.new_token = lambda: "TOKEN1"
         game_id = self.master.create_game("bob", '', '')
         result = self.master.join_game(game_id, "ned")
-        self.assertEquals({'wait': True}, result)
+        self.assertEquals({'joined': True}, result)
 
         # node picks up player
         self.db.dbases['rooms']['rooms_0'] = {

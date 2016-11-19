@@ -1,4 +1,8 @@
 
+ - split join-game from player-connect
+
+ - validate token stored on node for each player command
+
 bulk write actor saver
  - listen for exceptions from worker gthreads (actor_loader)
 

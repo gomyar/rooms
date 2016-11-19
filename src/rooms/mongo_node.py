@@ -117,7 +117,8 @@ class Node(object):
             log.debug("Removed conn: %s", conn)
 
     def player_connects(self, ws, token):
-        player_conn = self.container.get_player_token(token)
+        # validate stored token first, if invalid, do this:
+        player_conn = self.container.get_player_for_token(token)
 
         if player_conn is None:
             raise Exception("Unauthorized")
