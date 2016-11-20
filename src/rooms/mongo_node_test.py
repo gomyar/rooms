@@ -89,6 +89,7 @@ class NodeTest(unittest.TestCase):
         self.dbase.dbases['actors'] = {}
         self.dbase.dbases['actors']['actor1'] = \
             {"__type__": "Actor", "_id": "actor1", "actor_id": "actor1",
+            "_loadstate": None,
             "parent_id": None,
             "game_id": "game1", "room_id": "room1",
             "actor_type": "loaded", "model_type": "model",
@@ -295,10 +296,6 @@ class NodeTest(unittest.TestCase):
                                         u'start_time': 1},
                             u'visible': True}},
             {u'command': u'disconnect'}], ws.updates)
-
-    def testActorsLoadedNoLongerInLimbo(self):
-        # container.load_actors_for_room() doesn't update _loadstate
-        pass
 
     def testPlayerConnectsTwice(self):
         # a player which connects twice should get a new player_actor the

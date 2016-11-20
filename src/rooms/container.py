@@ -170,7 +170,7 @@ class Container(object):
         room_id = room.room_id
         log.debug("Load actors for room: %s %s", game_id, room_id)
         actors_list = self._load_filter("actors", dict(game_id=game_id,
-            room_id=room_id, docked_with=None))
+            room_id=room_id, docked_with=None, _loadstate=None))
         log.debug("Found %s actors", len(actors_list))
         for actor in actors_list:
             docked_actors = ActorLoader(room)._load_docked(game_id, actor)
@@ -420,7 +420,6 @@ class Container(object):
         obj = self.factory.dict_to_obj(enc_dict)
         obj._id = str(db_id)
         return obj
-
 
     def load_next_available_room(self):
         return self.dbase.find_and_modify("rooms",

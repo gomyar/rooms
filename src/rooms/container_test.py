@@ -71,6 +71,7 @@ class ContainerTest(unittest.TestCase):
 
         expected = {'actors_0': {u'__type__': u'PlayerActor',
               '_id': 'actors_0',
+              "_loadstate": None,
               u'actor_id': u'id1',
               u'status': None,
               u'parent_id': None,
@@ -178,6 +179,7 @@ class ContainerTest(unittest.TestCase):
         self.dbase.dbases['actors'] = {}
         self.dbase.dbases['actors']['actor1'] = \
             {"__type__": "Actor", "_id": "actor1", "actor_id": None,
+            "_loadstate": None,
             "parent_id": None,
             "game_id": "games_0", "room_id": "map1.room1",
             "actor_type": "test", "model_type": "model",
@@ -192,6 +194,7 @@ class ContainerTest(unittest.TestCase):
             "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
             "end_time": 10,
             }, "script_name": "mock_script"}
+
         room = self.container.load_room("games_0", "map1.room1")
         self.assertEquals(self.geography, room.geography)
         self.assertEquals(room, self.geography.room)
@@ -209,6 +212,7 @@ class ContainerTest(unittest.TestCase):
         self.dbase.dbases['actors'] = {}
         self.dbase.dbases['actors']['actor1'] = \
             {"__type__": "Actor", "_id": "actor1", "actor_id": None,
+            "_loadstate": None,
             "parent_id": None,
             "game_id": "games_0", "room_id": "map1.room1",
             "actor_type": "test", "model_type": "model",
@@ -225,6 +229,7 @@ class ContainerTest(unittest.TestCase):
             }, "script_name": "mock_script"}
         self.dbase.dbases['actors']['child1'] = \
             {"__type__": "Actor", "_id": "child1", "actor_id": None,
+            "_loadstate": None,
             "parent_id": None,
             "game_id": "games_0", "room_id": None,
             "actor_type": "test", "model_type": "model",
@@ -281,6 +286,7 @@ class ContainerTest(unittest.TestCase):
         actor_dict = self.dbase.dbases['actors']["actors_0"]
         expected = {u'__type__': u'Actor',
             '_id': 'actors_0',
+            "_loadstate": None,
             u'actor_id': "id1",
             u'parent_id': None,
             u'actor_type': u'mock_actor',
@@ -319,6 +325,7 @@ class ContainerTest(unittest.TestCase):
 #        self.container.save_actor(actor)
         self.assertEquals({u'__type__': u'Actor',
             '_id': 'actors_0',
+            "_loadstate": None,
             u'actor_id': "id1",
             u'parent_id': None,
             u'actor_type': u'mock_actor',

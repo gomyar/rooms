@@ -168,7 +168,6 @@ class MockScript(object):
         self.expect = expect or {}
 
     def call(self, method, *args, **kwargs):
-        print "Script called: %s(%s, %s)" % (method, args, kwargs)
         self.called.append((method, args, kwargs))
         return self.expect.get(method)
 

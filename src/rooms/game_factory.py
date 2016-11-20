@@ -161,7 +161,8 @@ class GameFactory(object):
             username=actor.username,
             docked_with=actor.docked_with.actor_id if \
                 actor.docked_with else None,
-            speed=actor.speed)
+            speed=actor.speed,
+            _loadstate=None)
 
     def _build_actor(self, data):
         script = self.container.node.scripts[data['script_name']] if self.container.node else None
