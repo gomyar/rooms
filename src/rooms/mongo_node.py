@@ -72,6 +72,7 @@ class Node(object):
         self.room_loader = RoomLoader(self)
         self.host = host
         self.load = 0.0
+        self.connections = dict()
 
         self._nodeupdater_gthread = None
         self._roomload_gthread = None
@@ -116,9 +117,18 @@ class Node(object):
             self.connections.pop(conn.token)
             log.debug("Removed conn: %s", conn)
 
+    def _lookup_connection(self, token):
+        if token in self.connections and (\
+                self.connections[token]['timeout_time'] < Timer.now()):
+            return self.connections[token]
+        else:
+            player_conn = self.container.get_player_for_token(token)
+            if player_conn:
+                self.connections[token] = player_conn
+            return player_conn
+
     def player_connects(self, ws, token):
-        # validate stored token first, if invalid, do this:
-        player_conn = self.container.get_player_for_token(token)
+        player_conn = self._lookup_connection(token)
 
         if player_conn is None:
             raise Exception("Unauthorized")

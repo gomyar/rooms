@@ -8,6 +8,7 @@ from rooms.dbase.mongo_dbase import MongoDBase
 from rooms.mongo_master import Master
 from rooms.testutils import MockDbase, MockRoom, MockRoomBuilder
 from rooms.testutils import MockIDFactory
+from rooms.testutils import MockTimer
 from rooms.online_node import OnlineNode
 
 
@@ -24,33 +25,40 @@ class MasterTest(unittest.TestCase):
         self.master = Master(self.container)
 
         MockIDFactory.setup_mock()
+        MockTimer.setup_mock()
 
     def tearDown(self):
         MockIDFactory.teardown_mock()
+        MockTimer.teardown_mock()
 
     def testPlayerCreatesGame(self):
         self.assertEquals({}, self.db.dbases['actors'])
         self.assertEquals({}, self.db.dbases['rooms'])
 
-        game_id = self.master.create_game("bob", 'test', 'a test')
+        game_id = self.master.create_game("bob",
+            name='test', description='a test')
         self.assertEquals('games_0', game_id)
 
         # create game in db
         self.assertEquals({
             '__type__': 'Game',
             '_id': 'games_0',
-            'name': 'test',
-            'description': 'a test',
+            'created_on': 0,
+            'state': {
+                'name': u'test',
+                'description': u'a test',
+            },
             'owner_id': u'bob'},
             self.db.dbases['games']['games_0'])
 
     def testListGamesOwnedByUser(self):
         self.assertEquals([], self.master.list_games('bob'))
 
-        game_id = self.master.create_game('bob', 'test', 'a test')
+        game_id = self.master.create_game('bob', name='test',
+                                          description='a test')
 
         self.assertEquals([
-            {'game_id': game_id, 'name': 'test', 'description': 'a test'}],
+            {'game_id': game_id, 'state': {'name': 'test', 'description': 'a test'}}],
             self.master.list_games('bob'))
 
         self.assertEquals([], self.master.list_games('ned'))
@@ -58,7 +66,7 @@ class MasterTest(unittest.TestCase):
     def testListAllPlayersForUser(self):
         self.assertEquals([], self.master.list_players('bob'))
 
-        game_id = self.master.create_game('bob', 'test', 'a test')
+        game_id = self.master.create_game('bob')
 
         self.assertEquals([], self.master.list_players('bob'))
 
@@ -75,7 +83,8 @@ class MasterTest(unittest.TestCase):
             self.master.list_players('ned'))
 
         # create another game
-        game_id_2 = self.master.create_game('bob', 'test2', '2nd test')
+        game_id_2 = self.master.create_game('bob', name='test2',
+                                            description='2nd test')
 
         self.master.join_game(game_id_2, 'ned')
 
@@ -85,7 +94,7 @@ class MasterTest(unittest.TestCase):
             sorted(self.master.list_players('ned')))
 
     def testPlayerJoinsGame(self):
-        game_id = self.master.create_game("bob", '', '')
+        game_id = self.master.create_game("bob")
         self.master.join_game(game_id, "bob")
 
         self.assertEquals(1, len(self.db.dbases['rooms']))
@@ -106,7 +115,7 @@ class MasterTest(unittest.TestCase):
 
     def testPlayerConnectsToGame(self):
         self.container.new_token = lambda: "TOKEN1"
-        game_id = self.master.create_game("bob", '', '')
+        game_id = self.master.create_game("bob")
         result = self.master.join_game(game_id, "ned")
         self.assertEquals({'joined': True}, result)
 

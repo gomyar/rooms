@@ -9,16 +9,16 @@ class MasterController(object):
         self.master = master
 
     @request
-    def create_game(self, owner_username, name, description):
-        return self.master.create_game(owner_username, name, description)
+    def create_game(self, owner_username, **state):
+        return self.master.create_game(owner_username, **state)
 
     @request
     def join_game(self, game_id, username, **kwargs):
         return self.master.join_game(game_id, username, **kwargs)
 
     @request
-    def list_games(self, username):
-        return self.master.list_games(username)
+    def list_games(self, owner_username):
+        return self.master.list_games(owner_username)
 
     @request
     def list_players(self, username):
@@ -47,8 +47,8 @@ class Master(object):
     def load_scripts(self, script_path):
         self.scripts.load_scripts(script_path)
 
-    def create_game(self, owner_username, name, description):
-        game = self.container.create_game(owner_username, name, description)
+    def create_game(self, owner_username, **state):
+        game = self.container.create_game(owner_username, state)
         return game.game_id
 
     def join_game(self, game_id, username, **kwargs):
@@ -60,10 +60,10 @@ class Master(object):
         room = self._get_room(game_id, player['room_id'])
         return {'joined': True}
 
-    def list_games(self, username):
-        games = self.container.games_owned_by(username)
-        return [{'game_id': g.game_id, 'name': g.name,
-                 'description': g.description} for g in games]
+    def list_games(self, owner_username=None):
+        games = self.container.games_owned_by(owner_username)
+        return [{'game_id': g.game_id, 'state': g.state,
+                } for g in games]
 
     def list_players(self, username):
         players = self.container.all_players_for(username)

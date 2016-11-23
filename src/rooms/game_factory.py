@@ -81,11 +81,12 @@ class GameFactory(object):
 
     # Game
     def _serialize_game(self, game):
-        return dict(owner_id=game.owner_id, name=game.name,
-            description=game.description)
+        return dict(owner_id=game.owner_id, state=game.state,
+                    created_on=game.created_on)
 
     def _build_game(self, data):
-        game = Game(data['owner_id'], data.get("name"), data.get("description"))
+        game = Game(data['owner_id'], data['state'])
+        game.created_on = data['created_on']
         game.item_registry = self.container.item_registry
         return game
 

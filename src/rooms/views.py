@@ -70,7 +70,7 @@ class JsonView(object):
 
     def view_game(self, game):
         return dict(game_id=str(game._id), owner_id=game.owner_id,
-                    name=game.name)
+                    state=game.state)
 
     def view_syncdict(self, syncdict):
         return syncdict._data

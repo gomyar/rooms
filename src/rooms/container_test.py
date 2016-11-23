@@ -42,15 +42,19 @@ class ContainerTest(unittest.TestCase):
         MockIDFactory.teardown_mock()
 
     def testSaveGame(self):
-        self.game = Game("bob", "Bob's game", "A game by Bob")
+        self.game = Game("bob", state={"name": "Bob's game",
+                                       "description": "A game by Bob"})
 
         self.container.save_game(self.game)
 
         self.assertEquals({'games_0': {u'__type__': u'Game',
             '_id': 'games_0',
-            u'name': "Bob's game",
-            u'description': "A game by Bob",
-            u'owner_id': u'bob'}},
+            'created_on': 0,
+            'state': {
+                'name': "Bob's game",
+                'description': "A game by Bob",
+            },
+            'owner_id': 'bob'}},
             self.dbase.dbases['games'])
 
     def testLoadGame(self):
@@ -58,6 +62,8 @@ class ContainerTest(unittest.TestCase):
             '_id': 'games_0',
             u'name': "Bob's game",
             u'description': "A game by Bob",
+            'state': {},
+            'created_on': 0,
             u'owner_id': u'bob'}}
         game = self.container.load_game("games_0")
 

@@ -323,8 +323,8 @@ class Container(object):
     def save_game(self, game):
         self._save_object(game, "games")
 
-    def create_game(self, owner_id, name=None, description=None):
-        game = Game(owner_id, name, description)
+    def create_game(self, owner_id, state=None):
+        game = Game(owner_id, state or {})
         self.save_game(game)
         return game
 
@@ -336,8 +336,11 @@ class Container(object):
         games = [self._decode_enc_dict(enc_dict) for enc_dict in game_dicts]
         return games
 
-    def games_owned_by(self, username):
-        return self._find_games(owner_id=username)
+    def games_owned_by(self, username=None):
+        if username:
+            return self._find_games(owner_id=username)
+        else:
+            return self._find_games()
 
     def create_player(self, room, actor_type, script, username, game_id):
         player = PlayerActor(room, actor_type, script, username,

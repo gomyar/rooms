@@ -303,6 +303,9 @@ class NodeTest(unittest.TestCase):
         # connection to the same player actor the second time
         pass
 
+    def testCheckTokenOnPlayerCommand(self):
+        pass
+
     def testGetNextPendingRoom(self):
         # queryupdate mongo for next pending room:
         #   state='pending' order by 'state_changed_time'

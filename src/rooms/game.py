@@ -1,11 +1,12 @@
 
+from rooms.timer import Timer
+
 
 class Game(object):
-    def __init__(self, owner_id, name=None,
-                 description=None):
+    def __init__(self, owner_id, state):
         self.owner_id = owner_id
-        self.name = name
-        self.description = description
+        self.state = state
+        self.created_on = Timer.now()
         self.item_registry = None
         self._id = None
 
