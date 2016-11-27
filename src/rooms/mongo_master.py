@@ -17,7 +17,7 @@ class MasterController(object):
         return self.master.join_game(game_id, username, **kwargs)
 
     @request
-    def list_games(self, owner_username):
+    def list_games(self, owner_username=None):
         return self.master.list_games(owner_username)
 
     @request
@@ -63,6 +63,7 @@ class Master(object):
     def list_games(self, owner_username=None):
         games = self.container.games_owned_by(owner_username)
         return [{'game_id': g.game_id, 'state': g.state,
+                 'owner_username': g.owner_id,
                 } for g in games]
 
     def list_players(self, username):

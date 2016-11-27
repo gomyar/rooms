@@ -31,21 +31,20 @@ class RPCWaitException(Exception):
 
 
 class WSGIRPCClient(object):
-    def __init__(self, host, port, namespace=None):
+    def __init__(self, host, namespace=None):
         self.host = host
-        self.port = port
         self.namespace = namespace or ""
 
     def __eq__(self, rhs):
         return type(rhs) is WSGIRPCClient and self.host == rhs.host and \
-            self.port == rhs.port and self.namespace == rhs.namespace
+            self.namespace == rhs.namespace
 
     def http_connect(self, url, params):
         return urllib2.urlopen(url, params)
 
     def call(self, method, **kwargs):
         try:
-            url = "http://%s:%s/%s" % (self.host, self.port,
+            url = "http://%s/%s" % (self.host,
                 os.path.join(self.namespace, method))
             response = self.http_connect(url, urllib.urlencode(kwargs)).read()
             return json.loads(response)
