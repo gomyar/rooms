@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css" href="/static/walkabout/css/game.css"/>
+{% endblock %}
+
+{% block js %}
+<script src="/static/walkabout/js/api_rooms.js"></script>
+<script src="/static/walkabout/js/turtlegui.js"></script>
+<script src="/static/walkabout/js/guiassets.js"></script>
+<script src="/static/walkabout/js/canvas.js"></script>
+<script src="/static/walkabout/js/game.js"></script>
+<script>
+var game_id = "{{ game_id }}";
+</script>
+{% endblock %}
+
+{% block content %}
+
+{% verbatim %}
+<div>
+    <div id="gameview" ng-controller="gameCtrl">
+        <canvas id="screen">
+        </canvas>
+        <div id="connecting" ng-show="connecting">Connecting</div>
+    </div>
+</div>
+
+{% endverbatim %}
+
+{% endblock %}

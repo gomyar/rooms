@@ -5,10 +5,12 @@ from . views import *
 
 
 urlpatterns = [
-    url(r'^playing_games', playing_games, name='rooms_api_playing_games'),
-    url(r'^available_games', available_games, name='rooms_api_available_games'),
-    url(r'^create_game', create_game, name='rooms_api_create_game'),
+    url(r'^$', index, name='walkabout_index'),
+    url(r'^play_game/(?P<game_id>[\w-]+)', play_game, name='walkabout_game'),
+    url(r'^playing_games', playing_games, name='walkabout_playing_games'),
+    url(r'^available_games', available_games, name='walkabout_available_games'),
+    url(r'^create_game', create_game, name='walkabout_create_game'),
 
-    url(r'^join_game', join_game, name='rooms_api_join_game'),
-    url(r'^player_connects', player_connects, name='rooms_api_player_connects'),
+    url(r'^join_game', join_game, name='walkabout_join_game'),
+    url(r'^player_connects', player_connects, name='walkabout_player_connects'),
 ]

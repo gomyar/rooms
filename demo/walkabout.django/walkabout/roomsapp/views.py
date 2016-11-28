@@ -1,7 +1,6 @@
 import json
 
 from django.shortcuts import render
-from django.shortcuts import render_to_response
 from django.shortcuts import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
@@ -10,8 +9,7 @@ from django.conf import settings
 from rooms.rpc import WSGIRPCClient
 
 
-rpc_rooms = WSGIRPCClient(settings.ROOMS_HOST,
-    "master")
+rpc_rooms = WSGIRPCClient(settings.ROOMS_HOST, "master")
 
 
 def responsejson(func):
@@ -19,6 +17,19 @@ def responsejson(func):
         return HttpResponse(json.dumps(func(request, *args, **kwargs)),
             content_type="application/json")
     return call
+
+
+@login_required
+@require_http_methods(['GET'])
+def index(request):
+    return render(request, "walkabout/index.html", dict(user=request.user))
+
+
+@login_required
+@require_http_methods(['GET'])
+def play_game(request, game_id):
+    return render(request, "walkabout/game.html", dict(user=request.user,
+                                                       game_id=game_id))
 
 
 @login_required
@@ -44,7 +55,8 @@ def available_games(request):
 @require_http_methods(['POST'])
 @responsejson
 def create_game(request):
-    game_id = rpc_rooms.call("create_game", owner_id=request.user.username)
+    game_id = rpc_rooms.call("create_game",
+                             owner_username=request.user.username)
     return game_id
 
 
@@ -52,9 +64,8 @@ def create_game(request):
 @require_http_methods(['POST'])
 @responsejson
 def join_game(request):
-    body = json.loads(request.body)
     node_info = rpc_rooms.call("join_game", username=request.user.username,
-        **body)
+        game_id=request.POST['game_id'])
     return node_info
 
 
