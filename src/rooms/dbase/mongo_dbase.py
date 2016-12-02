@@ -47,7 +47,9 @@ class MongoDBase(object):
             {"_id": bson.ObjectId(object_id)}))
 
     def filter_one(self, collection_name, query, fields=None):
-        return self._collection(collection_name).find_one(query, fields=fields)
+        projection = dict((f, 1) for f in fields) if fields else None
+        return self._collection(collection_name).find_one(query,
+            projection=projection)
 
     def filter(self, collection_name, query):
         return self._collection(collection_name).find(query)

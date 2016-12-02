@@ -1,0 +1,19 @@
+body
+{
+    font-weight : bold;
+    font-size : 12px;
+}
+
+div#gameview
+{
+    position : absolute;
+    top : 0px;
+    bottom : 0px;
+    left : 0px;
+    right : 0px;
+}
+
+#screen
+{
+    background-color : #000000;
+}

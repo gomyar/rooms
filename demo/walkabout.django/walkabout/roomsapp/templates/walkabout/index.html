@@ -10,22 +10,22 @@
 
 <div>
     <div id="main">
-        <div id="playing_games" class="gui-list" data-src="index.playing_games" data-itervar="game">
+        <div id="playing_games" data-gui-list="index.playing_games" data-itervar="game">
             <div class="game">
-                <div class="owner gui-text" data-src="game.owner_username"></div>
-                <input type="button" class="gui-click" data-clicked="index.play_game(game.game_id)" value="Play"></input>
+                <div class="owner" data-gui-text="game.owner_username"></div>
+                <input type="button" data-gui-click="index.play_game(game.game_id)" value="Play"></input>
             </div>
         </div>
 
-        <div id="available_games" class="gui-list" data-src="index.available_games" data-itervar="game">
+        <div id="available_games" data-gui-list="index.available_games" data-itervar="game">
             <div class="game">
-                <div class="owner gui-text" data-src="game.owner_username"></div>
-                <input type="button" class="gui-click" data-clicked="index.join_game(game.game_id)" value="Join"></input>
+                <div class="owner" data-gui-text="game.owner_username"></div>
+                <input type="button" data-gui-click="index.join_game(game.game_id)" value="Join"></input>
             </div>
         </div>
 
         <div id="create_game">
-            <input type="button" class="gui-click" data-clicked="index.create_game()" value="Create Game"></input>
+            <input type="button" data-gui-click="index.create_game()" value="Create Game"></input>
         </div>
     </div>
 </div>

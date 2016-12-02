@@ -153,16 +153,16 @@ turtlegui.reload = function(elem, rel_data) {
     if (rel_data) {
         elem.data('data-rel', rel_data);
     }
-    if (elem.hasClass('gui-text')) {
-        value = turtlegui._get_safe_value(elem, rel_data, 'data-src');
+    if (elem.attr('data-gui-text')) {
+        value = turtlegui._get_safe_value(elem, rel_data, 'data-gui-text');
         elem.text(value);
     }
-    if (elem.attr('data-class')) {
-        value = turtlegui._get_safe_value(elem, rel_data, 'data-class');
+    if (elem.attr('data-gui-class')) {
+        value = turtlegui._get_safe_value(elem, rel_data, 'data-gui-class');
         elem.addClass(value);
     }
-    if (elem.hasClass('gui-show')) {
-        value = turtlegui._get_safe_value(elem, rel_data, 'data-src');
+    if (elem.attr('data-gui-show')) {
+        value = turtlegui._get_safe_value(elem, rel_data, 'data-gui-show');
         if (value) {
             elem.show();
         } else {
@@ -170,13 +170,13 @@ turtlegui.reload = function(elem, rel_data) {
             return;
         }
     }
-    if (elem.hasClass('gui-click')) {
+    if (elem.attr('data-gui-click')) {
         elem.click(function(e) {
-            return turtlegui._relative_eval(elem, elem.attr('data-clicked'));
+            return turtlegui._relative_eval(elem, elem.attr('data-gui-click'));
         });
     }
-    if (elem.hasClass('gui-list')) {
-        var list = turtlegui._get_safe_value(elem, rel_data, 'data-src');
+    if (elem.attr('data-gui-list')) {
+        var list = turtlegui._get_safe_value(elem, rel_data, 'data-gui-list');
         var rel_key = elem.attr('data-itervar');
         var orig_elems = elem.children();
         var first_elem = $(orig_elems[0]);
@@ -198,9 +198,9 @@ turtlegui.reload = function(elem, rel_data) {
         orig_elems.remove();
         elem.prepend(first_elem);
     }
-    else if (elem.hasClass('gui-include')) {
-        elem.removeClass('gui-include');
-        var url = elem.attr('data-url');
+    else if (elem.attr('data-gui-include') && !elem.attr('data-gui-included')) {
+        elem.attr('data-gui-included', true);
+        var url = elem.attr('data-gui-include');
         turtlegui.load_snippet(elem, url, rel_data);
     }
     else {

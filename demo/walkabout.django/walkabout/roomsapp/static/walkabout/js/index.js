@@ -7,13 +7,13 @@ var index = {
 
 
 index.play_game = function(game_id) {
-	window.location = "/node/play_game/" + game_id;
+	window.location = "/rooms/play_game/" + game_id;
 };
 
 index.join_game = function(game_id) {
 	$.post("/rooms/join_game", {"game_id": game_id}).success(
 		function(data){
-			window.location = "/node/play_game/" + game_id;
+            index.play_game(game_id);
 		});
 };
 

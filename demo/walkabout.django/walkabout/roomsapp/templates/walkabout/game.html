@@ -19,10 +19,10 @@ var game_id = "{{ game_id }}";
 
 {% verbatim %}
 <div>
-    <div id="gameview" ng-controller="gameCtrl">
+    <div id="gameview">
         <canvas id="screen">
         </canvas>
-        <div id="connecting" ng-show="connecting">Connecting</div>
+        <div id="connecting" data-gui-show="game.connecting">Connecting</div>
     </div>
 </div>
 

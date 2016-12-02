@@ -1,16 +1,16 @@
 <div>
-    <div class="gui-list" data-src="admin.data.games" data-itervar="game">
+    <div data-gui-list="admin.data.games" data-itervar="game">
         <div class="node tableheader">
             <div class="nodeinfo">
-                <div class="gui-text gamename" data-src="game.name"></div>
-                <div class="gui-click showgame button" data-clicked="admin.show_game_rooms(game)">Show Rooms</div>
+                <div class="gamename" data-gui-text="game.name"></div>
+                <div class="showgame button" data-gui-click="admin.show_game_rooms(game)">Show Rooms</div>
             </div>
             <div class="roomlist">
-                <div class="gui-list" data-src="game.rooms" data-itervar="room">
+                <div data-gui-list="game.rooms" data-itervar="room">
                     <div class="room_info">
-                        <div class="gui-text gameid" data-src="room.game_id"></div>
-                        <div class="gui-text roomid" data-src="room.room_id"></div>
-                        <div class="gui-click button" data-clicked="admin.room_connect(room)">Connect</div>
+                        <div class="gameid" data-gui-text="room.game_id"></div>
+                        <div class="roomid" data-gui-text="room.room_id"></div>
+                        <div class="button" data-gui-click="admin.room_connect(room)">Connect</div>
                     </div>
                 </div>
             </div>
