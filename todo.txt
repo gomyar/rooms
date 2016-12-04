@@ -1,4 +1,21 @@
 
+flask version:
+ - rooms-new creates skeleton project
+   - templates
+   - static files
+   - script dir
+   - maps dir
+   - items dir
+   - logging.conf
+   - game.conf
+
+ - run rooms to start server, includes
+   - node
+   - master
+   - game (from templates and static)
+
+
+
  - player creation borked
  - connection stays open even if no player actor found
  - all actors active - this a bug or not?

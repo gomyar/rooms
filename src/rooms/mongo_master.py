@@ -56,7 +56,8 @@ class Master(object):
             return {'error': 'no such game'}
         game = self.container.load_game(game_id)
         room_id = self.scripts['game_script'].call("start_room", **kwargs)
-        player = self._get_player(game_id, username, room_id)
+        player = self.container.get_or_create_player(game_id, username,
+                                                     room_id)
         room = self._get_room(game_id, player['room_id'])
         return {'joined': True}
 
@@ -97,9 +98,6 @@ class Master(object):
 
     def _get_node(self, node_name):
         return self.container.load_node(node_name)
-
-    def _get_player(self, game_id, username, room_id):
-        return self.container.get_or_create_player(game_id, username, room_id)
 
     def _get_room(self, game_id, room_id):
         # create/upsert room
