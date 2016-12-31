@@ -58,7 +58,8 @@ class MasterTest(unittest.TestCase):
                                           description='a test')
 
         self.assertEquals([
-            {'game_id': game_id, 'state': {'name': 'test', 'description': 'a test'}}],
+            {'game_id': game_id, 'owner_username': 'bob',
+             'state': {'name': 'test', 'description': 'a test'}}],
             self.master.list_games('bob'))
 
         self.assertEquals([], self.master.list_games('ned'))

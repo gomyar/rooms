@@ -71,7 +71,7 @@ class RPCTest(unittest.TestCase):
         self.assertEquals(["response"], self.rpc_client.call("call_me",
             arg1="hello"))
 
-        self.assertEquals("http://10.10.10.1:8888/call_me", self.mock_http_url)
+        self.assertEquals("http://10.10.10.1/call_me", self.mock_http_url)
         self.assertEquals("arg1=hello", self.mock_http_kwargs)
 
     def testNamespace(self):
@@ -80,7 +80,7 @@ class RPCTest(unittest.TestCase):
         self.assertEquals(["response"], self.rpc_client.call("call_me",
             arg1="hello"))
 
-        self.assertEquals("http://10.10.10.1:8888/dir/call_me",
+        self.assertEquals("http://10.10.10.1/dir/call_me",
             self.mock_http_url)
         self.assertEquals("arg1=hello", self.mock_http_kwargs)
 
