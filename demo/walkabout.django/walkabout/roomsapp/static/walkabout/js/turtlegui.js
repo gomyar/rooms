@@ -1,1 +1,0 @@
-../../../../../../../src/rooms/assets/adminfiles/js/turtlegui.js

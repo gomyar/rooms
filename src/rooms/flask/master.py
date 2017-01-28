@@ -17,7 +17,7 @@ def join_game(game_id):
     return flask.redirect(flask.url_for('node.play', game_id=game_id))
 
 
-@bp_master.route("/join_game/<game_id>")
+@bp_master.route("/connect/<game_id>")
 @login_required
 def connect(game_id):
     # lookup game

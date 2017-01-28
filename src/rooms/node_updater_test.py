@@ -3,7 +3,7 @@ import unittest
 
 from rooms.testutils import MockDbase
 from rooms.container import Container
-from rooms.mongo_node import Node
+from rooms.node import Node
 from rooms.node_updater import NodeUpdater
 
 from rooms.testutils import MockTimer

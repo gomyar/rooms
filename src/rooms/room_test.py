@@ -20,7 +20,7 @@ from rooms.player import PlayerActor
 from rooms.script import Script
 from rooms.testutils import MockVision
 from rooms.actor import Actor
-from rooms.mongo_node import Node
+from rooms.node import Node
 from testutils import MockTimer
 
 

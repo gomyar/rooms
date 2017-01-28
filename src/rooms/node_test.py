@@ -1,54 +1,45 @@
 
-import unittest
-import gevent
-from gevent.queue import Queue
 import os
-from urllib2 import HTTPError
+import unittest
+from mock import Mock
+from mock import patch
 
+from rooms.container import Container
 from rooms.node import Node
 from rooms.room import Room
-from rooms.player import PlayerActor
-from rooms.testutils import MockContainer
-from rooms.testutils import MockRpcClient
-from rooms.testutils import MockScript
-from rooms.testutils import MockRoom
-from rooms.testutils import MockTimer
-from rooms.testutils import MockWebsocket
-from rooms.testutils import MockActor
+from rooms.testutils import MockDbase
 from rooms.testutils import MockRoomBuilder
+from rooms.testutils import MockRoom
+from rooms.testutils import MockNode
+from rooms.testutils import MockGeog
+from rooms.testutils import MockScript
+from rooms.testutils import MockWebsocket
+from rooms.testutils import MockTimer
+from rooms.testutils import WebsocketTest
 from rooms.testutils import MockIDFactory
-from rooms.rpc import RPCException
-from rooms.rpc import RPCWaitException
-from rooms.position import Position
-from rooms.actor import Actor
-from rooms.node import PlayerConnection
-from rooms.room_builder import RoomBuilder
 from rooms.room_builder import FileMapSource
+from rooms.room_builder import RoomBuilder
+from rooms.script import Script
+from rooms.player import PlayerActor
 
 
-class NodeOld(object):
+class NodeTest(unittest.TestCase):
     def setUp(self):
-        self.player_script = MockScript()
-        self.game_script = MockScript()
-        self.mock_script = MockScript()
-        self.mock_rpc = MockRpcClient()
-        self.node = Node("10.10.10.1", 8000, "master", 9000)
-        self.node._create_token = lambda: "TOKEN1"
-        self.node.scripts['player_script'] = self.player_script
-        self.node.scripts['game_script'] = self.game_script
-        self.node.scripts['mock_script'] = self.mock_script
-        self.node.master_conn = self.mock_rpc
-        self.room1 = Room("game1", "map1.room1", self.node)
-        self.room1.coords(0, 0, 10, 10)
-        self.room2 = Room("game1", "map1.room2", self.node)
-        self.room2.coords(0, 0, 10, 10)
-        self.container = MockContainer(
-            room_builder=RoomBuilder(
-            FileMapSource(os.path.join(os.path.dirname(__file__),
-            "test_maps")), self.node))
-        self.container.save_room(self.room1)
-        self.node.container = self.container
+        self.dbase = MockDbase()
+
+        self.container = Container(self.dbase, None)
+
+        self.mock_script = Script("room_script", self)
+
+        self.node = Node(self.container, 'alpha', '192.168.0.11')
         self.container.node = self.node
+
+        self.room = Room('game1', 'room1', self.node, self.mock_script)
+        self.room.start_actors = Mock()
+
+        self.container.load_next_pending_room = Mock(return_value=self.room)
+        self.player1 = PlayerActor(self.room, "test", self.mock_script)
+
         MockTimer.setup_mock()
         MockIDFactory.setup_mock()
 
@@ -56,401 +47,299 @@ class NodeOld(object):
         MockTimer.teardown_mock()
         MockIDFactory.teardown_mock()
 
-    def testManageRoom(self):
-        mock_script = MockScript()
-        self.player1 = PlayerActor(self.room1, "player", mock_script,
-            "bob")
-        self.container.save_actor(self.player1)
+    @staticmethod
+    def room_created(room):
+        room.state['testcreated'] = True
+        room.create_actor("test", None)
 
-        self.node.manage_room("game1", "map1.room1")
+    @patch("gevent.spawn")
+    def testStartNode(self, spawn):
+        self.node.start()
 
+        self.assertEquals(self.node.node_updater.update_loop,
+                          spawn.call_args_list[0][0][0])
+        self.assertEquals(self.node.room_loader.load_loop,
+                          spawn.call_args_list[1][0][0])
+
+    def testLoadRoomNotInitialized(self):
+        self.assertEquals(0, len(self.node.rooms))
+        self.node.load_next_pending_room()
         self.assertEquals(1, len(self.node.rooms))
-        self.assertEquals([], mock_script.called)
-        MockTimer.fast_forward(0)
-        self.assertEquals([], mock_script.called)
 
-    def testPlayerJoins(self):
-        self.node.manage_room("game1", "map1.room1")
+        # test run init script if room.initialized == False
+        self.assertTrue(self.room.state['testcreated'])
+        self.assertEquals(1, len(self.room.actors))
+        self.assertEquals('test', self.room.actors.values()[0].actor_type)
+        self.assertTrue(self.room.start_actors.called)
 
-        token = self.node.player_joins("ned", "game1", "map1.room1")
-        self.assertEquals("TOKEN1", token)
+    def testLoadRoomAlreadyInitialized(self):
+        self.room.initialized = True
+        self.room.state['testcreated'] = False
 
-        player_actor = self.node.rooms['game1', 'map1.room1'].actors['id1']
-        room = self.node.rooms['game1', 'map1.room1']
-        self.assertEquals("ned", player_actor.username)
-        self.assertEquals("map1.room1", player_actor.room_id)
-        self.assertEquals("game1", player_actor.game_id)
-        self.assertEquals(1, len(self.node.player_connections))
-        self.assertEquals(1, len(self.node.connections))
-        self.assertEquals("game1", self.node.connections['TOKEN1'].game_id)
-        self.assertEquals(1, len(self.node.rooms["game1", "map1.room1"].actors))
-        self.assertEquals([
-            ("player_joins", (player_actor,), {})
-        ], self.player_script.called)
+        self.assertEquals(0, len(self.node.rooms))
+        self.node.load_next_pending_room()
+        self.assertEquals(1, len(self.node.rooms))
 
-    def testManageNonExistantRoom(self):
-        self.node.manage_room("game1", "map1.room2")
-        self.assertEquals(2, len(self.container.dbase.dbases['rooms']))
-        self.assertEquals("room_created",
-            self.game_script.called[0][0])
+        # test run init script if room.initialized == False
+        self.assertFalse(self.room.state['testcreated'])
+        self.assertEquals(0, len(self.room.actors))
+        self.assertTrue(self.room.start_actors.called)
 
-    def testConnectToMaster(self):
-        self.node.connect_to_master()
+    def testLoadRoomAlreadyInitializedWithActors(self):
+        self.dbase.dbases['actors'] = {}
+        self.dbase.dbases['actors']['actor1'] = \
+            {"__type__": "Actor", "_id": "actor1", "actor_id": "actor1",
+            "_loadstate": None,
+            "parent_id": None,
+            "game_id": "game1", "room_id": "room1",
+            "actor_type": "loaded", "model_type": "model",
+            "speed": 1.0,
+            "username": "ned",
+            "docked_with": None,
+            "visible": True,
+            'state': {u'__type__': u'SyncDict'},
+            "path": [], "vector": {"__type__": "Vector",
+            "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
+            "start_time": 0,
+            "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
+            "end_time": 10,
+            }, "script_name": "mock_script"}
 
-        self.assertEquals([
-            ('register_node', {'host': '10.10.10.1', 'port': 8000})],
-            self.mock_rpc.called)
+        self.room.initialized = True
+        self.room.state['testcreated'] = False
 
-    def testDeregister(self):
-        self.node.manage_room("game1", "map1.room1")
-        self.node.manage_room("game1", "map1.room2")
+        self.assertEquals(0, len(self.node.rooms))
+        self.node.load_next_pending_room()
+        self.assertEquals(1, len(self.node.rooms))
 
-        room1 = self.node.rooms["game1", "map1.room1"]
-        room2 = self.node.rooms["game1", "map1.room2"]
+        self.assertFalse(self.room.state['testcreated'])
+        self.assertEquals(1, len(self.room.actors))
+        self.assertEquals('loaded', self.room.actors.values()[0].actor_type)
+        self.assertTrue(self.room.start_actors.called)
 
-        room1.put_actor(Actor(room1, "mock1", self.mock_script))
-        room2.put_actor(Actor(room2, "mock1", self.mock_script))
+    def testPlayerEntersRoom(self):
+        # poll for limbo player_actor in managed room
+        self.node.load_next_pending_room()
 
-        self.node.deregister()
-
-        self.assertEquals([
-            ('offline_node', {'host': '10.10.10.1', 'port': 8000}),
-            ('deregister_node', {'host': '10.10.10.1', 'port': 8000})],
-            self.mock_rpc.called)
-
-        self.assertEquals(2, len(self.container.dbase.dbases['rooms']))
-        self.assertEquals(2, len(self.container.dbase.dbases['actors']))
-
-    def testOfflineBouncesAllConnectedToMaster(self):
-        pass
-
-    def testSerializeQueue(self):
-        pass
-
-    def testOfflineWaitsForSerializeQueue(self):
-        pass
-
-    def testAllPlayers(self):
-        self.node.manage_room("game1", "map1.room1")
-        token = self.node.player_joins("bob", "game1", "map1.room1")
-        self.assertEquals([{'username': 'bob', 'game_id': 'game1',
-            'token': 'TOKEN1', 'room_id': 'map1.room1'}], self.node.all_players())
-
-    def testAllRooms(self):
-        self.player1 = PlayerActor(self.room1, "player", MockScript(),
-            "bob")
-        self.container.save_actor(self.player1)
-        self.node.manage_room("game1", "map1.room1")
-        expected = [
-            {'actors': [('id1',
-              {u'actor_id': u'id1',
-               u'parent_id': None,
-               u'actor_type': u'player',
-               u'game_id': u'game1',
-               u'speed': 1.0,
-               u'state': {},
-               u'username': u'bob',
-               u'docked_with': None,
-               u'visible': True,
-               u'exception': None,
-               u'script': u'mock_script',
-               u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                           u'end_time': 0.0,
-                           u'start_pos': {u'x': 0.0,
-                                          u'y': 0.0,
-                                          u'z': 0.0},
-                           u'start_time': 0.0}})],
-              'game_id': 'game1',
-              'room_id': 'map1.room1'}]
-        self.assertEquals(expected,
-            self.node.all_rooms())
-
-    def _testRequestToken(self):
-        self.player1 = PlayerActor(self.room1, "player", MockScript(),
-            "bob")
-        self.container.save_actor(self.player1)
-
-        self.node.manage_room("game1", "map1.room1")
-        token = self.node.request_token("bob", "game1")
-        self.assertEquals("TOKEN1", token)
+        self.assertEquals(1, len(self.node.rooms['game1', 'room1'].actors))
 
     def testPlayerConnects(self):
+        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+        self.node.load_next_pending_room()
+
+        player_data = self.container.create_player_token("game1", "bob", 10)
+        self.dbase.dbases['actors']['actors_0']['room_id'] = "room1"
         ws = MockWebsocket()
-        gevent.spawn(self.node.ping, ws)
+
+        WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
+
+        # messages in queue propagated to websocket
+        MockTimer.fast_forward(1)
+        self.room.vision._send_command("id1", {'do': 'somthing'})
+        MockTimer.fast_forward(1)
+
+        self.assertEquals([{u'do': u'somthing'}], ws.updates)
+
+    def testPlayerDisconnted(self):
+        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+        self.node.load_next_pending_room()
+
+        player_data = self.container.create_player_token("game1", "bob", 10)
+        self.dbase.dbases['actors']['actors_0']['room_id'] = "room1"
+        ws = MockWebsocket()
+
+        WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
+
+        MockTimer.fast_forward(1)
+        self.room.vision._send_command("id1", {'command': 'disconnect'})
+        MockTimer.fast_forward(1)
+
+        self.assertEquals([{u'command': u'disconnect'}], ws.updates)
+        # empty queue means actor was disconnected
+        self.assertEquals({}, self.room.vision.actor_queues)
+
+    def testPlayerMovesRoomSameNode(self):
+        self.room2 = Room('game1', 'room2', self.node, self.mock_script)
+
+        self.node.load_next_pending_room()
+        self.node.rooms['game1', 'room2'] = self.room2
+
+        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+
+        player_data = self.container.create_player_token("game1", "bob", 10)
+        self.dbase.dbases['actors']['actors_1']['room_id'] = "room1"
+        ws = MockWebsocket()
+        WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
 
         MockTimer.fast_forward(0)
-        self.assertEquals([0], ws.updates)
-
+        self.room.vision._send_command("id2", {'command': 'move_room', 'room_id': 'room2'})
         MockTimer.fast_forward(1)
-        self.assertEquals([0, 1], ws.updates)
 
+        self.assertEquals([{u'command': u'move_room', u'room_id': u'room2'}], ws.updates)
+
+        # listening to messages from room2 queue
+        self.room2.vision._send_command("id2", {'do': "something"})
         MockTimer.fast_forward(1)
-        self.assertEquals([0, 1, 2], ws.updates)
 
-        MockTimer.fast_forward(3)
-        self.assertEquals([0, 1, 2, 3, 4, 5], ws.updates)
-
-    def testActorCall(self):
-        self.node.manage_room("game1", "map1.room1")
-        self.node.player_joins("bob", "game1", "map1.room1")
-
-        room1 = self.node.rooms["game1", "map1.room1"]
-        player_actor = room1.actors['id1']
-        player_actor.script = MockScript()
-        self.node.actor_call("game1", "TOKEN1", "do_something")
-
-        # script calls happen on same (calling) gthread
         self.assertEquals([
-            ('do_something', (player_actor,), {})],
-            player_actor.script.called)
+            {u'command': u'move_room', u'room_id': u'room2'},
+            {u'do': u'something'}],
+            ws.updates)
 
-    def testNonPlayerActorMovesNode(self):
-        pass
+    def testPlayerMovesRoomOtherNode(self):
+        self.node.load_next_pending_room()
 
-    def testPlayerActorMovesToRoomManagedOnSameNodeAfterMasterBounce(self):
-        pass
+        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
 
-    def testPlayerConnectsQueueDisconnectsOnRedirect(self):
-        # node.player_connects will fall out of the connection naturally when
-        # a redirect is given
-        pass
+        player_data = self.container.create_player_token("game1", "bob", 10)
+        self.dbase.dbases['actors']['actors_1']['room_id'] = "room1"
+        ws = MockWebsocket()
+        WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
 
-    def testInvalidToken(self):
-        self.node.connections['BOBSTOKEN'] = PlayerConnection('game1',
-            'bob', None, None, "BOBSTOKEN")
+        MockTimer.fast_forward(0)
+        self.room.vision._send_command("id2", {'command': 'move_room', 'room_id': 'room2'})
+        MockTimer.fast_forward(1)
+
+        self.assertEquals([
+            {'command': 'redirect_to_master'}], ws.updates)
+
+    def testWrongPlayerConnects(self):
+        self.dbase.dbases['actors'] = {'actors_1': {'room_id': "room2"}}
+        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+        self.dbase.dbases['actors']['actors_1']['room_id'] = "room1"
         try:
-            self.node.player_connects(None, 'game1', 'WRONGTOKEN')
+            player_data = self.container.create_player_token("game1", "bob", 10)
+            ws = MockWebsocket()
+            self.node.player_connects(ws, player_data['token'])
         except Exception, e:
-            self.assertEquals("Invalid token for player", str(e))
+            self.assertEquals('No room for player: game1, room1', str(e))
 
-    def testPlayerJoinsActorCreatedConnectionCreated(self):
-        self.node.manage_room("game1", "map1.room1")
+    def testShutdownRoomsAndActorsSaved(self):
+        room1 = Room('game1', 'room1', self.node, MockScript())
+        self.node.rooms['game1', 'room1'] = room1
 
-        self.assertEquals(0, len(self.node.rooms['game1', 'map1.room1'].actors))
-        self.assertEquals(0, len(self.node.player_connections))
+        self.node.shutdown()
 
-        self.assertEquals("TOKEN1",
-            self.node.player_joins("ned", "game1", "map1.room1"))
+        self.assertEquals({'rooms_0': {u'__type__': u'Room',
+                            '_id': 'rooms_0',
+                            'active': False,
+                            u'game_id': u'game1',
+                            u'initialized': False,
+                            u'last_modified': u'1970-01-01T00:00:00',
+                            u'node_name': u'alpha',
+                            'requested': False,
+                            u'room_id': u'room1',
+                            u'state': {}}}
+        , self.container.dbase.dbases['rooms'])
 
-        self.assertEquals(PlayerActor,
-            type(self.node.rooms['game1', 'map1.room1'].actors['id1']))
-        self.assertEquals("ned",
-            self.node.rooms['game1', 'map1.room1'].actors['id1'].username)
-        self.assertEquals("id1",
-            self.node.player_connections['ned', 'game1'].actor_id)
+    def testStartupCleanDBRoomsWithNodeName(self):
+        self.dbase.dbases['rooms'] = {
+            'rooms_0': {u'__type__': u'Room',
+                        '_id': 'rooms_0',
+                        'active': False,
+                        u'game_id': u'game1',
+                        u'initialized': False,
+                        u'last_modified': u'1970-01-01T00:00:00',
+                        u'node_name': u'alpha',
+                        'requested': False,
+                        u'room_id': u'room1',
+                        u'state': {}},
+            'rooms_1': {u'__type__': u'Room',
+                        '_id': 'rooms_0',
+                        'active': False,
+                        u'game_id': u'game1',
+                        u'initialized': False,
+                        u'last_modified': u'1970-01-01T00:00:00',
+                        u'node_name': u'beta',
+                        'requested': False,
+                        u'room_id': u'room1',
+                        u'state': {}},
+        }
+        self.node.start()
 
-    def _testRoomManagedWithPlayerActorsNoPlayerConnectionsCreated(self):
-        self.player1 = PlayerActor(self.room1, "player", MockScript(),
-            "bob")
-        self.container.save_actor(self.player1)
+        self.assertEquals(None, self.dbase.dbases['rooms']['rooms_0']['node_name'])
+        self.assertEquals('beta', self.dbase.dbases['rooms']['rooms_1']['node_name'])
 
-        self.node.manage_room("game1", "map1.room1")
+    def testShutdownSendDisconnectToPlayerConnections(self):
+        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+        self.node.load_next_pending_room()
 
-        self.assertEquals(1, len(self.node.rooms['game1', 'map1.room1'].actors))
-        self.assertEquals(0, len(self.node.player_connections))
+        player_data = self.container.create_player_token("game1", "bob", 10)
+        self.dbase.dbases['actors']['actors_0']['room_id'] = "room1"
+        ws = MockWebsocket()
 
-        self.assertEquals(PlayerActor,
-            type(self.node.rooms['game1', 'map1.room1'].actors['id1']))
-        self.assertEquals("bob",
-            self.node.rooms['game1', 'map1.room1'].actors['id1'].username)
+        WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
 
-    def testLoadScriptsFromPath(self):
-        script_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-            "test_scripts")
-        self.node.load_scripts(script_path)
+        MockTimer.fast_forward(1)
 
-        self.assertEquals("loaded", self.node.scripts['basic_actor'].call("test", MockActor()))
+        ' assert room in node'
+        self.node.shutdown()
 
-    def testManageRoomWithPlayersAlreadyCreated(self):
-        # save player
-        mock_script = MockScript()
-        self.player1 = PlayerActor(self.room1, "player", mock_script,
-            "bob")
-        self.container.save_actor(self.player1)
-
-        # manage room
-        self.node.manage_room("game1", "map1.room1")
-
-        # assert player actors in room
-        room = self.node.rooms["game1", "map1.room1"]
-        actor = room.actors['id1']
-        self.assertEquals("bob", actor.username)
-
-        # assert player connections exist
-        self.assertEquals(self.node.player_connections, {})
-
-    def _testManageRoomWithPlayersNotYetCreated(self):
-        # save player
-        mock_script = MockScript()
-        self.player1 = PlayerActor(self.room2, "player", mock_script,
-            "bob")
-        self.container.save_actor(self.player1)
-
-        # manage room
-        self.node.manage_room("game1", "map1.room2")
-
-        # assert player actors in room
-        room = self.node.rooms["game1", "map1.room2"]
-        actor = room.actors['id1']
-        self.assertEquals("bob", actor.username)
-
-        # assert player connections exist
-        self.assertEquals(self.node.player_connections, {})
-
-    def testActorMovesRoom(self):
-        # manage room2
-        self.node.manage_room("game1", "map1.room1")
-        self.node.manage_room("game1", "map1.room2")
-        token = self.node.player_joins("ned", "game1", "map1.room1")
-
-        # assert player actors in room2
-        room1 = self.node.rooms["game1", "map1.room1"]
-        room2 = self.node.rooms["game1", "map1.room2"]
-        actor = room1.actors[self.node.connections[token].actor_id]
-
-        queue = room1.vision.connect_vision_queue("id1")
-
-        room1.move_actor_room(actor, "map1.room2", Position(10, 10))
-
-        self.assertEquals("sync", queue.get_nowait()['command'])
-        self.assertEquals("actor_update", queue.get_nowait()['command'])
-        self.assertEquals("remove_actor", queue.get_nowait()['command'])
-        self.assertEquals("move_room", queue.get_nowait()['command'])
-
-        # maybe add another listener in the second room later
-
-    def testActorWithDockedActorsMovesRoom(self):
-        # manage room2
-        self.node.manage_room("game1", "map1.room1")
-        self.node.manage_room("game1", "map1.room2")
-        token = self.node.player_joins("ned", "game1", "map1.room1")
-
-        # assert player actors in room2
-        room1 = self.node.rooms["game1", "map1.room1"]
-        room2 = self.node.rooms["game1", "map1.room2"]
-        actor = room1.actors[self.node.connections[token].actor_id]
-        actor.create_actor("child1", "actor_script")
-
-        queue = room1.vision.connect_vision_queue("id1")
-
-        room1.move_actor_room(actor, "map1.room2", Position(10, 10))
-
-        self.assertEquals("sync", queue.get_nowait()['command'])
-        self.assertEquals("actor_update", queue.get_nowait()['command'])
-        self.assertEquals("actor_update", queue.get_nowait()['command'])
-        self.assertEquals("remove_actor", queue.get_nowait()['command'])
-        self.assertEquals("remove_actor", queue.get_nowait()['command'])
-        self.assertEquals("move_room", queue.get_nowait()['command'])
-
-
-    def testStartReport(self):
-        self.node.start_reporting()
-
-        self.assertEquals([], self.mock_rpc.called)
-
-        MockTimer.fast_forward(5)
+        MockTimer.fast_forward(1)
 
         self.assertEquals([
-            ('report_load_stats',
-                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0,
-                    'node_info': '{}'}),
-            ]
-        , self.mock_rpc.called)
+            {u'actor_id': u'id2',
+                u'command': u'actor_update',
+                u'data': {u'actor_id': u'id2',
+                            u'actor_type': u'test',
+                            u'docked_with': None,
+                            u'exception': None,
+                            u'game_id': u'game1',
+                            u'parent_id': None,
+                            u'script': u'',
+                            u'speed': 1.0,
+                            u'state': {},
+                            u'username': None,
+                            u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
+                                        u'end_time': 1.0,
+                                        u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
+                                        u'start_time': 1},
+                            u'visible': True}},
+            {u'command': u'disconnect'}], ws.updates)
 
-        MockTimer.fast_forward(5)
+    def testPlayerConnectsTwice(self):
+        # a player which connects twice should get a new player_actor the
+        # first time, with a websocket connection, and a new websocket
+        # connection to the same player actor the second time
+        pass
 
-        self.assertEquals([
-            ('report_load_stats',
-                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0,
-                    'node_info': '{}'}),
-            ('report_load_stats',
-                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0,
-                    'node_info': '{}'}),
-            ]
-        , self.mock_rpc.called)
+    def testCheckTokenOnPlayerCommand(self):
+        pass
 
-        self.node.manage_room("game1", "map1.room1")
-
-        MockTimer.fast_forward(5)
-
-        self.assertEquals([
-            ('report_load_stats',
-                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0,
-                    'node_info': '{}'}),
-            ('report_load_stats',
-                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.0,
-                    'node_info': '{}'}),
-            ('report_load_stats',
-                {'host': '10.10.10.1', 'port': 8000, 'server_load': 0.01,
-                    'node_info': '{"game1.map1.room1": {"connected_players": 0}}'}),
-            ]
-        , self.mock_rpc.called)
-
-    def testHandlePlayerActorEnters(self):
-        self.mock_rpc.exceptions['actor_entered'] = Exception("anything")
-
-        self.node.manage_room("game1", "map1.room1")
-
-        room1 = self.node.rooms["game1", "map1.room1"]
-        queue = room1.vision.connect_vision_queue("id1")
-        actor = room1.create_actor("npc", "mock_script")
-
-        room1.move_actor_room(actor, "room2", Position(10, 10))
-
-        self.assertEquals("sync", queue.get_nowait()["command"])
-        self.assertEquals("actor_update", queue.get_nowait()["command"])
-        self.assertEquals("remove_actor", queue.get_nowait()["command"])
-        self.assertEquals("move_room", queue.get_nowait()["command"])
+    def testGetNextPendingRoom(self):
+        # queryupdate mongo for next pending room:
+        #   state='pending' order by 'state_changed_time'
+        #   update state='active', node_id=self.id
+        pass
 
     def testDeactivateRoom(self):
-        self.node.manage_room("game1", "map1.room1")
-        self.node.manage_room("game1", "map1.room2")
+        # need to stop actor loading for that room - change ActorLoader
 
-        room1 = self.node.rooms["game1", "map1.room1"]
-        room2 = self.node.rooms["game1", "map1.room2"]
-        actor1 = room1.create_actor("npc",
-            "mock_script")
-        actor2 = room2.create_actor("npc",
-            "mock_script")
+        # mark rooms as internally inactive (won't accept any more players)
+        # stop gthreads
+        # write state='inactive', node_id=None to room
+        # disconnect players
+        pass
 
-        # expecting saves so blank dbase
-        self.container.dbase.dbases = {}
+    def testBrokenRoomRecovery(self):
+        # when a node starts up, check for 'active' rooms with its node id
+        # if any found, mark all as 'pending'
+        pass
 
-        self.node.deactivate_room("game1", "map1.room2")
+    def testOnMoveRoomTryToPickUpRoomIfNotAlreadyInService(self):
+        pass
 
-        self.assertEquals({('game1', 'map1.room1'): room1}, self.node.rooms)
-        self.assertEquals(1, len(self.container.dbase.dbases['actors']))
-        self.assertEquals(1, len(self.container.dbase.dbases['rooms']))
+    def testOnMoveRoomIfRoomInServiceRedirectToOtherNode(self):
+        pass
 
-    def testMoveActorBetweenRoomsWhenDestinationIsOffline(self):
+    def testDontLoadRoomIfMemoryGreaterThen80(self):
+        pass
+
+    def testSerializeRoomIfUnconnectedAndmemoryGreaterThen60(self):
         pass
 
     def testAdminConnects(self):
-        self.node.manage_room("game1", "map1.room1")
-        token = self.node.request_admin_token("game1", "map1.room1")
+        # request admin token
 
-        room1 = self.node.rooms["game1", "map1.room1"]
-        self.assertEquals("map1.room1", self.node.admin_connections[token].room_id)
-
-    def testPropagateActorEvents(self):
-        self.node.manage_room("game1", "map1.room1")
-        room = self.node.rooms["game1", "map1.room1"]
-        queue = room.vision.connect_vision_queue("id1")
-        token = self.node.player_joins("ned", "game1", "map1.room1")
-        actor = room.actors.values()[0]
-
-        self.assertEquals("sync", queue.get_nowait()['command'])
-        self.assertEquals("actor_update", queue.get_nowait()['command'])
-        self.assertTrue(queue.empty())
-
-        actor.state.something = "value"
-        self.assertEquals('actor_update', queue.get_nowait()['command'])
-
-        actor.visible = False
-        self.assertEquals('actor_update', queue.get_nowait()['command'])
-
-        actor.state.something = "value"
-        self.assertEquals('actor_update', queue.get_nowait()['command'])
-
-        actor.visible = True
-        self.assertEquals('actor_update', queue.get_nowait()['command'])
+        # connect with admin token
+        pass

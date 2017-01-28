@@ -5,8 +5,8 @@ import logging
 import logging.config
 log = logging.getLogger("rooms")
 
-from rooms.mongo_master import Master
-from rooms.mongo_node import Node
+from rooms.master import Master
+from rooms.node import Node
 from rooms.geography.basic_geography import BasicGeography
 from rooms.room_builder import RoomBuilder
 from rooms.room_builder import FileMapSource

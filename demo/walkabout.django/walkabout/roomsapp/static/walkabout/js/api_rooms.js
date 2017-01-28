@@ -1,1 +1,0 @@
-../../../../../../../src/rooms/assets/adminfiles/js/api_rooms.js
