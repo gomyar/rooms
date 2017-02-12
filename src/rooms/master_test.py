@@ -128,6 +128,17 @@ class MasterTest(unittest.TestCase):
         result = self.master.connect_player(game_id, 'ned')
         self.assertEquals({'actor_id': 'id1', 'host': u'10.0.0.1', 'token': 'TOKEN1'}, result)
 
+    def testAllGames(self):
+        self.assertEquals([], self.master.list_all_games())
+
+        game_id = self.master.create_game('bob', name='test',
+                                          description='a test')
+
+        self.assertEquals([
+            {'game_id': game_id, 'owner_username': 'bob',
+             'state': {'name': 'test', 'description': 'a test'}}],
+            self.master.list_all_games())
+
     def testPlayerCallsJoinTwice(self):
         # player accidentally calls join game twice
         pass

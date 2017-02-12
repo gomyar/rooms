@@ -30,13 +30,23 @@ class Master(object):
         player = self.container.get_or_create_player(game_id, username,
                                                      room_id)
         room = self._get_room(game_id, player['room_id'])
-        return {'joined': True}
+        if room['node_name']:
+            return {'rooms_url': self._node_url(room['node_name'], game_id)}
+        else:
+            return {'rooms_url': None}
+
+    def _node_url(self, node_name, game_id):
+        node = self._get_node(node_name)
+        return "http://%s/rooms/connect/%s" % (node.host, game_id)
 
     def list_games(self, owner_username=None):
         games = self.container.games_owned_by(owner_username)
         return [{'game_id': g.game_id, 'state': g.state,
                  'owner_username': g.owner_id,
                 } for g in games]
+
+    def list_all_games(self):
+        return self.container.all_games()
 
     def list_players(self, username):
         players = self.container.all_players_for(username)

@@ -1,0 +1,29 @@
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="/static/css/gameadmin.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/css/walkabout.css"/>
+
+    <script src="/rooms/static/js/jquery-1.9.1.js"></script>
+    <script src="/rooms/static/js/turtlegui.js"></script>
+    <script src="/static/js/netutils.js"></script>
+    <script src="/static/js/index.js"></script>
+</head>
+
+<body>
+
+Games:
+<div data-gui-list="index.games" data-itervar="game">
+    <div class="game">
+        <div>Game:</div>
+        <div data-gui-text="game.owner_id"></div>
+        <input type='button' value="Join" data-gui-click="join_game(game)"></input>
+    </div>
+</div>
+<div data-gui-show="index.games.length == 0">No Games</div>
+
+
+<input type='button' value='Create' data-gui-click='create_game()'></div>
+
+</body>
+</html>

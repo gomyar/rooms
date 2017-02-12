@@ -1,124 +1,44 @@
 #!/usr/bin/env python
 
-import os
-import sys
-import traceback
-
-import gevent.backdoor
 from gevent import monkey
-monkey.patch_socket()
+monkey.patch_all()
 
-from optparse import OptionParser
-from ConfigParser import ConfigParser
+from flask import Flask
+from flask import redirect
 
-import rooms
-from rooms.mongo_master import Master
-from rooms.mongo_node import Node
-from rooms.geography.basic_geography import BasicGeography
-from rooms.room_builder import RoomBuilder
-from rooms.room_builder import FileMapSource
-from rooms.mongo_master import MasterController
-from rooms import admin
-from rooms.mongo_node import NodeController
-from rooms.container import Container
-from rooms.dbase.mongo_dbase import MongoDBase
-from rooms.rpc import WSGIRPCServer
-from rooms.item_registry import ItemRegistry
+from rooms.flask.login import bp_login
+from rooms.flask.login import init_login
+from rooms.flask.master import bp_master
+from rooms.flask.node import bp_node
+from rooms.flask.app import node
+from rooms.flask.app import master
+from rooms.flask.app import container
 
-import logging
-import logging.config
-log = logging.getLogger("rooms")
+from flask_login import login_required
+import flask_login
+
+app = Flask(__name__)
+app.secret_key = 'keepitsecretkeepitsafe'
+
+@app.route("/")
+def index():
+    return "Index"
 
 
-def load_config(config_path):
-    parser = ConfigParser()
-    parser.read(config_path)
-    return parser
+@app.route("/join/<game_id>")
+@login_required
+def join(game_id):
+    # default implementation
+    master.join_game(game_id, flask_login.current_user.get_id())
 
-if __name__ == "__main__":
-    master = None
-    container = None
-    try:
-        log.info("Starting server")
-        parser = OptionParser()
 
-        parser.add_option("-a", "--address", dest="address",
-            help="Address of master", default="localhost:9999")
 
-        parser.add_option("-g", "--game", dest="game",
-            help="Path to game config file", default=".")
+if __name__ == '__main__':
+    init_login(app)
+    app.register_blueprint(bp_login)
+    app.register_blueprint(bp_master)
+    app.register_blueprint(bp_node)
 
-        parser.add_option("-b", "--backdoor", dest="backdoor",
-            default=None, help="Open backdoor socket")
+    node.start()
 
-        (options, args) = parser.parse_args()
-
-        if os.path.exists(os.path.join(options.game, "logging.conf")):
-            logging.config.fileConfig(os.path.join(options.game,
-                "logging.conf"))
-        else:
-            logging.basicConfig(level=logging.DEBUG,
-                format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-
-        config = load_config(os.path.join(options.game, "game.conf"))
-
-        dbase = MongoDBase(host=config.get("db", "dbhost"),
-            port=config.getint("db", "dbport"),
-            dbname=config.get("db", "dbname"))
-        dbase.init_mongo()
-        geography = BasicGeography()
-
-        host, port = options.address.split(":")
-        container = Container(dbase, None)
-        node = Node(container, "dagon", options.address)
-        container.node = node
-        room_builder = RoomBuilder(FileMapSource(os.path.join(options.game,
-            "maps")), node)
-        item_registry = ItemRegistry()
-        item_registry.load_from_directory(options.game)
-        container.geography = geography
-        container.room_builder = room_builder
-        container.item_registry = item_registry
-        container.start_container()
-        master = Master(container)
-        master.load_scripts(os.path.join(options.game, "scripts"))
-
-        node.container = container
-        node.load_scripts(os.path.join(options.game, "scripts"))
-
-        server = WSGIRPCServer(host, port, access_control_header="*")
-        # master routes
-        server.add_controller("master", MasterController(master))
-        # node routes
-        server.add_controller("node", NodeController(node))
-        # dev server serves game files:
-        server.add_file_root("assets", os.path.join(options.game, "assets"))
-        server.add_file_root("maps", os.path.join(options.game, "maps"))
-
-        # add admin
-        server.add_controller("admin", admin.AdminController(container,
-            os.path.join(options.game, "maps")))
-        server.add_file_root("adminfiles", os.path.join(
-            os.path.dirname(admin.__file__), "assets/adminfiles"))
-
-        log.info("Starting Rooms Master")
-        master.start()
-        server.start()
-
-        if options.backdoor:
-            log.debug("Starting backdoor server on port 3000")
-            backdoor = gevent.backdoor.BackdoorServer(('127.0.0.1',
-                int(options.backdoor)), locals=dict(master=master, node=node))
-            backdoor.start()
-
-        node.start()
-
-        server.serve_forever()
-    except KeyboardInterrupt, ke:
-        log.debug("Master stopped")
-        node.shutdown()
-        master.shutdown()
-        container.stop_container()
-    except:
-        traceback.print_exc()
-        log.exception("Exception starting server")
+    app.run()

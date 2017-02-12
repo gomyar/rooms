@@ -9,23 +9,21 @@ from flask import flash
 from flask import url_for
 from flask import Blueprint
 
-from flask_login import UserMixin
 from flask_login import login_user
 from flask_login import logout_user
 from flask_login import LoginManager
 from flask_login import login_required
+from flask_login import UserMixin
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
+
+from rooms.flask.app import container
 
 mongo = MongoClient()
 login_manager = LoginManager()
 
 bp_login = Blueprint('login', __name__, template_folder='templates',
                      static_folder='static')
-
-
-def users():
-    return mongo.spike_flask.users
 
 
 class User(UserMixin):
@@ -38,10 +36,10 @@ class User(UserMixin):
 
 
 def create_user(username, pw_hash):
-    if not users().find_one({'username': username}):
-        users().insert_one({
+    if not container.dbase.filter_one('users', {'username': username}):
+        container.dbase.save_object({
             'username': username,
-            'pw_hash': pw_hash })
+            'pw_hash': pw_hash }, 'users')
         return User(username, pw_hash)
     else:
         raise Exception("User already exists")
@@ -49,7 +47,7 @@ def create_user(username, pw_hash):
 
 @login_manager.user_loader
 def load_user(username):
-    res = users().find_one({'username': username})
+    res = container.dbase.filter_one('users', {'username': username})
     if res:
         return User(res['username'], res['pw_hash'])
     else:

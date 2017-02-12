@@ -4,6 +4,7 @@ from gevent import monkey
 monkey.patch_all()
 
 from flask import Flask
+from flask import redirect
 
 from rooms.flask.login import bp_login
 from rooms.flask.login import init_login
@@ -11,6 +12,7 @@ from rooms.flask.master import bp_master
 from rooms.flask.node import bp_node
 from rooms.flask.app import node
 from rooms.flask.app import master
+from rooms.flask.app import container
 
 from flask_login import login_required
 import flask_login
@@ -23,35 +25,12 @@ def index():
     return "Index"
 
 
-@app.route("/join_game/<game_id>")
+@app.route("/join/<game_id>")
 @login_required
-def join_game(game_id):
+def join(game_id):
     # default implementation
     master.join_game(game_id, flask_login.current_user.get_id())
 
-
-@app.route("/player_connects/<game_id>")
-@login_required
-def player_connects(game_id):
-    player = get_player(game_id, flask_login.current_user.get_id())
-    if (game_id, player.room_id) in node.rooms:
-        node.do_connect()
-    else:
-        # get node
-        raise Redirect(node_host)
-
-
-@app.route("/actor_call/<game_id>/<method>")
-@login_required
-def actor_call(game_id, method):
-    node.actor_call(game_id, method)
-
-
-@app.route("/admin_connects/<game_id>")
-@login_required
-def admin_connects(game_id):
-    if flask_login.current_user.is_admin():
-        pass
 
 
 if __name__ == '__main__':

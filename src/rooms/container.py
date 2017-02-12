@@ -46,17 +46,16 @@ class Container(object):
         return str(uuid.uuid1())
 
     def create_player_token(self, game_id, username, timeout_seconds):
-        player = self.get_token_for_player(game_id, username)
+        player = self.get_player(game_id, username)
         if player:
             return player
         else:
             return self._update_player_token(game_id, username, timeout_seconds)
 
-    def get_token_for_player(self, game_id, username):
+    def get_player(self, game_id, username):
         player = self.dbase.filter_one(
             'actors',
             query={'game_id': game_id, 'username': username,
-                   'timeout_time': {'$gt': Timer.now()},
                    '__type__': 'PlayerActor'},
             fields=['game_id', 'username', 'token', 'timeout_time', 'room_id',
                     'actor_id', 'node_name'],
