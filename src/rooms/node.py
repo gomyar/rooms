@@ -50,7 +50,7 @@ class Node(object):
         self.room_loader = RoomLoader(self)
         self.host = host
         self.load = 0.0
-        self.connections = dict()
+        self.players = dict()
 
         self._nodeupdater_gthread = None
         self._roomload_gthread = None
@@ -90,38 +90,19 @@ class Node(object):
         actor._room_id = exit_room_id
         actor.room = None
         self.container.save_actor(actor, limbo=True) # (, async=False) ?
-        if actor.is_player and (actor.game_id, exit_room_id) not in self.rooms:
-            conn = self.player_connections.pop((actor.username, actor.game_id))
-            self.connections.pop(conn.token)
-            log.debug("Removed conn: %s", conn)
+        if actor.is_player:
+            self.players[actor.game_id, actor.username] = exit_room_id, actor.actor_id
 
-    def _lookup_connection(self, token):
-        if token in self.connections and (\
-                self.connections[token]['timeout_time'] < Timer.now()):
-            return self.connections[token]
-        else:
-            player_conn = self.container.get_player_for_token(token)
-            if player_conn:
-                self.connections[token] = player_conn
-            return player_conn
-
-    def player_connects(self, ws, token):
-        player_conn = self._lookup_connection(token)
-
-        if player_conn is None:
-            raise Exception("Unauthorized")
-
-        game_id = player_conn['game_id']
-        username = player_conn['username']
-
-        if (game_id, player_conn['room_id']) not in self.rooms:
+    def player_connects(self, ws, game_id, username):
+        if (game_id, username) not in self.players:
             log.warning("No room for player: %s, %s",
-                game_id, player_conn['room_id'])
+                game_id, username)
             raise Exception("No room for player: %s, %s" % (
-                game_id, player_conn['room_id']))
+                game_id, username))
 
-        room = self.rooms[game_id, player_conn['room_id']]
-        queue = room.vision.connect_vision_queue(player_conn['actor_id'])
+        room_id, actor_id = self.players[game_id, username]
+        room = self.rooms[game_id, room_id]
+        queue = room.vision.connect_vision_queue(actor_id)
 
         try:
             connected = True
@@ -131,7 +112,7 @@ class Node(object):
                     connected = False
                     ws.send(json.dumps(jsonview(message)))
                 elif message.get("command") == 'move_room':
-                    log.debug("Moving room for %s to %s", player_conn['username'],
+                    log.debug("Moving room for %s to %s", username,
                         message['room_id'])
                     if (game_id, message['room_id']) in self.rooms:
                         log.debug("Room already managed: %s",
@@ -139,7 +120,7 @@ class Node(object):
                         room = self.rooms[game_id, message['room_id']]
                         ws.send(json.dumps(jsonview(message)))
                         queue = room.vision.connect_vision_queue(
-                            player_conn['actor_id'])
+                            actor_id)
                     else:
                         log.debug("Redirecting to master")
                         ws.send(json.dumps({'command': 'redirect_to_master'}))
@@ -151,7 +132,7 @@ class Node(object):
             log.exception("Unexpected exception in player connection")
             raise
         finally:
-            room.vision.disconnect_vision_queue(player_conn['actor_id'], queue)
+            room.vision.disconnect_vision_queue(actor_id, queue)
 
     def shutdown(self):
         # stop all gthreads

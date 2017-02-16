@@ -22,7 +22,7 @@ function create_game() {
 function join_game(game) {
     net.perform_post('/join/' + game.game_id, {},
         function(data){
-            window.location.href = '/play';
+            window.location.href = '/play/' + game.game_id;
             //= "http://" + data['node_name'] + "/rooms/play/" + game.game_id;
             // check data for room link
             // redirect to node 

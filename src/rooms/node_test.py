@@ -35,6 +35,7 @@ class NodeTest(unittest.TestCase):
         self.container.node = self.node
 
         self.room = Room('game1', 'room1', self.node, self.mock_script)
+        self.room.initialized = True
         self.room.start_actors = Mock()
 
         self.container.load_next_pending_room = Mock(return_value=self.room)
@@ -119,19 +120,23 @@ class NodeTest(unittest.TestCase):
 
     def testPlayerEntersRoom(self):
         # poll for limbo player_actor in managed room
+        import ipdb; ipdb.set_trace()
         self.node.load_next_pending_room()
 
         self.assertEquals(1, len(self.node.rooms['game1', 'room1'].actors))
 
     def testPlayerConnects(self):
-        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+        # set up db objects
+        self.container.create_player(self.room, 'test', MockScript(), 'bob',
+            'game1')
+
+        # init room (plus player)
         self.node.load_next_pending_room()
 
-        player_data = self.container.create_player_token("game1", "bob", 10)
-        self.dbase.dbases['actors']['actors_0']['room_id'] = "room1"
+        # call websocket
         ws = MockWebsocket()
 
-        WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
+        WebsocketTest().call(self.node.player_connects, ws, 'game1', 'bob')
 
         # messages in queue propagated to websocket
         MockTimer.fast_forward(1)
@@ -141,14 +146,13 @@ class NodeTest(unittest.TestCase):
         self.assertEquals([{u'do': u'somthing'}], ws.updates)
 
     def testPlayerDisconnted(self):
-        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+        self.container.create_player(self.room, 'test', MockScript(), 'bob',
+            'game1')
         self.node.load_next_pending_room()
 
-        player_data = self.container.create_player_token("game1", "bob", 10)
-        self.dbase.dbases['actors']['actors_0']['room_id'] = "room1"
         ws = MockWebsocket()
 
-        WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
+        WebsocketTest().call(self.node.player_connects, ws)
 
         MockTimer.fast_forward(1)
         self.room.vision._send_command("id1", {'command': 'disconnect'})
@@ -208,11 +212,10 @@ class NodeTest(unittest.TestCase):
         self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
         self.dbase.dbases['actors']['actors_1']['room_id'] = "room1"
         try:
-            player_data = self.container.create_player_token("game1", "bob", 10)
             ws = MockWebsocket()
-            self.node.player_connects(ws, player_data['token'])
+            self.node.player_connects(ws, 'game1', 'bob')
         except Exception, e:
-            self.assertEquals('No room for player: game1, room1', str(e))
+            self.assertEquals('No room for player: game1, bob', str(e))
 
     def testShutdownRoomsAndActorsSaved(self):
         room1 = Room('game1', 'room1', self.node, MockScript())
@@ -261,14 +264,15 @@ class NodeTest(unittest.TestCase):
         self.assertEquals('beta', self.dbase.dbases['rooms']['rooms_1']['node_name'])
 
     def testShutdownSendDisconnectToPlayerConnections(self):
-        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+        self.player = self.container.create_player(self.room, 'test',
+            MockScript(), 'bob', 'game1')
+        self.room.actors[self.player.actor_id] = self.player
+
         self.node.load_next_pending_room()
 
-        player_data = self.container.create_player_token("game1", "bob", 10)
-        self.dbase.dbases['actors']['actors_0']['room_id'] = "room1"
         ws = MockWebsocket()
 
-        WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
+        WebsocketTest().call(self.node.player_connects, ws, 'game1', 'bob')
 
         MockTimer.fast_forward(1)
 
@@ -277,25 +281,29 @@ class NodeTest(unittest.TestCase):
 
         MockTimer.fast_forward(1)
 
-        self.assertEquals([
-            {u'actor_id': u'id2',
-                u'command': u'actor_update',
-                u'data': {u'actor_id': u'id2',
-                            u'actor_type': u'test',
-                            u'docked_with': None,
-                            u'exception': None,
-                            u'game_id': u'game1',
-                            u'parent_id': None,
-                            u'script': u'',
-                            u'speed': 1.0,
-                            u'state': {},
-                            u'username': None,
-                            u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                                        u'end_time': 1.0,
-                                        u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                                        u'start_time': 1},
-                            u'visible': True}},
-            {u'command': u'disconnect'}], ws.updates)
+        # there's an extra actor update that shouldn't be there
+        self.assertEquals(4, len(ws.updates))
+        self.assertEquals(
+            {u'command': u'sync',
+            u'data': {u'now': 0,
+            u'player_actor': {u'actor_id': u'id1',
+            u'actor_type': u'test',
+            u'docked_with': None,
+            u'exception': None,
+            u'game_id': u'game1',
+            u'parent_id': None,
+            u'script': u'',
+            u'speed': 1.0,
+            u'state': {},
+            u'username': u'bob',
+            u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
+                u'end_time': 0.0,
+                u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
+                u'start_time': 0},
+            u'visible': True},
+            u'room_id': u'room1',
+            u'username': u'bob'}}
+        , ws.updates[0])
 
     def testPlayerConnectsTwice(self):
         # a player which connects twice should get a new player_actor the

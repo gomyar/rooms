@@ -16,20 +16,19 @@ gui_actors.draw_actors = function()
 
 gui_actors.draw_player_actor = function(actor)
 {
-    var img = gameimages.images[actor.actor_type];
-    var width = img.width / gui.zoom;
-    var height = img.width / gui.zoom;
-    gui.ctx.rotate(Math.atan2(actor.vector.end_pos.y - actor.vector.start_pos.y,
-        actor.vector.end_pos.x - actor.vector.start_pos.x));
-    var offset = 0;
-    if (actor.vector.end_time * 1000 > api_rooms.get_now())
-        offset = Math.round((api_rooms.get_now() - actor.vector.start_time * 1000) / 400) % Math.round(img.height / img.width) * img.width;
-    gui.ctx.drawImage(img, 0, offset, img.width, img.width, -(width / 2), -(height / 2), width, height);
+    gui.ctx.strokeStyle = 'green';
+    gui.ctx.arc(0, 0, gui.zoom * 10, 0, 2 * Math.PI, false);
+}
+
+gui_actors.draw_npc_actor = function(actor)
+{
+    gui.ctx.strokeStyle = 'white';
+    gui.ctx.arc(0, 0, gui.zoom * 10, 0, 2 * Math.PI, false);
 }
 
 gui_actors.actor_draw_funcs = {
     'player': gui_actors.draw_player_actor,
-    'npc': gui_actors.draw_player_actor
+    'npc': gui_actors.draw_npc_actor
 };
 
 gui_actors.draw_actor = function(actor)

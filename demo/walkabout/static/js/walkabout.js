@@ -1,8 +1,4 @@
 
-var image_map = {
-    'player': '/assets/images/character_models/player.png',
-    'npc': '/assets/images/character_models/npc.png'
-}
 
 canvas_clicked = function(e)
 {
@@ -72,22 +68,19 @@ function api_callback(message)
 
 function init_game(game_id)
 {
-    console.log("Loading images");
-    gameimages.loadImages(image_map, function() {
-        console.log("Loaded images");
+    console.log("Loaded images");
 
-        gui.initCanvas($("#screen")[0]);
+    gui.initCanvas($("#screen")[0]);
 
-        gui.canvas.width = $("#main").width();
-        gui.canvas.height = $("#main").height();
+    gui.canvas.width = $("#main").width();
+    gui.canvas.height = $("#main").height();
 
-        $("#screen").click(canvas_clicked);
-        $("#screen").mousemove(canvas_mousemove);
-        api_rooms.connect(game_id, api_callback); 
+    $("#screen").click(canvas_clicked);
+    $("#screen").mousemove(canvas_mousemove);
+    api_rooms.connect("http://localhost:5000/rooms/connect/" + game_id, game_id, api_callback); 
 
-        $(window).bind('beforeunload', function(){
-            api_rooms.socket.close();
-        });
+    $(window).bind('beforeunload', function(){
+        api_rooms.socket.close();
     });
 }
 

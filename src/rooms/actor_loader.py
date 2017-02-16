@@ -22,14 +22,16 @@ class ActorLoader(object):
         actor = self.room.node.container.load_limbo_actor(game_id, room_id)
         if actor:
             log.debug("Loaded actor %s into room %s", actor, room_id)
-            if actor.actor_id not in self.room.actors:
-                docked = self._load_docked(game_id, actor)
-                log.debug("Loaded docked: %s", docked)
-                self.room.put_actor(actor)
-                for child in docked:
-                    self.room.put_actor(child)
-            else:
-                raise Exception('Actor %s,%s already loaded' % (game_id, room_id))
+            self.process_actor(actor)
+
+    def process_actor(self, actor):
+        docked = self._load_docked(actor.game_id, actor)
+        self.room.put_actor(actor)
+        for child in docked:
+            self.room.put_actor(child)
+        if actor.is_player:
+            actor.room.node.players[actor.game_id, actor.username] = (
+                actor.room.room_id, actor.actor_id)
 
     def _load_docked(self, game_id, actor):
         docked = self.room.node.container.load_docked_actors(game_id,

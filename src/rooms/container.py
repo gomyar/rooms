@@ -39,7 +39,7 @@ class Container(object):
         self._running = False
         log.info("Stopping container - waiting for remove queue")
         self._remove_queue.put(None)
-        self._remove_gthread.join()
+        self._remove_gthread.join(timeout=1)
         log.info("Container stopped")
 
     def new_token(self):
@@ -172,11 +172,7 @@ class Container(object):
             room_id=room_id, docked_with=None, _loadstate=None))
         log.debug("Found %s actors", len(actors_list))
         for actor in actors_list:
-            docked_actors = ActorLoader(room)._load_docked(game_id, actor)
-            log.debug("Loaded docked actors: %s", docked_actors)
-            room.put_actor(actor)
-            for docked in docked_actors:
-                room.put_actor(docked)
+            ActorLoader(room).process_actor(actor)
 
     def save_room(self, room):
         self._save_object(room, "rooms", active=False, requested=False)
@@ -277,7 +273,7 @@ class Container(object):
         enc_actor = self.dbase.find_and_modify("actors",
             query={'game_id': game_id, 'room_id': room_id,
                    '_loadstate': "limbo", 'docked_with': None},
-            update={"$set": {"_loadstate": ""}},
+            update={"$set": {"_loadstate": None}},
         )
         return self._decode_enc_dict(enc_actor) if enc_actor else None
 
@@ -356,8 +352,7 @@ class Container(object):
             if actor_id:
                 log.debug("Removing actor: %s", actor_id)
                 self.dbase.remove("actors", actor_id=actor_id)
-
-    ## ---- Admin methods
+        log.debug("Exiting remove queue")
 
     def list_nodes(self):
         return self._load_filter('online_nodes', {})

@@ -471,7 +471,7 @@ class ContainerTest(unittest.TestCase):
         # actor1 hasn't been affected (not in 'limbo')
         self.assertTrue('_loadstate' not in self.dbase.dbases['actors']['actor1'])
         # actor2 _loadstate blanked
-        self.assertEquals("", self.dbase.dbases['actors']['actor2']['_loadstate'])
+        self.assertEquals(None, self.dbase.dbases['actors']['actor2']['_loadstate'])
 
     def testQueryUpdate(self):
         self.player = PlayerActor(self.room2, "player", MockScript(),

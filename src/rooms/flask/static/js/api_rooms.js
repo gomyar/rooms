@@ -10,8 +10,10 @@ api_rooms.player_actor = {"actor_id": "admin"};
 api_rooms.actors = {};
 api_rooms.socket = null;
 
-api_rooms.master_url = "http://localhost:9999";
+api_rooms.connect_url = null;
 api_rooms.node_host = location.hostname;
+
+api_rooms.conn_retries = 0;
 
 
 api_rooms.Actor = function(actor)
@@ -137,10 +139,10 @@ api_rooms.onerror = function()
     console.log("Connection error");
 }
 
-api_rooms.connect = function(master_url, game_id, callback)
+api_rooms.connect = function(connect_url, game_id, callback)
 {
     api_rooms.game_id = game_id;
-    api_rooms.master_url = master_url;
+    api_rooms.connect_url = connect_url;
     api_rooms.game_callback = callback;
 
     api_rooms.request_connection();
@@ -149,11 +151,22 @@ api_rooms.connect = function(master_url, game_id, callback)
 api_rooms.request_connection = function()
 {
     console.log("Requesting connection");
-    api_rooms.service_call(api_rooms.master_url + "/player_connects", {"game_id": api_rooms.game_id},
+    api_rooms.service_call(api_rooms.connect_url, {},
             function(data) {
-                api_rooms.node_host = data.node;
-                api_rooms.token = data.token;
-                api_rooms.connect_node();
+				if ('wait' in data) {
+                    if (api_rooms.conn_retries < 3) {
+                        console.log("Waiting 1 second for room ready");
+                        setTimeout(api_rooms.request_connection, 1000);
+                        api_rooms.conn_retries += 1;
+                    } else {
+                        console.log("Connection Timed out");
+                    }
+                } else {
+                    api_rooms.conn_retries = 0;
+                    api_rooms.websocket_url = data.connect;
+                    api_rooms.call_url = data.call;
+                    api_rooms.connect_node();
+                }
             }
         );
 }
@@ -161,7 +174,7 @@ api_rooms.request_connection = function()
 api_rooms.connect_node = function()
 {
     console.log("Connecting to Node " + api_rooms.node_host);
-    api_rooms.socket = new WebSocket("ws://" + api_rooms.node_host + "/node/player_connects/" + api_rooms.token);
+    api_rooms.socket = new WebSocket(api_rooms.websocket_url);
     api_rooms.socket.onmessage = api_rooms.message_callback;
     api_rooms.socket.onopen = api_rooms.onopen;
     api_rooms.socket.onclose = api_rooms.onclose;

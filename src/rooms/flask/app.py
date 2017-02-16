@@ -1,9 +1,14 @@
 
 import os
+import traceback
 
 import logging
 import logging.config
 log = logging.getLogger("rooms")
+
+from geventwebsocket.handler import WebSocketHandler
+from gevent.pywsgi import WSGIServer
+from werkzeug.debug import DebuggedApplication
 
 from rooms.master import Master
 from rooms.node import Node
@@ -19,7 +24,7 @@ _mongo_host = os.environ.get('ROOMS_MONGO_HOST', 'localhost')
 _mongo_port = int(os.environ.get('ROOMS_MONGO_PORT', '27017'))
 _mongo_dbname = os.environ.get('ROOMS_MONGO_DBNAME', 'rooms')
 
-_node_hostname = os.environ.get('ROOMS_NODE_HOSTNAME', 'localhost')
+_node_hostname = os.environ.get('ROOMS_NODE_HOSTNAME', 'localhost:5000')
 
 _rooms_projectdir = os.environ.get('ROOMS_PROJECTDIR', '.')
 
@@ -54,3 +59,20 @@ if os.path.exists(os.path.join(_rooms_projectdir, "scripts")):
 node.container = container
 if os.path.exists(os.path.join(_rooms_projectdir, "scripts")):
     node.load_scripts(os.path.join(_rooms_projectdir, "scripts"))
+
+
+def start_rooms_app(app):
+    try:
+        container.start_container()
+
+        http_server = WSGIServer(('',5000), app,
+                                 handler_class=WebSocketHandler)
+        http_server.serve_forever()
+    except KeyboardInterrupt, ke:
+        log.debug("Server interrupted")
+        node.shutdown()
+        master.shutdown()
+        container.stop_container()
+    except:
+        traceback.print_exc()
+        log.exception("Exception starting server")

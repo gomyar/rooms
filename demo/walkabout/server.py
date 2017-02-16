@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+
+from gevent import monkey
+monkey.patch_all()
+
+from flask import Flask
+from flask import redirect
+from flask import render_template
+from flask import jsonify
+from flask import request
+
+from rooms.flask.login import init_login
+from rooms.flask.login import bp_login
+from rooms.flask.master import bp_master
+from rooms.flask.node import bp_node
+
+from rooms.flask.app import master
+from rooms.flask.app import node
+from rooms.flask.app import start_rooms_app
+
+from flask_login import login_required
+import flask_login
+
+app = Flask(__name__)
+app.secret_key = 'keepitsecretkeepitsafe'
+
+
+@app.route("/")
+@login_required
+def index():
+    return render_template("index.html")
+
+
+@app.route("/games")
+@login_required
+def games():
+    games_data = []
+    for g in master.list_all_games():
+        games_data.append({'owner_id': g.owner_id, 'game_id': g.game_id})
+    return jsonify(games_data)
+
+
+@app.route("/creategame", methods=['POST'])
+@login_required
+def create_game():
+    return master.create_game(flask_login.current_user.get_id())
+
+
+@app.route("/join/<game_id>", methods=['POST'])
+@login_required
+def join(game_id):
+    # default implementation
+    return jsonify(master.join_game(game_id, flask_login.current_user.get_id()))
+
+
+@app.route("/play/<game_id>")
+@login_required
+def play(game_id):
+    return render_template("game.html", game_id=game_id)
+
+
+if __name__ == '__main__':
+    init_login(app)
+    app.register_blueprint(bp_login)
+    app.register_blueprint(bp_master)
+    app.register_blueprint(bp_node)
+
+    node.start()
+
+    start_rooms_app(app)
