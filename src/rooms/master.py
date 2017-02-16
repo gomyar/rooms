@@ -52,19 +52,6 @@ class Master(object):
         players = self.container.all_players_for(username)
         return [{'game_id': p.game_id, 'status': p.status} for p in players]
 
-    def connect_player(self, game_id, username):
-        player_conn = self.container.create_player_token(game_id, username, 300)
-        if player_conn:
-            room = self._get_room(game_id, player_conn['room_id'])
-            if room.get('node_name'):
-                return {'host': self._get_node(room['node_name']).host,
-                        'actor_id': player_conn['actor_id'],
-                        'token': player_conn['token']}
-            else:
-                return {'wait': True}
-        else:
-            return {'error': 'not joined'}
-
     def connect_admin(self, game_id, room_id):
         admin_conn = self.container.create_admin_token(game_id, room_id, 300)
         room = self._get_room(game_id, admin_conn['room_id'])

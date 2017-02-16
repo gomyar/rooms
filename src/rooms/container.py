@@ -42,82 +42,15 @@ class Container(object):
         self._remove_gthread.join(timeout=1)
         log.info("Container stopped")
 
-    def new_token(self):
-        return str(uuid.uuid1())
-
-    def create_player_token(self, game_id, username, timeout_seconds):
-        player = self.get_player(game_id, username)
-        if player:
-            return player
-        else:
-            return self._update_player_token(game_id, username, timeout_seconds)
-
     def get_player(self, game_id, username):
         player = self.dbase.filter_one(
             'actors',
             query={'game_id': game_id, 'username': username,
                    '__type__': 'PlayerActor'},
-            fields=['game_id', 'username', 'token', 'timeout_time', 'room_id',
+            fields=['game_id', 'username', 'timeout_time', 'room_id',
                     'actor_id', 'node_name'],
         )
         return player
-
-    def _update_player_token(self, game_id, username, timeout_seconds):
-        enc_conn = self.dbase.find_and_modify(
-            'actors',
-            query={'game_id': game_id, 'username': username,
-                   '__type__': 'PlayerActor',
-                   '$or': [{'timeout_time': {'$lt': Timer.now()}},
-                           {'token': {'$exists': False}},
-                           {'token': None},
-                          ]
-                  },
-            update={
-                '$set':{
-                    'timeout_time': Timer.now() + timeout_seconds,
-                    'token': self.new_token()},
-            },
-            new=True,
-            fields=['game_id', 'username', 'token', 'timeout_time', 'room_id',
-                    'actor_id', 'node_name'],
-        )
-        return enc_conn
-
-    def create_admin_token(self, game_id, room_id, timeout_seconds):
-        enc_conn = self.dbase.find_and_modify(
-            'admin_tokens',
-            query={'game_id': game_id, 'room_id': room_id, '__type__': 'AdminToken'},
-            update={
-                '$set':{
-                    'timeout_time': Timer.now() + timeout_seconds,
-                    'token': self.new_token()},
-                '$setOnInsert': {
-                    'room_id': room_id, 'game_id': game_id, '__type__': 'AdminToken'
-                }
-            },
-            upsert=True,
-            new=True
-        )
-        return enc_conn
-
-    def get_player_for_token(self, token):
-        player = self.dbase.filter_one(
-            'actors',
-            query={'token': token,
-                   'timeout_time': {'$gt': Timer.now()},
-                   '__type__': 'PlayerActor'},
-            fields=['game_id', 'username', 'token', 'timeout_time', 'room_id',
-                    'actor_id', 'node_name'],
-        )
-        return player
-
-    def get_admin_token(self, token):
-        return self._load_filter_one(
-            'admin_tokens',
-            query={'token': token,
-                   'timeout_time': {'$gt': Timer.now()},
-                   '__type__': 'AdminToken'},
-        )
 
     def get_or_create_player(self, game_id, username, room_id):
         return self.dbase.find_and_modify(
@@ -214,9 +147,11 @@ class Container(object):
     def load_next_pending_room(self, node_name):
         room_data = self.dbase.find_and_modify(
             'rooms',
-            query={'active': False, 'requested': True, '__type__': 'Room', 'node_name': None},
+            query={'active': False, 'requested': True, '__type__': 'Room',
+                   'node_name': None},
             update={
-                '$set':{'active': True, 'requested': False, 'node_name': node_name},
+                '$set':{'active': True, 'requested': False,
+                        'node_name': node_name},
                 '$setOnInsert':{'active': False, 'initialized': False},
             },
             new=True,

@@ -17,11 +17,14 @@ bp_node = Blueprint('node', __name__, template_folder='templates',
 
 @bp_node.route("/play/<game_id>")
 def play(game_id):
-    log.debug("attempting to connect to game %s", game_id)
     if request.environ.get('wsgi.websocket'):
         ws = request.environ['wsgi.websocket']
-        log.debug("Player %s connected to game %s", flask_login.current_user.get_id(), game_id)
+        log.debug("Player %s connected to game %s",
+            flask_login.current_user.get_id(), game_id)
         app.node.player_connects(ws, game_id, flask_login.current_user.get_id())
+        log.debug("player %s disconnected from game %s",
+            flask_login.current_user.get_id(), game_id)
+    return ""
 
 
 @bp_node.route("/connect/<game_id>", methods=['GET', 'POST'])

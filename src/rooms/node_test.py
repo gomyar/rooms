@@ -29,17 +29,20 @@ class NodeTest(unittest.TestCase):
 
         self.container = Container(self.dbase, None)
 
-        self.mock_script = Script("room_script", self)
-
         self.node = Node(self.container, 'alpha', '192.168.0.11')
         self.container.node = self.node
 
-        self.room = Room('game1', 'room1', self.node, self.mock_script)
-        self.room.initialized = True
-        self.room.start_actors = Mock()
+        self.mock_script = Script("room_script", self)
 
-        self.container.load_next_pending_room = Mock(return_value=self.room)
-        self.player1 = PlayerActor(self.room, "test", self.mock_script)
+        self.room = Room('game1', 'room1', None, self.mock_script)
+        self.room.initialized = True
+
+        self.player1 = PlayerActor(self.room, "test_player", self.mock_script,
+                                   'bob', game_id='game1', actor_id='id1')
+        self.room.put_actor(self.player1)
+
+        self.container.save_room(self.room)
+        self.container.save_player(self.player1)
 
         MockTimer.setup_mock()
         MockIDFactory.setup_mock()
@@ -120,7 +123,7 @@ class NodeTest(unittest.TestCase):
 
     def testPlayerEntersRoom(self):
         # poll for limbo player_actor in managed room
-        import ipdb; ipdb.set_trace()
+        self.container.request_create_room('game1', 'room1')
         self.node.load_next_pending_room()
 
         self.assertEquals(1, len(self.node.rooms['game1', 'room1'].actors))
@@ -152,7 +155,7 @@ class NodeTest(unittest.TestCase):
 
         ws = MockWebsocket()
 
-        WebsocketTest().call(self.node.player_connects, ws)
+        WebsocketTest().call(self.node.player_connects, ws, 'game1', 'bob')
 
         MockTimer.fast_forward(1)
         self.room.vision._send_command("id1", {'command': 'disconnect'})
@@ -173,7 +176,7 @@ class NodeTest(unittest.TestCase):
         player_data = self.container.create_player_token("game1", "bob", 10)
         self.dbase.dbases['actors']['actors_1']['room_id'] = "room1"
         ws = MockWebsocket()
-        WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
+        WebsocketTest().call(self.node.player_connects, ws, 'game1', 'bob')
 
         MockTimer.fast_forward(0)
         self.room.vision._send_command("id2", {'command': 'move_room', 'room_id': 'room2'})
@@ -198,7 +201,7 @@ class NodeTest(unittest.TestCase):
         player_data = self.container.create_player_token("game1", "bob", 10)
         self.dbase.dbases['actors']['actors_1']['room_id'] = "room1"
         ws = MockWebsocket()
-        WebsocketTest().call(self.node.player_connects, ws, player_data['token'])
+        WebsocketTest().call(self.node.player_connects, ws, 'game1', 'bob')
 
         MockTimer.fast_forward(0)
         self.room.vision._send_command("id2", {'command': 'move_room', 'room_id': 'room2'})
@@ -218,8 +221,9 @@ class NodeTest(unittest.TestCase):
             self.assertEquals('No room for player: game1, bob', str(e))
 
     def testShutdownRoomsAndActorsSaved(self):
-        room1 = Room('game1', 'room1', self.node, MockScript())
-        self.node.rooms['game1', 'room1'] = room1
+        import ipdb; ipdb.set_trace()
+        self.container.request_create_room('game1', 'room1')
+        self.node.load_next_pending_room()
 
         self.node.shutdown()
 
@@ -264,10 +268,7 @@ class NodeTest(unittest.TestCase):
         self.assertEquals('beta', self.dbase.dbases['rooms']['rooms_1']['node_name'])
 
     def testShutdownSendDisconnectToPlayerConnections(self):
-        self.player = self.container.create_player(self.room, 'test',
-            MockScript(), 'bob', 'game1')
-        self.room.actors[self.player.actor_id] = self.player
-
+        self.container.request_create_room('game1', 'room1')
         self.node.load_next_pending_room()
 
         ws = MockWebsocket()
@@ -285,24 +286,25 @@ class NodeTest(unittest.TestCase):
         self.assertEquals(4, len(ws.updates))
         self.assertEquals(
             {u'command': u'sync',
-            u'data': {u'now': 0,
-            u'player_actor': {u'actor_id': u'id1',
-            u'actor_type': u'test',
-            u'docked_with': None,
-            u'exception': None,
-            u'game_id': u'game1',
-            u'parent_id': None,
-            u'script': u'',
-            u'speed': 1.0,
-            u'state': {},
-            u'username': u'bob',
-            u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                u'end_time': 0.0,
-                u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                u'start_time': 0},
-            u'visible': True},
-            u'room_id': u'room1',
-            u'username': u'bob'}}
+             u'data': {u'now': 0,
+                       u'player_actor': {u'actor_id': u'id1',
+                            u'actor_type': u'test_player',
+                            u'docked_with': None,
+                            u'exception': None,
+                            u'game_id': u'game1',
+                            u'parent_id': None,
+                            u'script': u'',
+                            u'speed': 1.0,
+                            u'state': {},
+                            u'username': u'bob',
+                            u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0,
+                                                        u'z': 0.0},
+                                        u'end_time': 0.0,
+                            u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
+                                            u'start_time': 0},
+                            u'visible': True},
+                       u'room_id': u'room1',
+                       u'username': u'bob'}}
         , ws.updates[0])
 
     def testPlayerConnectsTwice(self):

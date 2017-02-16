@@ -21,7 +21,7 @@ class FileMapSource(object):
 
 class SimpleRoomBuilder(object):
     def create(self, game_id, room_id):
-        return Room(game_id, room_id)
+        return Room(game_id, room_id, None)
 
 
 class RoomBuilder(object):

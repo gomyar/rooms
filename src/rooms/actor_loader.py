@@ -1,4 +1,5 @@
 
+import gevent
 from rooms.timer import Timer
 
 import logging
@@ -9,9 +10,18 @@ class ActorLoader(object):
     def __init__(self, room):
         self.room = room
         self.running = False
+        self._gthread = None
+
+    def start(self):
+        self.running = True
+        self._gthread = gevent.spawn(self.load_loop)
+
+    def stop(self):
+        self.running = False
+        if self._gthread:
+            self._gthread.join()
 
     def load_loop(self):
-        self.running = True
         while self.running:
             self._load_actors()
             Timer.sleep(1)

@@ -67,14 +67,15 @@ class Node(object):
         self.scripts.load_scripts(script_path)
 
     def start_node_update(self):
-        self._nodeupdater_gthread = gevent.spawn(self.node_updater.update_loop)
+        self.node_updater.start()
 
     def start_room_loader(self):
-        self._roomload_gthread = gevent.spawn(self.room_loader.load_loop)
+        self.room_loader.start()
 
     def load_next_pending_room(self):
         room = self.container.load_next_pending_room(self.name)
         if room:
+            room.node = self
             self.rooms[room.game_id, room.room_id] = room
             if not room.initialized:
                 room.script.call("room_created", room)
@@ -136,13 +137,8 @@ class Node(object):
 
     def shutdown(self):
         # stop all gthreads
-        self.room_loader.running = False
-        self.node_updater.running = False
-
-        if self._roomload_gthread:
-            self._roomload_gthread.join()
-        if self._nodeupdater_gthread:
-            self._nodeupdater_gthread.join()
+        self.room_loader.stop()
+        self.node_updater.stop()
 
         for room in self.rooms.values():
             room.stop()

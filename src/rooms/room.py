@@ -90,7 +90,7 @@ class Room(object):
         self.start_actors()
 
     def start_actorloader(self):
-        self._actorload_gthread = gevent.spawn(self.actor_loader.load_loop)
+        self.actor_loader.start()
 
     def start_actors(self):
         log.debug("Kicking room (%s actors)", len(self.actors))
@@ -102,9 +102,7 @@ class Room(object):
         self.stop_actorloader()
 
     def stop_actorloader(self):
-        self.actor_loader.running = False
-        if self._actorload_gthread:
-            self._actorload_gthread.join()
+        self.actor_loader.stop()
 
     def stop_actors(self):
         for actor in self.actors.values():

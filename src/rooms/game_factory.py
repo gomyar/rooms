@@ -128,10 +128,12 @@ class GameFactory(object):
         return dict(game_id=room.game_id, room_id=room.room_id,
             state=room.state, last_modified=datetime.isoformat(
                 datetime.utcfromtimestamp(Timer.now())),
-            node_name=self.container.node.name, initialized=room.initialized)
+            node_name=room.node.name if room.node else None,
+            initialized=room.initialized)
 
     def _build_room(self, data):
-        room = self.container.room_builder.create(data['game_id'], data['room_id'])
+        room = self.container.room_builder.create(
+            data['game_id'], data['room_id'])
         room.state = data['state']
         room.initialized = data.get('initialized', False)
         room.geography = self.container.geography
