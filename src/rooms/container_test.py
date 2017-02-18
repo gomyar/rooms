@@ -141,33 +141,6 @@ class ContainerTest(unittest.TestCase):
         self.assertRaises(Exception,
             self.container.load_player, "ned", "nonexistant")
 
-    def testGetOrCreatePlayerConnection(self):
-        self.container.create_player(None, 'test', MockScript(), 'ned', 'game1')
-        self.container.new_token = lambda: "TOKEN"
-        # basic create
-        player_conn = self.container.create_player_token('game1', 'ned', 10)
-        self.assertEquals('game1', player_conn['game_id'])
-        self.assertEquals('ned', player_conn['username'])
-        self.assertEquals('TOKEN', player_conn['token'])
-
-        self.container.new_token = lambda: "NEWTOKEN"
-
-        player_conn = self.container.create_player_token('game1', 'ned', 10)
-        self.assertEquals('game1', player_conn['game_id'])
-        self.assertEquals('ned', player_conn['username'])
-        self.assertEquals('TOKEN', player_conn['token'])
-
-        MockTimer.fast_forward(11)
-        self.assertEquals(None, self.container.get_player_for_token('NEWTOKEN'))
-
-        player_conn = self.container.create_player_token('game1', 'ned', 10)
-        self.assertEquals('game1', player_conn['game_id'])
-        self.assertEquals('ned', player_conn['username'])
-        self.assertEquals('NEWTOKEN', player_conn['token'])
-
-    def testGetOrCreateAdminConnections(self):
-        pass
-
     def testCreatePlayer(self):
         player = self.container.create_player(self.room2, "player",
             MockScript(), "ned", game_id="games_0")

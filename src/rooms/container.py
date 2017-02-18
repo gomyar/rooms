@@ -133,7 +133,7 @@ class Container(object):
         # push into dbase
         return self.dbase.find_and_modify(
             'rooms',
-            query={'game_id': game_id, '__type__': 'Room'},
+            query={'game_id': game_id, 'room_id': room_id, '__type__': 'Room'},
             update={
                 '$set':{'requested':True},
                 '$setOnInsert':{'active': False,'node_name': None,

@@ -115,10 +115,9 @@ class MasterTest(unittest.TestCase):
         self.assertEquals({'error': 'no such game'}, result)
 
     def testPlayerConnectsToGame(self):
-        self.container.new_token = lambda: "TOKEN1"
         game_id = self.master.create_game("bob")
         result = self.master.join_game(game_id, "ned")
-        self.assertEquals({'joined': True}, result)
+        self.assertEquals({'rooms_url': None}, result)
 
         # node picks up player
         self.db.dbases['rooms']['rooms_0'] = {

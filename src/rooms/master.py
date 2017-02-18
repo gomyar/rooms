@@ -46,7 +46,9 @@ class Master(object):
                 } for g in games]
 
     def list_all_games(self):
-        return self.container.all_games()
+        return [{'game_id': g.game_id, 'state': g.state,
+                 'owner_username': g.owner_id,
+                } for g in self.container.all_games()]
 
     def list_players(self, username):
         players = self.container.all_players_for(username)

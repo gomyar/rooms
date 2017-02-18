@@ -12,7 +12,7 @@ from testutils import MockTimer
 class ActorLoaderTest(unittest.TestCase):
     def setUp(self):
         MockTimer.setup_mock()
-        self.node = Node("localhost", 8000, "master", 7000)
+        self.node = Node(None, "test", "localhost")
         self.dbase = MockDbase()
         self.container = Container(self.dbase, self.node)
         self.node.container = self.container

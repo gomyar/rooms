@@ -21,6 +21,7 @@ from rooms.room_builder import FileMapSource
 from rooms.room_builder import RoomBuilder
 from rooms.script import Script
 from rooms.player import PlayerActor
+from rooms.position import Position
 
 
 class NodeTest(unittest.TestCase):
@@ -66,28 +67,32 @@ class NodeTest(unittest.TestCase):
                           spawn.call_args_list[1][0][0])
 
     def testLoadRoomNotInitialized(self):
+        self.dbase.dbases['rooms']['rooms_0']['initialized'] = False
+
         self.assertEquals(0, len(self.node.rooms))
+        self.container.request_create_room('game1', 'room1')
         self.node.load_next_pending_room()
         self.assertEquals(1, len(self.node.rooms))
 
         # test run init script if room.initialized == False
-        self.assertTrue(self.room.state['testcreated'])
-        self.assertEquals(1, len(self.room.actors))
-        self.assertEquals('test', self.room.actors.values()[0].actor_type)
-        self.assertTrue(self.room.start_actors.called)
+        room = self.node.rooms['game1', 'room1']
+        self.assertTrue(room.state['testcreated'])
+        self.assertEquals(1, len(room.actors))
+        self.assertEquals('test', room.actors.values()[0].actor_type)
 
     def testLoadRoomAlreadyInitialized(self):
-        self.room.initialized = True
-        self.room.state['testcreated'] = False
+        self.dbase.dbases['rooms']['rooms_0']['state']['testcreated'] = False
 
         self.assertEquals(0, len(self.node.rooms))
+        self.container.request_create_room('game1', 'room1')
         self.node.load_next_pending_room()
         self.assertEquals(1, len(self.node.rooms))
 
         # test run init script if room.initialized == False
-        self.assertFalse(self.room.state['testcreated'])
-        self.assertEquals(0, len(self.room.actors))
-        self.assertTrue(self.room.start_actors.called)
+        room = self.node.rooms['game1', 'room1']
+        self.assertFalse(room.state['testcreated'])
+        self.assertEquals(1, len(room.actors))
+        self.assertTrue(room.start_actors.called)
 
     def testLoadRoomAlreadyInitializedWithActors(self):
         self.dbase.dbases['actors'] = {}
@@ -113,12 +118,14 @@ class NodeTest(unittest.TestCase):
         self.room.state['testcreated'] = False
 
         self.assertEquals(0, len(self.node.rooms))
+        self.container.request_create_room('game1', 'room1')
         self.node.load_next_pending_room()
         self.assertEquals(1, len(self.node.rooms))
 
         self.assertFalse(self.room.state['testcreated'])
         self.assertEquals(1, len(self.room.actors))
-        self.assertEquals('loaded', self.room.actors.values()[0].actor_type)
+        self.assertEquals('test_player',
+            self.room.actors.values()[0].actor_type)
         self.assertTrue(self.room.start_actors.called)
 
     def testPlayerEntersRoom(self):
@@ -134,7 +141,10 @@ class NodeTest(unittest.TestCase):
             'game1')
 
         # init room (plus player)
+        self.container.request_create_room('game1', 'room1')
         self.node.load_next_pending_room()
+
+        room = self.node.rooms['game1', 'room1']
 
         # call websocket
         ws = MockWebsocket()
@@ -143,72 +153,84 @@ class NodeTest(unittest.TestCase):
 
         # messages in queue propagated to websocket
         MockTimer.fast_forward(1)
-        self.room.vision._send_command("id1", {'do': 'somthing'})
+        room.vision._send_command("id1", {'do': 'somthing'})
         MockTimer.fast_forward(1)
 
-        self.assertEquals([{u'do': u'somthing'}], ws.updates)
+        self.assertEquals({u'do': u'somthing'}, ws.updates[2])
 
     def testPlayerDisconnted(self):
-        self.container.create_player(self.room, 'test', MockScript(), 'bob',
-            'game1')
+        self.container.request_create_room('game1', 'room1')
         self.node.load_next_pending_room()
+
+        room = self.node.rooms['game1', 'room1']
 
         ws = MockWebsocket()
 
         WebsocketTest().call(self.node.player_connects, ws, 'game1', 'bob')
 
         MockTimer.fast_forward(1)
-        self.room.vision._send_command("id1", {'command': 'disconnect'})
+        room.vision._send_command("id1", {'command': 'disconnect'})
         MockTimer.fast_forward(1)
 
-        self.assertEquals([{u'command': u'disconnect'}], ws.updates)
+        self.assertEquals({u'command': u'disconnect'}, ws.updates[2])
         # empty queue means actor was disconnected
         self.assertEquals({}, self.room.vision.actor_queues)
 
     def testPlayerMovesRoomSameNode(self):
-        self.room2 = Room('game1', 'room2', self.node, self.mock_script)
+        self.room2 = Room('game1', 'room2', None, self.mock_script)
+        self.room.initialized = True
+
+        self.container.save_room(self.room2)
+
+        self.container.request_create_room('game1', 'room1')
+        self.container.request_create_room('game1', 'room2')
 
         self.node.load_next_pending_room()
-        self.node.rooms['game1', 'room2'] = self.room2
+        self.node.load_next_pending_room()
 
-        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+        room = self.node.rooms['game1', 'room1']
+        room2 = self.node.rooms['game1', 'room2']
 
-        player_data = self.container.create_player_token("game1", "bob", 10)
-        self.dbase.dbases['actors']['actors_1']['room_id'] = "room1"
         ws = MockWebsocket()
         WebsocketTest().call(self.node.player_connects, ws, 'game1', 'bob')
 
         MockTimer.fast_forward(0)
-        self.room.vision._send_command("id2", {'command': 'move_room', 'room_id': 'room2'})
+        room.move_actor_room(self.player1, "room2", Position(0, 0))
         MockTimer.fast_forward(1)
 
-        self.assertEquals([{u'command': u'move_room', u'room_id': u'room2'}], ws.updates)
+        self.assertEquals({u'actor_id': u'id1', u'command': u'remove_actor'},
+            ws.updates[2])
+        self.assertEquals({u'command': u'move_room', u'room_id': u'room2'},
+            ws.updates[3])
 
         # listening to messages from room2 queue
-        self.room2.vision._send_command("id2", {'do': "something"})
+        room2.vision._send_command("id1", {'do': "something"})
         MockTimer.fast_forward(1)
 
-        self.assertEquals([
-            {u'command': u'move_room', u'room_id': u'room2'},
-            {u'do': u'something'}],
-            ws.updates)
+        self.assertEquals(
+            {u'do': u'something'},
+            ws.updates[6])
+
+    def testPlayerMovesRoomNotCurrentlyConnected(self):
+        # if the player script moves the player to a different room, but the
+        # player isn't currently connected, it throws an exception, it shouldnt
+        pass
 
     def testPlayerMovesRoomOtherNode(self):
+        self.container.request_create_room('game1', 'room1')
         self.node.load_next_pending_room()
 
-        self.container.create_player(None, 'test', MockScript(), 'bob', 'game1')
+        room = self.node.rooms['game1', 'room1']
 
-        player_data = self.container.create_player_token("game1", "bob", 10)
-        self.dbase.dbases['actors']['actors_1']['room_id'] = "room1"
         ws = MockWebsocket()
         WebsocketTest().call(self.node.player_connects, ws, 'game1', 'bob')
 
         MockTimer.fast_forward(0)
-        self.room.vision._send_command("id2", {'command': 'move_room', 'room_id': 'room2'})
+        room.move_actor_room(self.player1, "room2", Position(0, 0))
         MockTimer.fast_forward(1)
 
-        self.assertEquals([
-            {'command': 'redirect_to_master'}], ws.updates)
+        self.assertEquals(
+            {'command': 'redirect_to_master'}, ws.updates[-1])
 
     def testWrongPlayerConnects(self):
         self.dbase.dbases['actors'] = {'actors_1': {'room_id': "room2"}}
@@ -221,7 +243,6 @@ class NodeTest(unittest.TestCase):
             self.assertEquals('No room for player: game1, bob', str(e))
 
     def testShutdownRoomsAndActorsSaved(self):
-        import ipdb; ipdb.set_trace()
         self.container.request_create_room('game1', 'room1')
         self.node.load_next_pending_room()
 
@@ -231,7 +252,7 @@ class NodeTest(unittest.TestCase):
                             '_id': 'rooms_0',
                             'active': False,
                             u'game_id': u'game1',
-                            u'initialized': False,
+                            u'initialized': True,
                             u'last_modified': u'1970-01-01T00:00:00',
                             u'node_name': u'alpha',
                             'requested': False,
