@@ -275,13 +275,14 @@ class ActorTest(unittest.TestCase):
 
     def testCreateChildActor(self):
         self.actor.username = "bob"
-        child = self.actor.create_actor("child", "actor_script")
+        child = self.actor.create_actor("child", "rooms.actor_test")
 
         self.assertEquals(self.actor.position, child.position)
         self.assertEquals(self.actor, child.docked_with)
         self.assertFalse(child.visible)
 
-        child = self.actor.create_actor("child", "actor_script", docked=False,
+        child = self.actor.create_actor("child", "rooms.actor_test",
+            docked=False,
             position=Position(5, 5), visible=True)
 
         self.assertEquals(Position(5, 5), child.position)
@@ -371,7 +372,7 @@ class ActorTest(unittest.TestCase):
         self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",
             ActorTest))
         self.room.put_actor(self.actor2, Position(30, 10))
-        child1 = self.actor2.create_actor("child1", "actor_script")
+        child1 = self.actor2.create_actor("child1", "rooms.actor_test")
 
         self.actor2.remove()
 

@@ -107,25 +107,14 @@ class MasterTest(unittest.TestCase):
             'node_name': None,
             'requested': True,
             'room_id': None,
+            'script_name': 'rooms.script',
             'state': {}}, self.db.dbases['rooms']['rooms_0'])
-        self.assertEquals('bob', self.db.dbases['actors']['actors_0']['username'])
+        self.assertEquals('bob',
+            self.db.dbases['actors']['actors_0']['username'])
 
     def testPlayerTriesToJoinNonExistingGame(self):
         result = self.master.join_game('nonexitant', "ned")
         self.assertEquals({'error': 'no such game'}, result)
-
-    def testPlayerConnectsToGame(self):
-        game_id = self.master.create_game("bob")
-        result = self.master.join_game(game_id, "ned")
-        self.assertEquals({'rooms_url': None}, result)
-
-        # node picks up player
-        self.db.dbases['rooms']['rooms_0'] = {
-            "__type__": "Room", "game_id": game_id, "node_name": "alpha"
-        }
-
-        result = self.master.connect_player(game_id, 'ned')
-        self.assertEquals({'actor_id': 'id1', 'host': u'10.0.0.1', 'token': 'TOKEN1'}, result)
 
     def testAllGames(self):
         self.assertEquals([], self.master.list_all_games())

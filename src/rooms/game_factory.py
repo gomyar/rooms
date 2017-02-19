@@ -16,6 +16,7 @@ from rooms.admin_token import AdminToken
 from rooms.room_map import Map
 from rooms.room_map import MapRoom
 from rooms.timer import Timer
+from rooms.script import load_script
 
 
 class GameFactory(object):
@@ -106,7 +107,7 @@ class GameFactory(object):
         return data
 
     def _build_player(self, data):
-        script = self.container.node.scripts[data['script_name']] if self.container.node else None
+        script = load_script(data['script_name'])
         player = PlayerActor(None, data['actor_type'],
             script, visible=data['visible'],
             username=data['username'], actor_id=data['actor_id'],
@@ -129,7 +130,8 @@ class GameFactory(object):
             state=room.state, last_modified=datetime.isoformat(
                 datetime.utcfromtimestamp(Timer.now())),
             node_name=room.node.name if room.node else None,
-            initialized=room.initialized)
+            initialized=room.initialized,
+            script_name=room.script.script_name)
 
     def _build_room(self, data):
         room = self.container.room_builder.create(
@@ -137,13 +139,15 @@ class GameFactory(object):
         room.state = data['state']
         room.initialized = data.get('initialized', False)
         room.geography = self.container.geography
+        room.script = load_script(data['script_name'])
         self.container.geography.setup(room)
         return room
 
     # Door
     def _serialize_door(self, door):
         return dict(exit_room_id=door.exit_room_id,
-            enter_position=door.enter_position, exit_position=door.exit_position)
+            enter_position=door.enter_position,
+            exit_position=door.exit_position)
 
     def _build_door(self, data):
         return Door(data['exit_room_id'], data['enter_position'],
@@ -168,7 +172,7 @@ class GameFactory(object):
             _loadstate=None)
 
     def _build_actor(self, data):
-        script = self.container.node.scripts[data['script_name']] if self.container.node else None
+        script = load_script(data['script_name'])
         actor = Actor(None, data['actor_type'],
             script, visible=data['visible'],
             username=data['username'], actor_id=data['actor_id'],

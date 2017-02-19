@@ -24,6 +24,15 @@ from rooms.player import PlayerActor
 from rooms.position import Position
 
 
+def room_created(room):
+    room.state['testcreated'] = True
+    room.create_actor("test", None)
+
+
+def kickoff(actor):
+    actor.state['kicked'] = True
+
+
 class NodeTest(unittest.TestCase):
     def setUp(self):
         self.dbase = MockDbase()
@@ -33,7 +42,7 @@ class NodeTest(unittest.TestCase):
         self.node = Node(self.container, 'alpha', '192.168.0.11')
         self.container.node = self.node
 
-        self.mock_script = Script("room_script", self)
+        self.mock_script = Script('rooms.node_test', globals())
 
         self.room = Room('game1', 'room1', None, self.mock_script)
         self.room.initialized = True
@@ -51,11 +60,6 @@ class NodeTest(unittest.TestCase):
     def tearDown(self):
         MockTimer.teardown_mock()
         MockIDFactory.teardown_mock()
-
-    @staticmethod
-    def room_created(room):
-        room.state['testcreated'] = True
-        room.create_actor("test", None)
 
     @patch("gevent.spawn")
     def testStartNode(self, spawn):
@@ -92,7 +96,12 @@ class NodeTest(unittest.TestCase):
         room = self.node.rooms['game1', 'room1']
         self.assertFalse(room.state['testcreated'])
         self.assertEquals(1, len(room.actors))
-        self.assertTrue(room.start_actors.called)
+
+        MockTimer.fast_forward(1)
+
+        room = self.node.rooms['game1', 'room1']
+        actor = room.actors['id1']
+        self.assertTrue(actor.state['kicked'])
 
     def testLoadRoomAlreadyInitializedWithActors(self):
         self.dbase.dbases['actors'] = {}
@@ -112,7 +121,7 @@ class NodeTest(unittest.TestCase):
             "start_time": 0,
             "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
             "end_time": 10,
-            }, "script_name": "mock_script"}
+            }, "script_name": "rooms.node_test"}
 
         self.room.initialized = True
         self.room.state['testcreated'] = False
@@ -126,7 +135,12 @@ class NodeTest(unittest.TestCase):
         self.assertEquals(1, len(self.room.actors))
         self.assertEquals('test_player',
             self.room.actors.values()[0].actor_type)
-        self.assertTrue(self.room.start_actors.called)
+
+        MockTimer.fast_forward(1)
+
+        room = self.node.rooms['game1', 'room1']
+        actor = room.actors['actor1']
+        self.assertTrue(actor.state['kicked'])
 
     def testPlayerEntersRoom(self):
         # poll for limbo player_actor in managed room
@@ -137,8 +151,8 @@ class NodeTest(unittest.TestCase):
 
     def testPlayerConnects(self):
         # set up db objects
-        self.container.create_player(self.room, 'test', MockScript(), 'bob',
-            'game1')
+        self.container.create_player(self.room, 'test', self.mock_script,
+            'bob', 'game1')
 
         # init room (plus player)
         self.container.request_create_room('game1', 'room1')
@@ -207,9 +221,8 @@ class NodeTest(unittest.TestCase):
         room2.vision._send_command("id1", {'do': "something"})
         MockTimer.fast_forward(1)
 
-        self.assertEquals(
-            {u'do': u'something'},
-            ws.updates[6])
+        self.assertEquals(10, len(ws.updates))
+        self.assertTrue({u'do': u'something'} in ws.updates)
 
     def testPlayerMovesRoomNotCurrentlyConnected(self):
         # if the player script moves the player to a different room, but the
@@ -257,6 +270,7 @@ class NodeTest(unittest.TestCase):
                             u'node_name': u'alpha',
                             'requested': False,
                             u'room_id': u'room1',
+                            u'script_name': u'rooms.node_test',
                             u'state': {}}}
         , self.container.dbase.dbases['rooms'])
 
@@ -314,9 +328,9 @@ class NodeTest(unittest.TestCase):
                             u'exception': None,
                             u'game_id': u'game1',
                             u'parent_id': None,
-                            u'script': u'',
+                            u'script': u'rooms.node_test',
                             u'speed': 1.0,
-                            u'state': {},
+                            u'state': {'kicked': True},
                             u'username': u'bob',
                             u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0,
                                                         u'z': 0.0},

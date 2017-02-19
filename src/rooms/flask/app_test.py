@@ -44,25 +44,25 @@ class FlaskAppTest(unittest.TestCase):
         app.master.join_game(game_id, 'bob')
 
         self.login('bob', 'pass')
-        res = self.client.get('/connect/games_0')
-        self.assertEquals(503, res.status_code)
-        self.assertEquals("Room not ready", res.data)
+        res = self.client.get('/rooms/connect/games_0')
+        self.assertEquals(200, res.status_code)
+        self.assertEquals('{\n  "wait": 1\n}\n', res.data)
 
         app.node.load_next_pending_room()
 
-        res = self.client.get('/connect/games_0')
+        res = self.client.get('/rooms/connect/games_0')
         self.assertEquals(302, res.status_code)
         self.assertEquals("http://localhost/play/games_0", res.headers['location'])
 
         # Check node host is reflected in the redirect
         app.node.host = "node1.rooms.com"
 
-        res = self.client.get('/connect/1234')
+        res = self.client.get('/rooms/connect/1234')
         self.assertEquals(302, res.status_code)
         self.assertEquals("http://node1.rooms.com/play/1234", res.headers['location'])
 
     def test_has_not_joined(self):
         game_id = app.master.create_game('bob')
         self.login('bob', 'pass')
-        res = self.client.get('/connect/1234')
+        res = self.client.get('/rooms/connect/1234')
         self.assertEquals(401, res.status_code)

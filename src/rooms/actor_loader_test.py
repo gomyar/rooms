@@ -42,7 +42,7 @@ class ActorLoaderTest(unittest.TestCase):
             "start_time": 0,
             "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
             "end_time": 10,
-            }, "script_name": "mock_script"}
+            }, "script_name": "rooms.actor_loader_test"}
 
         self.dbase.dbases['actors']['actor2'] = \
             {"__type__": "Actor", "_id": "actor1", "actor_id": "actor2",
@@ -60,7 +60,7 @@ class ActorLoaderTest(unittest.TestCase):
             "start_time": 0,
             "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
             "end_time": 10,
-            }, "script_name": "mock_script"}
+            }, "script_name": "rooms.actor_loader_test"}
 
     def tearDown(self):
         MockTimer.teardown_mock()
@@ -88,7 +88,7 @@ class ActorLoaderTest(unittest.TestCase):
             "start_time": 0,
             "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
             "end_time": 10,
-            }, "script_name": "mock_script"}
+            }, "script_name": "rooms.actor_loader_test"}
 
 
         self.loader._load_actors()
@@ -118,7 +118,7 @@ class ActorLoaderTest(unittest.TestCase):
             "start_time": 0,
             "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
             "end_time": 10,
-            }, "script_name": "mock_script"}
+            }, "script_name": "rooms.actor_loader_test"}
         self.dbase.dbases['actors']['actor2'] = \
             {"__type__": "Actor", "_id": "actor2", "actor_id": "actor2",
             "parent_id": None,
@@ -135,7 +135,7 @@ class ActorLoaderTest(unittest.TestCase):
             "start_time": 0,
             "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
             "end_time": 10,
-            }, "script_name": "mock_script"}
+            }, "script_name": "rooms.actor_loader_test"}
         self.dbase.dbases['actors']['actor3'] = \
             {"__type__": "Actor", "_id": "actor3", "actor_id": "actor3",
             "parent_id": None,
@@ -152,7 +152,7 @@ class ActorLoaderTest(unittest.TestCase):
             "start_time": 0,
             "end_pos": {"__type__": "Position", "x": 0, "y": 10, "z": 0},
             "end_time": 10,
-            }, "script_name": "mock_script"}
+            }, "script_name": "rooms.actor_loader_test"}
 
         self.loader._load_actors()
 

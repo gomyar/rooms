@@ -4,6 +4,14 @@ import inspect
 from functools import wraps
 
 
+def load_script(script_name):
+    if '.' in script_name:
+        modname = script_name[:script_name.rfind('.')]
+    else:
+        modname = script_name
+    return Script(script_name, __import__(script_name, fromlist=[modname]))
+
+
 def command(func):
     @wraps(func)
     def wrapped(*args, **kwargs):

@@ -28,6 +28,8 @@ class Container(object):
         self.room_builder = SimpleRoomBuilder()
         self.item_registry = ItemRegistry()
         self.factory = GameFactory(self)
+        self.player_script_name = "rooms.script"
+        self.room_script_name = "rooms.script"
         self._remove_queue = Queue()
         self._remove_gthread = None
 
@@ -88,7 +90,7 @@ class Container(object):
             'actor_id': IDFactory.create_id(),
             '__type__': 'PlayerActor',
             '_loadstate': 'limbo',
-            'script_name': 'player_script',
+            'script_name': self.player_script_name,
         }
 
     def load_room(self, game_id, room_id):
@@ -138,6 +140,7 @@ class Container(object):
                 '$set':{'requested':True},
                 '$setOnInsert':{'active': False,'node_name': None,
                     '__type__': 'Room', 'state': {}, 'game_id': game_id,
+                    'script_name': self.room_script_name,
                     'room_id': room_id},
             },
             upsert=True,

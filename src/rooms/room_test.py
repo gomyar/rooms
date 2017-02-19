@@ -24,6 +24,10 @@ from rooms.node import Node
 from testutils import MockTimer
 
 
+def created(actor):
+    actor.state['created'] = True
+
+
 class RoomTest(unittest.TestCase):
     def setUp(self):
         self.script = Script("room_test", RoomTest)
@@ -46,10 +50,6 @@ class RoomTest(unittest.TestCase):
     def tearDown(self):
         MockIDFactory.teardown_mock()
 
-    @staticmethod
-    def created(actor):
-        actor.state['created'] = True
-
     def testInitialSetup(self):
         self.assertEquals(50, self.room.width)
         self.assertEquals(50, self.room.height)
@@ -61,7 +61,7 @@ class RoomTest(unittest.TestCase):
         actor = self.room.create_actor("mock_actor", "rooms.room_test")
         self.assertTrue(actor.state.created)
         self.assertFalse(actor._script_gthread is None)
-        self.assertEquals(RoomTest.created, actor.script.script_module.created)
+        self.assertEquals(created, actor.script.script_module.created)
         self.assertEquals(self.room, actor.room)
         self.assertEquals(actor, self.room.actors['id1'])
         self.assertEquals(None, actor.username)
@@ -70,7 +70,6 @@ class RoomTest(unittest.TestCase):
         actor2 = self.room.create_actor("mock_actor", "rooms.room_test",
             username=self.player.username)
         self.assertEquals("bob", actor2.username)
-        self.assertEquals(self.script, actor.script)
 
         actor = self.room.create_actor("mock_actor", "rooms.room_test",
             position=Position(10, 10))

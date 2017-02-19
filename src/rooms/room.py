@@ -5,6 +5,7 @@ from rooms.actor import Actor
 from rooms.actor import search_actor_test
 from rooms.vision import Vision
 from rooms.script import NullScript
+from rooms.script import load_script
 from rooms.actor_loader import ActorLoader
 
 import logging
@@ -130,7 +131,10 @@ class Room(object):
 
     def create_actor(self, actor_type, script_name=None, username=None,
             position=None, state=None, visible=True, parent_id=None):
-        script = self.node.scripts[script_name]
+        if script_name:
+            script = load_script(script_name)
+        else:
+            script = NullScript()
         actor = self.node.container.create_actor(self, actor_type, script,
             username=username, state=state, visible=visible,
             parent_id=parent_id, position=position)
