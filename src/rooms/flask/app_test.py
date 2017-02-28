@@ -1,4 +1,6 @@
 
+import json
+import os
 import unittest
 from flask import Flask
 from rooms.flask.master import bp_master
@@ -8,6 +10,9 @@ from rooms.flask.login import bp_login
 from rooms.flask import app
 from rooms.testutils import MockDbase
 
+
+def start_room():
+    return "map1.room1"
 
 
 class FlaskAppTest(unittest.TestCase):
@@ -19,7 +24,12 @@ class FlaskAppTest(unittest.TestCase):
         self.app.register_blueprint(bp_master)
         self.app.register_blueprint(bp_node)
         self.app.register_blueprint(bp_login)
+        self._old_path = app.room_builder.map_source.dirpath
+        app.room_builder.map_source.dirpath = os.path.join(
+            os.path.dirname(__file__), "../test_maps")
         init_login(self.app)
+        app.master.load_scripts("rooms.flask.app_test")
+        app.node.start()
 
         self.client = self.app.test_client()
 
@@ -29,6 +39,9 @@ class FlaskAppTest(unittest.TestCase):
             username='bob', password='pass'))
         self.client.post('/register', data=dict(
             username='ned', password='pass'))
+
+    def tearDown(self):
+        app.room_builder.map_source.dirpath = self._old_path
 
     def login(self, username, password):
         return self.client.post('/login', data=dict(
@@ -51,18 +64,42 @@ class FlaskAppTest(unittest.TestCase):
         app.node.load_next_pending_room()
 
         res = self.client.get('/rooms/connect/games_0')
-        self.assertEquals(302, res.status_code)
-        self.assertEquals("http://localhost/play/games_0", res.headers['location'])
+        self.assertEquals(200, res.status_code)
+        data = json.loads(res.data)
+        self.assertTrue('actor_id' in data)
+        self.assertEquals("localhost:5000", data['host'])
+        self.assertEquals("http://localhost:5000/rooms/call/games_0",
+                          data['call'])
+        self.assertEquals("ws://localhost:5000/rooms/play/games_0",
+                          data['connect'])
 
-        # Check node host is reflected in the redirect
+    def test_node_hostname(self):
         app.node.host = "node1.rooms.com"
+        # restarting saves the node info into the db
+        app.node.start()
 
-        res = self.client.get('/rooms/connect/1234')
-        self.assertEquals(302, res.status_code)
-        self.assertEquals("http://node1.rooms.com/play/1234", res.headers['location'])
+        game_id = app.master.create_game('bob')
+        app.master.join_game(game_id, 'bob')
+
+        self.login('bob', 'pass')
+        res = self.client.get('/rooms/connect/games_0')
+        self.assertEquals(200, res.status_code)
+        self.assertEquals('{\n  "wait": 1\n}\n', res.data)
+
+        app.node.load_next_pending_room()
+
+        res = self.client.get('/rooms/connect/games_0')
+        self.assertEquals(200, res.status_code)
+        data = json.loads(res.data)
+        self.assertTrue('actor_id' in data)
+        self.assertEquals("node1.rooms.com", data['host'])
+        self.assertEquals("http://node1.rooms.com/rooms/call/games_0",
+                          data['call'])
+        self.assertEquals("ws://node1.rooms.com/rooms/play/games_0",
+                          data['connect'])
 
     def test_has_not_joined(self):
         game_id = app.master.create_game('bob')
         self.login('bob', 'pass')
-        res = self.client.get('/rooms/connect/1234')
+        res = self.client.get('/master/connect/1234')
         self.assertEquals(401, res.status_code)

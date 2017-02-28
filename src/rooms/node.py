@@ -57,6 +57,7 @@ class Node(object):
 
     def start(self):
         self.disassociate_rooms()
+        self.node_updater.send_onlinenode_update()
         self.start_node_update()
         self.start_room_loader()
 

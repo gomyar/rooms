@@ -12,6 +12,10 @@ from rooms.testutils import MockTimer
 from rooms.online_node import OnlineNode
 
 
+def start_room():
+    return "map1.room1"
+
+
 class MasterTest(unittest.TestCase):
     # The difference between joining a game and connecting to a game is
     # when you join, a playeractor is created, when you connect, the
@@ -23,6 +27,7 @@ class MasterTest(unittest.TestCase):
         self.container.save_node(OnlineNode('alpha', '10.0.0.1'))
 
         self.master = Master(self.container)
+        self.master.load_scripts("rooms.master_test")
 
         MockIDFactory.setup_mock()
         MockTimer.setup_mock()
@@ -106,7 +111,7 @@ class MasterTest(unittest.TestCase):
             'game_id': 'games_0',
             'node_name': None,
             'requested': True,
-            'room_id': None,
+            'room_id': "map1.room1",
             'script_name': 'rooms.script',
             'state': {}}, self.db.dbases['rooms']['rooms_0'])
         self.assertEquals('bob',

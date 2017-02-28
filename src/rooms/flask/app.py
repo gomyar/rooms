@@ -52,13 +52,9 @@ container.geography = BasicGeography()
 container.room_builder = room_builder
 container.item_registry = item_registry
 container.start_container()
-master = Master(container)
-if os.path.exists(os.path.join(_rooms_projectdir, "scripts")):
-    master.load_scripts(os.path.join(_rooms_projectdir, "scripts"))
 
+master = Master(container)
 node.container = container
-if os.path.exists(os.path.join(_rooms_projectdir, "scripts")):
-    node.load_scripts(os.path.join(_rooms_projectdir, "scripts"))
 
 
 def start_rooms_app(app):

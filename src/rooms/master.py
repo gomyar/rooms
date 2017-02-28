@@ -1,13 +1,14 @@
 
-from rooms.scriptset import ScriptSet
 from rooms.rpc import request
 from rooms.timer import Timer
+from rooms.script import NullScript
+from rooms.script import load_script
 
 
 class Master(object):
     def __init__(self, container):
         self.container = container
-        self.scripts = ScriptSet()
+        self.game_script = NullScript()
 
     def start(self):
         pass
@@ -15,8 +16,8 @@ class Master(object):
     def shutdown(self):
         pass
 
-    def load_scripts(self, script_path):
-        self.scripts.load_scripts(script_path)
+    def load_scripts(self, script_name):
+        self.game_script = load_script(script_name)
 
     def create_game(self, owner_username, **state):
         game = self.container.create_game(owner_username, state)
@@ -26,7 +27,9 @@ class Master(object):
         if not self.container.game_exists(game_id):
             return {'error': 'no such game'}
         game = self.container.load_game(game_id)
-        room_id = self.scripts['game_script'].call("start_room", **kwargs)
+        room_id = self.game_script.call("start_room", **kwargs)
+        if not room_id:
+            raise Exception("No start room_id given")
         player = self.container.get_or_create_player(game_id, username,
                                                      room_id)
         room = self._get_room(game_id, player['room_id'])
