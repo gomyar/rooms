@@ -109,7 +109,6 @@ api_rooms.set_now = function(now_time)
 
 api_rooms.service_call = function(url, data, callback)
 {
-//    data.token = api_rooms.token;
     $.ajax({
         'url': url,
         'data': data,
@@ -251,14 +250,14 @@ api_rooms.message_callback = function(msgevent)
 
 
 // *** API Calls
-api_rooms.call_command = function(command, args, callback)
+api_rooms.call_command = function(actor_id, command, args, callback)
 {
-    api_rooms.service_call("http://" + api_rooms.node_host + "/node_game/actor_call/" + api_rooms.game_id + "/" + api_rooms.token + "/" + command, args, callback);
-}
-
-api_rooms.actor_request = function(actor_id, command, args, callback)
-{
-    api_rooms.service_call("http://" + api_rooms.node_host + "/node_game/actor_request/" + api_rooms.game_id + "/" + api_rooms.token + "/" + actor_id + "/" + command, args, callback);
+    var data = {
+        'actor_id': actor_id,
+        'method': command,
+        'params': JSON.stringify(args)
+    }
+    api_rooms.service_call(api_rooms.call_url, data, callback);
 }
 
 api_rooms.actors_by_type = function()

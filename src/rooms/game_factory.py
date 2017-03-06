@@ -17,6 +17,7 @@ from rooms.room_map import Map
 from rooms.room_map import MapRoom
 from rooms.timer import Timer
 from rooms.script import load_script
+from rooms.script import NullScript
 
 
 class GameFactory(object):
@@ -107,7 +108,10 @@ class GameFactory(object):
         return data
 
     def _build_player(self, data):
-        script = load_script(data['script_name'])
+        if 'script_name' in data:
+            script = load_script(data['script_name'])
+        else:
+            script = NullScript()
         player = PlayerActor(None, data['actor_type'],
             script, visible=data['visible'],
             username=data['username'], actor_id=data['actor_id'],
@@ -139,7 +143,8 @@ class GameFactory(object):
         room.state = data['state']
         room.initialized = data.get('initialized', False)
         room.geography = self.container.geography
-        room.script = load_script(data['script_name'])
+        if data.get('script_name'):
+            room.script = load_script(data['script_name'])
         self.container.geography.setup(room)
         return room
 

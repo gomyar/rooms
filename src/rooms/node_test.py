@@ -388,3 +388,6 @@ class NodeTest(unittest.TestCase):
 
         # connect with admin token
         pass
+
+    def testActorCall(self):
+        pass

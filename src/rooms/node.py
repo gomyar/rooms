@@ -182,3 +182,19 @@ class Node(object):
             raise
         finally:
             room.vision.disconnect_admin_queue(queue)
+
+    def actor_call(self, game_id, username, actor_id, method, **kwargs):
+        if (game_id, username) not in self.players:
+            log.warning("No room for player: %s, %s",
+                game_id, username)
+            raise Exception("No room for player: %s, %s" % (
+                game_id, username))
+
+        room_id, actor_id = self.players[game_id, username]
+        room = self.rooms[game_id, room_id]
+        actor = room.actors[actor_id]
+
+        if actor.username != username:
+            raise Exception("Cannot Call actor")
+
+        return actor.script_call(method, **kwargs)

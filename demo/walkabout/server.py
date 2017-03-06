@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 from gevent import monkey
 monkey.patch_all()
 
@@ -8,6 +9,7 @@ from flask import redirect
 from flask import render_template
 from flask import jsonify
 from flask import request
+from flask import send_from_directory
 
 from rooms.flask.login import init_login
 from rooms.flask.login import bp_login
@@ -34,10 +36,7 @@ def index():
 @app.route("/games")
 @login_required
 def games():
-    games_data = []
-    for g in master.list_all_games():
-        games_data.append({'owner_id': g.owner_id, 'game_id': g.game_id})
-    return jsonify(games_data)
+    return jsonify(master.list_all_games())
 
 
 @app.route("/creategame", methods=['POST'])
@@ -59,12 +58,20 @@ def play(game_id):
     return render_template("game.html", game_id=game_id)
 
 
+@app.route('/maps/<path:path>')
+def get_map(path):
+    return send_from_directory('maps', path)
+
+
 if __name__ == '__main__':
+    sys.path.append('./src')
     init_login(app)
     app.register_blueprint(bp_login)
     app.register_blueprint(bp_master)
     app.register_blueprint(bp_node)
 
+    master.load_scripts('scripts.game_script')
+    node.load_scripts('./scripts')
     node.start()
 
     start_rooms_app(app)

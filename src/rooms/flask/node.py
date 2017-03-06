@@ -1,4 +1,6 @@
 
+import json
+
 import flask_login
 from flask_login import login_required
 from flask import Blueprint
@@ -45,10 +47,15 @@ def connect(game_id):
         return jsonify({'wait': 1})
 
 
-@bp_node.route("/actor_call/<game_id>/<method>")
+@bp_node.route("/call/<game_id>", methods=['POST'])
 @login_required
-def actor_call(game_id, method):
-    return app.node.actor_call(game_id, method)
+def actor_call(game_id):
+    method = request.values['method']
+    actor_id = request.values['actor_id']
+    params = json.loads(request.values['params'])
+    return jsonify(app.node.actor_call(
+        game_id, flask_login.current_user.get_id(),
+        actor_id, method, **params))
 
 
 @bp_node.route("/admin_connects/<game_id>")
