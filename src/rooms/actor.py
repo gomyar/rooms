@@ -67,6 +67,7 @@ class Actor(object):
         self._follow_event = Event()
         self._tracking = None
         self._exception = None
+        self.initialized = False
 
     @property
     def is_player(self):

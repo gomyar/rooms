@@ -3,7 +3,7 @@ from rooms.position import Position
 from rooms.state import SyncList
 
 
-def player_joins(player_actor):
+def created(player_actor):
     print "Creating walker"
     player_actor.speed = 100
     player_actor.state.log = [
@@ -22,6 +22,8 @@ def player_joins(player_actor):
 
 def move_to(actor, x, y):
 #    actor.state.log.append("Moving to %s, %s" % (x, y))
+    actor.state.speed = 10
+    print "Moving from %s to %s, %s" % (actor.position, x, y)
     actor.move_to(Position(x, y))
 
 

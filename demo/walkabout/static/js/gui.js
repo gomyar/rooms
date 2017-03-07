@@ -15,6 +15,7 @@ gui.zoom = 1.0;
 gui.selected_actor = null;
 gui.door_hovered = null;
 gui.actor_hovered = null;
+gui.following_actor = null;
 
 gui.debug = {"mouse_at": [0, 0]};
 
@@ -87,6 +88,7 @@ gui.real_y = function(canvas_y)
 
 gui.draw = function()
 {
+    gui.check_viewport();
     gui.redraw_timeout = null;
     gui.ctx.clearRect(0, 0, gui.canvas.width, gui.canvas.height);
 
@@ -139,10 +141,10 @@ gui.requestRedraw = function()
 
 gui.draw_debug = function()
 {
-    drawutils.draw_text_centered(50, 20, "("+parseInt(gui.viewport_x)+", "+parseInt(gui.viewport_y)+")", "black");
-    drawutils.draw_text_centered(75, 50, "canvas("+parseInt(gui.canvas_left())+", "+parseInt(gui.canvas_top())+", "+parseInt(gui.canvas_right())+","+parseInt(gui.canvas_bottom())+")", "black");
-    drawutils.draw_text_centered(50, 80, "Zoom:" + Math.round(gui.zoom*100)/100, "black");
-    drawutils.draw_text_centered(50, 110, "MouseAt:" + Math.round(gui.debug.mouse_at[0] * 100)/100 + ", "+Math.round(gui.debug.mouse_at[1] * 100)/100, "black");
+    drawutils.draw_text_centered(50, 20, "("+parseInt(gui.viewport_x)+", "+parseInt(gui.viewport_y)+")", "white");
+    drawutils.draw_text_centered(75, 50, "canvas("+parseInt(gui.canvas_left())+", "+parseInt(gui.canvas_top())+", "+parseInt(gui.canvas_right())+","+parseInt(gui.canvas_bottom())+")", "white");
+    drawutils.draw_text_centered(50, 80, "Zoom:" + Math.round(gui.zoom*100)/100, "white");
+    drawutils.draw_text_centered(50, 110, "MouseAt:" + Math.round(gui.debug.mouse_at[0] * 100)/100 + ", "+Math.round(gui.debug.mouse_at[1] * 100)/100, "white");
 }
 
 gui.check_viewport = function()

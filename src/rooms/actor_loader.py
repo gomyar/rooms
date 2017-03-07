@@ -39,6 +39,10 @@ class ActorLoader(object):
         self.room.put_actor(actor)
         for child in docked:
             self.room.put_actor(child)
+        if not actor.initialized:
+            actor.script_call("created")
+            actor.initialized = True
+            self.room.node.container.save_actor(actor)
         if actor.is_player:
             actor.room.node.players[actor.game_id, actor.username] = (
                 actor.room.room_id, actor.actor_id)

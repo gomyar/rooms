@@ -43,6 +43,8 @@ dbase.init_mongo()
 container = Container(dbase, None)
 node = Node(container, _node_hostname, _node_hostname)
 container.node = node
+container.player_script_name = "scripts.player_script"
+container.room_script_name = "scripts.room_script"
 room_builder = RoomBuilder(FileMapSource(os.path.join(_rooms_projectdir,
     "maps")), node)
 item_registry = ItemRegistry()

@@ -126,6 +126,7 @@ class GameFactory(object):
         player.status = data['status']
         player.token = data.get('token')
         player.timeout_time = data.get('timeout_time')
+        player.initialized = data.get('initialized')
         return player
 
     # Room
@@ -174,6 +175,7 @@ class GameFactory(object):
             docked_with=actor.docked_with.actor_id if \
                 actor.docked_with else None,
             speed=actor.speed,
+            initialized=actor.initialized,
             _loadstate=None)
 
     def _build_actor(self, data):
@@ -189,6 +191,7 @@ class GameFactory(object):
         actor.vector = data['vector']
         actor._speed = data['speed']
         actor._docked_with = data['docked_with']
+        actor.initialized = data.get('initialized')
         return actor
 
     # Script

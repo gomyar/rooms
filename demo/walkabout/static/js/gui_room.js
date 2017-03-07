@@ -3,6 +3,8 @@ var gui_room = {}
 
 gui_room.draw_room = function()
 {
+    if (!api_rooms.room) return;
+
     gui.ctx.strokeStyle = "rgb(0, 255, 255)";
     var x = api_rooms.room.topleft.x;
     var y = api_rooms.room.topleft.y;

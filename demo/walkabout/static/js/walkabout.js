@@ -43,6 +43,7 @@ function load_room(room_id)
 function show_room(data, room_id)
 {
     api_rooms.room = data['rooms'][room_id];
+    gui.following_actor = api_rooms.player_actor;
     gui.requestRedraw();
 }
 
