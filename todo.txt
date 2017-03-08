@@ -14,15 +14,6 @@ flask version:
    - master
    - game (from templates and static)
 
-
-
- - player creation borked
- - connection stays open even if no player actor found
- - all actors active - this a bug or not?
- - more logging
-
- - validate token stored on node for each player command
-
 bulk write actor saver
  - listen for exceptions from worker gthreads (actor_loader)
 

@@ -29,6 +29,8 @@ class FlaskAppTest(unittest.TestCase):
             os.path.dirname(__file__), "../test_maps")
         init_login(self.app)
         app.master.load_scripts("rooms.flask.app_test")
+        app.container.room_script_name = "rooms.flask.app_test"
+        app.container.player_script_name = "rooms.flask.app_test"
         app.node.start()
 
         self.client = self.app.test_client()

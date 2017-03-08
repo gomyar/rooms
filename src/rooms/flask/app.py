@@ -25,8 +25,12 @@ _mongo_port = int(os.environ.get('ROOMS_MONGO_PORT', '27017'))
 _mongo_dbname = os.environ.get('ROOMS_MONGO_DBNAME', 'rooms')
 
 _node_hostname = os.environ.get('ROOMS_NODE_HOSTNAME', 'localhost:5000')
+_node_host = os.environ.get('ROOMS_NODE_HOST', 'localhost')
+_node_port = int(os.environ.get('ROOMS_NODE_PORT', 5000))
 
 _rooms_projectdir = os.environ.get('ROOMS_PROJECTDIR', '.')
+_rooms_mapdir = os.path.join(_rooms_projectdir, "maps")
+_rooms_itemdir = os.path.join(_rooms_projectdir, "items")
 
 
 if os.path.exists(os.path.join(_rooms_projectdir, "logging.conf")):
@@ -45,11 +49,10 @@ node = Node(container, _node_hostname, _node_hostname)
 container.node = node
 container.player_script_name = "scripts.player_script"
 container.room_script_name = "scripts.room_script"
-room_builder = RoomBuilder(FileMapSource(os.path.join(_rooms_projectdir,
-    "maps")), node)
+room_builder = RoomBuilder(FileMapSource(_rooms_mapdir), node)
 item_registry = ItemRegistry()
-if os.path.exists(os.path.join(_rooms_projectdir, "items")):
-    item_registry.load_from_directory(_rooms_projectdir)
+if os.path.exists(_rooms_itemdir):
+    item_registry.load_from_directory(_rooms_itemdir)
 container.geography = BasicGeography()
 container.room_builder = room_builder
 container.item_registry = item_registry
@@ -63,7 +66,7 @@ def start_rooms_app(app):
     try:
         container.start_container()
 
-        http_server = WSGIServer(('',5000), app,
+        http_server = WSGIServer((_node_host, _node_port), app,
                                  handler_class=WebSocketHandler)
         http_server.serve_forever()
     except KeyboardInterrupt, ke:

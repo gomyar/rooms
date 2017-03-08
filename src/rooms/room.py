@@ -139,6 +139,8 @@ class Room(object):
             username=username, state=state, visible=visible,
             parent_id=parent_id, position=position)
         actor.script.call("created", actor)
+        actor.initialized = True
+        self.node.container.save_actor(actor)
         actor.kick()
         self.put_actor(actor, position)
         return actor
