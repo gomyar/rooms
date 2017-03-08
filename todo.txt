@@ -1,4 +1,7 @@
 
+flesh out redirect_to_master
+
+
 flask version:
  - rooms-new creates skeleton project
    - templates

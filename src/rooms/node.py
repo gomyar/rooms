@@ -154,7 +154,7 @@ class Node(object):
 
         # deactivate rooms
         for room in self.rooms.values():
-            self.container.save_room(room)
+            self.container.save_room(room, blank_node_name=True)
 
     def admin_connects(self, ws, token):
         admin_token = self.container.get_admin_token(token)

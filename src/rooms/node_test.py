@@ -267,7 +267,7 @@ class NodeTest(unittest.TestCase):
                             u'game_id': u'game1',
                             u'initialized': True,
                             u'last_modified': u'1970-01-01T00:00:00',
-                            u'node_name': u'alpha',
+                            u'node_name': None,
                             'requested': False,
                             u'room_id': u'room1',
                             u'script_name': u'rooms.node_test',

@@ -109,8 +109,11 @@ class Container(object):
         for actor in actors_list:
             ActorLoader(room).process_actor(actor)
 
-    def save_room(self, room):
-        self._save_object(room, "rooms", active=False, requested=False)
+    def save_room(self, room, blank_node_name=False):
+        kwargs = {'active': False, 'requested': False}
+        if blank_node_name:
+            kwargs['node_name'] = None
+        self._save_object(room, "rooms", **kwargs)
 
     def save_actors(self, actors):
         for actor in actors:
