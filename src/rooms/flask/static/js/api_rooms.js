@@ -119,7 +119,10 @@ api_rooms.service_call = function(url, data, callback)
         'error': function(jqXHR, errorText) {
             console.log("Error calling "+url+" : "+errorText);
         },
-        'type': 'POST'
+        'type': 'POST',
+        'xhrFields': { 
+            'withCredentials': true 
+        }
     });
 }
 

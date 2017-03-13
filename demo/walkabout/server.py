@@ -65,6 +65,9 @@ def get_map(path):
 
 if __name__ == '__main__':
     sys.path.append('./src')
+
+    app.config['SESSION_COOKIE_DOMAIN'] = 'demo.local'
+
     init_login(app)
     app.register_blueprint(bp_login)
     app.register_blueprint(bp_node)
