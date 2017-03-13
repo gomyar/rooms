@@ -1,6 +1,7 @@
 
 import os
 import traceback
+import uuid
 
 import logging
 import logging.config
@@ -25,6 +26,7 @@ _mongo_port = int(os.environ.get('ROOMS_MONGO_PORT', '27017'))
 _mongo_dbname = os.environ.get('ROOMS_MONGO_DBNAME', 'rooms')
 
 _node_hostname = os.environ.get('ROOMS_NODE_HOSTNAME', 'localhost:5000')
+_node_name = os.environ.get('ROOMS_NODE_NAME', 'local')
 _node_host = os.environ.get('ROOMS_NODE_HOST', 'localhost')
 _node_port = int(os.environ.get('ROOMS_NODE_PORT', 5000))
 
@@ -45,7 +47,7 @@ dbase = MongoDBase(host=_mongo_host, port=_mongo_port, dbname=_mongo_dbname)
 dbase.init_mongo()
 
 container = Container(dbase, None)
-node = Node(container, _node_hostname, _node_hostname)
+node = Node(container, _node_name, _node_hostname)
 container.node = node
 container.player_script_name = "scripts.player_script"
 container.room_script_name = "scripts.room_script"

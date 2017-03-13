@@ -46,6 +46,8 @@ class ActorLoader(object):
         if actor.is_player:
             actor.room.node.players[actor.game_id, actor.username] = (
                 actor.room.room_id, actor.actor_id)
+            log.debug("Added player %s, %s as %s, %s",
+                actor.game_id, actor.username, actor.room.room_id, actor.actor_id)
 
     def _load_docked(self, game_id, actor):
         docked = self.room.node.container.load_docked_actors(game_id,

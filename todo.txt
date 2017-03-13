@@ -1,5 +1,7 @@
 
 flesh out redirect_to_master
+logging in should be done through the top level domain only
+ - problem: logging in as bob on app1.domain, then logging in as ned at app2.domain
 
 
 flask version:

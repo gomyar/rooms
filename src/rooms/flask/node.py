@@ -19,6 +19,10 @@ bp_node = Blueprint('node', __name__, template_folder='templates',
 
 @bp_node.route("/play/<game_id>")
 def play(game_id):
+    log.debug("Attempted ws connection")
+    if flask_login.current_user.is_anonymous:
+        log.debug("Anonymous user not allowed")
+        return "Anonymous user not allowed", 401
     if request.environ.get('wsgi.websocket'):
         ws = request.environ['wsgi.websocket']
         log.debug("Player %s connected to game %s",
@@ -26,7 +30,6 @@ def play(game_id):
         app.node.player_connects(ws, game_id, flask_login.current_user.get_id())
         log.debug("player %s disconnected from game %s",
             flask_login.current_user.get_id(), game_id)
-    return ""
 
 
 @bp_node.route("/connect/<game_id>", methods=['GET', 'POST'])
@@ -53,6 +56,7 @@ def actor_call(game_id):
     method = request.values['method']
     actor_id = request.values['actor_id']
     params = json.loads(request.values['params'])
+    log.debug("Calling %s -> %s", actor_id, method)
     return jsonify(app.node.actor_call(
         game_id, flask_login.current_user.get_id(),
         actor_id, method, **params))

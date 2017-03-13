@@ -67,7 +67,6 @@ if __name__ == '__main__':
     sys.path.append('./src')
     init_login(app)
     app.register_blueprint(bp_login)
-    app.register_blueprint(bp_master)
     app.register_blueprint(bp_node)
 
     master.load_scripts('scripts.game_script')

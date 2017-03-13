@@ -195,6 +195,9 @@ class Node(object):
         actor = room.actors[actor_id]
 
         if actor.username != username:
+            log.debug("Cannot call method on actor %s for user %s", actor_id, username)
             raise Exception("Cannot Call actor")
+
+        log.debug("Calling %s, %s -> %s", room_id, actor_id, method)
 
         return actor.script_call(method, **kwargs)
