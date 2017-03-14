@@ -122,7 +122,8 @@ api_rooms.service_call = function(url, data, callback)
         'type': 'POST',
         'xhrFields': { 
             'withCredentials': true 
-        }
+        },
+        'crossDomain': true
     });
 }
 

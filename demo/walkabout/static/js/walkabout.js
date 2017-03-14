@@ -1,4 +1,6 @@
 
+var current_map_id = null;
+var current_map = null;
 
 canvas_clicked = function(e)
 {
@@ -35,14 +37,25 @@ function load_room(room_id)
     var map_id = room_id.split('.')[0];
     var map_room_id = room_id.split('.')[1];
 
-    net.perform_get("/maps/" + map_id + ".json",
-        function(data){ show_room(data, room_id);},
-        function(errTxt, jqXHR){ alert("Error loading room: "+errTxt);});
+    if (map_id != current_map_id) {
+        net.perform_get("/maps/" + map_id + ".json",
+            function(data){ map_loaded(data, room_id);},
+            function(errTxt, jqXHR){ alert("Error loading room: "+errTxt);});
+    } else {
+        show_room(room_id);
+    }
 }
 
-function show_room(data, room_id)
+function map_loaded(data, room_id)
 {
-    api_rooms.room = data['rooms'][room_id];
+    current_map = data;
+    show_room(room_id);
+}
+
+function show_room(room_id)
+{
+    console.log("Showing room " + room_id);
+    api_rooms.room = current_map['rooms'][room_id];
     gui.following_actor = api_rooms.player_actor;
     gui.requestRedraw();
 }
