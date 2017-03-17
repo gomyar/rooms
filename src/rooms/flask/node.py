@@ -60,10 +60,3 @@ def actor_call(game_id):
     return jsonify(app.node.actor_call(
         game_id, flask_login.current_user.get_id(),
         actor_id, method, **params))
-
-
-@bp_node.route("/admin_connects/<game_id>")
-@login_required
-def admin_connects(game_id):
-    if flask_login.current_user.is_admin():
-        pass

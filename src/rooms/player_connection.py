@@ -50,7 +50,6 @@ class AdminConnection(PlayerConnection):
     def __init__(self, game_id, room_id, token):
         self.game_id = game_id
         self.room_id = room_id
-        self.token = token
         self.queues = []
         self.username = "admin"
 

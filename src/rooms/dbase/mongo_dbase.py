@@ -51,8 +51,8 @@ class MongoDBase(object):
         return self._collection(collection_name).find_one(query,
             projection=projection)
 
-    def filter(self, collection_name, query):
-        return self._collection(collection_name).find(query)
+    def filter(self, collection_name, query, projection=None):
+        return self._collection(collection_name).find(query, projection=projection)
 
     def find_and_modify(self, collection_name, query, update,
             sort=[], upsert=False, new=True, fields=None):

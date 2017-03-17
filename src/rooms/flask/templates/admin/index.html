@@ -1,0 +1,37 @@
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="/rooms_admin/static/css/admin.css"/>
+    <script src="/rooms_admin/static/js/jquery-1.9.1.js"></script>
+    <script src="/rooms_admin/static/js/turtlegui.js"></script>
+
+    <script src="/rooms_admin/static/js/admin/rooms_admin.js"></script>
+</head>
+
+<body>
+
+<div class="rooms_admin">
+    <h1>Rooms Admin Interface</h1>
+
+    <div class="pageheader">
+        <div class="link" onclick="admin.show_nodes();"><span>Nodes</span></div>
+        <div class="link" onclick="admin.show_games();"><span>Games</span></div>
+        <div class="link" onclick="admin.show_rooms();"><span>Items</span></div>
+    </div>
+
+    <div>
+        <div data-gui-show="admin.data.tab=='nodes'">
+            <div data-gui-include="/rooms_admin/static/html/admin/nodes.html"></div>
+        </div>
+        <div data-gui-show="admin.data.tab=='games'">
+            <div data-gui-include="/rooms_admin/static/html/admin/games.html"></div>
+        </div>
+        <div data-gui-show="admin.data.tab=='items'">
+            <div data-gui-include="/rooms_admin/static/html/admin/items.html"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

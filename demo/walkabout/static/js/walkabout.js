@@ -88,7 +88,7 @@ function init_game(game_id)
 
     $("#screen").click(canvas_clicked);
     $("#screen").mousemove(canvas_mousemove);
-    api_rooms.connect("/rooms/connect/" + game_id, game_id, api_callback); 
+    api_rooms.connect("/rooms/connect/" + game_id, api_callback); 
 
     $(window).bind('beforeunload', function(){
         api_rooms.socket.close();

@@ -142,9 +142,8 @@ api_rooms.onerror = function()
     console.log("Connection error");
 }
 
-api_rooms.connect = function(connect_url, game_id, callback)
+api_rooms.connect = function(connect_url, callback)
 {
-    api_rooms.game_id = game_id;
     api_rooms.connect_url = connect_url;
     api_rooms.game_callback = callback;
 
@@ -183,24 +182,6 @@ api_rooms.connect_node = function()
     api_rooms.socket.onclose = api_rooms.onclose;
     api_rooms.socket.onerror = api_rooms.onerror;
 }
-
-api_rooms.admin_connect = function(host, token, game_callback)
-{
-    console.log("Connecting to : "+ host + " " + token);
-    api_rooms.actors = {};
-    api_rooms.game_id = null;
-    api_rooms.token = token;
-    api_rooms.node_host = host;
-
-    api_rooms.socket = new WebSocket("ws://"+host+"/node/admin_connects/"+token);
-    api_rooms.socket.onmessage = api_rooms.message_callback;
-    api_rooms.socket.onopen = api_rooms.onopen;
-    api_rooms.socket.onclose = api_rooms.onclose;
-    api_rooms.socket.onerror = api_rooms.onerror;
-
-    api_rooms.game_callback = game_callback;
-}
-
 
 api_rooms.command_sync = function(message)
 {

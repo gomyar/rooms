@@ -1,0 +1,44 @@
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="/rooms_admin/static/css/admin.css"/>
+<!--    <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>-->
+<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-mousewheel/3.1.13/jquery.mousewheel.min.js"></script> -->
+    <script src="/rooms_admin/static/js/jquery-1.9.1.js"></script>
+    <script src="/rooms_admin/static/js/admin/jquery.mousewheel.js"></script>
+
+    <script src="/rooms_admin/static/js/turtlegui.js"></script>
+
+    <script src="/rooms_admin/static/js/api_rooms.js"></script>
+    <script src="/rooms_admin/static/js/admin/admin_gui.js"></script>
+    <script src="/rooms_admin/static/js/admin/admin_game_client.js"></script>
+<head>
+
+<body>
+
+<div class="gameview">
+    <canvas id="screen">
+    </canvas>
+    <div id="actor_list" data-gui-show="admin.actor_list">
+        <div class="title">Select Actor:</div>
+        <hr></hr>
+        <div data-gui-list="admin.actor_list" data-itervar="actor">
+            <div  data-class="actor.actor_type=='player'?'player':''" class="listed_actor" data-gui-click="admin.select_actor(actor)">
+                <div data-gui-text="actor.actor_type"></div>:<div data-gui-text="actor.script"></div> <div data-gui-text="actor.username ? '(' + actor.username + ')' : ''"></div>
+            </div>
+        </div>
+    </div>
+    <div id="selected_actor" data-gui-show="admin.selected_actor">
+        <div class="title" data-gui-class="admin.selected_actor.actor_type=='player'?'player':''">Actor:  <div data-gui-text="admin.selected_actor.actor_type + admin.selected_actor.username"></div></div>
+        <hr></hr>
+        <div data-gui-list="['actor_id', 'username', 'visible', 'docked_with', 'path', 'vector', 'state']" data-itervar="field">
+            <div class="field">
+                <div class="name" data-gui-text='field'></div>:&nbsp;<pre class="value" data-gui-text="JSON.stringify(admin.selected_actor[field], null, 2);"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

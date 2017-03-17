@@ -15,10 +15,12 @@ from rooms.flask.login import init_login
 from rooms.flask.login import bp_login
 from rooms.flask.master import bp_master
 from rooms.flask.node import bp_node
+from rooms.flask.admin import bp_admin
 
 from rooms.flask.app import master
 from rooms.flask.app import node
 from rooms.flask.app import start_rooms_app
+from rooms.flask.app import mapdir
 
 from flask_login import login_required
 import flask_login
@@ -60,7 +62,7 @@ def play(game_id):
 
 @app.route('/maps/<path:path>')
 def get_map(path):
-    return send_from_directory('maps', path)
+    return send_from_directory(mapdir, path)
 
 
 if __name__ == '__main__':
@@ -71,6 +73,7 @@ if __name__ == '__main__':
     init_login(app)
     app.register_blueprint(bp_login)
     app.register_blueprint(bp_node)
+    app.register_blueprint(bp_admin)
 
     master.load_scripts('scripts.game_script')
     node.load_scripts('./scripts')

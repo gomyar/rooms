@@ -156,17 +156,10 @@ class Node(object):
         for room in self.rooms.values():
             self.container.save_room(room, blank_node_name=True)
 
-    def admin_connects(self, ws, token):
-        admin_token = self.container.get_admin_token(token)
-
-        if admin_token is None:
-            raise Exception("Unauthorized")
-
-        log.debug("Admin conects: %s", token)
-        room = self.rooms[admin_token.game_id, admin_token.room_id]
+    def admin_connects(self, ws, game_id, room_id):
+        room = self.rooms[game_id, room_id]
         queue = room.vision.connect_admin_queue()
-        admin_conn = AdminConnection(admin_token.game_id, admin_token.room_id,
-                                     admin_token.token)
+        admin_conn = AdminConnection(game_id, room_id, None)
         admin_conn.send_sync_to_websocket(ws, room, "admin")
         try:
             connected = True

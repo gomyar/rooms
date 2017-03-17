@@ -27,12 +27,16 @@ bp_login = Blueprint('login', __name__, template_folder='templates',
 
 
 class User(UserMixin):
-    def __init__(self, username, pw_hash):
+    def __init__(self, username, pw_hash, admin=False):
         self.username = username
         self.pw_hash = pw_hash
+        self.admin = admin
 
     def get_id(self):
         return self.username
+
+    def is_admin(self):
+        return self.admin
 
 
 def create_user(username, pw_hash):
@@ -49,7 +53,7 @@ def create_user(username, pw_hash):
 def load_user(username):
     res = container.dbase.filter_one('users', {'username': username})
     if res:
-        return User(res['username'], res['pw_hash'])
+        return User(res['username'], res['pw_hash'], res.get('admin'))
     else:
         raise Exception("No such user")
 
