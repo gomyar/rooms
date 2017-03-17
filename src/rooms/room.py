@@ -82,9 +82,14 @@ class Room(object):
         self.item_registry = None
         self.actor_loader = ActorLoader(self)
         self._actorload_gthread = None
+        self._node_name = None
 
     def __repr__(self):
         return "<Room %s %s>" % (self.game_id, self.room_id)
+
+    @property
+    def node_name(self):
+        return self._node_name
 
     def start(self):
         self.start_actorloader()
@@ -140,7 +145,7 @@ class Room(object):
             parent_id=parent_id, position=position)
         actor.script.call("created", actor)
         actor.initialized = True
-        self.node.container.save_actor(actor)
+        self.node.container.update_actor(actor, initialized=True)
         actor.kick()
         self.put_actor(actor, position)
         return actor

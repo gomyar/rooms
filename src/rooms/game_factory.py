@@ -144,6 +144,7 @@ class GameFactory(object):
         room.state = data['state']
         room.initialized = data.get('initialized', False)
         room.geography = self.container.geography
+        room._node_name = data.get('node_name')
         if data.get('script_name'):
             room.script = load_script(data['script_name'])
         self.container.geography.setup(room)

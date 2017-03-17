@@ -135,6 +135,7 @@ api_rooms.onopen = function()
 api_rooms.onclose = function()
 {
     console.log("Connection lost");
+    api_rooms.request_connection();
 }
 
 api_rooms.onerror = function()

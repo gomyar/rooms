@@ -44,6 +44,7 @@ admin.load_room = function(room_id) {
 admin.game_callback = function(message) {
     console.log("Callback:");
     console.log(message);
+    gui.actorRedraw();
     if (message.command == "actor_update")
     {
         gui.requestRedraw(api_rooms.actors[message.data.actor_id].vector.end_time * 1000);

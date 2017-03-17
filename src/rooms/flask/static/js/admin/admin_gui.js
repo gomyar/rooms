@@ -148,6 +148,7 @@ gui.canvas_clicked = function(e)
             gui.clear_actor_list();
             admin.select_actor(actors[0]);
         }
+        turtlegui.reload();
     }
     console.log("clicked");
     gui.swallow_click = false;
@@ -335,8 +336,6 @@ gui.draw = function()
         var map_object = api_rooms.room.room_objects[object_id];
         var width = map_object.bottomright.x - map_object.topleft.x;
         var height = map_object.bottomright.y - map_object.topleft.y;
-        width = Math.max(width, 2);
-        height = Math.max(height, 2);
         gui.ctx.globalAlpha = 0.1;
         gui.fill_rect(
             gui.canvas_x(map_object.topleft.x),
@@ -485,14 +484,40 @@ gui.draw_actor = function(actor)
     }
 }
 
-gui.requestRedraw = function(redraw_until)
+// -------- Util functions
+gui.optionalRedraw = function(until_time)
 {
-    if (redraw_until == null)
-        redraw_until = api_rooms.get_now() + 150;
-    if (gui.redraw_until == null || gui.redraw_until < redraw_until)
-        gui.redraw_until = redraw_until;
+    if (gui.redraw_until <= until_time)
+    {
+        gui.redraw_until = until_time;
+        gui.requestRedraw();
+    }
+}
+
+gui.actorRedraw = function()
+{
+    var until_time = api_rooms.get_now();
+    for (var i in api_rooms.actors)
+    {
+        var actor = api_rooms.actors[i];
+        if (actor.vector.end_time * 1000 > until_time)
+        {
+            until_time = actor.vector.end_time * 1000
+        }
+    }
+    if (until_time > api_rooms.get_now())
+    {
+        console.log("optionalRedraw() until " + new Date(until_time));
+        gui.optionalRedraw(until_time);
+    }
+}
+
+gui.requestRedraw = function()
+{
     if (gui.redraw_timeout == null)
+    {
         gui.redraw_timeout = setTimeout(gui.draw, 50);
+    }
 }
 
 

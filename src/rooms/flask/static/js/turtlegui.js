@@ -154,6 +154,8 @@ turtlegui.reload = function(elem, rel_data) {
     }
     if (elem.attr('data-gui-show')) {
         var value = turtlegui._get_safe_value(elem, rel_data, 'data-gui-show');
+        console.log(elem.attr("data-gui-show") + " = value: [" + value + "]");
+        if (value) console.log("Yep");
         if (value) {
             elem.show();
         } else {

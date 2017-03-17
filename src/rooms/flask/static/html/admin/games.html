@@ -2,7 +2,8 @@
     <div data-gui-list="admin.data.games" data-itervar="game">
         <div class="node tableheader">
             <div class="nodeinfo">
-                <div class="gamename" data-gui-text="game.name"></div>
+                <div class="gamename" data-gui-text="game.owner_id"></div>
+                <div class="created_on" data-gui-text="game.created_on"></div>
                 <div class="showgame button" data-gui-click="admin.show_game_rooms(game)">Show Rooms</div>
             </div>
             <div class="roomlist">
@@ -10,6 +11,7 @@
                     <div class="room_info">
                         <div class="gameid" data-gui-text="room.game_id"></div>
                         <div class="roomid" data-gui-text="room.room_id"></div>
+                        <div class="node_name" data-gui-text="room.node_name"></div>
                         <div class="button" data-gui-click="admin.room_connect(room)">Connect</div>
                     </div>
                 </div>

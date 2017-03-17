@@ -54,12 +54,14 @@ class Node(object):
 
         self._nodeupdater_gthread = None
         self._roomload_gthread = None
+        self.active = False
 
     def start(self):
         self.disassociate_rooms()
         self.node_updater.send_onlinenode_update()
         self.start_node_update()
         self.start_room_loader()
+        self.active = True
 
     def disassociate_rooms(self):
         self.container.disassociate_rooms(self.name)
@@ -81,7 +83,7 @@ class Node(object):
             if not room.initialized:
                 room.script.call("room_created", room)
                 room.initialized = True
-                self.container.save_room(room)
+                self.container.update_room(room, initialized=True)
             else:
                 self.container.load_actors_for_room(room)
             room.start()
@@ -99,8 +101,7 @@ class Node(object):
         if (game_id, username) not in self.players:
             log.warning("No room for player: %s, %s",
                 game_id, username)
-            raise Exception("No room for player: %s, %s" % (
-                game_id, username))
+            return
 
         room_id, actor_id = self.players[game_id, username]
         room = self.rooms[game_id, room_id]
@@ -137,6 +138,7 @@ class Node(object):
             room.vision.disconnect_vision_queue(actor_id, queue)
 
     def shutdown(self):
+        self.active = False
         # stop all gthreads
         self.room_loader.stop()
         self.node_updater.stop()

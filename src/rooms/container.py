@@ -359,13 +359,6 @@ class Container(object):
         obj._id = str(db_id)
         return obj
 
-    def load_next_available_room(self):
-        return self.dbase.find_and_modify("rooms",
-            query={"_state":"pending",
-                   sort:[('last_modified', pymongo.DESCENDING)]},
-            update={"$set": {"_state": "active"}},
-        )
-
     def load_node(self, name):
         return self._load_filter_one('online_nodes', dict(name=name))
 

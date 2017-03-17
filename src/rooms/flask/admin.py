@@ -67,7 +67,8 @@ def list_nodes():
     if not flask_login.current_user.is_admin():
         return "Unauthorized", 401
     nodes = [{'name': n.name, 'host': n.host, 'load': n.load,
-             'uptime': n.uptime} for n in app.container.list_nodes()]
+             'uptime': n.uptime, 'healthy': n.healthy()} for n in
+             app.container.list_nodes()]
     return jsonify(nodes)
 
 
@@ -82,7 +83,8 @@ def list_rooms():
     rooms = app.container.list_rooms(
         active=active, node_name=node_name,
         game_id=game_id)
-    return jsonify([{'game_id': r.game_id, 'room_id': r.room_id} for r in
+    return jsonify([{'game_id': r.game_id, 'room_id': r.room_id,
+                     'node_name': r.node_name} for r in
                      rooms])
 
 
@@ -93,7 +95,8 @@ def list_games():
         return "Unauthorized", 401
     node_name = request.args.get('node_name')
     owner_id = request.args.get('owner_id')
-    games = [{'game_id': g.game_id, 'name': g.name} for g in
+    games = [{'game_id': g.game_id, 'owner_id': g.owner_id,
+              'created_on': g.created_on} for g in
              app.container.list_games(owner_id, node_name)]
     return jsonify(games)
 

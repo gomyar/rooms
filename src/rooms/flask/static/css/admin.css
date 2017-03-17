@@ -53,7 +53,8 @@ div.tableheader
 
 div.node
 {
-    background-color : lightblue;
+    background-color : black;
+    border : 1px solid white;
 }
 
 div.node div.nodeinfo div
@@ -328,4 +329,14 @@ div#selected_actor div.field div.name
 div#selected_actor div.field pre.value
 {
     display : inline-block;
+}
+
+div.nodeinfo div#healthy.unhealthy
+{
+    color : red;
+}
+
+div.nodeinfo div#healthy.healthy
+{
+    color : green;
 }

@@ -30,6 +30,7 @@ def play(game_id):
         app.node.player_connects(ws, game_id, flask_login.current_user.get_id())
         log.debug("player %s disconnected from game %s",
             flask_login.current_user.get_id(), game_id)
+    return "closed"
 
 
 @bp_node.route("/connect/<game_id>", methods=['GET', 'POST'])
@@ -60,3 +61,11 @@ def actor_call(game_id):
     return jsonify(app.node.actor_call(
         game_id, flask_login.current_user.get_id(),
         actor_id, method, **params))
+
+
+@bp_node.route("/healthcheck")
+def healthcheck():
+    if app.node.active:
+        return '{"active": true}', 200
+    else:
+        return '{"active": false}', 503
