@@ -61,7 +61,7 @@ admin.switch_tab = function(tab) {
 
 admin.room_connect = function(room) {
     console.log("Connect: " + node.name + " - " + room.room_id);
-    window.open('/rooms_admin/static/html/admin/admin_game_client.html?game_id=' + room.game_id + '&room_id=' + room.room_id, '_blank');
+    window.open('/rooms_admin/static/html/admin_game_client.html?game_id=' + room.game_id + '&room_id=' + room.room_id, '_blank');
 }
 
 admin.show_nodes = function() {

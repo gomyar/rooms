@@ -172,11 +172,11 @@ turtlegui.reload = function(elem, rel_data) {
         var list = turtlegui._get_safe_value(elem, rel_data, 'data-gui-list');
         var rel_key = elem.attr('data-itervar');
         var orig_elems = elem.children();
-        var first_elem = $(orig_elems[0]);
-        first_elem.hide();
+        var template_elem = $(orig_elems[orig_elems.length - 1]);
+        template_elem.hide();
         var new_elems = [];
         for (var i in list) {
-            var new_elem = $(first_elem).clone();
+            var new_elem = $(template_elem).clone();
             new_elems[new_elems.length] = new_elem;
         }
         for (var i in new_elems) {
@@ -189,7 +189,7 @@ turtlegui.reload = function(elem, rel_data) {
             turtlegui.reload(new_elem, rel_data);
         }
         orig_elems.remove();
-        elem.prepend(first_elem);
+        elem.append(template_elem);
     }
     else if (elem.attr('data-gui-include') && !elem.attr('data-gui-included')) {
         elem.attr('data-gui-included', true);

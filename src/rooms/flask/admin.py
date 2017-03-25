@@ -1,4 +1,6 @@
 
+from os import path
+
 import flask_login
 from flask_login import login_required
 from flask import Blueprint
@@ -13,8 +15,13 @@ from rooms.flask.app import mapdir
 import logging
 log = logging.getLogger("rooms.flask.admin")
 
-bp_admin = Blueprint('admin', __name__, template_folder='templates',
-                     static_folder='static', url_prefix='/rooms_admin')
+bp_admin = Blueprint('admin', __name__,
+                     template_folder=path.join(
+                        path.dirname(__file__), 'templates'),
+                     static_folder=path.join(
+                        path.dirname(__file__), 'static/rooms_admin'),
+                     static_url_path='/static',
+                     url_prefix='/rooms_admin')
 
 
 @bp_admin.route("/")

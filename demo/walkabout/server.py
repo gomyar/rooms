@@ -25,8 +25,19 @@ from rooms.flask.app import mapdir
 from flask_login import login_required
 import flask_login
 
-app = Flask(__name__)
-app.secret_key = 'keepitsecretkeepitsafe'
+
+def create_app():
+    app = Flask(__name__)
+    app.secret_key = 'keepitsecretkeepitsafe'
+
+    app.register_blueprint(bp_login)
+    app.register_blueprint(bp_node)
+    app.register_blueprint(bp_admin)
+
+    return app
+
+
+app = create_app()
 
 
 @app.route("/")
@@ -71,9 +82,6 @@ if __name__ == '__main__':
     app.config['SESSION_COOKIE_DOMAIN'] = 'demo.local'
 
     init_login(app)
-    app.register_blueprint(bp_login)
-    app.register_blueprint(bp_node)
-    app.register_blueprint(bp_admin)
 
     master.load_scripts('scripts.game_script')
     node.load_scripts('./scripts')

@@ -1,4 +1,5 @@
 
+from os import path
 import json
 
 import flask_login
@@ -13,8 +14,13 @@ from rooms.flask import app
 import logging
 log = logging.getLogger("rooms.flask.node")
 
-bp_node = Blueprint('node', __name__, template_folder='templates',
-                    static_folder='static', url_prefix='/rooms')
+bp_node = Blueprint('node', __name__,
+                    template_folder=path.join(
+                        path.dirname(__file__), 'templates'),
+                    static_folder=path.join(
+                        path.dirname(__file__), 'static/rooms'),
+                    static_url_path='/static',
+                    url_prefix='/rooms')
 
 
 @bp_node.route("/play/<game_id>")
@@ -26,10 +32,11 @@ def play(game_id):
     if request.environ.get('wsgi.websocket'):
         ws = request.environ['wsgi.websocket']
         log.debug("Player %s connected to game %s",
-            flask_login.current_user.get_id(), game_id)
-        app.node.player_connects(ws, game_id, flask_login.current_user.get_id())
+                  flask_login.current_user.get_id(), game_id)
+        app.node.player_connects(ws, game_id,
+                                 flask_login.current_user.get_id())
         log.debug("player %s disconnected from game %s",
-            flask_login.current_user.get_id(), game_id)
+                  flask_login.current_user.get_id(), game_id)
     return "closed"
 
 
@@ -37,7 +44,8 @@ def play(game_id):
 @login_required
 def connect(game_id):
     # get player for game_id / user_id
-    player = app.container.get_player(game_id, flask_login.current_user.get_id())
+    player = app.container.get_player(
+        game_id, flask_login.current_user.get_id())
     # redirect to / request associated node
     room = app.container.request_create_room(game_id, player['room_id'])
     if room.get('node_name'):
