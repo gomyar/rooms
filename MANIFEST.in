@@ -1,0 +1,4 @@
+include src/rooms/flask/static/rooms/js/*
+include src/rooms/flask/static/rooms_admin/js/*
+include src/rooms/flask/static/rooms_admin/css/*
+include src/rooms/flask/static/rooms_admin/html/*
