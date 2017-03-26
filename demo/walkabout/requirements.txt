@@ -1,4 +1,4 @@
-git+ssh://git@github.com/gomyar/rooms.git@flask
+git+ssh://git@github.com/gomyar/rooms.git
 gevent==1.1.2
 gevent-websocket==0.9.5
 ws4py==0.3.4
