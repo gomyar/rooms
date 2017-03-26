@@ -25,8 +25,6 @@ def deploy(update_deps=False):
     run("rm %(inst_dir)s/%(build_file)s" % env)
     local("rm %(build_path)s" % env)
 
-    put("conf/nginx-%(project_name)s.conf" % env, env.inst_dir)
-
     # Setup virtualenv
     if update_deps or not exists("/opt/%(project_name)s/virtualenvs/current" % env):
         create_venv()
@@ -39,7 +37,6 @@ def deploy(update_deps=False):
     run("ln -s %(inst_dir)s /opt/%(project_name)s/current" % env)
 
     # Collect static files
-#    run("mkdir %(inst_dir)s/static" % env)
     with prefix("source %(inst_dir)s/virtualenv/bin/activate" % env):
         with cd("%(inst_dir)s" % env):
             run("python manage.py collect")
