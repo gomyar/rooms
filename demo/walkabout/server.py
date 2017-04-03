@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import socket
 from gevent import monkey
 monkey.patch_all()
 
@@ -79,7 +80,7 @@ def get_map(path):
 if __name__ == '__main__':
     sys.path.append('./src')
 
-    app.config['SESSION_COOKIE_DOMAIN'] = 'demo.local'
+    app.config['SESSION_COOKIE_DOMAIN'] = socket.gethostname()
 
     init_login(app)
 
