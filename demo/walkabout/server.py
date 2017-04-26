@@ -17,6 +17,7 @@ from rooms.flask.login import bp_login
 from rooms.flask.master import bp_master
 from rooms.flask.node import bp_node
 from rooms.flask.admin import bp_admin
+from rooms.flask.mapeditor import bp_mapeditor
 
 from rooms.flask.app import master
 from rooms.flask.app import node
@@ -34,6 +35,7 @@ def create_app():
     app.register_blueprint(bp_login)
     app.register_blueprint(bp_node)
     app.register_blueprint(bp_admin)
+    app.register_blueprint(bp_mapeditor)
 
     return app
 

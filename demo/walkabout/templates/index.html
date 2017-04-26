@@ -4,8 +4,12 @@
     <link rel="stylesheet" type="text/css" href="/static/css/gameadmin.css"/>
     <link rel="stylesheet" type="text/css" href="/static/css/walkabout.css"/>
 
-    <script src="/static/rooms/js/jquery-1.9.1.js"></script>
-    <script src="/static/rooms/js/turtlegui.js"></script>
+    <script
+      src="https://code.jquery.com/jquery-1.12.4.js"
+        integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
+          crossorigin="anonymous"></script>
+    <script src="https://rawgit.com/gomyar/turtlegui/v0.1/turtlegui.js"></script>
+ 
     <script src="/static/js/netutils.js"></script>
     <script src="/static/js/index.js"></script>
 </head>
@@ -13,7 +17,7 @@
 <body>
 
 Games:
-<div data-gui-list="index.games" data-itervar="game">
+<div data-gui-list="index.games" data-gui-item="game">
     <div class="game">
         <div>Game:</div>
         <div data-gui-text="game.owner_id"></div>

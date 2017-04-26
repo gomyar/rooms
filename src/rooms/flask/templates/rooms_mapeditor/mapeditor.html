@@ -1,0 +1,108 @@
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="/static/rooms_mapeditor/css/mapeditor.css"/>
+    <script
+      src="https://code.jquery.com/jquery-1.12.4.js"
+        integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
+          crossorigin="anonymous"></script>
+    <script src="https://rawgit.com/gomyar/turtlegui/v0.1.1/turtlegui.js" crossorigin="anonymous"></script>
+    <script src="/static/rooms_admin/js/jquery.mousewheel.js"></script>
+
+    <script src="/static/rooms_mapeditor/js/mapeditor.js"></script>
+    <script src="/static/rooms_mapeditor/js/mapedit_gui.js"></script>
+</head>
+
+<body>
+
+<div id="mapeditor">
+    <div id="controls">
+        <div id="select" class="control">Select</div>
+        <div id="newroom" class="control" data-gui-click="rooms_mapeditor.create_room()">New Room</div>
+        <div id="newobj" class="control" data-gui-show="rooms_mapeditor.selected_room != null" data-gui-click="rooms_mapeditor.create_object()">New Object</div>
+        <div id="newtag" class="control" data-gui-click="rooms_mapeditor.create_tag()">New Tag</div>
+        <div id="delete" class="control" data-gui-click="rooms_mapeditor.delete()">Delete</div>
+        <div id="grid">
+            <label>Grid</label>
+            <input type="text" data-gui-click="rooms_mapeditor.toggle_grid()" value="Toggle"></input>
+        </div>
+    </div>
+
+    <div id="mainmap">
+        <canvas  style='-moz-user-select: none;-webkit-user-select: none;' id="screen"></canvas>
+
+        <div id="editable" data-gui-show="rooms_mapeditor.editable_object">
+            <div class="label">Position:</div>
+            <div class="label">Top Left</div>
+            <div class="topleft">
+                <div class="position">
+                    <label name="x">X:</label>
+                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.topleft.x"></input>
+                </div>
+                <div class="position">
+                    <label name="y">Y:</label>
+                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.topleft.y"></input>
+                </div>
+            </div>
+            <div class="label">Bottom Right</div>
+            <div class="bottomright">
+                <div class="position">
+                    <label name="x">X:</label>
+                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.bottomright.x"></input>
+                </div>
+                <div class="position">
+                    <label name="y">Y:</label>
+                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.bottomright.y"></input>
+                </div>
+            </div>
+            <div class="label">(ctrl-drag object to resize)</div>
+
+        </div>
+
+    </div>
+
+    <div id="maplist">
+        <div class="button" data-gui-click="rooms_mapeditor.create_map()">Create Map</div>
+        <select data-gui-list="rooms_mapeditor.all_maps" data-gui-item="map" data-gui-change="rooms_mapeditor.map_selected">
+            <option data-gui-val="map" data-gui-text="map"></option>
+        </select>
+        <div class="button" data-gui-click="rooms_mapeditor.load_selected_map()">Load</div>
+        <div class="button" data-gui-click="rooms_mapeditor.save_map()">Save</div>
+    </div>
+
+    <div id="selected_rooms_list" class="selected_objects_list" data-gui-show="rooms_mapeditor.selected_rooms_list">
+        <div data-gui-list="rooms_mapeditor.selected_rooms_list" data-gui-item="room" class="selected_item">
+            <div  data-gui-click="rooms_mapeditor.select_room(room.room_id)">
+                Room: <div data-gui-text="room.room_id"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="selected_objects_list" class="selected_objects_list" data-gui-show="rooms_mapeditor.selected_objects_list" ng-style="{left: selected_objects_list_x + 20, top: selected_objects_list_y }">
+        <div data-gui-list="rooms_mapeditor.selected_objects_list" data-gui-item="obj" class="selected_item" mouseenter="highlight_object(obj)" data-gui-click="rooms_mapeditor.select_object(obj)">
+            <span data-gui-text="obj.object_type"></span>
+        </div>
+    </div>
+
+
+    <div id="selected">
+        <div id="selectedroom">
+            <div class="field">
+                <div class="name">room_id</div>
+                <input id="room_id" class="value" data-gui-val="rooms_mapeditor.selected_room.room_id"></input>
+            </div>
+        </div>
+        <div id="selectedobj">
+        </div>
+        <div id="selectedtag">
+        </div>
+    </div>
+
+</div>
+
+
+</body>
+
+<body>
+
+</body>
+</html>

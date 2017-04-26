@@ -57,11 +57,13 @@ class Node(object):
         self.active = False
 
     def start(self):
+        log.info("Starting node %s at %s", self.name, self.host)
         self.disassociate_rooms()
         self.node_updater.send_onlinenode_update()
         self.start_node_update()
         self.start_room_loader()
         self.active = True
+        log.info("Started node %s at %s", self.name, self.host)
 
     def disassociate_rooms(self):
         self.container.disassociate_rooms(self.name)
