@@ -4,20 +4,25 @@
 <head>
     <link rel="stylesheet" type="text/css" href="/static/css/walkabout.css"/>
 
-    <script src="/static/rooms/js/jquery-1.9.1.js"></script>
-    <script src="/static/rooms/js/turtlegui.js"></script>
-    <script src="/static/rooms/js/api_rooms.js"></script>
+    <script
+      src="https://code.jquery.com/jquery-1.12.4.js"
+        integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
+          crossorigin="anonymous"></script>
+    <script src="https://rawgit.com/gomyar/turtlegui/v0.1/turtlegui.js"></script>
 
-    <script src="/static/js/drawutils.js"></script>
-    <script src="/static/js/netutils.js"></script>
-    <script src="/static/js/gui.js"></script>
-    <script src="/static/js/gui_room.js"></script>
-    <script src="/static/js/gui_actors.js"></script>
+    <script src="{{ url_for('node.static', filename='js/api_rooms.js') }}"></script>
+
+
+    <script src="{{ url_for('static', filename='js/drawutils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/netutils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gui_room.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gui_actors.js') }}"></script>
 
     <script>
         var game_id = '{{ game_id }}';
     </script>
-    <script src="/static/js/walkabout.js"></script>
+    <script src="{{ url_for('static', filename='js/walkabout.js') }}"></script>
 </head>
 
 <body>

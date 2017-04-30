@@ -20,8 +20,7 @@ bp_admin = Blueprint('admin', __name__,
                         path.dirname(__file__), 'templates'),
                      static_folder=path.join(
                         path.dirname(__file__), 'static/rooms_admin'),
-                     static_url_path='/static',
-                     url_prefix='/rooms_admin')
+                     static_url_path='/static/rooms_admin')
 
 
 @bp_admin.route("/")

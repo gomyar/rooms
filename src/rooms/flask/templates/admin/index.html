@@ -1,11 +1,15 @@
 <html>
 
 <head>
-    <link rel="stylesheet" type="text/css" href="/rooms_admin/static/css/admin.css"/>
-    <script src="/rooms/static/js/jquery-1.9.1.js"></script>
-    <script src="/rooms/static/js/turtlegui.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('admin.static', filename = 'css/admin.css') }}"/>
 
-    <script src="/rooms_admin/static/js/rooms_admin.js"></script>
+    <script
+      src="https://code.jquery.com/jquery-1.12.4.js"
+        integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
+          crossorigin="anonymous"></script>
+    <script src="https://rawgit.com/gomyar/turtlegui/v0.1.1/turtlegui.js" crossorigin="anonymous"></script>
+
+    <script src="{{ url_for('admin.static', filename = 'js/rooms_admin.js') }}"></script>
 </head>
 
 <body>
@@ -21,13 +25,13 @@
 
     <div>
         <div data-gui-show="admin.data.tab=='nodes'">
-            <div data-gui-include="/rooms_admin/static/html/nodes.html"></div>
+            <div data-gui-include="{{ url_for('admin.static', filename='html/nodes.html') }}"></div>
         </div>
         <div data-gui-show="admin.data.tab=='games'">
-            <div data-gui-include="/rooms_admin/static/html/games.html"></div>
+            <div data-gui-include="{{ url_for('admin.static', filename='html/games.html') }}"></div>
         </div>
         <div data-gui-show="admin.data.tab=='items'">
-            <div data-gui-include="/rooms_admin/static/html/items.html"></div>
+            <div data-gui-include="{{ url_for('admin.static', filename='html/items.html') }}"></div>
         </div>
     </div>
 </div>

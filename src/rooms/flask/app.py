@@ -30,7 +30,7 @@ _node_name = os.environ.get('ROOMS_NODE_NAME', 'local')
 _node_host = os.environ.get('ROOMS_NODE_HOST', 'localhost')
 _node_port = int(os.environ.get('ROOMS_NODE_PORT', 5000))
 
-_rooms_projectdir = os.environ.get('ROOMS_PROJECTDIR', '.')
+_rooms_projectdir = os.environ.get('ROOMS_PROJECTDIR', os.getcwd())
 
 mapdir = os.path.join(_rooms_projectdir, "maps")
 itemdir = os.path.join(_rooms_projectdir, "items")

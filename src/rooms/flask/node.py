@@ -19,8 +19,7 @@ bp_node = Blueprint('node', __name__,
                         path.dirname(__file__), 'templates'),
                     static_folder=path.join(
                         path.dirname(__file__), 'static/rooms'),
-                    static_url_path='/static',
-                    url_prefix='/rooms')
+                    static_url_path='/static/rooms')
 
 
 @bp_node.route("/play/<game_id>")

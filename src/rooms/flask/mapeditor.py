@@ -21,8 +21,7 @@ bp_mapeditor = Blueprint('mapeditor', __name__,
                         os.path.dirname(__file__), 'templates'),
                      static_folder=os.path.join(
                         os.path.dirname(__file__), 'static/rooms_mapeditor'),
-                     static_url_path='/static',
-                     url_prefix='/rooms_mapeditor')
+                     static_url_path='/static/rooms_mapeditor')
 
 
 @bp_mapeditor.route("/")

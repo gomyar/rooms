@@ -33,9 +33,9 @@ def create_app():
     app.secret_key = 'keepitsecretkeepitsafe'
 
     app.register_blueprint(bp_login)
-    app.register_blueprint(bp_node)
-    app.register_blueprint(bp_admin)
-    app.register_blueprint(bp_mapeditor)
+    app.register_blueprint(bp_node, url_prefix='/rooms')
+    app.register_blueprint(bp_admin, url_prefix='/rooms_admin')
+    app.register_blueprint(bp_mapeditor, url_prefix='/rooms_mapeditor')
 
     return app
 

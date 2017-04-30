@@ -1,6 +1,8 @@
 
 from urlparse import urlparse, urljoin
 
+import os
+
 from pymongo import MongoClient
 
 import flask
@@ -22,8 +24,12 @@ from rooms.flask.app import container
 mongo = MongoClient()
 login_manager = LoginManager()
 
-bp_login = Blueprint('login', __name__, template_folder='templates',
-                     static_folder='static')
+bp_login = Blueprint('login', __name__,
+                     template_folder=os.path.join(
+                        os.path.dirname(__file__), 'templates'),
+                     static_folder=os.path.join(
+                        os.path.dirname(__file__), 'static/accounts'),
+                     static_url_path='/static/accounts')
 
 
 class User(UserMixin):
