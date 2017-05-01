@@ -1,14 +1,24 @@
 <html>
 
 <head>
-    <link rel="stylesheet" type="text/css" href="/rooms_admin/static/css/admin.css"/>
-    <script src="/rooms/static/js/jquery-1.9.1.js"></script>
-    <script src="/rooms/static/js/api_rooms.js"></script>
-    <script src="/rooms/static/js/turtlegui.js"></script>
 
-    <script src="/rooms_admin/static/js/jquery.mousewheel.js"></script>
-    <script src="/rooms_admin/static/js/admin_gui.js"></script>
-    <script src="/rooms_admin/static/js/admin_game_client.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('admin.static', filename = 'css/admin.css') }}"/>
+    <script
+      src="https://code.jquery.com/jquery-1.12.4.js"
+        integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
+          crossorigin="anonymous"></script>
+    <script src="https://rawgit.com/gomyar/turtlegui/v0.1.1/turtlegui.js" crossorigin="anonymous"></script>
+
+
+    <script src="{{ url_for('node.static', filename = 'js/api_rooms.js') }}"></script>
+
+    <script src="{{ url_for('admin.static', filename = 'js/jquery.mousewheel.js') }}"></script>
+    <script src="{{ url_for('admin.static', filename = 'js/admin_gui.js') }}"></script>
+    <script>
+        var game_id = '{{ game_id }}';
+        var room_id = '{{ room_id }}';
+    </script>
+    <script src="{{ url_for('admin.static', filename = 'js/admin_game_client.js') }}"></script>
 <head>
 
 <body>

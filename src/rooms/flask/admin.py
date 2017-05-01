@@ -121,3 +121,12 @@ def get_map(path):
     if not flask_login.current_user.is_admin():
         return "Unauthorized", 401
     return send_from_directory(mapdir, path)
+
+
+@bp_admin.route('/game_client/<game_id>/<room_id>')
+@login_required
+def game_client(game_id, room_id):
+    if not flask_login.current_user.is_admin():
+        return "Unauthorized", 401
+    return render_template('admin/admin_game_client.html',
+                           game_id=game_id, room_id=room_id)

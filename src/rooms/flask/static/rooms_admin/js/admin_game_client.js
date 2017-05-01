@@ -76,5 +76,5 @@ admin.admin_connect = function(game_id, room_id)
 
 
 $( document ).ready(function() {
-    admin.admin_connect(getUrlParameter('game_id'), getUrlParameter('room_id'));
+    admin.admin_connect(game_id, room_id);
 });
