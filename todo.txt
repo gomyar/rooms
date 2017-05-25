@@ -1,4 +1,6 @@
 
+ - investigate adding python-decouple lib
+
 bugs:
  - login with ray, go to room3, register, then login with bob, ray sees bob in room1 (from room3) - possibly due to admin flag?
    - joining a new game as bob when ray is already in the next room repros also

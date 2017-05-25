@@ -1,46 +1,185 @@
 {
-    "map_id": "map1",
-    "positioning": "absolute",
+    "positioning": "absolute", 
+    "map_id": "map1", 
     "rooms": {
         "map1.room1": {
-            "topleft": {"x": 0, "y": 0, "z": 0},
-            "bottomright": {"x": 250, "y": 250, "z": 0},
+            "topleft": {
+                "y": -2, 
+                "x": -10, 
+                "z": 0
+            }, 
             "room_objects": [
-                {"object_type": "rect", "topleft": {"x": 5, "y": 5, "z": 0}, "bottomright": {"x": 25, "y": 25, "z": 0}}
-            ],
+                {
+                    "topleft": {
+                        "y": 5, 
+                        "x": 5, 
+                        "z": 0
+                    }, 
+                    "object_type": "rect", 
+                    "bottomright": {
+                        "y": 25, 
+                        "x": 25, 
+                        "z": 0
+                    }
+                }, 
+                {
+                    "topleft": {
+                        "y": 91, 
+                        "x": 129
+                    }, 
+                    "object_type": "rect", 
+                    "bottomright": {
+                        "y": 143, 
+                        "x": 181
+                    }
+                }
+            ], 
             "doors": [
-                {"exit_room_id": "map1.room2", "enter_position": {"x": 250, "y": 125, "z": 0}, "exit_position": {"x": 250, "y": 125, "z": 0}}
-            ],
+                {
+                    "exit_room_id": "map1.room2", 
+                    "exit_position": {
+                        "y": 125, 
+                        "x": 250, 
+                        "z": 0
+                    }, 
+                    "enter_position": {
+                        "y": 125, 
+                        "x": 250, 
+                        "z": 0
+                    }
+                }
+            ], 
+            "bottomright": {
+                "y": 247, 
+                "x": 239, 
+                "z": 0
+            }, 
             "tags": [
-                {"tag_type": "actor.spawn", "position": {"x": 25, "y": 25, "z": 0}, "data": {"actor_type": "npc", "actor_script": "npc_script"}}
+                {
+                    "position": {
+                        "y": 25, 
+                        "x": 25, 
+                        "z": 0
+                    }, 
+                    "data": {
+                        "actor_type": "npc", 
+                        "actor_script": "npc_script"
+                    }, 
+                    "tag_type": "actor.spawn"
+                }
             ]
-        },
+        }, 
         "map1.room2": {
-            "topleft": {"x": 250, "y": 0, "z": 0},
-            "bottomright": {"x": 500, "y": 250, "z": 0},
+            "topleft": {
+                "y": 0, 
+                "x": 250, 
+                "z": 0
+            }, 
             "room_objects": [
-                {"object_type": "rect", "topleft": {"x": 255, "y": 255, "z": 0}, "bottomright": {"x": 275, "y": 275, "z": 0}}
-            ],
+                {
+                    "topleft": {
+                        "y": 255, 
+                        "x": 255, 
+                        "z": 0
+                    }, 
+                    "object_type": "rect", 
+                    "bottomright": {
+                        "y": 275, 
+                        "x": 275, 
+                        "z": 0
+                    }
+                }
+            ], 
             "doors": [
-                {"exit_room_id": "map1.room1", "enter_position": {"x": 250, "y": 125, "z": 0}, "exit_position": {"x": 250, "y": 125, "z": 0}},
-                {"exit_room_id": "map1.room3", "enter_position": {"x": 375, "y": 250, "z": 0}, "exit_position": {"x": 375, "y": 250, "z": 0}}
-            ],
-            "tags": [
-            ]
-        },
+                {
+                    "exit_room_id": "map1.room1", 
+                    "exit_position": {
+                        "y": 125, 
+                        "x": 250, 
+                        "z": 0
+                    }, 
+                    "enter_position": {
+                        "y": 125, 
+                        "x": 250, 
+                        "z": 0
+                    }
+                }, 
+                {
+                    "exit_room_id": "map1.room3", 
+                    "exit_position": {
+                        "y": 250, 
+                        "x": 375, 
+                        "z": 0
+                    }, 
+                    "enter_position": {
+                        "y": 250, 
+                        "x": 375, 
+                        "z": 0
+                    }
+                }
+            ], 
+            "bottomright": {
+                "y": 250, 
+                "x": 500, 
+                "z": 0
+            }, 
+            "tags": []
+        }, 
         "map1.room3": {
-            "topleft": {"x": 250, "y": 250, "z": 0},
-            "bottomright": {"x": 500, "y": 500, "z": 0},
+            "topleft": {
+                "y": 250, 
+                "x": 250, 
+                "z": 0
+            }, 
             "room_objects": [
-                {"object_type": "rect", "topleft": {"x": 375, "y": 505, "z": 0}, "bottomright": {"x": 275, "y": 275, "z": 0}}
-            ],
+                {
+                    "topleft": {
+                        "y": 505, 
+                        "x": 375, 
+                        "z": 0
+                    }, 
+                    "object_type": "rect", 
+                    "bottomright": {
+                        "y": 275, 
+                        "x": 275, 
+                        "z": 0
+                    }
+                }
+            ], 
             "doors": [
-                {"exit_room_id": "map1.room2", "enter_position": {"x": 375, "y": 250, "z": 0}, "exit_position": {"x": 375, "y": 250, "z": 0}}
-            ],
+                {
+                    "exit_room_id": "map1.room2", 
+                    "exit_position": {
+                        "y": 250, 
+                        "x": 375, 
+                        "z": 0
+                    }, 
+                    "enter_position": {
+                        "y": 250, 
+                        "x": 375, 
+                        "z": 0
+                    }
+                }
+            ], 
+            "bottomright": {
+                "y": 500, 
+                "x": 500, 
+                "z": 0
+            }, 
             "tags": [
-                {"tag_type": "actor.spawn", "position": {"x": 375, "y": 375, "z": 0}, "data": {"actor_type": "npc", "actor_script": "npc_script"}}
+                {
+                    "position": {
+                        "y": 375, 
+                        "x": 375, 
+                        "z": 0
+                    }, 
+                    "data": {
+                        "actor_type": "npc", 
+                        "actor_script": "npc_script"
+                    }, 
+                    "tag_type": "actor.spawn"
+                }
             ]
         }
-
     }
 }

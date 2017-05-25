@@ -2,6 +2,7 @@
 import os
 import traceback
 import uuid
+import socket
 
 import logging
 import logging.config
@@ -10,6 +11,7 @@ log = logging.getLogger("rooms")
 from geventwebsocket.handler import WebSocketHandler
 from gevent.pywsgi import WSGIServer
 from werkzeug.debug import DebuggedApplication
+from decouple import config
 
 from rooms.master import Master
 from rooms.node import Node
@@ -21,24 +23,27 @@ from rooms.dbase.mongo_dbase import MongoDBase
 from rooms.item_registry import ItemRegistry
 
 
-_mongo_host = os.environ.get('ROOMS_MONGO_HOST', 'localhost')
-_mongo_port = int(os.environ.get('ROOMS_MONGO_PORT', '27017'))
-_mongo_dbname = os.environ.get('ROOMS_MONGO_DBNAME', 'rooms')
+_mongo_host = config('ROOMS_MONGO_HOST', default='localhost')
+_mongo_port = config('ROOMS_MONGO_PORT', default='27017', cast=int)
+_mongo_dbname = config('ROOMS_MONGO_DBNAME', default='rooms')
 
-_node_hostname = os.environ.get('ROOMS_NODE_HOSTNAME', 'localhost:5000')
-_node_name = os.environ.get('ROOMS_NODE_NAME', 'local')
-_node_host = os.environ.get('ROOMS_NODE_HOST', 'localhost')
-_node_port = int(os.environ.get('ROOMS_NODE_PORT', 5000))
+_node_name = config('ROOMS_NODE_NAME', default='local')
+_node_host = config('ROOMS_NODE_HOST', default=socket.gethostname())
+_node_port = config('ROOMS_NODE_PORT', default=5000, cast=int)
+_node_hostname = config('ROOMS_NODE_HOSTNAME', default='%s:%s' % (
+    _node_host, _node_port))
 
-_rooms_projectdir = os.environ.get('ROOMS_PROJECTDIR', os.getcwd())
+_rooms_projectdir = config('ROOMS_PROJECTDIR', default=os.getcwd())
+
+_logging_conf = config('LOGGING_CONF', default=os.path.join(_rooms_projectdir,
+                                                            "logging.conf"))
 
 mapdir = os.path.join(_rooms_projectdir, "maps")
 itemdir = os.path.join(_rooms_projectdir, "items")
 
 
-if os.path.exists(os.path.join(_rooms_projectdir, "logging.conf")):
-    logging.config.fileConfig(os.path.join(_rooms_projectdir,
-        "logging.conf"))
+if os.path.exists(_logging_conf):
+    logging.config.fileConfig(_logging_conf)
 else:
     logging.basicConfig(level=logging.DEBUG,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
