@@ -6,3 +6,4 @@ setuptools==2.2
 flask==0.12.1
 flask-login==0.4.0
 flask-socketio==2.8.3
+flask-script==2.0.5

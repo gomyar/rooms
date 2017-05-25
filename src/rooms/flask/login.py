@@ -45,11 +45,12 @@ class User(UserMixin):
         return self.admin
 
 
-def create_user(username, pw_hash):
+def create_user(username, pw_hash, admin=False):
     if not container.dbase.filter_one('users', {'username': username}):
         container.dbase.save_object({
             'username': username,
-            'pw_hash': pw_hash }, 'users')
+            'pw_hash': pw_hash,
+            'admin': admin}, 'users')
         return User(username, pw_hash)
     else:
         raise Exception("User already exists")
@@ -61,7 +62,7 @@ def load_user(username):
     if res:
         return User(res['username'], res['pw_hash'], res.get('admin'))
     else:
-        raise Exception("No such user")
+        return None
 
 
 def is_safe_url(target):
