@@ -11,7 +11,7 @@ log = logging.getLogger("rooms")
 from geventwebsocket.handler import WebSocketHandler
 from gevent.pywsgi import WSGIServer
 from werkzeug.debug import DebuggedApplication
-from decouple import config
+from decouple import Config, RepositoryEnv
 
 from rooms.master import Master
 from rooms.node import Node
@@ -21,6 +21,9 @@ from rooms.room_builder import FileMapSource
 from rooms.container import Container
 from rooms.dbase.mongo_dbase import MongoDBase
 from rooms.item_registry import ItemRegistry
+
+config = Config(RepositoryEnv(os.environ.get('ROOMS_CONFIG', os.path.join(
+    os.getcwd(), 'game.env'))))
 
 
 _mongo_host = config('ROOMS_MONGO_HOST', default='localhost')
