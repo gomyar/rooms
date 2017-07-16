@@ -35,10 +35,10 @@ class ItemRegistry(object):
         self.categories.update(categories)
 
     def load_from_directory(self, directory_path):
-        for filename in directory_path:
+        for filename in os.listdir(directory_path):
             if filename.endswith(".json"):
                 log.info("Loading items from %s", filename)
-                filepath = os.path.join(directory_path, "items", filename)
+                filepath = os.path.join(directory_path, filename)
                 self.load_from_json(open(filepath).read())
 
 

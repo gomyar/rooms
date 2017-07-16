@@ -80,10 +80,6 @@ def get_map(path):
 
 
 if __name__ == '__main__':
-    sys.path.append('./src')
-
-    app.config['SESSION_COOKIE_DOMAIN'] = socket.gethostname()
-
     init_login(app)
 
     master.load_scripts('scripts.game_script')

@@ -25,13 +25,14 @@ class Master(object):
 
     def join_game(self, game_id, username, **kwargs):
         if not self.container.game_exists(game_id):
-            return {'error': 'no such game'}
+            raise Exception("No such game: %s" % (game_id,))
         game = self.container.load_game(game_id)
         room_id = self.game_script.call("start_room", **kwargs)
+        # possibly check if room actually exists here, to aid debugging
         if not room_id:
             raise Exception("No start room_id given")
         player = self.container.get_or_create_player(game_id, username,
-                                                     room_id)
+                                                     room_id, kwargs)
         room = self._get_room(game_id, player['room_id'])
         if room['node_name']:
             return {'rooms_url': self._node_url(room['node_name'], game_id)}

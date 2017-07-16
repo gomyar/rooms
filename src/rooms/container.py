@@ -54,20 +54,22 @@ class Container(object):
         )
         return player
 
-    def get_or_create_player(self, game_id, username, room_id):
+    def get_or_create_player(self, game_id, username, room_id, init_kwargs):
         return self.dbase.find_and_modify(
             'actors',
             query={'game_id': game_id, 'username': username,
                    '__type__': 'PlayerActor'},
             update={
                 '$setOnInsert': self._new_player_data(game_id, room_id,
-                                                      username, 'active'),
+                                                      username, 'active',
+                                                      init_kwargs),
             },
             upsert=True,
             new=True,
         )
 
-    def _new_player_data(self, game_id, room_id, username, status):
+    def _new_player_data(self, game_id, room_id, username, status, init_kwargs):
+        init_kwargs['__type__'] = "SyncDict"
         return {
             'game_id': game_id,
             'username': username,
@@ -76,7 +78,8 @@ class Container(object):
             'actor_type': 'player',
             'visible': True,
             'parent_id': None,
-            'state': {"__type__" : "SyncDict"},
+            'state': {"__type__" : "SyncDict",
+                      "init_kwargs": init_kwargs},
             'path': [],
             'speed': 1.0,
             'docked_with': None,
@@ -93,11 +96,10 @@ class Container(object):
             'script_name': self.player_script_name,
         }
 
-    def load_room(self, game_id, room_id):
-        room = self._load_filter_one("rooms", dict(game_id=game_id, room_id=room_id))
-        room.item_registry = self.item_registry
-        self.load_actors_for_room(room)
-        return room
+#    def load_room(self, game_id, room_id):
+#        room = self._load_filter_one("rooms", dict(game_id=game_id, room_id=room_id))
+#        self.load_actors_for_room(room)
+#        return room
 
     def load_actors_for_room(self, room):
         game_id = room.game_id
@@ -119,18 +121,17 @@ class Container(object):
         for actor in actors:
             self.save_actor(actor)
 
-    def create_room_with_actors(self, game_id, room_id):
-        if self.room_exists(game_id, room_id):
-            raise Exception("Room %s %s already exists" % (game_id, room_id))
-        room = self.create_room(game_id, room_id)
-        self.load_actors_for_room(room)
-        return room
+#    def create_room_with_actors(self, game_id, room_id):
+#        if self.room_exists(game_id, room_id):
+#            raise Exception("Room %s %s already exists" % (game_id, room_id))
+#        room = self.create_room(game_id, room_id)
+#        self.load_actors_for_room(room)
+#        return room
 
     # deprecated
     def create_room(self, game_id, room_id):
         room = self.room_builder.create(game_id, room_id)
         room.geography = self.geography
-        room.item_registry = self.item_registry
         self.save_room(room)
         return room
 

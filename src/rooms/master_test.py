@@ -12,7 +12,7 @@ from rooms.testutils import MockTimer
 from rooms.online_node import OnlineNode
 
 
-def start_room():
+def start_room(game_specific=None):
     return "map1.room1"
 
 
@@ -116,6 +116,26 @@ class MasterTest(unittest.TestCase):
             'state': {}}, self.db.dbases['rooms']['rooms_0'])
         self.assertEquals('bob',
             self.db.dbases['actors']['actors_0']['username'])
+
+    def testPlayerJoinsGameWithInitState(self):
+        game_id = self.master.create_game("bob")
+        self.master.join_game(game_id, "bob", game_specific="tommy_gun")
+
+        self.assertEquals(1, len(self.db.dbases['rooms']))
+        self.assertEquals({
+            '__type__': 'Room',
+            '_id': 'rooms_0',
+            'active': False,
+            'game_id': 'games_0',
+            'node_name': None,
+            'requested': True,
+            'room_id': "map1.room1",
+            'script_name': 'rooms.script',
+            'state': {}}, self.db.dbases['rooms']['rooms_0'])
+        self.assertEquals('bob',
+            self.db.dbases['actors']['actors_0']['username'])
+        self.assertEquals({'__type__': 'SyncDict', 'game_specific': 'tommy_gun'},
+            self.db.dbases['actors']['actors_0']['state']['init_kwargs'])
 
     def testPlayerTriesToJoinNonExistingGame(self):
         result = self.master.join_game('nonexitant', "ned")

@@ -14,6 +14,8 @@ api_rooms.connect_url = null;
 api_rooms.node_host = location.hostname;
 
 api_rooms.conn_retries = 0;
+api_rooms.max_retries = 3;
+api_rooms.connecting = false;
 
 
 api_rooms.Actor = function(actor)
@@ -135,7 +137,10 @@ api_rooms.onopen = function()
 api_rooms.onclose = function()
 {
     console.log("Connection lost");
-    api_rooms.request_connection();
+    if (api_rooms.conn_retries < api_rooms.max_retries) {
+        api_rooms.conn_retries += 1;
+        setTimeout(api_rooms.connect_node, 1000);
+    }
 }
 
 api_rooms.onerror = function()
@@ -154,10 +159,13 @@ api_rooms.connect = function(connect_url, callback)
 api_rooms.request_connection = function()
 {
     console.log("Requesting connection");
+    api_rooms.connecting = true;
+    api_rooms.game_callback({'command': 'notify_connecting'});
+
     api_rooms.service_call(api_rooms.connect_url, {},
             function(data) {
 				if ('wait' in data) {
-                    if (api_rooms.conn_retries < 3) {
+                    if (api_rooms.conn_retries < api_rooms.max_retries) {
                         console.log("Waiting 1 second for room ready");
                         setTimeout(api_rooms.request_connection, 1000);
                         api_rooms.conn_retries += 1;
@@ -227,6 +235,12 @@ api_rooms.commands = {
 
 api_rooms.message_callback = function(msgevent)
 {
+    // Resetting retries as the open() function gets called anyway
+    api_rooms.conn_retries = 0;
+    if (api_rooms.connecting) {
+        api_rooms.game_callback({'command': 'notify_connected'});
+    }
+
     var message = jQuery.parseJSON(msgevent.data);
     if (message.command in api_rooms.commands)
         api_rooms.commands[message.command](message);

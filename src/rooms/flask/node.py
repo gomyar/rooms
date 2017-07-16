@@ -45,6 +45,9 @@ def connect(game_id):
     # get player for game_id / user_id
     player = app.container.get_player(
         game_id, flask_login.current_user.get_id())
+    if not player:
+        raise Exception("Player %s has not joined game %s" % (
+                        flask_login.current_user.get_id(), game_id))
     # redirect to / request associated node
     room = app.container.request_create_room(game_id, player['room_id'])
     if room.get('node_name'):
