@@ -121,20 +121,6 @@ class Container(object):
         for actor in actors:
             self.save_actor(actor)
 
-#    def create_room_with_actors(self, game_id, room_id):
-#        if self.room_exists(game_id, room_id):
-#            raise Exception("Room %s %s already exists" % (game_id, room_id))
-#        room = self.create_room(game_id, room_id)
-#        self.load_actors_for_room(room)
-#        return room
-
-    # deprecated
-    def create_room(self, game_id, room_id):
-        room = self.room_builder.create(game_id, room_id)
-        room.geography = self.geography
-        self.save_room(room)
-        return room
-
     def request_create_room(self, game_id, room_id):
         # push into dbase
         return self.dbase.find_and_modify(

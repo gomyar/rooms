@@ -138,8 +138,11 @@ class MasterTest(unittest.TestCase):
             self.db.dbases['actors']['actors_0']['state']['init_kwargs'])
 
     def testPlayerTriesToJoinNonExistingGame(self):
-        result = self.master.join_game('nonexitant', "ned")
-        self.assertEquals({'error': 'no such game'}, result)
+        try:
+            self.master.join_game('nonexitant', "ned")
+            self.fail("Should have thrown")
+        except Exception, e:
+            self.assertEquals("No such game: nonexitant", str(e))
 
     def testAllGames(self):
         self.assertEquals([], self.master.list_all_games())

@@ -22,7 +22,7 @@ class FlaskAppTest(unittest.TestCase):
         self.app = Flask(__name__)
         self.app.secret_key = "1234test"
         self.app.register_blueprint(bp_master)
-        self.app.register_blueprint(bp_node)
+        self.app.register_blueprint(bp_node, url_prefix='/rooms')
         self.app.register_blueprint(bp_login)
         self._old_path = app.room_builder.map_source.dirpath
         app.room_builder.map_source.dirpath = os.path.join(
@@ -84,13 +84,13 @@ class FlaskAppTest(unittest.TestCase):
         app.master.join_game(game_id, 'bob')
 
         self.login('bob', 'pass')
-        res = self.client.get('/rooms/connect/games_0')
+        res = self.client.get('/rooms/connect/%s' % (game_id,))
         self.assertEquals(200, res.status_code)
         self.assertEquals('{\n  "wait": 1\n}\n', res.data)
 
         app.node.load_next_pending_room()
 
-        res = self.client.get('/rooms/connect/games_0')
+        res = self.client.get('/rooms/connect/%s' % (game_id,))
         self.assertEquals(200, res.status_code)
         data = json.loads(res.data)
         self.assertTrue('actor_id' in data)
