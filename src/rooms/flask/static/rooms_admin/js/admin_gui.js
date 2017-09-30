@@ -45,6 +45,25 @@ gui.init = function(canvas)
 }
 
 
+gui.center_on_room = function() {
+    var x1 = null;
+    var y1 = null;
+    var x2 = null;
+    var y2 = null;
+
+    var room = api_rooms.room;
+    x1 = room.topleft.x;
+    y1 = room.topleft.y;
+    x2 = room.bottomright.x;
+    y2 = room.bottomright.y;
+
+    gui.viewport_x = (x1 + x2) / 2;
+    gui.viewport_y = (y1 + y2) / 2;
+    gui.zoom = 1.2 * (y2 - y1) / gui.canvas.height;
+    gui.requestRedraw();
+}
+
+
 gui.canvas_mousemove = function(e)
 {
     gui.mouse_client_x = (e.clientX - $(gui.canvas).offset().left);

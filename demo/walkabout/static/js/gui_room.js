@@ -57,7 +57,10 @@ gui_room.object_draw_funcs = {
 
 gui_room.draw_room_object = function(room_object)
 {
-    gui_room.object_draw_funcs[room_object.object_type](room_object);
+    if (room_object.object_type in gui_room.object_draw_funcs)
+        gui_room.object_draw_funcs[room_object.object_type](room_object);
+    else
+        gui_room.object_draw_funcs['rect'](room_object);
 }
 
 gui_room.door_at = function(x, y)

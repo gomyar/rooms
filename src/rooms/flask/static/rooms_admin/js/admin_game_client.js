@@ -36,6 +36,7 @@ admin.load_room = function(room_id) {
     $.get("/rooms_admin/maps/" + map_id + ".json").success(function(data) {
         admin.mapdata = data;
         api_rooms.room = data['rooms'][room_id];
+        gui.center_on_room();
         gui.requestRedraw();
     });
 }

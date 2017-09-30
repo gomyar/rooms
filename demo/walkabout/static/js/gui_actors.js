@@ -37,7 +37,10 @@ gui_actors.actor_draw_funcs = {
 
 gui_actors.draw_actor = function(actor)
 {
-    gui_actors.actor_draw_funcs[actor.actor_type](actor);
+    if (actor.actor_type in gui_actors.actor_draw_funcs)
+        gui_actors.actor_draw_funcs[actor.actor_type](actor);
+    else
+        gui_actors.actor_draw_funcs['rect'](actor);
 }
 
 gui_actors.actor_at = function(x, y)
