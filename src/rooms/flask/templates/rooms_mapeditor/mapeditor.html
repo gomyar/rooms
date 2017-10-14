@@ -27,7 +27,21 @@
     <div id="mainmap">
         <canvas  style='-moz-user-select: none;-webkit-user-select: none;' id="screen"></canvas>
 
-        <div id="editable" data-gui-show="rooms_mapeditor.editable_object">
+        <div id="editable" data-gui-show="rooms_mapeditor.editable_object && 'position' in rooms_mapeditor.editable_object">
+            <div class="label">Position:</div>
+            <div class="topleft">
+                <div class="position">
+                    <label name="x">X:</label>
+                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.position.x"></input>
+                </div>
+                <div class="position">
+                    <label name="y">Y:</label>
+                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.position.y"></input>
+                </div>
+            </div>
+        </div>
+
+        <div id="editable" data-gui-show="rooms_mapeditor.editable_object && 'topleft' in rooms_mapeditor.editable_object">
             <div class="label">Position:</div>
             <div class="label">Top Left</div>
             <div class="topleft">

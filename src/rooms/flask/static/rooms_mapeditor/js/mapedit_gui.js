@@ -77,22 +77,24 @@ gui.canvas_mousemove = function(e)
         var moved_y = gui.move_start_y - (e.clientY - $(gui.canvas).offset().top);
         if (gui.dragging_editable && e.ctrlKey)
         {
-            applyscope(function(scope) {
-                scope.set_position(scope.editable_object.bottomright,
-                    gui.draggable_start_bottomright_x - moved_x * gui.zoom,
-                    gui.draggable_start_bottomright_y - moved_y * gui.zoom);
-            });
+            rooms_mapeditor.set_position(rooms_mapeditor.editable_object.bottomright,
+                gui.draggable_start_bottomright_x - moved_x * gui.zoom,
+                gui.draggable_start_bottomright_y - moved_y * gui.zoom);
         }
         else if (gui.dragging_editable)
         {
-            applyscope(function(scope) {
-                scope.set_position(scope.editable_object.topleft,
+            if ('topleft' in rooms_mapeditor.editable_object) {
+                rooms_mapeditor.set_position(rooms_mapeditor.editable_object.topleft,
                     gui.draggable_start_topleft_x - moved_x * gui.zoom,
                     gui.draggable_start_topleft_y - moved_y * gui.zoom);
-                scope.set_position(scope.editable_object.bottomright,
+                rooms_mapeditor.set_position(rooms_mapeditor.editable_object.bottomright,
                     gui.draggable_start_bottomright_x - moved_x * gui.zoom,
                     gui.draggable_start_bottomright_y - moved_y * gui.zoom);
-            });
+            } else if ('position' in rooms_mapeditor.editable_object) {
+                rooms_mapeditor.set_position(rooms_mapeditor.editable_object.position,
+                    gui.draggable_start_topleft_x - moved_x * gui.zoom,
+                    gui.draggable_start_topleft_y - moved_y * gui.zoom);
+            }
         }
         else
         {
@@ -115,21 +117,6 @@ gui.canvas_mousemove = function(e)
     gui.requestRedraw();
 }
 
-gui.show_actor_list = function(actors)
-{
-    // show list of selected actors
-    applyscope(function (scope){
-        scope.actor_list = actors;
-    });
-}
-
-function applyscope(func) {
-    // artifact from having to deal with angular
-    func(rooms_mapeditor);
-    turtlegui.reload();
-}
-
-
 gui.canvas_mousedown = function(e)
 {
     gui.mouse_down = true;
@@ -143,10 +130,15 @@ gui.canvas_mousedown = function(e)
     gui.dragging_editable = gui.is_editable_drag_at(click_x, click_y);
     if (gui.dragging_editable)
     {
-        gui.draggable_start_topleft_x = rooms_mapeditor.editable_object.topleft.x;
-        gui.draggable_start_topleft_y = rooms_mapeditor.editable_object.topleft.y;
-        gui.draggable_start_bottomright_x = rooms_mapeditor.editable_object.bottomright.x;
-        gui.draggable_start_bottomright_y = rooms_mapeditor.editable_object.bottomright.y;
+        if ('position' in rooms_mapeditor.editable_object) {
+            gui.draggable_start_topleft_x = rooms_mapeditor.editable_object.position.x;
+            gui.draggable_start_topleft_y = rooms_mapeditor.editable_object.position.y;
+        } else {
+            gui.draggable_start_topleft_x = rooms_mapeditor.editable_object.topleft.x;
+            gui.draggable_start_topleft_y = rooms_mapeditor.editable_object.topleft.y;
+            gui.draggable_start_bottomright_x = rooms_mapeditor.editable_object.bottomright.x;
+            gui.draggable_start_bottomright_y = rooms_mapeditor.editable_object.bottomright.y;
+        }
     }
 
     if ($(".mapcontrol").size() > 0)
@@ -186,10 +178,6 @@ gui.canvas_clicked = function(e)
 {
     $(".selected_actor_list").remove();
 
-    applyscope(function (scope){
-        scope.selected_rooms_list = [];
-    });
-
     if (!gui.swallow_click)
     {
         var click_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
@@ -198,43 +186,35 @@ gui.canvas_clicked = function(e)
 
         if (gui.highlighted_objects.length == 1)
         {
-            applyscope(function (scope){
-                scope.select_object(gui.highlighted_objects[0]);
-            });
+            rooms_mapeditor.select_object(gui.highlighted_objects[0]);
         }
         else if (gui.highlighted_objects.length > 1)
         {
-            applyscope(function (scope){
-                scope.selected_objects_list = gui.highlighted_objects;
-                scope.selected_objects_list_x = e.clientX;
-                scope.selected_objects_list_y = e.clientY;
-            });
+            rooms_mapeditor.selected_objects_list = gui.highlighted_objects;
+            rooms_mapeditor.selected_objects_list_x = e.clientX;
+            rooms_mapeditor.selected_objects_list_y = e.clientY;
         }
 
         // check room
         else if (Object.keys(gui.highlighted_rooms).length == 1)
         {
-            applyscope(function (scope){
-                var room_id = Object.keys(gui.highlighted_rooms)[0];
-                scope.select_room(room_id);
-            });
+            var room_id = Object.keys(gui.highlighted_rooms)[0];
+            rooms_mapeditor.select_room(room_id);
         }
         else if (Object.keys(gui.highlighted_rooms).length > 1)
         {
-            applyscope(function (scope){
-                scope.selected_rooms_list = gui.highlighted_rooms;
-                scope.selected_rooms_list_x = e.clientX;
-                scope.selected_rooms_list_y = e.clientY;
-            });
+            rooms_mapeditor.selected_rooms_list = gui.highlighted_rooms;
+            rooms_mapeditor.selected_rooms_list_x = e.clientX;
+            rooms_mapeditor.selected_rooms_list_y = e.clientY;
         }
         else
         {
-            applyscope(function (scope){
-                scope.select_room(null);
-                scope.selected_room = {data: null};
-            });
+            rooms_mapeditor.select_room(null);
+            rooms_mapeditor.selected_room = {data: null};
         }
 
+        rooms_mapeditor.selected_rooms_list = [];
+        turtlegui.reload();
     }
     console.log("clicked");
     gui.swallow_click = false;
@@ -331,22 +311,6 @@ gui.find_objects_at = function(x, y)
 }
 
 
-gui.show_selected_actor_list = function(actors)
-{
-    applyscope(function (scope){
-        scope.actor_list = actors;
-    });
-}
-
-
-gui.clear_selected_actor_list = function()
-{
-    applyscope(function (scope){
-        scope.actor_list = [];
-    });
-}
-
-
 // ----------------- ols gui.js
 
 gui.resetCanvas = function()
@@ -355,15 +319,6 @@ gui.resetCanvas = function()
     gui.canvas.height = $("#screen").parent().height();
     gui.ctx=gui.canvas.getContext("2d");
     gui.requestRedraw();
-}
-
-gui.move_to_own_actor = function()
-{
-    if (api_rooms.player_actor != null)
-    {
-        gui.viewport_x = -(api_rooms.player_actor.x() - gui.canvas.width / 2);
-        gui.viewport_y = -(api_rooms.player_actor.y() - gui.canvas.height / 2);
-    }
 }
 
 gui.canvas_top = function()
@@ -476,6 +431,16 @@ gui.draw = function()
         var room_y = gui.canvas_y(room.topleft.y);
         gui.ctx.strokeRect(room_x, room_y, width / gui.zoom, height / gui.zoom)
 
+        // draw if currently editing room
+        if (room == rooms_mapeditor.editable_object) {
+            gui.draw_rect(
+                room_x - 10,
+                room_y - 10,
+                width / gui.zoom + 20,
+                height / gui.zoom + 20,
+                "#ff0000");
+        }
+
         // Draw doors
         for (var door_index in room.doors)
         {
@@ -531,6 +496,17 @@ gui.draw = function()
                 color
             );
             gui.draw_text_centered((object_x + bottomright_x) / 2, object_y + 10, map_object.object_type, color);
+
+            // draw if currently editing object
+            if (map_object == rooms_mapeditor.editable_object) {
+
+                gui.draw_rect(
+                    object_x,
+                    object_y,
+                    width / gui.zoom,
+                    height / gui.zoom,
+                    "#ff0000");
+            }
         }
 
         // Draw tags
@@ -572,75 +548,31 @@ gui.draw = function()
                 color
             );
             gui.draw_text_centered(tag_x, tag_y + 10, map_tag.tag_type, color);
+
+            // draw if currency editing
+            if (map_tag == rooms_mapeditor.editable_object) {
+                if (gui.is_object_highlighted(map_tag))
+                    color = "rgb(200, 50, 50)";
+                if (map_tag == rooms_mapeditor.selected_tag)
+                    color = "rgb(255, 55, 55)";
+                gui.ctx.globalAlpha = 0.1;
+                gui.fill_rect(
+                    tag_x - width / 2,
+                    tag_y - height / 2,
+                    width,
+                    height,
+                    color
+                );
+                gui.ctx.globalAlpha = 1.0;
+                gui.draw_rect(
+                    tag_x - width / 2,
+                    tag_y - height / 2,
+                    width,
+                    height,
+                    color
+                );
+            }
         }
-    }
-
-    // draw selected object highlights
-    if (rooms_mapeditor.editable_object && 'position' in rooms_mapeditor.editable_object)
-    {
-        var width = TAG_WIDTH / gui.zoom;
-        var height = TAG_HEIGHT / gui.zoom;
-        var color = "rgb(200, 50, 50)";
-        if (map_data.positioning == "relative")
-        {
-            var tag_x = gui.canvas_x(map_tag.position.x + room.topleft.x);
-            var tag_y = gui.canvas_y(map_tag.position.y + room.topleft.y);
-        }
-        else
-        {
-            var tag_x = gui.canvas_x(map_tag.position.x);
-            var tag_y = gui.canvas_y(map_tag.position.y);
-        }
-
-        if (gui.is_object_highlighted(map_tag))
-            color = "rgb(200, 50, 50)";
-        if (map_tag == rooms_mapeditor.selected_tag)
-            color = "rgb(255, 55, 55)";
-        gui.ctx.globalAlpha = 0.1;
-        gui.fill_rect(
-            tag_x - width / 2,
-            tag_y - height / 2,
-            width,
-            height,
-            color
-        );
-        gui.ctx.globalAlpha = 1.0;
-        gui.draw_rect(
-            tag_x - width / 2,
-            tag_y - height / 2,
-            width,
-            height,
-            color
-        );
-    }
-    else if (rooms_mapeditor.editable_object)
-    {
-        var editable = rooms_mapeditor.editable_object;
-
-        var x1 = editable.topleft.x;
-        var y1 = editable.topleft.y;
-        var x2 = editable.bottomright.x;
-        var y2 = editable.bottomright.y;
-
-        if (editable != rooms_mapeditor.selected_room.data)
-        {
-            x1 += rooms_mapeditor.selected_room.data.topleft.x;
-            y1 += rooms_mapeditor.selected_room.data.topleft.y;
-            x2 += rooms_mapeditor.selected_room.data.topleft.x;
-            y2 += rooms_mapeditor.selected_room.data.topleft.y;
-        }
-
-        gui.draw_rect(gui.canvas_x(x1) - 5,
-            gui.canvas_y(y1) - 5,
-            gui.canvas_x(x2) - gui.canvas_x(x1) + 10,
-            gui.canvas_y(y2) - gui.canvas_y(y1) + 10,
-            "#ff0000");
-
-        gui.draw_rect(gui.canvas_x(x2) - (gui.canvas_x(x2) - gui.canvas_x(x1)) / 5,
-            gui.canvas_y(y2) - (gui.canvas_y(y2) - gui.canvas_y(y1)) / 5,
-            (gui.canvas_x(x2) - gui.canvas_x(x1)) / 5,
-            (gui.canvas_y(y2) - gui.canvas_y(y1)) / 5,
-            "#ff0000");
     }
 
     gui.draw_text_centered(50, 20, "Viewport: ("+parseInt(gui.viewport_x)+", "+parseInt(gui.viewport_y)+")", "white");
