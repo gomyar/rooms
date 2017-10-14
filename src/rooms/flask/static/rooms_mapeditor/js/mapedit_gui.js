@@ -575,7 +575,45 @@ gui.draw = function()
         }
     }
 
-    if (rooms_mapeditor.editable_object)
+    // draw selected object highlights
+    if (rooms_mapeditor.editable_object && 'position' in rooms_mapeditor.editable_object)
+    {
+        var width = TAG_WIDTH / gui.zoom;
+        var height = TAG_HEIGHT / gui.zoom;
+        var color = "rgb(200, 50, 50)";
+        if (map_data.positioning == "relative")
+        {
+            var tag_x = gui.canvas_x(map_tag.position.x + room.topleft.x);
+            var tag_y = gui.canvas_y(map_tag.position.y + room.topleft.y);
+        }
+        else
+        {
+            var tag_x = gui.canvas_x(map_tag.position.x);
+            var tag_y = gui.canvas_y(map_tag.position.y);
+        }
+
+        if (gui.is_object_highlighted(map_tag))
+            color = "rgb(200, 50, 50)";
+        if (map_tag == rooms_mapeditor.selected_tag)
+            color = "rgb(255, 55, 55)";
+        gui.ctx.globalAlpha = 0.1;
+        gui.fill_rect(
+            tag_x - width / 2,
+            tag_y - height / 2,
+            width,
+            height,
+            color
+        );
+        gui.ctx.globalAlpha = 1.0;
+        gui.draw_rect(
+            tag_x - width / 2,
+            tag_y - height / 2,
+            width,
+            height,
+            color
+        );
+    }
+    else if (rooms_mapeditor.editable_object)
     {
         var editable = rooms_mapeditor.editable_object;
 

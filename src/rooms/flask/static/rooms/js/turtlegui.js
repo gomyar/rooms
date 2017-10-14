@@ -117,9 +117,28 @@ turtlegui._relative_eval = function(elem, gres) {
         }
         window[key] = rel[key];
     }
-    result = eval(gres);
-    for (var key in switcharoo) {
-        window[key] = switcharoo[key];
+    try {
+        result = eval(gres);
+    } catch(e) {
+        try {
+            console.log("Error at:");
+            var getstack = function(elm) {
+                return elm.parent().length > 0 && !elm.parent().is('body') ? getstack(elm.parent()).concat([elm]) : [elm];
+            }
+            var stack = getstack(elem);
+            for (var i in stack) {
+                var elm = $(stack[i]);
+                var desc = elm.prop('nodeName') + (elm.attr('id')?'#'+elm.attr('id'):"") + "[" + elm.index() + "]";
+                console.log("  ".repeat(i) + desc);
+            }
+            console.log("Error evaluating " + gres + " on elem : " + e);
+        } catch (noconsole) {
+            throw e;
+        }
+    } finally {
+        for (var key in switcharoo) {
+            window[key] = switcharoo[key];
+        }
     }
     return result;
 }

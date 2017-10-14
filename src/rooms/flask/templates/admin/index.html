@@ -3,12 +3,8 @@
 <head>
     <link rel="stylesheet" type="text/css" href="{{ url_for('admin.static', filename = 'css/admin.css') }}"/>
 
-    <script
-      src="https://code.jquery.com/jquery-1.12.4.js"
-        integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
-          crossorigin="anonymous"></script>
-    <script src="https://rawgit.com/gomyar/turtlegui/v0.1.1/turtlegui.js" crossorigin="anonymous"></script>
-
+    <script src="{{ url_for('node.static', filename = 'js/jquery-1.9.1.js') }}"></script>
+    <script src="{{ url_for('node.static', filename = 'js/turtlegui.js') }}"></script>
     <script src="{{ url_for('admin.static', filename = 'js/rooms_admin.js') }}"></script>
 </head>
 

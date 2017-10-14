@@ -4,6 +4,16 @@ bugs:
    - joining a new game as bob when ray is already in the next room repros also
  
 
+mapeditor:
+ - Undo function (multi-mapfile-history (js local and on server))
+ - grid spacing
+ - background image(s)
+ - room/object resize
+ - room/object move (maybe shift for room)
+ - delete object / delete room
+ - moving rooms moves all objects in room
+ - new doors? connect actual rooms
+
 bulk write actor saver
  - listen for exceptions from worker gthreads (actor_loader)
 

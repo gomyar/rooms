@@ -125,21 +125,21 @@ rooms_mapeditor.create_tag = function() {
 };
 
 rooms_mapeditor.delete = function() {
-    if (getscope().editable_object && getscope().editable_object == getscope().selected_room.data)
+    if (rooms_mapeditor.selected_object && rooms_mapeditor.selected_object == rooms_mapeditor.selected_room.data)
     {
         if (confirm("Delete room?"))
         {
             // delete room
-            delete getscope().map_data.rooms[getscope().selected_room.room_id];
+            delete rooms_mapeditor.map_data.rooms[rooms_mapeditor.selected_room.room_id];
         }
     }
-    else if (getscope().editable_object && getscope().editable_object == getscope().selected_object)
+    else if (rooms_mapeditor.selected_object && rooms_mapeditor.selected_object == rooms_mapeditor.selected_object)
     {
         if (confirm("Delete object?"))
         {
             // delete object
-            var index = getscope().selected_room.data.room_objects.indexOf(getscope().editable_object);
-            var removed = getscope().selected_room.data.room_objects.splice(index, 1);
+            var index = rooms_mapeditor.selected_room.data.room_objects.indexOf(rooms_mapeditor.selected_object);
+            var removed = rooms_mapeditor.selected_room.data.room_objects.splice(index, 1);
             console.log("Removed: ");
             console.log(removed);
         }
@@ -152,7 +152,7 @@ rooms_mapeditor.highlight_object = function(obj) {
 };
 
 rooms_mapeditor.select_room = function(room_id) {
-    console.log("Selecting " + room_id);
+    console.log("Selecting room " + room_id);
     rooms_mapeditor.selected_room = {"room_id": room_id, "data": rooms_mapeditor.map_data.rooms[room_id]};
     rooms_mapeditor.selected_rooms_list = [];
 
@@ -161,6 +161,7 @@ rooms_mapeditor.select_room = function(room_id) {
 };
 
 rooms_mapeditor.select_object = function(obj) {
+    console.log("Selecting object " + obj.object_type);
     rooms_mapeditor.selected_object = obj;
     rooms_mapeditor.selected_objects_list=[];
 
