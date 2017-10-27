@@ -36,22 +36,22 @@ class PointmapGeogTest(unittest.TestCase):
         self.assertEquals([(110, 210), (120, 220), (120, 230), (120, 240)], path)
 
     def testRoomObjectsCreateBlankZones(self):
-        self.room.room_objects.append(RoomObject("table", Position(10, 10),
-            Position(30, 30), {}))
+        self.room.room_objects.append(RoomObject("table", Position(20, 20),
+            20, 20))
 
         self.assertEquals(16, len(self.geog._get_pointmap(self.room).available_points()))
 
     def testTwoRoomObjectsCreateBlankZones(self):
-        self.room.room_objects.append(RoomObject("table", Position(0, 10),
-            Position(20, 30), {}))
-        self.room.room_objects.append(RoomObject("table", Position(20, 10),
-            Position(40, 30), {}))
+        self.room.room_objects.append(RoomObject("table", Position(10, 20),
+            20, 20))
+        self.room.room_objects.append(RoomObject("table", Position(30, 20),
+            20, 20))
 
         self.assertEquals(10, len(self.geog._get_pointmap(self.room).available_points()))
 
     def testClosestPointToPosition(self):
-        self.room.room_objects.append(RoomObject("table", Position(10, 10),
-            Position(30, 30), {}))
+        self.room.room_objects.append(RoomObject("table", Position(20, 20),
+            20, 20))
 
         self.assertEquals((0, 20), self.geog.get_available_position_closest_to(
             self.room, (20, 20)))

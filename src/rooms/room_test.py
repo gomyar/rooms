@@ -55,7 +55,7 @@ class RoomTest(unittest.TestCase):
         self.assertEquals(50, self.room.height)
         self.assertEquals(Position(0, 0, 0), self.room.topleft)
         self.assertEquals(Position(50, 50, 0), self.room.bottomright)
-        self.assertEquals(Position(25, 25, 0), self.room.center)
+        self.assertEquals(Position(25, 25, 0), self.room.position)
 
     def testCreateActor(self):
         actor = self.room.create_actor("mock_actor", "rooms.room_test")

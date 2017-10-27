@@ -32,29 +32,37 @@ class Tag(object):
 
 
 class RoomObject(object):
-    def __init__(self, object_type, topleft, bottomright, info):
+    def __init__(self, object_type, position, width=0, height=0, depth=0):
         self.object_type = object_type
-        self.topleft = topleft
-        self.bottomright = bottomright
-        self.info = info
+        self.position = position
+        self.width = width
+        self.height = height
+        self.depth = depth
+        self.info = dict()
 
     def __repr__(self):
-        return "<RoomObject %s at %s/%s>" % (self.object_type, self.topleft,
-            self.bottomright)
+        return "<RoomObject %s at %s w:%s h:%s>" % (
+            self.object_type, self.position, self.width, self.height)
 
     @property
     def center(self):
-        return Position(
-            self.topleft.x + (self.bottomright.x - self.topleft.x) / 2,
-            self.topleft.y + (self.bottomright.y - self.topleft.y) / 2,
-            self.topleft.z + (self.bottomright.z - self.topleft.z) / 2,
-        )
+        return self.position
+
+    @property
+    def topleft(self):
+        return self.position.add_coords(-self.width / 2.0, -self.height / 2.0,
+                                        -self.depth / 2.0)
+
+    @property
+    def bottomright(self):
+        return self.position.add_coords(self.width / 2.0, self.height / 2.0,
+                                        self.depth / 2.0)
 
 
 class Door(object):
-    def __init__(self, exit_room_id, enter_position, exit_position):
+    def __init__(self, exit_room_id, position, exit_position):
         self.exit_room_id = exit_room_id
-        self.enter_position = enter_position
+        self.position = position
         self.exit_position = exit_position
 
     def __repr__(self):
@@ -68,8 +76,10 @@ class Room(object):
         self.node = node
         self.script = script or NullScript()
         self.initialized = False
-        self.topleft = Position(0, 0)
-        self.bottomright = Position(0, 0)
+        self.position = Position(0, 0)
+        self.width = 0
+        self.height = 0
+        self.depth = 0
         self.geography = None
         self.actors = dict()
         self.room_objects = []
@@ -118,24 +128,19 @@ class Room(object):
             actor.stop()
 
     @property
-    def width(self):
-        return self.bottomright.x - self.topleft.x
+    def topleft(self):
+        return self.position.add_coords(-self.width / 2.0, -self.height / 2.0,
+                                        -self.depth / 2.0)
 
     @property
-    def height(self):
-        return self.bottomright.y - self.topleft.y
-
-    @property
-    def center(self):
-        return Position(
-            self.topleft.x + (self.bottomright.x - self.topleft.x) / 2,
-            self.topleft.y + (self.bottomright.y - self.topleft.y) / 2,
-            self.topleft.z + (self.bottomright.z - self.topleft.z) / 2,
-        )
+    def bottomright(self):
+        return self.position.add_coords(self.width / 2.0, self.height / 2.0,
+                                        self.depth / 2.0)
 
     def coords(self, x1, y1, x2, y2):
-        self.topleft = Position(x1, y1)
-        self.bottomright = Position(x2, y2)
+        self.position = Position(x1 + (x2 - x1) / 2, y1 + (y2 - y1) / 2)
+        self.width = x2 - x1
+        self.height = y2 - y1
 
     def create_actor(self, actor_type, script_name=None, username=None,
             position=None, state=None, visible=True, parent_id=None):

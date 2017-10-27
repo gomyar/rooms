@@ -128,8 +128,10 @@ class MockRoom(Room):
         self.room_id = room_id
         self.game_id = game_id
         self.actors = dict()
-        self.topleft = Position(0, 0)
-        self.bottomright = Position(10, 10)
+        self.position = Position(5, 5)
+        self.width = 10
+        self.height = 10
+        self.depth = 0
         self.vision = Vision(self)
         self.node = MockNode()
 

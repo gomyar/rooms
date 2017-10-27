@@ -25,7 +25,6 @@ class SimpleRoomBuilder(object):
 
 
 class RoomBuilder(object):
-    POS_TOPLEFT = "relative_topleft"
     POS_ABS = "absolute"
     DEFAULT_GRIDSIZE = 25
     DEFAULT_LINKSIZE = 2
@@ -34,12 +33,10 @@ class RoomBuilder(object):
         self.map_source = map_source
         self.node = node
         self.origin = Position(0, 0)
-        self.positioning = RoomBuilder.POS_ABS
 
     def create(self, game_id, room_id):
         map_id, _ = room_id.split('.')
         map_json = self.load_map(map_id)
-        self.positioning = map_json.get("positioning", RoomBuilder.POS_ABS)
         if room_id not in map_json['rooms']:
             raise Exception("No room %s in map %s" % (room_id, map_id))
         return self._create_room(map_json['rooms'][room_id], game_id,
@@ -51,10 +48,10 @@ class RoomBuilder(object):
     def _create_room(self, room_json, game_id, room_id):
         room = Room(game_id, room_id, self.node)
         room.info = room_json.get('info', {})
-        room.topleft = self._create_pos(room_json['topleft'])
-        room.bottomright = self._create_pos(room_json['bottomright'])
-        if self.positioning == RoomBuilder.POS_TOPLEFT:
-            self.origin = self._create_pos(room_json['topleft'])
+        room.position = self._create_pos(room_json['position'])
+        room.width = room_json.get('width', 0)
+        room.height = room_json.get('height', 0)
+
         for map_object_json in room_json['room_objects']:
             room.room_objects.append(self._create_object(map_object_json))
         for door_json in room_json['doors']:
@@ -70,20 +67,21 @@ class RoomBuilder(object):
 
     def _create_door(self, door_json):
         return Door(door_json['exit_room_id'],
-            self._create_pos(door_json['enter_position']),
+            self._create_pos(door_json['position']),
             self._create_pos(door_json['exit_position']))
 
     def _create_object(self, map_object_json):
-        return RoomObject(map_object_json['object_type'],
-            self._create_pos(map_object_json['topleft']),
-            self._create_pos(map_object_json['bottomright']),
-            map_object_json.get('info', {}))
+        room_object = RoomObject(map_object_json['object_type'],
+            self._create_pos(map_object_json['position']),
+            map_object_json.get('width', 0),
+            map_object_json.get('height', 0),
+            map_object_json.get('depth', 0))
+        room_object.info = map_object_json.get('info', {})
+        return room_object
 
     def _create_tag(self, tag_json):
         return Tag(tag_json['tag_type'], self._create_pos(tag_json['position']),
             tag_json['data'])
 
     def _create_pos(self, pos_json):
-        return Position(pos_json['x'] + self.origin.x,
-            pos_json['y'] + self.origin.y,
-            pos_json.get('z', 0) + self.origin.z)
+        return Position(**pos_json)
