@@ -77,9 +77,11 @@ gui.canvas_mousemove = function(e)
         var moved_y = gui.move_start_y - (e.clientY - $(gui.canvas).offset().top);
         if (gui.dragging_editable && e.ctrlKey)
         {
-            rooms_mapeditor.set_position(rooms_mapeditor.editable_object.bottomright,
-                gui.draggable_start_bottomright_x - moved_x * gui.zoom,
-                gui.draggable_start_bottomright_y - moved_y * gui.zoom);
+            rooms_mapeditor.editable_object.width -= moved_x * gui.zoom;
+            rooms_mapeditor.editable_object.height -= moved_y * gui.zoom;
+
+            gui.move_start_x = (e.clientX - $(gui.canvas).offset().left);
+            gui.move_start_y = (e.clientY - $(gui.canvas).offset().top);
         }
         else if (gui.dragging_editable)
         {
