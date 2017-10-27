@@ -344,7 +344,7 @@ gui.draw = function()
 
         gui.ctx.strokeStyle = "rgb(55, 55, 255)";
         gui.ctx.beginPath();
-        gui.ctx.arc(gui.canvas_x(door.enter_position.x), gui.canvas_y(door.enter_position.y), 10, 0, Math.PI*2);
+        gui.ctx.arc(gui.canvas_x(door.position.x), gui.canvas_y(door.position.y), 10, 0, Math.PI*2);
         gui.ctx.closePath();
         gui.ctx.stroke();
     }

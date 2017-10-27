@@ -18,7 +18,7 @@ gui_actors.draw_player_actor = function(actor)
 {
     gui.ctx.beginPath();
     gui.ctx.strokeStyle = 'green';
-    gui.ctx.arc(0, 0, gui.zoom * 10, 0, 2 * Math.PI, false);
+    gui.ctx.arc(0, 0, 10 / gui.zoom, 0, 2 * Math.PI, false);
     gui.ctx.stroke();
 }
 
@@ -26,7 +26,7 @@ gui_actors.draw_npc_actor = function(actor)
 {
     gui.ctx.beginPath();
     gui.ctx.strokeStyle = 'white';
-    gui.ctx.arc(0, 0, gui.zoom * 10, 0, 2 * Math.PI, false);
+    gui.ctx.arc(0, 0, 10 / gui.zoom, 0, 2 * Math.PI, false);
     gui.ctx.stroke();
 }
 

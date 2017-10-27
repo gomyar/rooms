@@ -17,5 +17,5 @@ def kickoff(actor):
         for x, y in [(-10, -10), (10, -10), (10, 10), (-10, 10)]:
             actor.move_wait(actor.room.center.add_coords(x, y))
         door = random.choice(actor.room.doors)
-        actor.move_wait(door.enter_position)
+        actor.move_wait(door.position)
         actor.enter(door)

@@ -153,11 +153,11 @@ class GameFactory(object):
     # Door
     def _serialize_door(self, door):
         return dict(exit_room_id=door.exit_room_id,
-            enter_position=door.enter_position,
+            position=door.position,
             exit_position=door.exit_position)
 
     def _build_door(self, data):
-        return Door(data['exit_room_id'], data['enter_position'],
+        return Door(data['exit_room_id'], data['position'],
             data['exit_position'])
 
     # Actor
@@ -259,13 +259,16 @@ class GameFactory(object):
         return Map(data['map_id'], data['rooms'])
 
     def _serialize_maproom(self, maproom):
-        return dict(topleft=maproom.topleft, bottomright=maproom.bottomright,
+        return dict(postiion=maproom.position, width=maproom.width, height=maproom.height,
+            depth=maproom.position,
             doors=maproom.doors, tags=maprooms.tags, room_objects=maprooms.room_objects)
 
     def _build_maproom(self, data):
         maproom = MapRoom()
-        maproom.topleft = data['topleft']
-        maproom.bottomright = data['bottomright']
+        maproom.position = data['position']
+        maproom.width = data['width']
+        maproom.height = data['height']
+        maproom.depth = data['depth']
         maproom.room_objects = data['room_objects']
         maproom.tags = data['tags']
         return maproom

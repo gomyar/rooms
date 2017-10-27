@@ -66,7 +66,7 @@ class Door(object):
         self.exit_position = exit_position
 
     def __repr__(self):
-        return "<Door to %s at %s>" % (self.exit_room_id, self.enter_position)
+        return "<Door to %s at %s>" % (self.exit_room_id, self.position)
 
 
 class Room(object):
@@ -170,9 +170,9 @@ class Room(object):
 
     def _correct_position(self, position):
         x, y, z = position.x, position.y, position.z
-        x = min(self.bottomright.x, max(self.topleft.x, x))
-        y = min(self.bottomright.y, max(self.topleft.y, y))
-        z = min(self.bottomright.z, max(self.topleft.z, z))
+        x = min(self.width / 2, max(-self.width / 2, x))
+        y = min(self.height / 2, max(-self.height / 2, y))
+        z = min(self.depth / 2, max(-self.depth / 2, z))
         return Position(x, y, z)
 
     def player_actors(self):

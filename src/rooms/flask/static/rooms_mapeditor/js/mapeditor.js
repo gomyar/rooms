@@ -92,8 +92,9 @@ rooms_mapeditor.create_room = function() {
     else
         rooms_mapeditor.map_data.rooms[room_id] = {
             "info": {  },
-            "topleft": { "x": gui.viewport_x - 50 * gui.zoom, "y": gui.viewport_y - 50 * gui.zoom},
-            "bottomright": { "x": gui.viewport_x + 50 * gui.zoom, "y": gui.viewport_y + 50 * gui.zoom},
+            "position": { "x": gui.viewport_x * gui.zoom, "y": gui.viewport_y * gui.zoom},
+            "width": 0,
+            "height": 0,
             "room_objects": [],
             "tags": [],
             "doors": []
@@ -107,8 +108,9 @@ rooms_mapeditor.create_object = function() {
     var object_type = prompt("Enter new object type");
     rooms_mapeditor.selected_room.data.room_objects[rooms_mapeditor.selected_room.data.room_objects.length] = {
         "object_type": object_type,
-        "topleft": { "x": gui.viewport_x - rooms_mapeditor.selected_room.data.topleft.x - 20 * gui.zoom, "y": gui.viewport_y - rooms_mapeditor.selected_room.data.topleft.y - 20 * gui.zoom},
-        "bottomright": { "x": gui.viewport_x - rooms_mapeditor.selected_room.data.topleft.x + 20 * gui.zoom, "y": gui.viewport_y - rooms_mapeditor.selected_room.data.topleft.y + 20 * gui.zoom}
+        "position": { "x": gui.viewport_x - rooms_mapeditor.selected_room.data.position.x, "y": gui.viewport_y - rooms_mapeditor.selected_room.data.position.y },
+        "width": 20 * gui.zoom,
+        "height": 20 * gui.zoom
     };
 };
 
@@ -119,7 +121,7 @@ rooms_mapeditor.create_tag = function() {
     var tag_type = prompt("Enter new tag type");
     rooms_mapeditor.selected_room.data.tags[rooms_mapeditor.selected_room.data.tags.length] = {
         "tag_type": tag_type,
-        "position": { "x": gui.viewport_x - rooms_mapeditor.selected_room.data.topleft.x - 20 * gui.zoom, "y": gui.viewport_y - rooms_mapeditor.selected_room.data.topleft.y - 20 * gui.zoom},
+        "position": { "x": gui.viewport_x - rooms_mapeditor.selected_room.data.position.x, "y": gui.viewport_y - rooms_mapeditor.selected_room.data.position.y},
         "data": { }
     };
 };

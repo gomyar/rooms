@@ -54,10 +54,10 @@ gui.center_view = function(map_data)
     for (var room_id in map_data.rooms)
     {
         var room = map_data.rooms[room_id];
-        if (room.topleft.x < x1 || x1 == null) x1 = room.topleft.x;
-        if (room.topleft.y < y1 || y1 == null) y1 = room.topleft.y;
-        if (room.bottomright.x > x2 || x2 == null) x2 = room.bottomright.x;
-        if (room.bottomright.y > y2 || y2 == null) y2 = room.bottomright.y;
+        if (room.position.x - room.width / 2 < x1 || x1 == null) x1 = room.position.x - room.width / 2;
+        if (room.position.y - room.height / 2 < y1 || y1 == null) y1 = room.position.y - room.height / 2;
+        if (room.position.x + room.width / 2 > x2 || x2 == null) x2 = room.position.x + room.width / 2;
+        if (room.position.y + room.height / 2 > y2 || y2 == null) y2 = room.position.y + room.height / 2 ;
     }
     gui.viewport_x = (x1 + x2) / 2;
     gui.viewport_y = (y1 + y2) / 2;
@@ -83,18 +83,9 @@ gui.canvas_mousemove = function(e)
         }
         else if (gui.dragging_editable)
         {
-            if ('topleft' in rooms_mapeditor.editable_object) {
-                rooms_mapeditor.set_position(rooms_mapeditor.editable_object.topleft,
-                    gui.draggable_start_topleft_x - moved_x * gui.zoom,
-                    gui.draggable_start_topleft_y - moved_y * gui.zoom);
-                rooms_mapeditor.set_position(rooms_mapeditor.editable_object.bottomright,
-                    gui.draggable_start_bottomright_x - moved_x * gui.zoom,
-                    gui.draggable_start_bottomright_y - moved_y * gui.zoom);
-            } else if ('position' in rooms_mapeditor.editable_object) {
-                rooms_mapeditor.set_position(rooms_mapeditor.editable_object.position,
-                    gui.draggable_start_topleft_x - moved_x * gui.zoom,
-                    gui.draggable_start_topleft_y - moved_y * gui.zoom);
-            }
+            rooms_mapeditor.set_position(rooms_mapeditor.editable_object.position,
+                gui.draggable_start_topleft_x - moved_x * gui.zoom,
+                gui.draggable_start_topleft_y - moved_y * gui.zoom);
         }
         else
         {
@@ -130,15 +121,8 @@ gui.canvas_mousedown = function(e)
     gui.dragging_editable = gui.is_editable_drag_at(click_x, click_y);
     if (gui.dragging_editable)
     {
-        if ('position' in rooms_mapeditor.editable_object) {
-            gui.draggable_start_topleft_x = rooms_mapeditor.editable_object.position.x;
-            gui.draggable_start_topleft_y = rooms_mapeditor.editable_object.position.y;
-        } else {
-            gui.draggable_start_topleft_x = rooms_mapeditor.editable_object.topleft.x;
-            gui.draggable_start_topleft_y = rooms_mapeditor.editable_object.topleft.y;
-            gui.draggable_start_bottomright_x = rooms_mapeditor.editable_object.bottomright.x;
-            gui.draggable_start_bottomright_y = rooms_mapeditor.editable_object.bottomright.y;
-        }
+        gui.draggable_start_topleft_x = rooms_mapeditor.editable_object.position.x;
+        gui.draggable_start_topleft_y = rooms_mapeditor.editable_object.position.y;
     }
 
     if ($(".mapcontrol").size() > 0)
@@ -232,37 +216,23 @@ gui.canvas_mouseout = function(e)
 
 gui.room_at = function(room, x, y)
 {
-    return x >= room.topleft.x && y >= room.topleft.y && x <= room.bottomright.x && y <= room.bottomright.y;
+    return x >= (room.position.x - room.width / 2) && y >= (room.position.y - room.height / 2) && x <= (room.position.x + room.width / 2) && y <= (room.position.y + room.height / 2);
 }
 
 
 gui.object_at = function(object, x, y)
 {
-    if (rooms_mapeditor.map_data.positioning == "relative")
-    {
-        var room_x = rooms_mapeditor.selected_room.data.topleft.x;
-        var room_y = rooms_mapeditor.selected_room.data.topleft.y;
-        return x >= room_x + object.topleft.x && y >= room_y + object.topleft.y && x <= room_x + object.bottomright.x && y <= room_y + object.bottomright.y;
-    }
-    else
-    {
-        return x >= object.topleft.x && y >= object.topleft.y && x <= object.bottomright.x && y <= object.bottomright.y;
-    }
+    var room_x = rooms_mapeditor.selected_room.data.position.x;
+    var room_y = rooms_mapeditor.selected_room.data.position.y;
+    return x >= room_x + (object.position.x - object.width / 2) && y >= room_y + (object.position.y - object.height / 2) && x <= room_x + (object.position.x + object.width / 2) && y <= room_y + (object.position.y + object.height / 2);
 }
 
 
 gui.tag_at = function(object, x, y)
 {
-    if (rooms_mapeditor.map_data.positioning == "relative")
-    {
-        var room_x = rooms_mapeditor.selected_room.data.topleft.x;
-        var room_y = rooms_mapeditor.selected_room.data.topleft.y;
-        return x >= room_x + object.position.x - TAG_WIDTH / 2 && y >= room_y + object.position.y - TAG_HEIGHT / 2 && x <= room_x + object.position.x + TAG_HEIGHT / 2 && y <= room_y + object.position.y + TAG_HEIGHT / 2;
-    }
-    else
-    {
-        return x >= object.position.x - TAG_WIDTH / 2 && y >= object.position.y - TAG_HEIGHT / 2 && x <= object.position.x + TAG_HEIGHT / 2 && y <= object.position.y + TAG_HEIGHT / 2;
-    }
+    var room_x = rooms_mapeditor.selected_room.data.position.x;
+    var room_y = rooms_mapeditor.selected_room.data.position.y;
+    return x >= room_x + object.position.x - TAG_WIDTH / 2 && y >= room_y + object.position.y - TAG_HEIGHT / 2 && x <= room_x + object.position.x + TAG_HEIGHT / 2 && y <= room_y + object.position.y + TAG_HEIGHT / 2;
 }
 
 
@@ -425,10 +395,10 @@ gui.draw = function()
             gui.ctx.strokeStyle = "rgb(255, 255, 255)";
         if (room == rooms_mapeditor.selected_room.data)
             gui.ctx.strokeStyle = "rgb(55, 255, 55)";
-        var width = room.bottomright.x - room.topleft.x;
-        var height = room.bottomright.y - room.topleft.y;
-        var room_x = gui.canvas_x(room.topleft.x);
-        var room_y = gui.canvas_y(room.topleft.y);
+        var width = room.width;
+        var height = room.height;
+        var room_x = gui.canvas_x(room.position.x - width / 2);
+        var room_y = gui.canvas_y(room.position.y - height / 2);
         gui.ctx.strokeRect(room_x, room_y, width / gui.zoom, height / gui.zoom)
 
         // draw if currently editing room
@@ -448,30 +418,20 @@ gui.draw = function()
 
             gui.ctx.strokeStyle = "rgb(55, 55, 255)";
             gui.ctx.beginPath();
-            gui.ctx.arc(gui.canvas_x(door.enter_position.x), gui.canvas_y(door.enter_position.y), 10, 0, Math.PI*2);
+            gui.ctx.arc(gui.canvas_x(door.position.x + room.position.x), gui.canvas_y(door.position.y + room.position.y), 10, 0, Math.PI*2);
             gui.ctx.closePath();
             gui.ctx.stroke();
         }
 
         // Draw room objects
-        for (object_id in room.room_objects)
+        for (var object_id in room.room_objects)
         {
             var map_object = room.room_objects[object_id];
-            var width = map_object.bottomright.x - map_object.topleft.x;
-            var height = map_object.bottomright.y - map_object.topleft.y;
+            var width = map_object.width;
+            var height = map_object.height;
             var color = "rgb(150, 200, 50)";
-            if (map_data.positioning == "relative")
-            {
-                var object_x = gui.canvas_x(map_object.topleft.x + room.topleft.x);
-                var object_y = gui.canvas_y(map_object.topleft.y + room.topleft.y);
-                var bottomright_x = gui.canvas_x(map_object.bottomright.x + room.topleft.x);
-            }
-            else
-            {
-                var object_x = gui.canvas_x(map_object.topleft.x);
-                var object_y = gui.canvas_y(map_object.topleft.y);
-                var bottomright_x = gui.canvas_x(map_object.bottomright.x);
-            }
+            var object_x = gui.canvas_x(map_object.position.x - map_object.width / 2 + room.position.x);
+            var object_y = gui.canvas_y(map_object.position.y - map_object.height / 2 + room.position.y);
 
             if (gui.is_object_highlighted(map_object))
                 color = "rgb(200, 250, 150)";
@@ -495,7 +455,8 @@ gui.draw = function()
                 height / gui.zoom,
                 color
             );
-            gui.draw_text_centered((object_x + bottomright_x) / 2, object_y + 10, map_object.object_type, color);
+            var text_x = gui.canvas_x(map_object.position.x + room.position.x);
+            gui.draw_text_centered(text_x, object_y + 10, map_object.object_type, color);
 
             // draw if currently editing object
             if (map_object == rooms_mapeditor.editable_object) {
@@ -516,16 +477,8 @@ gui.draw = function()
             var width = TAG_WIDTH / gui.zoom;
             var height = TAG_HEIGHT / gui.zoom;
             var color = "rgb(150, 50, 200)";
-            if (map_data.positioning == "relative")
-            {
-                var tag_x = gui.canvas_x(map_tag.position.x + room.topleft.x);
-                var tag_y = gui.canvas_y(map_tag.position.y + room.topleft.y);
-            }
-            else
-            {
-                var tag_x = gui.canvas_x(map_tag.position.x);
-                var tag_y = gui.canvas_y(map_tag.position.y);
-            }
+            var tag_x = gui.canvas_x(map_tag.position.x - TAG_WIDTH / 2 + room.position.x);
+            var tag_y = gui.canvas_y(map_tag.position.y - TAG_HEIGHT / 2 + room.position.y);
 
             if (gui.is_object_highlighted(map_tag))
                 color = "rgb(200, 150, 250)";
@@ -533,21 +486,22 @@ gui.draw = function()
                 color = "rgb(255, 255, 255)";
             gui.ctx.globalAlpha = 0.1;
             gui.fill_rect(
-                tag_x - width / 2,
-                tag_y - height / 2,
+                tag_x,
+                tag_y,
                 width,
                 height,
                 color
             );
             gui.ctx.globalAlpha = 1.0;
             gui.draw_rect(
-                tag_x - width / 2,
-                tag_y - height / 2,
+                tag_x,
+                tag_y,
                 width,
                 height,
                 color
             );
-            gui.draw_text_centered(tag_x, tag_y + 10, map_tag.tag_type, color);
+
+            gui.draw_text_centered(tag_x + width / 2, tag_y + 10, map_tag.tag_type, color);
 
             // draw if currency editing
             if (map_tag == rooms_mapeditor.editable_object) {
@@ -557,16 +511,16 @@ gui.draw = function()
                     color = "rgb(255, 55, 55)";
                 gui.ctx.globalAlpha = 0.1;
                 gui.fill_rect(
-                    tag_x - width / 2,
-                    tag_y - height / 2,
+                    tag_x,
+                    tag_y,
                     width,
                     height,
                     color
                 );
                 gui.ctx.globalAlpha = 1.0;
                 gui.draw_rect(
-                    tag_x - width / 2,
-                    tag_y - height / 2,
+                    tag_x,
+                    tag_y,
                     width,
                     height,
                     color

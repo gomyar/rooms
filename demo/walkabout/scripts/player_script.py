@@ -30,6 +30,6 @@ def move_to(actor, x, y):
 def exit_through_door(actor, exit_room_id):
 #    actor.state.log.append("Moving to door %s" % (exit_room_id,))
     door = actor.room.get_door(exit_room_id=exit_room_id)
-    actor.move_wait(door.enter_position)
+    actor.move_wait(door.position)
 #    actor.state.log.append("Entering door %s" % (exit_room_id,))
     actor.enter(door)

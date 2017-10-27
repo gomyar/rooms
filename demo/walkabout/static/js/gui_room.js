@@ -6,10 +6,11 @@ gui_room.draw_room = function()
     if (!api_rooms.room) return;
 
     gui.ctx.strokeStyle = "rgb(0, 255, 255)";
-    var x = api_rooms.room.topleft.x;
-    var y = api_rooms.room.topleft.y;
-    var width = api_rooms.room.bottomright.x - x;
-    var height = api_rooms.room.bottomright.y - y;
+    var room = api_rooms.room;
+    var x = -room.width / 2;
+    var y = -room.height / 2;
+    var width = room.width;
+    var height = room.height;
     gui.ctx.strokeRect(gui.canvas_x(x), gui.canvas_y(y), width / gui.zoom, height / gui.zoom)
 
     // Draw room objects
@@ -17,7 +18,7 @@ gui_room.draw_room = function()
     {
         var room_object = api_rooms.room.room_objects[object_id];
         gui.ctx.save();
-        gui.ctx.translate(gui.canvas_x(room_object.topleft.x), gui.canvas_y(room_object.topleft.y));
+        gui.ctx.translate(gui.canvas_x(room_object.position.x), gui.canvas_y(room_object.position.y));
         gui_room.draw_room_object(room_object);
         gui.ctx.restore();
     }
@@ -27,7 +28,7 @@ gui_room.draw_room = function()
     {
         var door = api_rooms.room.doors[i];
         gui.ctx.save();
-        gui.ctx.translate(gui.canvas_x(door.enter_position.x), gui.canvas_y(door.enter_position.y));
+        gui.ctx.translate(gui.canvas_x(door.position.x), gui.canvas_y(door.position.y));
         gui_room.draw_door(door);
         gui.ctx.restore();
     }
@@ -44,11 +45,11 @@ gui_room.draw_door = function(door)
 
 gui_room.draw_rect = function(room_object)
 {
-    var x = room_object.topleft.x;
-    var y = room_object.topleft.y;
-    var width = room_object.bottomright.x - x;
-    var height = room_object.bottomright.y - y;
-    gui.ctx.strokeRect(0, 0, width / gui.zoom, height / gui.zoom)
+    var x = room_object.position.x - room_object.width / 2;
+    var y = room_object.position.y - room_object.height / 2;
+    var width = room_object.width;
+    var height = room_object.height;
+    gui.ctx.strokeRect(x / gui.zoom, y / gui.zoom, width / gui.zoom, height / gui.zoom)
 }
 
 gui_room.object_draw_funcs = {
@@ -68,8 +69,8 @@ gui_room.door_at = function(x, y)
     for (var i in api_rooms.room.doors)
     {
         var door = api_rooms.room.doors[i];
-        var door_x = door.enter_position.x;
-        var door_y = door.enter_position.y;
+        var door_x = door.position.x;
+        var door_y = door.position.y;
         if (door_x + 20 > x && door_x - 20 < x &&
             door_y + 20 > y && door_y - 20 < y)
             return door;
