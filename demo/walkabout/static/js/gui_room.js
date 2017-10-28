@@ -17,10 +17,7 @@ gui_room.draw_room = function()
     for (var object_id in api_rooms.room.room_objects)
     {
         var room_object = api_rooms.room.room_objects[object_id];
-        gui.ctx.save();
-        gui.ctx.translate(gui.canvas_x(room_object.position.x), gui.canvas_y(room_object.position.y));
         gui_room.draw_room_object(room_object);
-        gui.ctx.restore();
     }
 
     // Draw doors
@@ -45,11 +42,11 @@ gui_room.draw_door = function(door)
 
 gui_room.draw_rect = function(room_object)
 {
-    var x = room_object.position.x - room_object.width / 2;
-    var y = room_object.position.y - room_object.height / 2;
-    var width = room_object.width;
-    var height = room_object.height;
-    gui.ctx.strokeRect(x / gui.zoom, y / gui.zoom, width / gui.zoom, height / gui.zoom)
+    var x = gui.canvas_x(room_object.position.x - room_object.width / 2);
+    var y = gui.canvas_y(room_object.position.y - room_object.height / 2);
+    var width = room_object.width / gui.zoom;
+    var height = room_object.height / gui.zoom;
+    gui.ctx.strokeRect(x, y, width, height)
 }
 
 gui_room.object_draw_funcs = {

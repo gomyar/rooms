@@ -140,12 +140,18 @@ div#editable
     bottom : 10px;
     background-color : black;
     border : 1px solid white;
-    width : 200px;
+    width : 240px;
     color : white;
     padding : 3px;
 }
 
 div#editable div.position
 {
-    width : 195px;
+    width : 250px;
+}
+
+div#editable div.position label
+{
+    width : 50px;
+    display: inline-block;
 }

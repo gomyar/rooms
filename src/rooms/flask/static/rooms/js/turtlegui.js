@@ -181,13 +181,35 @@ turtlegui.reload = function(elem, rel_data) {
             turtlegui.reload($(this), rel_data);
         });
     }
+
+    if (elem.attr('data-gui-val') || elem.attr('data-gui-change')) {
+        // This overwrites any manually bound change events
+        $(elem).unbind('change');
+    }
+
     if (elem.attr('data-gui-val')) {
         var value = turtlegui._get_safe_value(elem, rel_data, 'data-gui-val');
-        $(elem).val(value);
+        if ($(elem).is(':checkbox')) {
+            $(elem).prop('checked', value);
+        } else {
+            $(elem).val(value);
+        }
+        $(elem).change(function () {
+            var gres = elem.attr('data-gui-val');
+            var datatype = eval('typeof ' + gres);
+            if (datatype == 'string' || datatype == 'number' || datatype == 'boolean') {
+                if ($(elem).is(':checkbox')) {
+                    eval(gres + " = " + $(elem).prop('checked'));
+                } else {
+                    eval(gres + " = " + $(elem).val());
+                }
+            }
+        });
     }
 
     if (elem.attr('data-gui-change')) {
-        var value = turtlegui._get_safe_value(elem, rel_data, 'data-gui-change');
-        $(elem).unbind('change').change(value);
+        $(elem).change(function (){
+            turtlegui._get_safe_value(elem, rel_data, 'data-gui-change');
+        });
     }
 }

@@ -5,14 +5,12 @@ bugs:
  
 
 mapeditor:
- - Undo function (multi-mapfile-history (js local and on server))
  - grid spacing
- - background image(s)
- - room/object resize
- - room/object move (maybe shift for room)
  - delete object / delete room
- - moving rooms moves all objects in room
+ - delete tag
  - new doors? connect actual rooms
+ - add/edit object info (background image / whatever)
+ - Undo function (multi-mapfile-history (js local and on server))
 
 bulk write actor saver
  - listen for exceptions from worker gthreads (actor_loader)

@@ -20,7 +20,8 @@
         <div id="delete" class="control" data-gui-click="rooms_mapeditor.delete()">Delete</div>
         <div id="grid">
             <label>Grid</label>
-            <input type="text" data-gui-click="rooms_mapeditor.toggle_grid()" value="Toggle"></input>
+            <input id="chk_grid_enabled" type="checkbox" data-gui-val="rooms_mapeditor.grid_enabled"></input>
+            <input id="txt_grid" type="text" data-gui-val="rooms_mapeditor.grid" data-gui-change="rooms_mapeditor.grid = $('#txt_grid').val()" value="1.0"></input>
         </div>
     </div>
 
@@ -38,42 +39,24 @@
                     <label name="y">Y:</label>
                     <input type="text" data-gui-val="rooms_mapeditor.editable_object.position.y"></input>
                 </div>
-            </div>
-        </div>
+                <div class="position">
+                    <label name="width">Width:</label>
+                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.width"></input>
+                </div>
+                <div class="position">
+                    <label name="height">Height:</label>
+                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.height"></input>
+                </div>
 
-        <div id="editable" data-gui-show="rooms_mapeditor.editable_object && 'topleft' in rooms_mapeditor.editable_object">
-            <div class="label">Position:</div>
-            <div class="label">Top Left</div>
-            <div class="topleft">
-                <div class="position">
-                    <label name="x">X:</label>
-                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.topleft.x"></input>
-                </div>
-                <div class="position">
-                    <label name="y">Y:</label>
-                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.topleft.y"></input>
-                </div>
-            </div>
-            <div class="label">Bottom Right</div>
-            <div class="bottomright">
-                <div class="position">
-                    <label name="x">X:</label>
-                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.bottomright.x"></input>
-                </div>
-                <div class="position">
-                    <label name="y">Y:</label>
-                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.bottomright.y"></input>
-                </div>
             </div>
             <div class="label">(ctrl-drag object to resize)</div>
-
         </div>
 
     </div>
 
     <div id="maplist">
         <div class="button" data-gui-click="rooms_mapeditor.create_map()">Create Map</div>
-        <select data-gui-list="rooms_mapeditor.all_maps" data-gui-item="map" data-gui-change="rooms_mapeditor.map_selected">
+        <select id="all_maps" data-gui-list="rooms_mapeditor.all_maps" data-gui-item="map" data-gui-change="rooms_mapeditor.selected_map = $('#all_maps').val()">
             <option data-gui-val="map" data-gui-text="map"></option>
         </select>
         <div class="button" data-gui-click="rooms_mapeditor.load_selected_map()">Load</div>

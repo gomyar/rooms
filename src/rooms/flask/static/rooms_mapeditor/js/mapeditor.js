@@ -7,6 +7,7 @@ rooms_mapeditor.all_maps = [];
 rooms_mapeditor.selected_map = null;
 rooms_mapeditor.map_data = {};
 rooms_mapeditor.grid = 1.0;
+rooms_mapeditor.grid_enabled = false;
 
 rooms_mapeditor.selected_room = {'data': null};
 rooms_mapeditor.selected_object = null;
@@ -148,6 +149,10 @@ rooms_mapeditor.delete = function() {
     }
 };
 
+rooms_mapeditor.toggle_grid = function(enable) {
+    
+}
+
 rooms_mapeditor.highlight_object = function(obj) {
     gui.highlighted_objects=[obj];
     gui.requestRedraw();
@@ -171,8 +176,13 @@ rooms_mapeditor.select_object = function(obj) {
 };
 
 rooms_mapeditor.set_position = function(pos, x, y) {
-    pos.x = x - x % rooms_mapeditor.grid;
-    pos.y = y - y % rooms_mapeditor.grid;
+    if (rooms_mapeditor.grid_enabled) {
+        pos.x = x - x % rooms_mapeditor.grid;
+        pos.y = y - y % rooms_mapeditor.grid;
+    } else {
+        pos.x = x - 1;
+        pos.y = y - 1;
+    }
 };
 
 $(document).ready(function() {
