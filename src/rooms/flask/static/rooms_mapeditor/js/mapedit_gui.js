@@ -65,6 +65,21 @@ gui.center_view = function(map_data)
     gui.requestRedraw();
 }
 
+gui.set_position = function(pos, x, y) {
+    var p = gui.grid_correct(x, y);
+    pos.x = p[0];
+    pos.y = p[1];
+};
+
+gui.grid_correct = function(x, y) {
+    if (rooms_mapeditor.grid_enabled) {
+        return [x - x % rooms_mapeditor.grid,
+                y - y % rooms_mapeditor.grid];
+    } else {
+        return [x - 1,
+                y - 1];
+    }
+}
 
 gui.canvas_mousemove = function(e)
 {
@@ -77,17 +92,28 @@ gui.canvas_mousemove = function(e)
         var moved_y = gui.move_start_y - (e.clientY - $(gui.canvas).offset().top);
         if (gui.dragging_editable && e.ctrlKey)
         {
-            rooms_mapeditor.editable_object.width -= moved_x * gui.zoom;
-            rooms_mapeditor.editable_object.height -= moved_y * gui.zoom;
+            var moved = gui.grid_correct(
+                gui.draggable_start_position_x - (moved_x) * gui.zoom,
+                gui.draggable_start_position_y - (moved_y) * gui.zoom);
+            var new_x = moved[0];
+            var new_y = moved[1];
 
-            gui.move_start_x = (e.clientX - $(gui.canvas).offset().left);
-            gui.move_start_y = (e.clientY - $(gui.canvas).offset().top);
+            var resized = gui.grid_correct(
+                gui.draggable_start_width - (moved_x * 2) * gui.zoom,
+                gui.draggable_start_height - (moved_y * 2) * gui.zoom);
+            var new_width = resized[0];
+            var new_height = resized[1];
+
+            rooms_mapeditor.editable_object.position.x = new_x;
+            rooms_mapeditor.editable_object.position.y = new_y;
+            rooms_mapeditor.editable_object.width = new_width;
+            rooms_mapeditor.editable_object.height = new_height;
         }
         else if (gui.dragging_editable)
         {
-            rooms_mapeditor.set_position(rooms_mapeditor.editable_object.position,
-                gui.draggable_start_topleft_x - moved_x * gui.zoom,
-                gui.draggable_start_topleft_y - moved_y * gui.zoom);
+            gui.set_position(rooms_mapeditor.editable_object.position,
+                gui.draggable_start_position_x - moved_x * gui.zoom,
+                gui.draggable_start_position_y - moved_y * gui.zoom);
         }
         else
         {
@@ -123,8 +149,10 @@ gui.canvas_mousedown = function(e)
     gui.dragging_editable = gui.is_editable_drag_at(click_x, click_y);
     if (gui.dragging_editable)
     {
-        gui.draggable_start_topleft_x = rooms_mapeditor.editable_object.position.x;
-        gui.draggable_start_topleft_y = rooms_mapeditor.editable_object.position.y;
+        gui.draggable_start_position_x = rooms_mapeditor.editable_object.position.x;
+        gui.draggable_start_position_y = rooms_mapeditor.editable_object.position.y;
+        gui.draggable_start_width = rooms_mapeditor.editable_object.width;
+        gui.draggable_start_height = rooms_mapeditor.editable_object.height;
     }
 
     if ($(".mapcontrol").size() > 0)

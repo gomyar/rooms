@@ -175,15 +175,6 @@ rooms_mapeditor.select_object = function(obj) {
     rooms_mapeditor.editable_object = obj;
 };
 
-rooms_mapeditor.set_position = function(pos, x, y) {
-    if (rooms_mapeditor.grid_enabled) {
-        pos.x = x - x % rooms_mapeditor.grid;
-        pos.y = y - y % rooms_mapeditor.grid;
-    } else {
-        pos.x = x - 1;
-        pos.y = y - 1;
-    }
-};
 
 $(document).ready(function() {
     console.log("Loading");
