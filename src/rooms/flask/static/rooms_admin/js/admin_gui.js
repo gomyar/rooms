@@ -52,10 +52,10 @@ gui.center_on_room = function() {
     var y2 = null;
 
     var room = api_rooms.room;
-    x1 = room.topleft.x;
-    y1 = room.topleft.y;
-    x2 = room.bottomright.x;
-    y2 = room.bottomright.y;
+    x1 = room.position.x - room.width / 2;
+    y1 = room.position.y - room.height / 2;
+    x2 = room.position.x + room.width / 2;
+    y2 = room.position.y + room.width / 2;
 
     gui.viewport_x = (x1 + x2) / 2;
     gui.viewport_y = (y1 + y2) / 2;
@@ -201,8 +201,8 @@ gui.should_draw_actor = function(actor)
 
 gui.at_position = function(actor, x, y)
 {
-    x1 = actor.x() - 12 * gui.zoom;
-    y1 = actor.y() - 12 * gui.zoom;
+    x1 = api_rooms.room.position.x + actor.x() - 12 * gui.zoom;
+    y1 = api_rooms.room.position.y + actor.y() - 12 * gui.zoom;
     x2 = x1 + 25 * gui.zoom;
     y2 = y1 + 25 * gui.zoom;
     return x > x1 && x < x2 && y > y1 && y < y2;
@@ -244,7 +244,6 @@ gui.clear_actor_list = function()
     admin.actor_list = [];
     turtlegui.reload();
 }
-
 
 // ----------------- ols gui.js
 
@@ -322,20 +321,23 @@ gui.draw = function()
     gui.ctx.clearRect(0, 0, gui.canvas.width, gui.canvas.height);
 
     // Draw other rooms in map
-    for (var room_id in api_rooms.room_map)
+    for (var room_id in admin.mapdata.rooms)
     {
-        var room = api_rooms.room_map[room_id];
+        var room = admin.mapdata.rooms[room_id];
         gui.ctx.strokeStyle = "rgb(80, 80, 80)";
-        var width = room.bottomright.x - room.topleft.x;
-        var height = room.bottomright.y - room.topleft.y;
-        gui.ctx.strokeRect(gui.canvas_x(room.topleft.x), gui.canvas_y(room.topleft.y), width / gui.zoom, height / gui.zoom)
+
+        var x1 = room.position.x - room.width / 2;
+        var y1 = room.position.y - room.height / 2;
+
+        gui.ctx.strokeRect(gui.canvas_x(x1), gui.canvas_y(y1), room.width / gui.zoom, room.height / gui.zoom)
     }
 
     // Draw current room
     gui.ctx.strokeStyle = "rgb(255, 255, 255)";
-    var width = api_rooms.room.bottomright.x - api_rooms.room.topleft.x;
-    var height = api_rooms.room.bottomright.y - api_rooms.room.topleft.y;
-    gui.ctx.strokeRect(gui.canvas_x(api_rooms.room.topleft.x), gui.canvas_y(api_rooms.room.topleft.y), width / gui.zoom, height / gui.zoom)
+    var x1 = api_rooms.room.position.x - api_rooms.room.width / 2;
+    var y1 = api_rooms.room.position.y - api_rooms.room.height / 2;
+
+    gui.ctx.strokeRect(gui.canvas_x(x1), gui.canvas_y(y1), api_rooms.room.width / gui.zoom, api_rooms.room.height / gui.zoom)
 
     // Draw doors
     for (var door_index in api_rooms.room.doors)
@@ -344,7 +346,7 @@ gui.draw = function()
 
         gui.ctx.strokeStyle = "rgb(55, 55, 255)";
         gui.ctx.beginPath();
-        gui.ctx.arc(gui.canvas_x(door.position.x), gui.canvas_y(door.position.y), 10, 0, Math.PI*2);
+        gui.ctx.arc(gui.canvas_x(api_rooms.room.position.x + door.position.x), gui.canvas_y(api_rooms.room.position.y + door.position.y), 10, 0, Math.PI*2);
         gui.ctx.closePath();
         gui.ctx.stroke();
     }
@@ -353,25 +355,26 @@ gui.draw = function()
     for (object_id in api_rooms.room.room_objects)
     {
         var map_object = api_rooms.room.room_objects[object_id];
-        var width = map_object.bottomright.x - map_object.topleft.x;
-        var height = map_object.bottomright.y - map_object.topleft.y;
+        var x1 = api_rooms.room.position.x + map_object.position.x - map_object.width / 2;
+        var y1 = api_rooms.room.position.y + map_object.position.y - map_object.height / 2;
+
         gui.ctx.globalAlpha = 0.1;
         gui.fill_rect(
-            gui.canvas_x(map_object.topleft.x),
-            gui.canvas_y(map_object.topleft.y),
-            width / gui.zoom,
-            height / gui.zoom,
+            gui.canvas_x(x1),
+            gui.canvas_y(y1),
+            map_object.width / gui.zoom,
+            map_object.height / gui.zoom,
             "rgb(150, 200, 50)"
         );
         gui.ctx.globalAlpha = 1.0;
         gui.draw_rect(
-            gui.canvas_x(map_object.topleft.x),
-            gui.canvas_y(map_object.topleft.y),
-            width / gui.zoom,
-            height / gui.zoom,
+            gui.canvas_x(x1),
+            gui.canvas_y(y1),
+            map_object.width / gui.zoom,
+            map_object.height / gui.zoom,
             "rgb(150, 200, 50)"
         );
-        gui.draw_text_centered((gui.canvas_x(map_object.topleft.x) + gui.canvas_x(map_object.bottomright.x)) / 2, gui.canvas_y(map_object.topleft.y) + 10, map_object.object_type, "rgb(150, 200, 50)");
+        gui.draw_text_centered(gui.canvas_x(api_rooms.room.position.x + map_object.position.x), gui.canvas_y(api_rooms.room.position.y + map_object.position.y), map_object.object_type, "rgb(150, 200, 50)");
     }
 
     // Draw actor paths
@@ -380,8 +383,8 @@ gui.draw = function()
         gui.ctx.strokeStyle = "rgb(0,0,150)";
         var actor = api_rooms.actors[actor_id];
         gui.ctx.beginPath();
-        gui.ctx.moveTo(gui.canvas_x(actor.vector.start_pos.x), gui.canvas_y(actor.vector.start_pos.y));
-        gui.ctx.lineTo(gui.canvas_x(actor.vector.end_pos.x), gui.canvas_y(actor.vector.end_pos.y));
+        gui.ctx.moveTo(gui.canvas_x(api_rooms.room.position.x + actor.vector.start_pos.x), gui.canvas_y(api_rooms.room.position.x + actor.vector.start_pos.y));
+        gui.ctx.lineTo(gui.canvas_x(api_rooms.room.position.x + actor.vector.end_pos.x), gui.canvas_y(api_rooms.room.position.x + actor.vector.end_pos.y));
         gui.ctx.stroke();
     }
  
@@ -392,8 +395,8 @@ gui.draw = function()
         if (!gui.should_draw_actor(actor))
             continue;
         gui.ctx.save();
-        var ax = gui.canvas_x(actor.x());
-        var ay = gui.canvas_y(actor.y());
+        var ax = gui.canvas_x(api_rooms.room.position.x + actor.x());
+        var ay = gui.canvas_y(api_rooms.room.position.y + actor.y());
         var docked_with_id = actor.docked_with;
         while (docked_with_id && api_rooms.actors[docked_with_id])
         {
@@ -407,9 +410,9 @@ gui.draw = function()
         //gui.draw_path(gui.ctx, actor.path);
     }
     if (gui.highlighted_actor)
-        gui.draw_rect(gui.canvas_x(gui.highlighted_actor.x()) - 15, gui.canvas_y(gui.highlighted_actor.y()) - 15, 32, 32, "rgb(150,150,250)");
+        gui.draw_rect(gui.canvas_x(api_rooms.room.position.x + gui.highlighted_actor.x()) - 15, gui.canvas_y(api_rooms.room.position.y + gui.highlighted_actor.y()) - 15, 32, 32, "rgb(150,150,250)");
     if (gui.get_selected_actor())
-        gui.draw_rect(gui.canvas_x(gui.get_selected_actor().x()) - 15, gui.canvas_y(gui.get_selected_actor().y()) - 15, 32, 32, "rgb(150,250,150)");
+        gui.draw_rect(gui.canvas_x(api_rooms.room.position.x + gui.get_selected_actor().x()) - 15, gui.canvas_y(api_rooms.room.position.y + gui.get_selected_actor().y()) - 15, 32, 32, "rgb(150,250,150)");
 
     gui.draw_text_centered(50, 20, "Viewport: ("+parseInt(gui.viewport_x)+", "+parseInt(gui.viewport_y)+")", "white");
     gui.draw_text_centered(50, 60, "Mouse: ("+parseInt(gui.mouse_client_x)+", "+parseInt(gui.mouse_client_y)+")", "white");
@@ -429,13 +432,13 @@ gui.draw_path = function(ctx, path)
     for (var i=0;i<path.length-1;i++)
     {
         ctx.beginPath();
-        ctx.arc(gui.canvas_x(path[i+1][0]), gui.canvas_y(path[i+1][1]),10,0,Math.PI*2);
+        ctx.arc(gui.canvas_x(api_rooms.room.position.x + path[i+1][0]), gui.canvas_y(api_rooms.room.position.y + path[i+1][1]),10,0,Math.PI*2);
         ctx.closePath();
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo(gui.canvas_x(path[i][0]), gui.canvas_y(path[i][1]));
-        ctx.lineTo(gui.canvas_x(path[i+1][0]), gui.canvas_y(path[i+1][1]));
+        ctx.moveTo(gui.canvas_x(api_rooms.room.position.x + path[i][0]), gui.canvas_y(api_rooms.room.position.y + path[i][1]));
+        ctx.lineTo(gui.canvas_x(api_rooms.room.position.x + path[i+1][0]), gui.canvas_y(api_rooms.room.position.y + path[i+1][1]));
         ctx.stroke();
     }
 
