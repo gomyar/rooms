@@ -2,8 +2,9 @@
 
 class MapRoom(object):
     def __init__(self):
-        self.topleft = Position()
-        self.bottomright = Position()
+        self.position = Position()
+        self.width = 0
+        self.height = 0
         self.doors = dict()
         self.room_objects = dict()
         self.tags = dict()

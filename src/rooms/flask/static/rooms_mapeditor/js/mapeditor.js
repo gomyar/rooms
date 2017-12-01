@@ -94,8 +94,8 @@ rooms_mapeditor.create_room = function() {
         rooms_mapeditor.map_data.rooms[room_id] = {
             "info": {  },
             "position": { "x": gui.viewport_x * gui.zoom, "y": gui.viewport_y * gui.zoom},
-            "width": 0,
-            "height": 0,
+            "width": 10 * gui.zoom,
+            "height": 10 * gui.zoom,
             "room_objects": [],
             "tags": [],
             "doors": []
@@ -142,9 +142,17 @@ rooms_mapeditor.delete = function() {
         {
             // delete object
             var index = rooms_mapeditor.selected_room.data.room_objects.indexOf(rooms_mapeditor.selected_object);
-            var removed = rooms_mapeditor.selected_room.data.room_objects.splice(index, 1);
-            console.log("Removed: ");
-            console.log(removed);
+            if (index != -1) {
+                var removed = rooms_mapeditor.selected_room.data.room_objects.splice(index, 1);
+                console.log("Removed object: ");
+                console.log(removed);
+            }
+            var index = rooms_mapeditor.selected_room.data.tags.indexOf(rooms_mapeditor.selected_object);
+            if (index != -1) {
+                var removed = rooms_mapeditor.selected_room.data.tags.splice(index, 1);
+                console.log("Removed tag: ");
+                console.log(removed);
+            }
         }
     }
 };

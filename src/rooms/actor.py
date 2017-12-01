@@ -241,7 +241,7 @@ class Actor(object):
     def enter(self, door):
         self.room.actor_enters(self, door)
 
-    def move_to_room(self, room_id, exit_position):
+    def move_to_room(self, room_id, exit_position=None):
         self.room.move_actor_room(self, room_id, exit_position)
 
     def dock_with(self, actor):

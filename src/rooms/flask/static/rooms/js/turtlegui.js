@@ -201,7 +201,7 @@ turtlegui.reload = function(elem, rel_data) {
                 if ($(elem).is(':checkbox')) {
                     eval(gres + " = " + $(elem).prop('checked'));
                 } else {
-                    eval(gres + " = " + $(elem).val());
+                    eval(gres + " = '" + $(elem).val() + "'");
                 }
             }
         });

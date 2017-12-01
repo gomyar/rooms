@@ -90,9 +90,10 @@ class Node(object):
                 self.container.load_actors_for_room(room)
             room.start()
 
-    def save_actor_to_other_room(self, exit_room_id, exit_position, actor):
+    def save_actor_to_other_room(self, exit_room_id, actor, exit_position=None):
         actor._game_id = actor.game_id
-        actor.position = exit_position
+        if exit_position:
+            actor.position = exit_position
         actor._room_id = exit_room_id
         actor.room = None
         self.container.save_actor(actor, limbo=True) # (, async=False) ?

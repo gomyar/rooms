@@ -212,13 +212,13 @@ class Room(object):
         # should move all docked actors as well, but may not be able
         # to load them all in the correct order at the other end
 
-    def move_actor_room(self, actor, room_id, exit_position):
+    def move_actor_room(self, actor, room_id, exit_position=None):
         self._remove_actor(actor)
         actor._move_undock()
         docked = self._remove_docked(actor)
         for child in docked:
-            self.node.save_actor_to_other_room(room_id, exit_position, child)
-        self.node.save_actor_to_other_room(room_id, exit_position, actor)
+            self.node.save_actor_to_other_room(room_id, actor, exit_position)
+        self.node.save_actor_to_other_room(room_id, actor, exit_position)
         if actor.actor_id in self.vision.actor_queues:
             for queue in self.vision.actor_queues[actor.actor_id]:
                 queue.put({"command": "move_room", "room_id": room_id})

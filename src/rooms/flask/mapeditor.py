@@ -51,8 +51,9 @@ def maps():
             "rooms": {map_id + ".room1":
                 {
                     "info": {},
-                    "topleft": {"x": -10, "y": -10},
-                    "bottomright": {"x": 10, "y": 10},
+                    "position": {"x": 0, "y": 0},
+                    "width": 10,
+                    "height": 10,
                     "tags": [],
                     "room_objects": [],
                     "doors": [],

@@ -66,9 +66,13 @@ class RoomBuilder(object):
         return Vision(room)
 
     def _create_door(self, door_json):
+        if 'exit_position' in door_json:
+            exit_position = self._create_pos(door_json['exit_position'])
+        else:
+            exit_position = None
         return Door(door_json['exit_room_id'],
             self._create_pos(door_json['position']),
-            self._create_pos(door_json['exit_position']))
+            exit_position)
 
     def _create_object(self, map_object_json):
         room_object = RoomObject(map_object_json['object_type'],
