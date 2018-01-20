@@ -468,6 +468,22 @@ gui.draw = function()
             gui.ctx.arc(gui.canvas_x(door.position.x + room.position.x), gui.canvas_y(door.position.y + room.position.y), 10, 0, Math.PI*2);
             gui.ctx.closePath();
             gui.ctx.stroke();
+
+            if (door.exit_room_id in rooms_mapeditor.map_data.rooms) {
+                var exit_room = rooms_mapeditor.map_data.rooms[door.exit_room_id];
+
+                gui.ctx.beginPath();
+                gui.ctx.arc(gui.canvas_x(door.exit_position.x + exit_room.position.x), gui.canvas_y(door.exit_position.y + exit_room.position.y), 5, 0, Math.PI*2);
+                gui.ctx.closePath();
+                gui.ctx.stroke();
+    
+                gui.ctx.beginPath();
+                gui.ctx.moveTo(gui.canvas_x(door.position.x + room.position.x), gui.canvas_y(door.position.y + room.position.y));
+                gui.ctx.lineTo(gui.canvas_x(door.exit_position.x + exit_room.position.x), gui.canvas_y(door.exit_position.y + exit_room.position.y));
+                gui.ctx.stroke();
+                
+            }
+
         }
 
         // Draw room objects
