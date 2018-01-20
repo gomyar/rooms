@@ -1,32 +1,45 @@
 {
-    "positioning": "absolute", 
     "map_id": "map1", 
+    "positioning": "absolute", 
     "rooms": {
         "map1.room1": {
             "tags": [
                 {
                     "position": {
-                        "y": 69, 
-                        "x": 90, 
+                        "y": 80, 
+                        "x": 70, 
                         "z": 0
                     }, 
+                    "tag_type": "actor.spawn", 
                     "data": {
                         "actor_type": "npc", 
                         "actor_script": "npc_script"
                     }, 
-                    "tag_type": "actor.spawn"
+                    "width": null, 
+                    "height": null
+                }, 
+                {
+                    "position": {
+                        "y": -60, 
+                        "x": 10, 
+                        "z": 0
+                    }, 
+                    "tag_type": "player.spawn", 
+                    "data": {}, 
+                    "width": null, 
+                    "height": null
                 }
             ], 
             "room_objects": [
                 {
+                    "height": 120, 
                     "position": {
-                        "y": -36, 
-                        "x": -74, 
+                        "y": -30, 
+                        "x": -60, 
                         "z": 0
                     }, 
                     "object_type": "rect", 
-                    "width": 53.394750063999936, 
-                    "height": 130.2934124584
+                    "width": 60
                 }
             ], 
             "height": 250, 
@@ -47,16 +60,16 @@
                 }
             ], 
             "position": {
-                "y": 213, 
-                "x": 298, 
+                "y": 120, 
+                "x": 120, 
                 "z": 0
             }
         }, 
         "map1.room2": {
             "tags": [], 
             "room_objects": [], 
-            "height": 291.93012133268155, 
-            "width": 293.04420941811424, 
+            "height": 250, 
+            "width": 250, 
             "doors": [
                 {
                     "position": {
@@ -86,8 +99,8 @@
                 }
             ], 
             "position": {
-                "y": 145, 
-                "x": 787, 
+                "y": 120, 
+                "x": 370, 
                 "z": 0
             }
         }, 
@@ -100,8 +113,8 @@
             "tags": [
                 {
                     "position": {
-                        "y": 10, 
-                        "x": 16, 
+                        "y": 70, 
+                        "x": 70, 
                         "z": 0
                     }, 
                     "data": {
@@ -130,8 +143,8 @@
                 }
             ], 
             "position": {
-                "y": 526, 
-                "x": 514, 
+                "y": 370, 
+                "x": 370, 
                 "z": 0
             }
         }

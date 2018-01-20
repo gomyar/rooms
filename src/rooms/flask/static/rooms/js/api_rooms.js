@@ -174,6 +174,7 @@ api_rooms.request_connection = function()
                     }
                 } else {
                     api_rooms.conn_retries = 0;
+                    api_rooms.connecting = false;
                     api_rooms.websocket_url = data.connect;
                     api_rooms.call_url = data.call;
                     api_rooms.connect_node();

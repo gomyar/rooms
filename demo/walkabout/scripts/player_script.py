@@ -18,6 +18,9 @@ def created(player_actor):
         "salt": 15,
     }
     player_actor.state.log = SyncList()
+    spawn_locations = player_actor.room.find_tags("player.spawn")
+    if spawn_locations:
+        player_actor.position = spawn_locations[0].position
 
 
 def move_to(actor, x, y):

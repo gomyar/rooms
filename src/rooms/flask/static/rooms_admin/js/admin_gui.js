@@ -383,8 +383,8 @@ gui.draw = function()
         gui.ctx.strokeStyle = "rgb(0,0,150)";
         var actor = api_rooms.actors[actor_id];
         gui.ctx.beginPath();
-        gui.ctx.moveTo(gui.canvas_x(api_rooms.room.position.x + actor.vector.start_pos.x), gui.canvas_y(api_rooms.room.position.x + actor.vector.start_pos.y));
-        gui.ctx.lineTo(gui.canvas_x(api_rooms.room.position.x + actor.vector.end_pos.x), gui.canvas_y(api_rooms.room.position.x + actor.vector.end_pos.y));
+        gui.ctx.moveTo(gui.canvas_x(api_rooms.room.position.x + actor.vector.start_pos.x), gui.canvas_y(api_rooms.room.position.y + actor.vector.start_pos.y));
+        gui.ctx.lineTo(gui.canvas_x(api_rooms.room.position.x + actor.vector.end_pos.x), gui.canvas_y(api_rooms.room.position.y + actor.vector.end_pos.y));
         gui.ctx.stroke();
     }
  
