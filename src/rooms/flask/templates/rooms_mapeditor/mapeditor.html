@@ -95,7 +95,7 @@
                 <label name="width">Object Type:</label>
                 <input type="text" data-gui-val="rooms_mapeditor.editable_object.object_type"></input>
             </div>
-            <textarea name="objdata" data-gui-val="rooms_mapeditor.editable_object.data" data-gui-parse-func="JSON.parse" data-gui-format-func="JSON.stringify"></textarea>
+            <textarea name="objdata" data-gui-val="rooms_mapeditor.editable_object.data" data-gui-parse-func="JSON.parse" data-gui-format-func="rooms_mapeditor.format_json"></textarea>
         </div>
         <div class="editable" id="editable_object" data-gui-show="rooms_mapeditor.editable_object && rooms_mapeditor.selected_room && rooms_mapeditor.selected_room.data.doors.indexOf(rooms_mapeditor.editable_object) != -1">
             <div class="label">Door Data:</div>
@@ -118,7 +118,7 @@
                 <label name="width">Tag ID:</label>
                 <input type="text" data-gui-val="rooms_mapeditor.editable_object.tag_type"></input>
             </div>
-            <textarea name="objdata" data-gui-val="rooms_mapeditor.editable_object.data" data-gui-parse-func="JSON.parse" data-gui-format-func="JSON.stringify"></textarea>
+            <textarea name="objdata" data-gui-val="rooms_mapeditor.editable_object.data" data-gui-parse-func="JSON.parse" data-gui-format-func="rooms_mapeditor.format_json"></textarea>
         </div>
 
 

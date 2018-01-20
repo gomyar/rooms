@@ -222,6 +222,10 @@ rooms_mapeditor.set_editable_data = function(data_text) {
     rooms_mapeditor.editable_object.data = JSON.parse(data_text.replace(/\n/g, " "));
 }
 
+rooms_mapeditor.format_json = function(data) {
+    return JSON.stringify(data, null, 4);
+}
+
 
 $(document).ready(function() {
     console.log("Loading");

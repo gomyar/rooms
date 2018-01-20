@@ -210,6 +210,7 @@ turtlegui.reload = function(elem, rel_data) {
             } else if (elem.attr('data-gui-parse-func')) {
                 var elem_val = $(elem).val();
                 if (elem_val != null) {
+                    // Complex objects don't parse so well with eval, so putting the result into the data-rel structure
                     var __formatted = turtlegui._relative_eval(elem, elem.attr('data-gui-parse-func'))(elem_val);
                     var rel = elem.data('data-rel');
                     rel['__formatted'] = __formatted;
