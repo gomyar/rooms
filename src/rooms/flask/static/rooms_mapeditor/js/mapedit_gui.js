@@ -190,8 +190,6 @@ gui.canvas_mousewheel = function(e, delta, deltaX, deltaY)
 
 gui.canvas_clicked = function(e)
 {
-    $(".selected_actor_list").remove();
-
     if (!gui.swallow_click)
     {
         var click_x = gui.real_x((e.clientX - $(gui.canvas).offset().left));
@@ -258,6 +256,14 @@ gui.object_at = function(object, x, y)
 }
 
 
+gui.door_at = function(door, x, y)
+{
+    var room_x = rooms_mapeditor.selected_room.data.position.x;
+    var room_y = rooms_mapeditor.selected_room.data.position.y;
+    return x >= room_x + (door.position.x - TAG_WIDTH / 2) && y >= room_y + (door.position.y - TAG_HEIGHT / 2) && x <= room_x + (door.position.x + TAG_WIDTH / 2) && y <= room_y + (door.position.y + TAG_HEIGHT / 2);
+}
+
+
 gui.tag_at = function(object, x, y)
 {
     var room_x = rooms_mapeditor.selected_room.data.position.x;
@@ -305,7 +311,13 @@ gui.find_objects_at = function(x, y)
             if (gui.tag_at(tag, x, y))
                 objects[objects.length] = tag;
         }
-
+        var room_doors = rooms_mapeditor.selected_room.data.doors;
+        for (var door_id in room_doors)
+        {
+            var door = room_doors[door_id];
+            if (gui.door_at(door, x, y))
+                objects[objects.length] = door;
+        }
     }
     return objects;
 }
@@ -446,7 +458,12 @@ gui.draw = function()
         {
             var door = room.doors[door_index];
 
-            gui.ctx.strokeStyle = "rgb(55, 55, 255)";
+            var color = "rgb(55, 55, 255)";
+            if (gui.is_object_highlighted(door))
+                color = "rgb(200, 250, 150)";
+            if (door == rooms_mapeditor.selected_object)
+                color = "rgb(255, 255, 255)";
+            gui.ctx.strokeStyle = color;
             gui.ctx.beginPath();
             gui.ctx.arc(gui.canvas_x(door.position.x + room.position.x), gui.canvas_y(door.position.y + room.position.y), 10, 0, Math.PI*2);
             gui.ctx.closePath();
