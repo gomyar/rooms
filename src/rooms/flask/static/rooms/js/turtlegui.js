@@ -12,7 +12,7 @@ var turtlegui = {};
 turtlegui.root_element = $(document);
 
 
-turtlegui._get_safe_value = function(elem, rel_data, datasrc) {
+turtlegui._get_safe_value = function(elem, datasrc) {
     var gres = elem.attr(datasrc);
     if (!gres) {
         throw "No " + datasrc + " field on element " + elem.attr('id');
@@ -22,7 +22,11 @@ turtlegui._get_safe_value = function(elem, rel_data, datasrc) {
 
 
 turtlegui._relative_eval = function(elem, gres) {
+    try {
     var rel = elem.data('data-rel');
+    }catch(e) {
+        console.log("error ");
+    }
     var switcharoo = {};
     for (var key in rel) {
         if (key in window) {
@@ -78,19 +82,19 @@ turtlegui.reload = function(elem, rel_data) {
         elem.data('data-rel', rel_data);
     }
     if (elem.attr('data-gui-text')) {
-        value = turtlegui._get_safe_value(elem, rel_data, 'data-gui-text');
+        value = turtlegui._get_safe_value(elem, 'data-gui-text');
         elem.text(value);
     }
     if (elem.attr('data-gui-class')) {
-        var value = turtlegui._get_safe_value(elem, rel_data, 'data-gui-class');
+        var value = turtlegui._get_safe_value(elem, 'data-gui-class');
         elem.addClass(value);
     }
     if (elem.attr('data-gui-id')) {
-        var value = turtlegui._get_safe_value(elem, rel_data, 'data-gui-id');
+        var value = turtlegui._get_safe_value(elem, 'data-gui-id');
         $(elem).attr('id', value);
     }
     if (elem.attr('data-gui-show')) {
-        var value = turtlegui._get_safe_value(elem, rel_data, 'data-gui-show');
+        var value = turtlegui._get_safe_value(elem, 'data-gui-show');
         if (value) {
             elem.show();
         } else {
@@ -103,11 +107,11 @@ turtlegui.reload = function(elem, rel_data) {
     }
     if (elem.attr('data-gui-click')) {
         elem.unbind('click').click(function() {
-            return turtlegui._get_safe_value(elem, rel_data, 'data-gui-click');
+            return turtlegui._get_safe_value(elem, 'data-gui-click');
         });
     }
     if (elem.attr('data-gui-list')) {
-        var list = turtlegui._get_safe_value(elem, rel_data, 'data-gui-list');
+        var list = turtlegui._get_safe_value(elem, 'data-gui-list');
         var rel_item = elem.attr('data-gui-item');
         var rel_key = elem.attr('data-gui-key');
         var orig_elems = elem.children();
@@ -134,7 +138,7 @@ turtlegui.reload = function(elem, rel_data) {
         elem.prepend(first_elem);
     }
     else if (elem.attr('data-gui-tree')) {
-        var tree = turtlegui._get_safe_value(elem, rel_data, 'data-gui-tree');
+        var tree = turtlegui._get_safe_value(elem, 'data-gui-tree');
         var rel_item = elem.attr('data-gui-nodeitem');
 
         var orig_elems = elem.children();
@@ -154,7 +158,7 @@ turtlegui.reload = function(elem, rel_data) {
         elem.prepend(first_elem);
     }
     else if (elem.attr('data-gui-node')) {
-        var node = turtlegui._get_safe_value(elem, rel_data, 'data-gui-node');
+        var node = turtlegui._get_safe_value(elem, 'data-gui-node');
 
         var orig_elems = elem.children();
         var first_elem = rel_data['_last_tree_elem'];
@@ -188,28 +192,39 @@ turtlegui.reload = function(elem, rel_data) {
     }
 
     if (elem.attr('data-gui-val')) {
-        var value = turtlegui._get_safe_value(elem, rel_data, 'data-gui-val');
+        var value = turtlegui._get_safe_value(elem, 'data-gui-val');
         if ($(elem).is(':checkbox')) {
             $(elem).prop('checked', value);
         } else {
+            if (elem.attr('data-gui-format-func')) {
+                if (value != null) {
+                    value = turtlegui._relative_eval(elem, elem.attr('data-gui-format-func'))(value);
+                }
+            }
             $(elem).val(value);
         }
         $(elem).change(function () {
             var gres = elem.attr('data-gui-val');
-            var datatype = eval('typeof ' + gres);
-            if (datatype == 'string' || datatype == 'number' || datatype == 'boolean') {
-                if ($(elem).is(':checkbox')) {
-                    eval(gres + " = " + $(elem).prop('checked'));
+            if ($(elem).is(':checkbox')) {
+                turtlegui._relative_eval(elem, gres + " = " + $(elem).prop('checked'));
+            } else if (elem.attr('data-gui-parse-func')) {
+                var elem_val = $(elem).val();
+                if (elem_val != null) {
+                    var __formatted = turtlegui._relative_eval(elem, elem.attr('data-gui-parse-func'))(elem_val);
+                    var rel = elem.data('data-rel');
+                    rel['__formatted'] = __formatted;
+                    turtlegui._relative_eval(elem, gres + " = __formatted");
                 } else {
-                    eval(gres + " = '" + $(elem).val() + "'");
+                    turtlegui._relative_eval(elem, gres + " = null");
                 }
+            } else {
+                turtlegui._relative_eval(elem, gres + " = '" + $(elem).val() + "'");
             }
         });
     }
-
     if (elem.attr('data-gui-change')) {
         $(elem).change(function (){
-            turtlegui._get_safe_value(elem, rel_data, 'data-gui-change');
+            turtlegui._get_safe_value(elem, 'data-gui-change');
         });
     }
 }

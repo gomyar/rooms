@@ -210,6 +210,18 @@ rooms_mapeditor.select_object = function(obj) {
     rooms_mapeditor.editable_object = obj;
 };
 
+rooms_mapeditor.get_editable_data = function() {
+    var data_str = JSON.stringify(rooms_mapeditor.editable_object.data, null, 4);
+    if (data_str)
+        return data_str;
+    else
+        return "";
+}
+
+rooms_mapeditor.set_editable_data = function(data_text) {
+    rooms_mapeditor.editable_object.data = JSON.parse(data_text.replace(/\n/g, " "));
+}
+
 
 $(document).ready(function() {
     console.log("Loading");
