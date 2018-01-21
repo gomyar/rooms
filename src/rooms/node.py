@@ -120,11 +120,12 @@ class Node(object):
                 elif message.get("command") == 'move_room':
                     log.debug("Moving room for %s to %s", username,
                         message['room_id'])
+                    room.vision.disconnect_vision_queue(actor_id, queue)
                     if (game_id, message['room_id']) in self.rooms:
                         log.debug("Room already managed: %s",
                             message['room_id'])
-                        room = self.rooms[game_id, message['room_id']]
                         ws.send(json.dumps(jsonview(message)))
+                        room = self.rooms[game_id, message['room_id']]
                         queue = room.vision.connect_vision_queue(
                             actor_id)
                     else:

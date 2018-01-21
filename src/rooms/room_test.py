@@ -91,7 +91,7 @@ class RoomTest(unittest.TestCase):
         geography.setup(self.room)
 
         self.assertEquals(
-            [Position(10, 20), Position(30, 40)],
+            [Position(10, 20), Position(25, 25)],
             self.room.find_path(Position(10, 20), Position(30, 40)))
 
     def testActorEnterDoor(self):
@@ -147,16 +147,20 @@ class RoomTest(unittest.TestCase):
     def testActorsAddedToRoomOutsideBoundariesArePositionedInside(self):
         newactor1 = MockActor("new1")
         self.room.put_actor(newactor1, Position(-5, -5))
-        self.assertEquals(Position(0, 0), newactor1.position)
+        self.assertEquals(Position(-5, -5), newactor1.position)
 
         newactor2 = MockActor("new1")
         self.room.put_actor(newactor2, Position(55, 55))
-        self.assertEquals(Position(50, 50), newactor2.position)
+        self.assertEquals(Position(25, 25), newactor2.position)
 
     def testFindPathCorrectPosition(self):
         path = self.room.find_path(Position(-1, -2), Position(3, 4))
         self.assertEquals([
-            Position(0, 0), Position(3, 4),
+            Position(-1, -2), Position(3, 4),
+        ], path)
+        path = self.room.find_path(Position(-60, -80), Position(3, 4))
+        self.assertEquals([
+            Position(-25, -25), Position(3, 4),
         ], path)
 
     def testSendMessage(self):
