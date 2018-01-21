@@ -56,12 +56,13 @@
 
 
     <div id="selected">
-        <div class="editable" id="selectedroom">
+        <div class="editable" id="selectedroom" data-gui-show="rooms_mapeditor.selected_room">
             <div class="label">Room Details:</div>
             <div class="field">
                 <div class="name">room_id</div>
                 <input id="room_id" class="value" data-gui-val="rooms_mapeditor.selected_room.room_id"></input>
             </div>
+            <textarea name="objdata" data-gui-val="rooms_mapeditor.selected_room.data.info" data-gui-parse-func="JSON.parse" data-gui-format-func="rooms_mapeditor.format_json"></textarea>
         </div>
 
 
