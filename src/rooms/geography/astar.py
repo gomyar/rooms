@@ -128,8 +128,12 @@ class PointMap(object):
 
     def make_impassable(self, from_key, to_key=None):
         to_key = to_key or from_key
-        for x in range(int(from_key[0]), int(to_key[0]) + self.point_spacing, self.point_spacing):
-            for y in range(int(from_key[1]), int(to_key[1]) + self.point_spacing, self.point_spacing):
+        x1 = int(from_key[0] / self.point_spacing) * self.point_spacing
+        y1 = int(from_key[1] / self.point_spacing) * self.point_spacing
+        x2 = int(to_key[0] / self.point_spacing) * self.point_spacing + self.point_spacing
+        y2 = int(to_key[1] / self.point_spacing) * self.point_spacing + self.point_spacing
+        for x in range(x1, x2, self.point_spacing):
+            for y in range(y1, y2, self.point_spacing):
                 if (x, y) in self._points:
                     self._points[x, y].passable = False
                     self._points[x, y].unhook_connected(self.point_spacing)
