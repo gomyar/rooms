@@ -8,3 +8,6 @@ class BasicGeography(object):
 
     def find_path(self, room, from_pos, to_pos):
         return [from_pos, to_pos]
+
+    def get_available_position_closest_to(self, room, position):
+        return position

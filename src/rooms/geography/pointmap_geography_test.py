@@ -15,31 +15,40 @@ class PointmapGeogTest(unittest.TestCase):
         self.room.coords(0, 0, 50, 50)
 
     def testGetPath(self):
-        path = self.geog.find_path(self.room, (10, 10), (20, 20))
-        self.assertEquals(25, len(self.geog._pointmaps[self.room]._points))
-        self.assertEquals([(10, 10), (20, 20)], path)
-
-        path = self.geog.find_path(self.room, (10, 10), (20, 40))
-        self.assertEquals([(10, 10), (20, 20), (20, 30), (20, 40)], path)
-
-        path = self.geog.find_path(self.room, (15, 15), (25, 45))
-        self.assertEquals([(10, 10), (20, 20), (20, 30), (20, 40)], path)
-
-    def testCreatePointMapRelativeToRoomCoords(self):
+        self.geog = PointmapGeography(point_spacing=10)
         self.room = Room("game1", "room1", MockNode())
-        self.room.coords(100, 200, 150, 250)
+        self.room.coords(0, 0, 100, 100)
 
-        path = self.geog.find_path(self.room, (10, 10), (20, 40))
-        self.assertEquals([], path)
+        path = self.geog.find_path(self.room, Position(10, 10), Position(20, 20))
+        self.assertEquals(100, len(self.geog._pointmaps[self.room]._points))
+        self.assertEquals([Position(10, 10), Position(20, 20)], path)
 
-        path = self.geog.find_path(self.room, (110, 210), (120, 240))
-        self.assertEquals([(110, 210), (120, 220), (120, 230), (120, 240)], path)
+        path = self.geog.find_path(self.room, Position(10, 10), Position(20, 40))
+        self.assertEquals([Position(10, 10), Position(20, 20), Position(20, 30), Position(20, 40)], path)
+
+        path = self.geog.find_path(self.room, Position(15, 15), Position(25, 45))
+        self.assertEquals([Position(10, 10), Position(20, 20), Position(20, 30), Position(20, 40)], path)
+
+    def testGetPath2(self):
+        self.geog = PointmapGeography(point_spacing=10)
+        self.room = Room("game1", "room1", MockNode())
+        self.room.coords(0, 0, 100, 100)
+
+        path = self.geog.find_path(self.room, Position(11, 11), Position(22, 22))
+        self.assertEquals(100, len(self.geog._pointmaps[self.room]._points))
+        self.assertEquals([Position(10, 10), Position(20, 20)], path)
+
+        path = self.geog.find_path(self.room, Position(10, 10), Position(20, 40))
+        self.assertEquals([Position(10, 10), Position(20, 20), Position(20, 30), Position(20, 40)], path)
+
+        path = self.geog.find_path(self.room, Position(15, 15), Position(25, 45))
+        self.assertEquals([Position(10, 10), Position(20, 20), Position(20, 30), Position(20, 40)], path)
 
     def testRoomObjectsCreateBlankZones(self):
         self.room.room_objects.append(RoomObject("table", Position(20, 20),
             20, 20))
 
-        self.assertEquals(16, len(self.geog._get_pointmap(self.room).available_points()))
+        self.assertEquals(21, len(self.geog._get_pointmap(self.room).available_points()))
 
     def testTwoRoomObjectsCreateBlankZones(self):
         self.room.room_objects.append(RoomObject("table", Position(10, 20),
@@ -47,7 +56,7 @@ class PointmapGeogTest(unittest.TestCase):
         self.room.room_objects.append(RoomObject("table", Position(30, 20),
             20, 20))
 
-        self.assertEquals(10, len(self.geog._get_pointmap(self.room).available_points()))
+        self.assertEquals(19, len(self.geog._get_pointmap(self.room).available_points()))
 
     def testClosestPointToPosition(self):
         self.room.room_objects.append(RoomObject("table", Position(20, 20),

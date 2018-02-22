@@ -1,6 +1,7 @@
 
 from astar import PointMap
 from astar import AStar
+from rooms.position import Position
 
 
 class PointmapGeography(object):
@@ -10,12 +11,16 @@ class PointmapGeography(object):
 
     def _get_pointmap(self, room):
         if room not in self._pointmaps:
+            pm_width = int(room.width / self.point_spacing) * self.point_spacing
+            pm_height = int(room.height / self.point_spacing) * self.point_spacing
+            pm_width_2 = int((room.width / 2) / self.point_spacing) * self.point_spacing
+            pm_height_2 = int((room.height / 2) / self.point_spacing) * self.point_spacing
             pointmap = PointMap()
             pointmap.init_square_points(
-                int(room.topleft.x),
-                int(room.topleft.y),
-                int(room.width / self.point_spacing) * self.point_spacing,
-                int(room.height / self.point_spacing) * self.point_spacing,
+                -pm_width_2,
+                -pm_height_2,
+                pm_width,
+                pm_height,
                 self.point_spacing)
             for room_object in room.room_objects:
                 pointmap.make_impassable(room_object.topleft.coords(),
@@ -30,12 +35,16 @@ class PointmapGeography(object):
 
     def find_path(self, room, start, end):
         pointmap = self._get_pointmap(room)
-        start = ((start[0] / self.point_spacing) * self.point_spacing,
-            (start[1] / self.point_spacing) * self.point_spacing)
-        end = ((end[0] / self.point_spacing) * self.point_spacing,
-            (end[1] / self.point_spacing) * self.point_spacing)
-        if not pointmap[start]:
-            return []
+        start = (int(start.x / self.point_spacing) * self.point_spacing,
+            int(start.y / self.point_spacing) * self.point_spacing)
+        end = (int(end.x / self.point_spacing) * self.point_spacing,
+            int(end.y / self.point_spacing) * self.point_spacing)
         if not pointmap[end] or not pointmap[end].passable:
             end = self.get_available_position_closest_to(room, end)
-        return AStar(pointmap).find_path(pointmap[start], pointmap[end])
+        if not pointmap[start] or not pointmap[start].passable:
+            start = self.get_available_position_closest_to(room, start)
+        path = AStar(pointmap).find_path(pointmap[start], pointmap[end])
+        return [Position(*point) for point in path]
+
+    def setup(self, room):
+        pass

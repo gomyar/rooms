@@ -56,7 +56,7 @@
 
 
     <div id="selected">
-        <div class="editable" id="selectedroom" data-gui-show="rooms_mapeditor.selected_room">
+        <div class="editable" id="selectedroom" data-gui-show="rooms_mapeditor.selected_room.data">
             <div class="label">Room Details:</div>
             <div class="field">
                 <div class="name">room_id</div>
@@ -112,7 +112,7 @@
                 <label name="width">Exit Room ID:</label>
                 <input type="text" data-gui-val="rooms_mapeditor.editable_object.exit_room_id"></input>
             </div>
- 
+            <textarea name="objdata" data-gui-val="rooms_mapeditor.editable_object.data" data-gui-parse-func="JSON.parse" data-gui-format-func="rooms_mapeditor.format_json"></textarea>
         </div>
         <div class="editable" id="editable_tag" data-gui-show="rooms_mapeditor.editable_object && rooms_mapeditor.selected_room && rooms_mapeditor.selected_room.data.tags.indexOf(rooms_mapeditor.editable_object) != -1">
             <div class="position">

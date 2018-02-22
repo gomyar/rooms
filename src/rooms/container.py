@@ -11,6 +11,7 @@ from rooms.player import PlayerActor
 from rooms.utils import IDFactory
 from rooms.timer import Timer
 from rooms.geography.basic_geography import BasicGeography
+from rooms.geography.pointmap_geography import PointmapGeography
 from rooms.room_builder import SimpleRoomBuilder
 from rooms.game_factory import GameFactory
 from rooms.item_registry import ItemRegistry
@@ -23,7 +24,7 @@ log = logging.getLogger("rooms.container")
 class Container(object):
     def __init__(self, dbase, node):
         self.dbase = dbase
-        self.geography = BasicGeography()
+        self.geography = PointmapGeography()
         self.node = node
         self.room_builder = SimpleRoomBuilder()
         self.item_registry = ItemRegistry()
@@ -112,10 +113,14 @@ class Container(object):
             ActorLoader(room).process_actor(actor)
 
     def save_room(self, room, blank_node_name=False):
+        log.info("Saving room %s", room.room_id)
         kwargs = {'active': False, 'requested': False}
         if blank_node_name:
             kwargs['node_name'] = None
         self._save_object(room, "rooms", **kwargs)
+        # this needs replacing with a proper deserialization with active: false or something
+        self.save_actors(room.actors.values())
+        log.info("Room %s saved with %s actors", room.room_id, len(room.actors))
 
     def save_actors(self, actors):
         for actor in actors:

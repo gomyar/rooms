@@ -14,6 +14,7 @@ from werkzeug.debug import DebuggedApplication
 from rooms.master import Master
 from rooms.node import Node
 from rooms.geography.basic_geography import BasicGeography
+from rooms.geography.pointmap_geography import PointmapGeography
 from rooms.room_builder import RoomBuilder
 from rooms.room_builder import FileMapSource
 from rooms.container import Container
@@ -56,7 +57,7 @@ room_builder = RoomBuilder(FileMapSource(mapdir), node)
 item_registry = ItemRegistry()
 if os.path.exists(itemdir):
     item_registry.load_from_directory(itemdir)
-container.geography = BasicGeography()
+container.geography = PointmapGeography()
 container.room_builder = room_builder
 container.item_registry = item_registry
 container.start_container()
