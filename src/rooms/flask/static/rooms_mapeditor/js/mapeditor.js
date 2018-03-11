@@ -18,14 +18,43 @@ rooms_mapeditor.selected_objects_list = [];
 rooms_mapeditor.selected_objects_list_x = 0;
 rooms_mapeditor.selected_objects_list_y = 0;
 
+rooms_mapeditor.undo_stack = [];
+rooms_mapeditor.redo_stack = [];
+
+
+rooms_mapeditor.push_undo = function() {
+    rooms_mapeditor.undo_stack.push(JSON.parse(JSON.stringify(rooms_mapeditor.map_data)));
+    rooms_mapeditor.redo_stack = [];
+}
+
+rooms_mapeditor.pop_undo = function() {
+    if (rooms_mapeditor.undo_stack.length > 0) {
+        var last_undo = JSON.parse(JSON.stringify(rooms_mapeditor.undo_stack.pop()));
+        var previous_undo = JSON.parse(JSON.stringify(rooms_mapeditor.undo_stack[rooms_mapeditor.undo_stack.length-1]));
+        if (previous_undo != undefined) {
+            rooms_mapeditor.redo_stack.push(JSON.parse(JSON.stringify(rooms_mapeditor.map_data)));
+            rooms_mapeditor.map_data = previous_undo;
+        }
+        turtlegui.reload();
+    }
+}
+
+rooms_mapeditor.pop_redo = function() {
+    if (rooms_mapeditor.redo_stack.length > 0) {
+        rooms_mapeditor.map_data = JSON.parse(JSON.stringify(rooms_mapeditor.redo_stack.pop()));
+        rooms_mapeditor.undo_stack.push(JSON.parse(JSON.stringify(rooms_mapeditor.map_data)));
+        turtlegui.reload();
+    }
+}
+
 
 rooms_mapeditor.load_maps = function() {
     $.ajax("/rooms_mapeditor/maps", {
         "dataType": "json",
         "success": function(data) {
             rooms_mapeditor.all_maps = data;
-            turtlegui.reload();
             console.log("Loaded maps");
+            turtlegui.reload();
         }
     });
 };
@@ -38,6 +67,8 @@ rooms_mapeditor.load_selected_map = function() {
             // center view on map data
             gui.init($('#screen')[0]);
             gui.center_view(data);
+            rooms_mapeditor.reload();
+            rooms_mapeditor.push_undo();
         }
     });
 };
@@ -88,9 +119,10 @@ rooms_mapeditor.save_map = function() {
 rooms_mapeditor.create_room = function() {
     console.log("Create room");
     var room_id = prompt("Enter new room ID");
-    if (room_id in rooms_mapeditor.map_data.rooms || room_id == "")
+    if (room_id in rooms_mapeditor.map_data.rooms || room_id == "") {
         alert("Room ID already exists");
-    else
+    }
+    else {
         rooms_mapeditor.map_data.rooms[room_id] = {
             "info": {  },
             "position": { "x": gui.viewport_x * gui.zoom, "y": gui.viewport_y * gui.zoom},
@@ -100,6 +132,8 @@ rooms_mapeditor.create_room = function() {
             "tags": [],
             "doors": []
         };
+        rooms_mapeditor.push_undo();
+    }
 };
 
 rooms_mapeditor.create_object = function() {
@@ -113,6 +147,7 @@ rooms_mapeditor.create_object = function() {
         "width": 20 * gui.zoom,
         "height": 20 * gui.zoom
     };
+    rooms_mapeditor.push_undo();
 };
 
 rooms_mapeditor.create_door = function() {
@@ -132,6 +167,7 @@ rooms_mapeditor.create_door = function() {
         "width": 20 * gui.zoom,
         "height": 20 * gui.zoom
     };
+    rooms_mapeditor.push_undo();
 };
 
 
@@ -145,6 +181,7 @@ rooms_mapeditor.create_tag = function() {
         "position": { "x": gui.viewport_x - rooms_mapeditor.selected_room.data.position.x, "y": gui.viewport_y - rooms_mapeditor.selected_room.data.position.y},
         "data": { }
     };
+    rooms_mapeditor.push_undo();
 };
 
 rooms_mapeditor.delete = function() {
@@ -154,6 +191,8 @@ rooms_mapeditor.delete = function() {
         {
             // delete room
             delete rooms_mapeditor.map_data.rooms[rooms_mapeditor.selected_room.room_id];
+            rooms_mapeditor.reload();
+            rooms_mapeditor.push_undo();
         }
     }
     else if (rooms_mapeditor.selected_object && rooms_mapeditor.selected_object == rooms_mapeditor.selected_object)
@@ -166,18 +205,24 @@ rooms_mapeditor.delete = function() {
                 var removed = rooms_mapeditor.selected_room.data.room_objects.splice(index, 1);
                 console.log("Removed object: ");
                 console.log(removed);
+                rooms_mapeditor.reload();
+                rooms_mapeditor.push_undo();
             }
             var index = rooms_mapeditor.selected_room.data.tags.indexOf(rooms_mapeditor.selected_object);
             if (index != -1) {
                 var removed = rooms_mapeditor.selected_room.data.tags.splice(index, 1);
                 console.log("Removed tag: ");
                 console.log(removed);
+                rooms_mapeditor.reload();
+                rooms_mapeditor.push_undo();
             }
             var index = rooms_mapeditor.selected_room.data.doors.indexOf(rooms_mapeditor.selected_object);
             if (index != -1) {
                 var removed = rooms_mapeditor.selected_room.data.doors.splice(index, 1);
                 console.log("Removed door: ");
                 console.log(removed);
+                rooms_mapeditor.reload();
+                rooms_mapeditor.push_undo();
             }
 
         }
@@ -220,6 +265,7 @@ rooms_mapeditor.get_editable_data = function() {
 
 rooms_mapeditor.set_editable_data = function(data_text) {
     rooms_mapeditor.editable_object.data = JSON.parse(data_text.replace(/\n/g, " "));
+    rooms_mapeditor.push_undo()
 }
 
 rooms_mapeditor.format_json = function(data) {
@@ -227,8 +273,28 @@ rooms_mapeditor.format_json = function(data) {
 }
 
 
+rooms_mapeditor.undo_keypress = function(e) {
+      if( e.which === 90 && e.ctrlKey && e.shiftKey ){
+         console.log('control + shift + z'); 
+         rooms_mapeditor.pop_redo();
+         return false;
+      }
+      else if( e.which === 90 && e.ctrlKey ){
+         console.log('control + z'); 
+         rooms_mapeditor.pop_undo();
+         return false;	
+      }          
+}; 
+
+rooms_mapeditor.reload = function() {
+    turtlegui.reload();
+    $(':input').change(rooms_mapeditor.push_undo);
+};
+
+
 $(document).ready(function() {
     console.log("Loading");
-    turtlegui.reload();
     rooms_mapeditor.load_maps();
+    rooms_mapeditor.reload();
+	$(document).keydown(rooms_mapeditor.undo_keypress);
 });

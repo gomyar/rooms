@@ -168,6 +168,10 @@ gui.is_editable_drag_at = function(click_x, click_y)
 
 gui.canvas_mouseup = function(e)
 {
+    if (gui.dragging_editable) {
+        rooms_mapeditor.push_undo();
+        rooms_mapeditor.reload();
+    }
     gui.mouse_down = false;
     gui.dragging_editable = false;
 }
@@ -226,7 +230,7 @@ gui.canvas_clicked = function(e)
         }
 
         rooms_mapeditor.selected_rooms_list = [];
-        turtlegui.reload();
+        rooms_mapeditor.reload();
     }
     console.log("clicked");
     gui.swallow_click = false;
