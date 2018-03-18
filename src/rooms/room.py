@@ -251,7 +251,7 @@ class Room(object):
                 return True
         return False
 
-    def send_message(self, message_type, position, **data):
+    def send_message(self, message_type, position, data):
         self.vision.send_message(message_type, position, data)
 
     def find_actors(self, actor_type=None, state=None, visible=None,

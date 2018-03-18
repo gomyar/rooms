@@ -176,7 +176,7 @@ class RoomTest(unittest.TestCase):
         self.assertTrue(queue.empty())
 
         self.room.send_message("test_message", actor.position,
-            key="value")
+            dict(key="value"))
 
         message = queue.get_nowait()
 

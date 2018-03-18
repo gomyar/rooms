@@ -102,13 +102,13 @@ class SimpleVisionTest(unittest.TestCase):
         queue1.queue.clear()
         queue2.queue.clear()
 
-        self.actor1.send_event({'type': 'random'})
+        self.actor1.send_message({'type': 'random'})
 
         self.assertEquals(
-            {'command': 'actor_event', 'actor_id': self.actor1.actor_id,
+            {'command': 'actor_message', 'actor_id': self.actor1.actor_id,
              'data': {'type': 'random'}}, queue1.get_nowait())
         self.assertEquals(
-            {'command': 'actor_event', 'actor_id': self.actor1.actor_id,
+            {'command': 'actor_message', 'actor_id': self.actor1.actor_id,
              'data': {'type': 'random'}}, queue2.get_nowait())
 
         # invisible actors tell no tales
@@ -117,13 +117,41 @@ class SimpleVisionTest(unittest.TestCase):
         queue1.queue.clear()
         queue2.queue.clear()
 
-        self.actor1.send_event({'type': 'second'})
+        self.actor1.send_message({'type': 'second'})
 
         self.assertEquals(
-            {'command': 'actor_event', 'actor_id': self.actor1.actor_id,
+            {'command': 'actor_message', 'actor_id': self.actor1.actor_id,
              'data': {'type': 'second'}}, queue1.get_nowait())
         self.assertTrue(queue2.empty())
 
         # also docked actors
+
+        # also admin queues
+
+    def testSendRoomEvent(self):
+        self.room.put_actor(self.actor1)
+        self.room.put_actor(self.actor2)
+
+        queue1 = self.room.vision.connect_vision_queue(self.actor1.actor_id)
+        queue2 = self.room.vision.connect_vision_queue(self.actor2.actor_id)
+
+        # clear out sync events
+        queue1.queue.clear()
+        queue2.queue.clear()
+
+        self.room.send_message('test', Position(0, 0), {'type': 'random'})
+
+        self.assertEquals(
+            {'command': 'message',
+            'data': {'type': 'random'},
+            'message_type': 'test',
+            'position': {u'x': 0.0, u'y': 0.0, u'z': 0.0}},
+            queue1.get_nowait())
+        self.assertEquals(
+            {'command': 'message',
+            'data': {'type': 'random'},
+            'message_type': 'test',
+            'position': {u'x': 0.0, u'y': 0.0, u'z': 0.0}},
+            queue2.get_nowait())
 
         # also admin queues

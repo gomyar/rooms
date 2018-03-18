@@ -344,5 +344,5 @@ class Actor(object):
         else:
             current[pathitems[0]] = value
 
-    def send_event(self, data):
-        self.room.vision.send_actor_event(self, data)
+    def send_message(self, data):
+        self.room.vision.send_actor_message(self, data)

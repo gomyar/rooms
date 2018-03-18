@@ -127,9 +127,11 @@ class Vision(object):
         for actor_id in self.actor_queues:
             for queue in self.actor_queues[actor_id]:
                 queue.put(message)
+        for queue in self.admin_queues:
+            queue.put(message)
 
-    def send_actor_event(self, actor, data):
-        event = {'command': 'actor_event', 'actor_id': actor.actor_id,
+    def send_actor_message(self, actor, data):
+        event = {'command': 'actor_message', 'actor_id': actor.actor_id,
                  'data': data}
         if actor.visible:
             for actor_id in self.actor_queues:
