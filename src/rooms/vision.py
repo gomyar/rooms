@@ -127,3 +127,16 @@ class Vision(object):
         for actor_id in self.actor_queues:
             for queue in self.actor_queues[actor_id]:
                 queue.put(message)
+
+    def send_actor_event(self, actor, data):
+        event = {'command': 'actor_event', 'actor_id': actor.actor_id,
+                 'data': data}
+        if actor.visible:
+            for actor_id in self.actor_queues:
+                self._send_command(actor_id, event)
+        elif actor.actor_id in self.actor_queues:
+            self._send_command(actor.actor_id, event)
+        elif actor.parent_id in self.actor_queues:
+            self._send_command(actor.parent_id, event)
+        for queue in self.admin_queues:
+            queue.put(data)

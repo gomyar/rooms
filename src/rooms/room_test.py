@@ -232,3 +232,7 @@ class RoomTest(unittest.TestCase):
         self.assertEquals(self.room.actor_loader.load_loop,
                           spawn.call_args_list[0][0][0])
         self.assertTrue(mock_actor.kick.called)
+
+    def testSendRoomEvent(self):
+        ''' Send an event through the vision queue to all actor queues in the room
+        '''

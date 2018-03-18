@@ -81,6 +81,7 @@ class RoomBuilder(object):
             map_object_json.get('height', 0),
             map_object_json.get('depth', 0))
         room_object.info = map_object_json.get('info', {})
+        room_object.facing = map_object_json.get('facing', 0)
         return room_object
 
     def _create_tag(self, tag_json):

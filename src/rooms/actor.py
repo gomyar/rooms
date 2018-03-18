@@ -343,3 +343,6 @@ class Actor(object):
             self._set_state_val(pathitems[1:], value, current[pathitems[0]])
         else:
             current[pathitems[0]] = value
+
+    def send_event(self, data):
+        self.room.vision.send_actor_event(self, data)

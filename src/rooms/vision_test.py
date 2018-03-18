@@ -90,3 +90,40 @@ class SimpleVisionTest(unittest.TestCase):
         # b is invisible to all, but visible to a
         # a is invisible to all, but visible to a
         pass
+
+    def testSendActorEvent(self):
+        self.room.put_actor(self.actor1)
+        self.room.put_actor(self.actor2)
+
+        queue1 = self.room.vision.connect_vision_queue(self.actor1.actor_id)
+        queue2 = self.room.vision.connect_vision_queue(self.actor2.actor_id)
+
+        # clear out sync events
+        queue1.queue.clear()
+        queue2.queue.clear()
+
+        self.actor1.send_event({'type': 'random'})
+
+        self.assertEquals(
+            {'command': 'actor_event', 'actor_id': self.actor1.actor_id,
+             'data': {'type': 'random'}}, queue1.get_nowait())
+        self.assertEquals(
+            {'command': 'actor_event', 'actor_id': self.actor1.actor_id,
+             'data': {'type': 'random'}}, queue2.get_nowait())
+
+        # invisible actors tell no tales
+        self.actor1.visible = False
+        # clear out invisible events
+        queue1.queue.clear()
+        queue2.queue.clear()
+
+        self.actor1.send_event({'type': 'second'})
+
+        self.assertEquals(
+            {'command': 'actor_event', 'actor_id': self.actor1.actor_id,
+             'data': {'type': 'second'}}, queue1.get_nowait())
+        self.assertTrue(queue2.empty())
+
+        # also docked actors
+
+        # also admin queues

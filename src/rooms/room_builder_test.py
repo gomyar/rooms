@@ -32,6 +32,7 @@ class RoomBuilderTest(unittest.TestCase):
         self.assertEquals(125.0, room.doors[0].position.y)
         self.assertEquals(0, room.room_objects[0].topleft.x)
         self.assertEquals(0, room.room_objects[0].topleft.y)
+        self.assertEquals(90, room.room_objects[0].facing)
 
     def testCreateRoom2(self):
         room = self.factory.create("game1", "map1.room2")
@@ -47,6 +48,7 @@ class RoomBuilderTest(unittest.TestCase):
         self.assertEquals(25.0, room.doors[0].position.y)
         self.assertEquals(0, room.room_objects[0].topleft.x)
         self.assertEquals(0, room.room_objects[0].topleft.y)
+        self.assertEquals(-90, room.room_objects[0].facing)
 
     def testNoSuchRoom(self):
         self.assertRaises(Exception, self.factory.create, "game1",

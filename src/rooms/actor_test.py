@@ -407,3 +407,8 @@ class ActorTest(unittest.TestCase):
         self.actor._set_state_val("inner.something.value".split('.'), "there")
 
         self.assertEquals("there", self.actor.state.inner.something.value)
+
+    def testSendEventForActor(self):
+        ''' Sends a command through the vision queue if the actor is visible
+            will only send to the actor's own queue if the actor is invisible
+        '''
