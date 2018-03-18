@@ -21,13 +21,13 @@ class PointmapGeogTest(unittest.TestCase):
 
         path = self.geog.find_path(self.room, Position(10, 10), Position(20, 20))
         self.assertEquals(100, len(self.geog._pointmaps[self.room]._points))
-        self.assertEquals([Position(10, 10), Position(20, 20)], path)
+        self.assertEquals([Position(10, 10), Position(10, 10), Position(20, 20)], path)
 
         path = self.geog.find_path(self.room, Position(10, 10), Position(20, 40))
-        self.assertEquals([Position(10, 10), Position(20, 20), Position(20, 30), Position(20, 40)], path)
+        self.assertEquals([Position(10, 10), Position(10, 10), Position(20, 20), Position(20, 30), Position(20, 40)], path)
 
         path = self.geog.find_path(self.room, Position(15, 15), Position(25, 45))
-        self.assertEquals([Position(10, 10), Position(20, 20), Position(20, 30), Position(20, 40)], path)
+        self.assertEquals([Position(10, 10), Position(10, 10), Position(20, 20), Position(20, 30), Position(20, 40)], path)
 
     def testGetPath2(self):
         self.geog = PointmapGeography(point_spacing=10)
@@ -36,13 +36,14 @@ class PointmapGeogTest(unittest.TestCase):
 
         path = self.geog.find_path(self.room, Position(11, 11), Position(22, 22))
         self.assertEquals(100, len(self.geog._pointmaps[self.room]._points))
-        self.assertEquals([Position(10, 10), Position(20, 20)], path)
+        self.assertEquals([Position(10, 10), Position(10, 10),
+                           Position(20, 20)], path)
 
         path = self.geog.find_path(self.room, Position(10, 10), Position(20, 40))
-        self.assertEquals([Position(10, 10), Position(20, 20), Position(20, 30), Position(20, 40)], path)
+        self.assertEquals([Position(10, 10), Position(10, 10), Position(20, 20), Position(20, 30), Position(20, 40)], path)
 
         path = self.geog.find_path(self.room, Position(15, 15), Position(25, 45))
-        self.assertEquals([Position(10, 10), Position(20, 20), Position(20, 30), Position(20, 40)], path)
+        self.assertEquals([Position(10, 10), Position(10, 10), Position(20, 20), Position(20, 30), Position(20, 40)], path)
 
     def testRoomObjectsCreateBlankZones(self):
         self.room.room_objects.append(RoomObject("table", Position(20, 20),

@@ -44,6 +44,7 @@ class PointmapGeography(object):
         if not pointmap[start] or not pointmap[start].passable:
             start = self.get_available_position_closest_to(room, start)
         path = AStar(pointmap).find_path(pointmap[start], pointmap[end])
+        path.insert(0, start)
         return [Position(*point) for point in path]
 
     def setup(self, room):
