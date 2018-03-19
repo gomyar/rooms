@@ -240,10 +240,18 @@ class Room(object):
     def find_tags(self, tag_id):
         return [tag for tag in self.tags if tag.tag_type.startswith(tag_id)]
 
+    def find_one_tag(self, tag_id):
+        tags = self.find_tags(tag_id)
+        return tags[0] if tags else None
+
     def find_room_objects(self, object_type, **kwargs):
         return [obj for obj in self.room_objects if \
             obj.object_type == object_type and
             all(item in obj.info.items() for item in kwargs)]
+
+    def find_one_room_object(self, object_type, **kwargs):
+        room_objects = self.find_room_objects(object_type, **kwargs)
+        return room_objects[0] if room_objects else None
 
     def object_at(self, position):
         for room_object in self.room_objects:

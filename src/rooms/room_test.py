@@ -21,6 +21,7 @@ from rooms.script import Script
 from rooms.testutils import MockVision
 from rooms.actor import Actor
 from rooms.node import Node
+from rooms.room import RoomObject
 from testutils import MockTimer
 
 
@@ -143,6 +144,25 @@ class RoomTest(unittest.TestCase):
 
         self.assertEquals([tag1, tag2, tag3], self.room.find_tags("tag"))
         self.assertEquals([tag1, tag2, tag3], self.room.find_tags(""))
+
+        self.assertEquals(tag1, self.room.find_one_tag('tag'))
+
+    def testFindObjects(self):
+        object1 = RoomObject('test1', Position(0, 0))
+        object1.info['key1'] = 'value1'
+
+        object2 = RoomObject('test1', Position(0, 0))
+        object2.info['key1'] = 'value2'
+
+        self.room.room_objects.append(object1)
+        self.room.room_objects.append(object2)
+
+        found = self.room.find_room_objects('test1')
+        self.assertEquals(2, len(found))
+        self.assertTrue(object1 in found)
+        self.assertTrue(object2 in found)
+
+        self.assertEquals(object1, self.room.find_one_room_object('test1'))
 
     def testActorsAddedToRoomOutsideBoundariesArePositionedInside(self):
         newactor1 = MockActor("new1")
