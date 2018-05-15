@@ -10,9 +10,8 @@ from rooms.game import Game
 from rooms.player import PlayerActor
 from rooms.utils import IDFactory
 from rooms.timer import Timer
-from rooms.geography.basic_geography import BasicGeography
-from rooms.geography.pointmap_geography import PointmapGeography
 from rooms.room_builder import SimpleRoomBuilder
+from rooms.geography.basic_geography import BasicGeography
 from rooms.game_factory import GameFactory
 from rooms.item_registry import ItemRegistry
 from rooms.actor_loader import ActorLoader
@@ -24,7 +23,7 @@ log = logging.getLogger("rooms.container")
 class Container(object):
     def __init__(self, dbase, node):
         self.dbase = dbase
-        self.geography = PointmapGeography()
+        self.geography = BasicGeography()
         self.node = node
         self.room_builder = SimpleRoomBuilder()
         self.item_registry = ItemRegistry()

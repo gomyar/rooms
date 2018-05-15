@@ -60,14 +60,19 @@ if os.path.exists(itemdir):
 container.geography = PointmapGeography()
 container.room_builder = room_builder
 container.item_registry = item_registry
-container.start_container()
 
 master = Master(container)
 node.container = container
 
+GEOGRAPHIES = {
+    'basic': BasicGeography(),
+    'pointmap': PointmapGeography(),
+}
 
-def start_rooms_app(app):
+
+def start_rooms_app(app, container_type='pointmap'):
     try:
+        container.geography = GEOGRAPHIES[container_type]
         container.start_container()
 
         http_server = WSGIServer((_node_host, _node_port), app,
