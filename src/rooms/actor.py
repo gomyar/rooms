@@ -1,4 +1,6 @@
 
+import traceback
+
 import gevent
 from gevent.event import Event
 from gevent import GreenletExit
@@ -166,6 +168,12 @@ class Actor(object):
         self._script_gthread = gevent.spawn(self._checked_action_call, method,
             *args, **kwargs)
 
+    def _handle_exception(self, e):
+        self._exception = {"exception": str(type(e)), 'message': str(e),
+                            "traceback": traceback.format_exc()}
+        self._send_state_changed()
+        self.script_request("on_error", self, e)
+
     def _checked_action_call(self, method, *args, **kwargs):
         try:
             return method(self, *args, **kwargs)
@@ -174,7 +182,7 @@ class Actor(object):
         except Exception, e:
             log.exception("Exception running action: %s(%s, %s)", method,
                 args, kwargs)
-            self._exception = str(e)
+            self._handle_exception(e)
 
     def script_request(self, method, *args, **kwargs):
         return self.script.call(method, *args, **kwargs)
@@ -187,9 +195,10 @@ class Actor(object):
             return self.script_request(method, *args, **kwargs)
         except GreenletExit, ge:
             pass
-        except:
+        except Exception, e:
             log.exception("Exception running script: %s(%s, %s)", method,
                 args, kwargs)
+            self._handle_exception(e)
 
     def _send_state_changed(self):
         self.room.vision.actor_state_changed(self)

@@ -25,7 +25,7 @@
         <div class="title">Select Actor:</div>
         <hr></hr>
         <div data-gui-list="admin.actor_list" data-gui-item="actor">
-            <div  data-class="actor.actor_type=='player'?'player':''" class="listed_actor" data-gui-click="admin.select_actor(actor)">
+            <div  data-gui-class="actor.actor_type=='player'?'player':''" class="listed_actor" data-gui-click="admin.select_actor(actor)">
                 <div data-gui-text="actor.actor_type"></div>:<div data-gui-text="actor.script"></div> <div data-gui-text="actor.username ? '(' + actor.username + ')' : ''"></div>
             </div>
         </div>
@@ -37,6 +37,17 @@
             <div class="field">
                 <div class="name" data-gui-text='field'></div>:&nbsp;<pre class="value" data-gui-text="JSON.stringify(admin.selected_actor[field], null, 2);"></pre>
             </div>
+        </div>
+        <div class="exception" data-gui-show="admin.selected_actor.exception">
+            <hr></hr>
+            <div class="exception_type" data-gui-text="admin.selected_actor.exception.exception"></div>
+            <div class="exception_type" data-gui-text="admin.selected_actor.exception.message"></div>
+            <div class="traceback" data-gui-text="admin.selected_actor.exception.traceback"></div>
+        </div>
+
+        <div class="actor_controls">
+            <hr></hr>
+            <button data-gui-click="admin.kick_actor(admin.selected_actor.actor_id)">Kick</button>
         </div>
     </div>
 </div>

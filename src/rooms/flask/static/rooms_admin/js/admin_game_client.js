@@ -41,6 +41,10 @@ admin.load_room = function(room_id) {
     });
 }
 
+admin.kick_actor = function(actor_id) {
+    $.post("/rooms_admin/game_client/" + game_id + "/" + room_id + "/" + actor_id + "/kick", {});
+}
+
 
 admin.game_callback = function(message) {
     console.log("Callback:");

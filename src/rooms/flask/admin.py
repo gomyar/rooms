@@ -131,3 +131,13 @@ def game_client(game_id, room_id):
         return "Unauthorized", 401
     return render_template('admin/admin_game_client.html',
                            game_id=game_id, room_id=room_id)
+
+
+@bp_admin.route('/game_client/<game_id>/<room_id>/<actor_id>/kick', methods=['POST'])
+@login_required
+def kick_actor(game_id, room_id, actor_id):
+    if not flask_login.current_user.is_admin():
+        return "Unauthorized", 401
+    actor = app.node.rooms[game_id, room_id].actors[actor_id]
+    actor.kick()
+    return jsonify({'actor': actor.actor_id})
