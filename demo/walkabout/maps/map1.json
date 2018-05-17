@@ -1,6 +1,6 @@
 {
     "map_id": "map1", 
-    "positioning": "absolute", 
+    "positioning": "relative", 
     "rooms": {
         "map1.room1": {
             "tags": [
