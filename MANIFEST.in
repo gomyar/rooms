@@ -2,5 +2,8 @@ include src/rooms/flask/static/rooms/js/*
 include src/rooms/flask/static/rooms_admin/js/*
 include src/rooms/flask/static/rooms_admin/css/*
 include src/rooms/flask/static/rooms_admin/html/*
+include src/rooms/flask/static/rooms_mapeditor/js/*
+include src/rooms/flask/static/rooms_mapeditor/css/*
 include src/rooms/flask/templates/*
 include src/rooms/flask/templates/admin/*
+include src/rooms/flask/templates/rooms_mapeditor/*

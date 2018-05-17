@@ -7,7 +7,7 @@ bugs:
 fancy debug:
  - pause gevent for actor from admin
  - update state for actor from admin
- - view running code (traceback?) for actor from admin
+ - view running code (traceback?) for actor from admin - done
 
 
 idiosyncratic behaviour:
