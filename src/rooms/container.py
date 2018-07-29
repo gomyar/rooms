@@ -149,7 +149,7 @@ class Container(object):
             update={
                 '$set':{'active': True, 'requested': False,
                         'node_name': node_name},
-                '$setOnInsert':{'active': False, 'initialized': False},
+#                '$setOnInsert':{'active': False, 'initialized': False},
             },
             new=True,
         )
