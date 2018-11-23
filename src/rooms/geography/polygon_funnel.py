@@ -1,6 +1,6 @@
 
 import math
-from .intersect import vertex_intersect
+from .intersect import vertex_intersect, intersect
 
 class Segment(object):
     def __init__(self, v1, v2, v3):
@@ -77,9 +77,25 @@ def get_next_node(room, vertex):
     if complete_segments(vertex):
         return None
 
-    # start at 0 degrees
+
     # find next gap in segments
     next_v = vertex.segments[0][1]
+
+    # get all the vertices in the room
+    all_vertices = get_all_vertices(room)
+
+    # start at 0 degrees - check for gaps starting from 0
+    # if any non-occluded vertices exists between 0  degrees and next_v, add them
+    missing_initial = get_vertices_between_angle(all_vertices, vertex, next_v, 0)
+    missing_initial = filter_occluded_vertices(vertex, missing_initial, all_vertices)
+
+    if len(missing_initial) > 1:
+        return Segment(vertex, missing_initial[0], missing_initial[1])
+    elif missing_initial:
+        return Segment(vertex, missing_initial[0], next_v)
+
+
+    # process segments clockwise
     index = 1
     while index < len(vertex.segments) and vertex.segments[index][0] == next_v:
         next_v = vertex.segments[index][1]
@@ -90,22 +106,14 @@ def get_next_node(room, vertex):
     else:
         next_next_v = vertex.segments[0][0]
 
-    # get all the vertices in the room
-    all_vertices = get_all_vertices(room)
-
     # get all vertices reachable between next_v and next_next_v
     vertices = get_vertices_between(all_vertices, vertex, next_v, next_next_v)
 
     # filter out vertices occluded by existing edges
-    vertices = filter_occluded_vertices(vertices, all_vertices)
+    vertices = filter_occluded_vertices(vertex, vertices, all_vertices)
 
     # fill in gap
     if vertices:
-#        current_v = next_v
-#        for v in vertices:
-#            Segment(vertex, current_v, v)
-#            current_v = v
-#        Segment(vertex, current_v, next_next_v)
         return Segment(vertex, next_v, vertices[0])
     else:
         return Segment(vertex, next_v, next_next_v)
@@ -116,9 +124,37 @@ def get_next_node(room, vertex):
     pass
 
 
-def filter_occluded_vertices(vertices, all_vertices):
-    # todo
-    return vertices
+def any_intersect(from_x, from_y, to_x, to_y, s1, segments):
+    for segment in segments:
+        if intersect(from_x, from_y, to_x, to_y, \
+                        s1.x, s1.y,
+                        segment[0].position.x, segment[0].position.y):
+            return True
+        if intersect(from_x, from_y, to_x, to_y, \
+                        segment[0].position.x, segment[0].position.y,
+                        segment[1].position.x, segment[1].position.y):
+            return True
+
+        if intersect(from_x, from_y, to_x, to_y, \
+                        segment[1].position.x, segment[1].position.y,
+                        s1.x, s1.y):
+            return True
+    return False
+
+
+def filter_occluded_vertices(vertex, vertices, all_vertices):
+    filtered = []
+    for v in vertices:
+        intersects = False
+        for existing in all_vertices:
+            from_x, from_y = vertex.position.x, vertex.position.y
+            to_x, to_y = v.position.x, v.position.y
+            segments = existing.segments
+            if any_intersect(from_x, from_y, to_x, to_y, existing.position, segments):
+                intersects = True
+        if not intersects:
+            filtered.append(v)
+    return filtered
 
 
 def get_all_vertices(room):
@@ -134,9 +170,23 @@ def get_all_vertices(room):
 
 
 def get_vertices_between(all_vertices, v1, v2, v3):
-    vertices = [(_angle(v1, v), v) for v in all_vertices if v not in (v1, v2, v3)]
     from_angle = _angle(v1, v2)
+    vertices = [(_angle(v1, v), v) for v in all_vertices if v not in (v1, v2, v3)]
     to_angle = _angle(v1, v3)
+
+    if to_angle < from_angle:
+        vertices = [(a, v) for (a, v) in vertices if _angle(v1, v) > from_angle
+                    or _angle(v1, v) < to_angle]
+    else:
+        vertices = [(a, v) for (a, v) in vertices if _angle(v1, v) > from_angle
+                    and _angle(v1, v) < to_angle]
+    vertices.sort()
+    return [v for (a, v) in vertices]
+
+
+def get_vertices_between_angle(all_vertices, v1, v2, from_angle):
+    vertices = [(_angle(v1, v), v) for v in all_vertices if v not in (v1, v2)]
+    to_angle = _angle(v1, v2)
     if to_angle < from_angle:
         to_angle += math.pi * 2
     vertices = [(a, v) for (a, v) in vertices if _angle(v1, v) > from_angle
@@ -150,11 +200,15 @@ def get_nodes_for(room, vertex):
     segment = get_next_node(room, vertex)
     if segment:
         vertex.segments.append([segment.v2, segment.v3])
+        segment.v2.segments.append([segment.v3, vertex])
+        segment.v3.segments.append([vertex, segment.v2])
     while segment:
         segments.append(segment)
         segment = get_next_node(room, vertex)
         if segment:
             vertex.segments.append([segment.v2, segment.v3])
+            segment.v2.segments.append([segment.v3, vertex])
+            segment.v3.segments.append([vertex, segment.v2])
     return segments
 
 
@@ -163,8 +217,8 @@ def _angle(v1, v2):
 
 
 def _diff(origin, v1, v2):
-    a2 = _angle(origin, v2)
     a1 = _angle(origin, v1)
+    a2 = _angle(origin, v2)
     if a2 > a1:
         return a2 - a1
     else:

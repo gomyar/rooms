@@ -1,4 +1,6 @@
 def intersect(x1, y1, x2, y2, x3, y3, x4, y4):
+    if (x1, y1) in ( (x3, y3), (x4, y4) ) or (x2, y2) in ( (x3, y3), (x4, y4) ):
+        return False
     def same_sign(a, b):
         return a * b > 0
 

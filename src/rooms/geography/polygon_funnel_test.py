@@ -17,6 +17,7 @@ from .polygon_funnel import get_all_vertices
 from .polygon_funnel import get_vertices_between
 from .polygon_funnel import _angle
 from .polygon_funnel import _diff
+from .polygon_funnel import filter_occluded_vertices
 
 
 class PolygonFunnelTest(unittest.TestCase):
@@ -71,9 +72,16 @@ class PolygonFunnelTest(unittest.TestCase):
         self.assertEquals(math.pi * 7 / 4, _angle(V(0, 0), V(10, -10)))
 
         self.assertEquals(math.pi / 4, _diff(V(0, 0), V(10, 0), V(10, 10)))
+        self.assertEquals(-math.pi / 4, _diff(V(0, 0), V(10, 0), V(10, -10)))
+
         self.assertEquals(math.pi / 4, _diff(V(0, 0), V(0, 10), V(-10, 10)))
+        self.assertEquals(-math.pi / 4, _diff(V(0, 0), V(0, -10), V(-10, -10)))
+
         self.assertEquals(math.pi / 2, _diff(V(0, 0), V(10, -10), V(10, 10)))
+        self.assertEquals(-math.pi / 2, _diff(V(0, 0), V(10, 10), V(10, -10)))
+
         self.assertAlmostEquals(math.pi, _diff(V(0, 0), V(10, 2), V(-10, -2)))
+        self.assertAlmostEquals(-math.pi, _diff(V(0, 0), V(10, -2), V(-10, 2)))
 
         self.assertAlmostEquals(6.0838480021972625, _diff(V(0, 0), V(-1, 10), V(1, 10)))
 
@@ -159,6 +167,30 @@ class PolygonFunnelTest(unittest.TestCase):
         vertices = get_vertices_between([v1, v2, v3, v5, v4], v1, v2, v4)
         self.assertEquals([], vertices)
 
+    def test_get_vertices_between_zero(self):
+        obj = RoomObject("test", P(0, 0), 20, 20)
+        def V(x, y):
+            return Vertex(obj, P(x, y))
+        self.room.room_objects.append(obj)
+
+        v1 = V(0, 0)
+        v2 = V(10, -10)
+        v3 = V(10, 10)
+        v4 = V(15, 5)
+        v5 = V(20, -5)
+
+        # order is important
+        vertices = get_vertices_between([v1, v2, v3, v5, v4], v1, v2, v3)
+        self.assertEquals(2, len(vertices))
+
+        # order is important
+        self.assertEquals([v4, v5], vertices)
+
+        vertices = get_vertices_between([v1, v2, v3, v5, v4], v1, v2, v4)
+        self.assertEquals([v5], vertices)
+
+
+
     def test_next_node(self):
         obj = RoomObject("test", P(0, 0), 20, 20)
         def V(x, y):
@@ -185,7 +217,7 @@ class PolygonFunnelTest(unittest.TestCase):
         v1.segments.append([V(50, -50), v2])
         self.assertEquals(None, get_next_node(self.room, v1))
 
-    def test_get_nodes_for(self):
+    def _test_get_nodes_for(self):
         obj = RoomObject("test", P(0, 0), 20, 20)
         def V(x, y):
             return Vertex(obj, P(x, y))
@@ -201,6 +233,36 @@ class PolygonFunnelTest(unittest.TestCase):
             Segment(v1, V(-50, -50), V(50, -50)),
             Segment(v1, V(50, -50), v2),
         ], nodes)
+
+        nodes = get_nodes_for(self.room, v2)
+        self.assertEquals(nodes, [
+            Segment(v2, V(50, -50), V(50, 50)),
+            Segment(v2, V(50, 50), v3),
+        ], nodes)
+
+
+    def test_filter_occluded_polygons(self):
+        obj = RoomObject("test", P(0, 0), 20, 20)
+        def V(x, y):
+            return Vertex(obj, P(x, y))
+        vertex = V(0, 0)
+        v1 = V(-10, 50)
+        v2 = V(10, 50)
+
+        # occluding segment
+        v3 = V(-10, 20)
+        v4 = V(10, 20)
+        v5 = V(10, 30)
+        v3.segments.append([v4, v5])
+
+        v6 = V(-20, 20)
+
+        vertices = [v1, v2, v6]
+        all_vertices = [v1, v2, v3, v4, v5, v6]
+
+        filtered = filter_occluded_vertices(vertex, vertices, all_vertices)
+
+        self.assertEquals([v6], filtered)
 
     def test_create_polymap(self):
         self.room.room_objects.append(RoomObject("test", P(50, 50), 20, 20))
