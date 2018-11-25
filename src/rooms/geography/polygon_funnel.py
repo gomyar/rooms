@@ -24,7 +24,7 @@ class Vertex(object):
         self.position = position
         self.previous = None
         self.next = None
-        self.segments = []
+        self.sectors = []
 
     def __eq__(self, rhs):
         return rhs and self.position == rhs.position
@@ -36,255 +36,208 @@ class Vertex(object):
         return "<Vertex %s (%s, %s)>" % (self.room_object.object_type if self.room_object else None,
                                          self.position.x, self.position.y)
 
+    def add_sector(self, from_vector, to_vector):
+        new_sector = [from_vector, to_vector]
+        # check for next linked sector
+        for index, (s1, s2) in enumerate(self.sectors):
+            if s1 == to_vector:
+                self.sectors.insert(index, new_sector)
+                return
+            if s2 == from_vector:
+                self.sectors.insert(index + 1, new_sector)
+                return
 
-def get_vertices(room_object):
-    v1 = Vertex(room_object, room_object.position.add_coords(-room_object.width / 2, -room_object.height / 2))
-    v2 = Vertex(room_object, room_object.position.add_coords(room_object.width / 2, -room_object.height / 2))
-    v3 = Vertex(room_object, room_object.position.add_coords(room_object.width / 2, room_object.height / 2))
-    v4 = Vertex(room_object, room_object.position.add_coords(-room_object.width / 2, room_object.height / 2))
-    v1.previous = v4
-    v1.next = v2
-    v2.previous = v1
-    v2.next = v3
-    v3.previous = v2
-    v3.next = v4
-    v4.previous = v3
-    v4.next = v1
+        # order sectors by angle
+        ordered_sectors = [(angle(self, s[0]), s) for s in self.sectors]
+        ordered_sectors.append((angle(self, from_vector), new_sector))
+        ordered_sectors = sorted(ordered_sectors)
 
-    s1 = Segment(v1, v2, v4)
-    s2 = Segment(v3, v4, v2)
+        sectors = [o[1] for o in ordered_sectors]
 
-    v1.segments = [[v2, v4]]
-    v2.segments = [[v3, v4], [v4, v1]]
-    v3.segments = [[v4, v2]]
-    v4.segments = [[v1, v2], [v2, v3]]
+        # insert in between existing
+        self.sectors = sectors
 
-    return [v1, v2, v3, v4], [s1, s2]
+    def sectors_gaps(self):
+        sectors = []
+        last_sector = (None, None)
+        for from_vector, to_vector in self.sectors:
+            if last_sector[1] != from_vector:
+                sectors.append([])
+            sectors[-1].append([from_vector, to_vector])
+            last_sector = (from_vector, to_vector)
+        return sectors
 
+    def complete_sectors(self):
+        first_v = self.sectors[0][0]
+        current_v = self.sectors[0][1]
+        for v1, v2 in self.sectors[1:]:
+            if v1 != current_v:
+                return False
+            current_v = v2
 
-def complete_segments(vertex):
-    first_v = vertex.segments[0][0]
-    current_v = vertex.segments[0][1]
-    for v1, v2 in vertex.segments[1:]:
-        if v1 != current_v:
-            return False
-        current_v = v2
-
-    return current_v == first_v
-
-def get_next_node(room, vertex):
-    # check for complete segments
-    if complete_segments(vertex):
-        return None
-
-
-    # find next gap in segments
-    next_v = vertex.segments[0][1]
-
-    # get all the vertices in the room
-    all_vertices = get_all_vertices(room)
-
-    # start at 0 degrees - check for gaps starting from 0
-    # if any non-occluded vertices exists between 0  degrees and next_v, add them
-    missing_initial = get_vertices_between_angle(all_vertices, vertex, next_v, 0)
-    missing_initial = filter_occluded_vertices(vertex, missing_initial, all_vertices)
-
-    if len(missing_initial) > 1:
-        return Segment(vertex, missing_initial[0], missing_initial[1])
-    elif missing_initial:
-        return Segment(vertex, missing_initial[0], next_v)
+        return current_v == first_v
 
 
-    # process segments clockwise
-    index = 1
-    while index < len(vertex.segments) and vertex.segments[index][0] == next_v:
-        next_v = vertex.segments[index][1]
-        index += 1
-
-    if index == len(vertex.segments) - 1:
-        next_next_v = vertex.segments[index][0]
-    else:
-        next_next_v = vertex.segments[0][0]
-
-    # get all vertices reachable between next_v and next_next_v
-    vertices = get_vertices_between(all_vertices, vertex, next_v, next_next_v)
-
-    # filter out vertices occluded by existing edges
-    vertices = filter_occluded_vertices(vertex, vertices, all_vertices)
-
-    # fill in gap
-    if vertices:
-        return Segment(vertex, next_v, vertices[0])
-    else:
-        return Segment(vertex, next_v, next_next_v)
-
-    # add node
-
-    # return result or None if no gap
-    pass
-
-
-def any_intersect(from_x, from_y, to_x, to_y, s1, segments):
-    for segment in segments:
-        if intersect(from_x, from_y, to_x, to_y, \
-                        s1.x, s1.y,
-                        segment[0].position.x, segment[0].position.y):
-            return True
-        if intersect(from_x, from_y, to_x, to_y, \
-                        segment[0].position.x, segment[0].position.y,
-                        segment[1].position.x, segment[1].position.y):
-            return True
-
-        if intersect(from_x, from_y, to_x, to_y, \
-                        segment[1].position.x, segment[1].position.y,
-                        s1.x, s1.y):
-            return True
-    return False
-
-
-def filter_occluded_vertices(vertex, vertices, all_vertices):
-    filtered = []
-    for v in vertices:
-        intersects = False
-        for existing in all_vertices:
-            from_x, from_y = vertex.position.x, vertex.position.y
-            to_x, to_y = v.position.x, v.position.y
-            segments = existing.segments
-            if any_intersect(from_x, from_y, to_x, to_y, existing.position, segments):
-                intersects = True
-        if not intersects:
-            filtered.append(v)
-    return filtered
-
-
-def get_all_vertices(room):
-    vertices = []
-    for obj in room.room_objects:
-        vs, _ = get_vertices(obj)
-        vertices.extend(vs)
-    vertices.append(Vertex(None, room.topleft))
-    vertices.append(Vertex(None, room.topright))
-    vertices.append(Vertex(None, room.bottomright))
-    vertices.append(Vertex(None, room.bottomleft))
-    return vertices
-
-
-def get_vertices_between(all_vertices, v1, v2, v3):
-    from_angle = _angle(v1, v2)
-    vertices = [(_angle(v1, v), v) for v in all_vertices if v not in (v1, v2, v3)]
-    to_angle = _angle(v1, v3)
-
-    if to_angle < from_angle:
-        vertices = [(a, v) for (a, v) in vertices if _angle(v1, v) > from_angle
-                    or _angle(v1, v) < to_angle]
-    else:
-        vertices = [(a, v) for (a, v) in vertices if _angle(v1, v) > from_angle
-                    and _angle(v1, v) < to_angle]
-    vertices.sort()
-    return [v for (a, v) in vertices]
-
-
-def get_vertices_between_angle(all_vertices, v1, v2, from_angle):
-    vertices = [(_angle(v1, v), v) for v in all_vertices if v not in (v1, v2)]
-    to_angle = _angle(v1, v2)
-    if to_angle < from_angle:
-        to_angle += math.pi * 2
-    vertices = [(a, v) for (a, v) in vertices if _angle(v1, v) > from_angle
-                and _angle(v1, v) < to_angle]
-    vertices.sort()
-    return [v for (a, v) in vertices]
-
-
-def get_nodes_for(room, vertex):
-    segments = []
-    segment = get_next_node(room, vertex)
-    if segment:
-        vertex.segments.append([segment.v2, segment.v3])
-        segment.v2.segments.append([segment.v3, vertex])
-        segment.v3.segments.append([vertex, segment.v2])
-    while segment:
-        segments.append(segment)
-        segment = get_next_node(room, vertex)
-        if segment:
-            vertex.segments.append([segment.v2, segment.v3])
-            segment.v2.segments.append([segment.v3, vertex])
-            segment.v3.segments.append([vertex, segment.v2])
-    return segments
-
-
-def _angle(v1, v2):
+def angle(v1, v2):
     return (math.atan2(v1.position.y - v2.position.y, v1.position.x - v2.position.x) + math.pi) % (math.pi * 2)
 
 
-def _diff(origin, v1, v2):
-    a1 = _angle(origin, v1)
-    a2 = _angle(origin, v2)
-    if a2 > a1:
-        return a2 - a1
-    else:
-        return math.pi * 2 + (a2 - a1)
-
-
-def __diff(a1, a2):
-    d = a1 - a2
-    if d >= 0:
-        return d % math.pi
-    else:
-        return -(abs(d) % math.pi)
-
 class PolygonFunnelGeography(object):
-    def __init__(self):
-        self.nodes = []
-
-    def init(self, room):
-        # create nodes
+    def __init__(self, room):
         self.room = room
 
-        # for each object vertex duo (self + clockwise neighbour)
-#        for obj in room.room_objects:
-#            for vertex in get_vertices(obj):
-#                next_vertex = vertex.next
-#                angle = _angle(vertex, next_vertex)
+    def get_vertices(self, room_object):
+        v1 = Vertex(room_object, room_object.position.add_coords(-room_object.width / 2, -room_object.height / 2))
+        v2 = Vertex(room_object, room_object.position.add_coords(room_object.width / 2, -room_object.height / 2))
+        v3 = Vertex(room_object, room_object.position.add_coords(room_object.width / 2, room_object.height / 2))
+        v4 = Vertex(room_object, room_object.position.add_coords(-room_object.width / 2, room_object.height / 2))
+        v1.previous = v4
+        v1.next = v2
+        v2.previous = v1
+        v2.next = v3
+        v3.previous = v2
+        v3.next = v4
+        v4.previous = v3
+        v4.next = v1
 
-                # get all other vertices ( except vertices in this object )
-#                vertices = self._all_vertices(room)
+        s1 = Segment(v1, v2, v4)
+        s2 = Segment(v3, v4, v2)
 
-                # filter out vertices at > 180 degrees
-#                vertices = self._filter_pi(vertex, _angle(vertex.previous, vertex), vertices)
+        v1.sectors = [[v2, v4]]
+        v2.sectors = [[v3, v4], [v4, v1]]
+        v3.sectors = [[v4, v2]]
+        v4.sectors = [[v1, v2], [v2, v3]]
 
-                # filter out vertices occluded by polys / objects
-#                vertices = self._filter_occluded(vertex, vertices)
+        return [v1, v2, v3, v4], [s1, s2]
 
-                # sort by angle, pick smallest
+    def get_next_node(self, vertex):
+        # check for complete sectors
+        if vertex.complete_sectors():
+            return None
 
-        # find attachable vertex
-            # search every other vertex, beginning clockwise, find other vertex which is not occluded by another object or node
 
+        # find next gap in sectors
+        next_v = vertex.sectors[0][1]
+
+        # get all the vertices in the room
+        all_vertices = self.get_all_vertices()
+
+        # start at 0 degrees - check for gaps starting from 0
+        # if any non-occluded vertices exists between 0  degrees and next_v, add them
+        missing_initial = self.get_vertices_betweenangle(all_vertices, vertex, next_v, 0)
+        missing_initial = self.filter_occluded_vertices(vertex, missing_initial, all_vertices)
+
+        if len(missing_initial) > 1:
+            return Segment(vertex, missing_initial[0], missing_initial[1])
+        elif missing_initial:
+            return Segment(vertex, missing_initial[0], next_v)
+
+        # process sectors clockwise
+        index = 1
+        while index < len(vertex.sectors) and vertex.sectors[index][0] == next_v:
+            next_v = vertex.sectors[index][1]
+            index += 1
+
+        if index == len(vertex.sectors) - 1:
+            next_next_v = vertex.sectors[index][0]
+        else:
+            next_next_v = vertex.sectors[0][0]
+
+        # get all vertices reachable between next_v and next_next_v
+        vertices = self.get_vertices_between(all_vertices, vertex, next_v, next_next_v)
+
+        # filter out vertices occluded by existing edges
+        vertices = self.filter_occluded_vertices(vertex, vertices, all_vertices)
+
+        # fill in gap
+        if vertices:
+            return Segment(vertex, next_v, vertices[0])
+        else:
+            return Segment(vertex, next_v, next_next_v)
+
+        # add node
+
+        # return result or None if no gap
         pass
 
-    def _filter_pi(self, vertex, angle, vertices):
-        return [v for v in vertices if _angle(v, vertex) > angle]
+    def any_intersect(self, from_x, from_y, to_x, to_y, s1, sectors):
+        for segment in sectors:
+            if intersect(from_x, from_y, to_x, to_y, \
+                            s1.x, s1.y,
+                            segment[0].position.x, segment[0].position.y):
+                return True
+            if intersect(from_x, from_y, to_x, to_y, \
+                            segment[0].position.x, segment[0].position.y,
+                            segment[1].position.x, segment[1].position.y):
+                return True
 
-    def _filter_occluded(self, vertex, vertices):
-        return [v for v in vertices if self._complete(vertex, v)]
+            if intersect(from_x, from_y, to_x, to_y, \
+                            segment[1].position.x, segment[1].position.y,
+                            s1.x, s1.y):
+                return True
+        return False
 
-    def _complete(self, v1, v2):
-        ''' return true if line segment is not intersected by a node or object
-        '''
-        for node in self.nodes:
-            for v in node.vertices:
-                if vertex_intersect(v1, v2, v, v.next):
-                    return False
-        for obj in self.room.room_objects:
-            for v in get_vertices(obj):
-                if vertex_intersect(v1, v2, v, v.next):
-                    return False
-        return True
+    def filter_occluded_vertices(self, vertex, vertices, all_vertices):
+        filtered = []
+        for v in vertices:
+            intersects = False
+            for existing in all_vertices:
+                from_x, from_y = vertex.position.x, vertex.position.y
+                to_x, to_y = v.position.x, v.position.y
+                sectors = existing.sectors
+                if self.any_intersect(from_x, from_y, to_x, to_y, existing.position, sectors):
+                    intersects = True
+            if not intersects:
+                filtered.append(v)
+        return filtered
 
-
-    def _all_vertices(self, room):
+    def get_all_vertices(self):
         vertices = []
-        for obj in room.room_objects:
-            vertices.extend(get_vertices(obj))
+        for obj in self.room.room_objects:
+            vs, _ = self.get_vertices(obj)
+            vertices.extend(vs)
+        vertices.append(Vertex(None, self.room.topleft))
+        vertices.append(Vertex(None, self.room.topright))
+        vertices.append(Vertex(None, self.room.bottomright))
+        vertices.append(Vertex(None, self.room.bottomleft))
         return vertices
 
+    def get_vertices_between(self, all_vertices, v1, v2, v3):
+        fromangle = angle(v1, v2)
+        vertices = [(angle(v1, v), v) for v in all_vertices if v not in (v1, v2, v3)]
+        toangle = angle(v1, v3)
+
+        if toangle < fromangle:
+            vertices = [(a, v) for (a, v) in vertices if angle(v1, v) > fromangle
+                        or angle(v1, v) < toangle]
+        else:
+            vertices = [(a, v) for (a, v) in vertices if angle(v1, v) > fromangle
+                        and angle(v1, v) < toangle]
+        vertices.sort()
+        return [v for (a, v) in vertices]
+
+    def get_vertices_betweenangle(self, all_vertices, v1, v2, fromangle):
+        vertices = [(angle(v1, v), v) for v in all_vertices if v not in (v1, v2)]
+        toangle = angle(v1, v2)
+        if toangle < fromangle:
+            fromangle, toangle = toangle, fromangle
+        vertices = [(a, v) for (a, v) in vertices if angle(v1, v) > fromangle
+                    and angle(v1, v) < toangle]
+        vertices.sort()
+        return [v for (a, v) in vertices]
+
+    def get_nodes_for(self, vertex):
+        nodes = []
+        segment = self.get_next_node(vertex)
+        if segment:
+            vertex.add_sector(segment.v2, segment.v3)
+            segment.v2.add_sector(segment.v3, vertex)
+            segment.v3.add_sector(vertex, segment.v2)
+        while segment:
+            nodes.append(segment)
+            segment = self.get_next_node(vertex)
+            if segment:
+                vertex.add_sector(segment.v2, segment.v3)
+                segment.v2.add_sector(segment.v3, vertex)
+                segment.v3.add_sector(vertex, segment.v2)
+        return nodes
