@@ -169,7 +169,7 @@ class PolygonFunnelTest(unittest.TestCase):
 
         self.assertTrue(v1.complete_segments())
 
-        self.assertEquals(None, self.geography.get_next_node(v1))
+        self.assertEquals(None, self.geography.get_next_sector(v1))
 
     def test_get_all_vertices(self):
         obj = RoomObject("test", P(0, 0), 20, 20)
@@ -266,22 +266,22 @@ class PolygonFunnelTest(unittest.TestCase):
         vertices, segments = self.geography.get_vertices(obj)
         v1, v2, v3, v4 = vertices
 
-        node = self.geography.get_next_node(v1)
+        node = self.geography.get_next_sector(v1)
         self.assertEquals(Sector(v1, v4, V(-50, 50)), node)
 
         v1.segments.append([v4, V(-50, 50)])
 
-        node = self.geography.get_next_node(v1)
+        node = self.geography.get_next_sector(v1)
         self.assertEquals(Sector(v1, V(-50, 50), V(-50, -50)), node)
 
         v1.segments.append([V(-50, 50), V(-50, -50)])
-        self.assertEquals(Sector(v1, V(-50, -50), V(50, -50)), self.geography.get_next_node(v1))
+        self.assertEquals(Sector(v1, V(-50, -50), V(50, -50)), self.geography.get_next_sector(v1))
 
         v1.segments.append([V(-50, -50), V(50, -50)])
-        self.assertEquals(Sector(v1, V(50, -50), v2), self.geography.get_next_node(v1))
+        self.assertEquals(Sector(v1, V(50, -50), v2), self.geography.get_next_sector(v1))
 
         v1.segments.append([V(50, -50), v2])
-        self.assertEquals(None, self.geography.get_next_node(v1))
+        self.assertEquals(None, self.geography.get_next_sector(v1))
 
     def test_get_sectors_for(self):
         obj = RoomObject("test", P(0, 0), 20, 20)

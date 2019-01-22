@@ -110,7 +110,7 @@ class PolygonFunnelGeography(object):
 
         return [v1, v2, v3, v4], [s1, s2]
 
-    def get_next_node(self, vertex):
+    def get_next_sector(self, vertex):
         # check for complete segments
         if vertex.complete_segments():
             return None
@@ -228,14 +228,14 @@ class PolygonFunnelGeography(object):
 
     def get_sectors_for(self, vertex):
         sectors = []
-        sector = self.get_next_node(vertex)
+        sector = self.get_next_sector(vertex)
         if sector:
             vertex.add_sector(sector.v2, sector.v3)
             sector.v2.add_sector(sector.v3, vertex)
             sector.v3.add_sector(vertex, sector.v2)
         while sector:
             sectors.append(sector)
-            sector = self.get_next_node(vertex)
+            sector = self.get_next_sector(vertex)
             if sector:
                 vertex.add_sector(sector.v2, sector.v3)
                 sector.v2.add_sector(sector.v3, vertex)
