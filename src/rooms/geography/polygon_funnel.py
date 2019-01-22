@@ -226,28 +226,28 @@ class PolygonFunnelGeography(object):
         vertices.sort()
         return [v for (a, v) in vertices]
 
-    def get_nodes_for(self, vertex):
-        nodes = []
+    def get_sectors_for(self, vertex):
+        sectors = []
         sector = self.get_next_node(vertex)
         if sector:
             vertex.add_sector(sector.v2, sector.v3)
             sector.v2.add_sector(sector.v3, vertex)
             sector.v3.add_sector(vertex, sector.v2)
         while sector:
-            nodes.append(sector)
+            sectors.append(sector)
             sector = self.get_next_node(vertex)
             if sector:
                 vertex.add_sector(sector.v2, sector.v3)
                 sector.v2.add_sector(sector.v3, vertex)
                 sector.v3.add_sector(vertex, sector.v2)
-        return nodes
+        return sectors
 
     def get_all_the_things(self):
         # get all vertices in room
            # check for vertices inside another object
               # split out new vertices
         # for vertices in room
-           # fill segments, create nodes
-        # for all nodes
-           # link nodes
+           # fill segments, create sectors
+        # for all sectors
+           # link sectors
         pass

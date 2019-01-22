@@ -283,7 +283,7 @@ class PolygonFunnelTest(unittest.TestCase):
         v1.segments.append([V(50, -50), v2])
         self.assertEquals(None, self.geography.get_next_node(v1))
 
-    def test_get_nodes_for(self):
+    def test_get_sectors_for(self):
         obj = RoomObject("test", P(0, 0), 20, 20)
         def V(x, y):
             return Vertex(obj, P(x, y))
@@ -292,20 +292,20 @@ class PolygonFunnelTest(unittest.TestCase):
         vertices, segments = self.geography.get_vertices(obj)
         v1, v2, v3, v4 = vertices
 
-        nodes = self.geography.get_nodes_for(v1)
-        self.assertEquals(nodes, [
+        sectors = self.geography.get_sectors_for(v1)
+        self.assertEquals(sectors, [
             Sector(v1, v4, V(-50, 50)),
             Sector(v1, V(-50, 50), V(-50, -50)),
             Sector(v1, V(-50, -50), V(50, -50)),
             Sector(v1, V(50, -50), v2),
-        ], nodes)
+        ], sectors)
 
         self.fail("stop hanging")
-        nodes = self.geography.get_nodes_for(v2)
-        self.assertEquals(nodes, [
+        sectors = self.geography.get_sectors_for(v2)
+        self.assertEquals(sectors, [
             Sector(v2, V(50, -50), V(50, 50)),
             Sector(v2, V(50, 50), v3),
-        ], nodes)
+        ], sectors)
 
     def test_filter_occluded_polygons(self):
         obj = RoomObject("test", P(0, 0), 20, 20)
