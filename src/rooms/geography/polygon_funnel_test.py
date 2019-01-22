@@ -68,7 +68,7 @@ class PolygonFunnelTest(unittest.TestCase):
         def V(x, y):
             return Vertex(obj, P(x, y))
         vertices = [V(5, 5), V(15, 5), V(5, 15)]
-        self.assertEquals([V(5, 5)], self.geography.get_vertices_betweenangle(vertices, V(0, 0), V(5, 10), 0))
+        self.assertEquals([V(15, 5), V(5, 5)], self.geography.get_vertices_betweenangle(vertices, V(0, 0), V(5, 10), 0))
 
     def test_vertex_sectors(self):
         # each vertex has a list of (circle) sectors which fill all the angles for that vertex

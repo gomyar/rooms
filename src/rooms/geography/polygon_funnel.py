@@ -241,3 +241,13 @@ class PolygonFunnelGeography(object):
                 segment.v2.add_sector(segment.v3, vertex)
                 segment.v3.add_sector(vertex, segment.v2)
         return nodes
+
+    def get_all_the_things(self):
+        # get all vertices in room
+           # check for vertices inside another object
+              # split out new vertices
+        # for vertices in room
+           # fill sectors, create nodes
+        # for all nodes
+           # link nodes
+        pass
