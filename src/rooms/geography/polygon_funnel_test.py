@@ -8,7 +8,7 @@ from rooms.position import Position as P
 from rooms.testutils import MockNode
 from .polygon_funnel import PolygonFunnelGeography
 from .polygon_funnel import Vertex
-from .polygon_funnel import Segment
+from .polygon_funnel import Sector
 from .polygon_funnel import angle
 
 
@@ -22,9 +22,9 @@ class PolygonFunnelTest(unittest.TestCase):
 
     def test_get_object_vertices(self):
         room_object = RoomObject("test", P(50, 50), 20, 20)
-        vertices, sectors = self.geography.get_vertices(room_object)
+        vertices, segments = self.geography.get_vertices(room_object)
         self.assertEquals(4, len(vertices))
-        self.assertEquals(2, len(sectors))
+        self.assertEquals(2, len(segments))
 
         v1, v2, v3, v4 = vertices
         self.assertEquals(P(40, 40), v1.position)
@@ -41,14 +41,14 @@ class PolygonFunnelTest(unittest.TestCase):
         self.assertEquals(v3, v4.previous)
         self.assertEquals(v1, v4.next)
 
-        s1, s2 = sectors
-        self.assertEquals(Segment(v1, v2, v4), s1)
-        self.assertEquals(Segment(v3, v4, v2), s2)
+        s1, s2 = segments
+        self.assertEquals(Sector(v1, v2, v4), s1)
+        self.assertEquals(Sector(v3, v4, v2), s2)
 
-        self.assertEquals([[v2, v4]], v1.sectors)
-        self.assertEquals([[v3, v4], [v4, v1]], v2.sectors)
-        self.assertEquals([[v4, v2]], v3.sectors)
-        self.assertEquals([[v1, v2], [v2, v3]], v4.sectors)
+        self.assertEquals([[v2, v4]], v1.segments)
+        self.assertEquals([[v3, v4], [v4, v1]], v2.segments)
+        self.assertEquals([[v4, v2]], v3.segments)
+        self.assertEquals([[v1, v2], [v2, v3]], v4.segments)
 
     def testangles(self):
         obj = RoomObject("test", P(0, 0), 20, 20)
@@ -70,8 +70,8 @@ class PolygonFunnelTest(unittest.TestCase):
         vertices = [V(5, 5), V(15, 5), V(5, 15)]
         self.assertEquals([V(15, 5), V(5, 5)], self.geography.get_vertices_betweenangle(vertices, V(0, 0), V(5, 10), 0))
 
-    def test_vertex_sectors(self):
-        # each vertex has a list of (circle) sectors which fill all the angles for that vertex
+    def test_vertex_segments(self):
+        # each vertex has a list of (circle) segments which fill all the angles for that vertex
         obj = RoomObject("test", P(0, 0), 20, 20)
         def V(x, y):
             return Vertex(obj, P(x, y))
@@ -86,9 +86,9 @@ class PolygonFunnelTest(unittest.TestCase):
             [[V(55, 80), V(45, 80)]],
             [[V(10, 60), V(10, 40)]],
             [[V(70, 30), V(85, 40)], [V(85, 40), V(80, 55)]]
-        ], vertex.sectors_gaps())
+        ], vertex.segments_gaps())
 
-        # sectors added in order
+        # segments added in order
         vertex.add_sector(V(80, 60), V(60, 80))
 
         self.assertEquals([
@@ -96,7 +96,7 @@ class PolygonFunnelTest(unittest.TestCase):
             [[V(55, 80), V(45, 80)]],
             [[V(10, 60), V(10, 40)]],
             [[V(70, 30), V(85, 40)], [V(85, 40), V(80, 55)]]
-        ], vertex.sectors_gaps())
+        ], vertex.segments_gaps())
 
         # adding another sector
         vertex.add_sector(V(40, 10), V(60, 10))
@@ -107,7 +107,7 @@ class PolygonFunnelTest(unittest.TestCase):
             [[V(10, 60), V(10, 40)]],
             [[V(40, 10), V(60, 10)]],  # added in order
             [[V(70, 30), V(85, 40)], [V(85, 40), V(80, 55)]]
-        ], vertex.sectors_gaps())
+        ], vertex.segments_gaps())
 
         # add sector which joins with existing
         vertex.add_sector(V(45, 80), V(0, 90))
@@ -118,7 +118,7 @@ class PolygonFunnelTest(unittest.TestCase):
             [[V(10, 60), V(10, 40)]],
             [[V(40, 10), V(60, 10)]],
             [[V(70, 30), V(85, 40)], [V(85, 40), V(80, 55)]]
-        ], vertex.sectors_gaps())
+        ], vertex.segments_gaps())
 
         # adding a sector will fill in the gap if they join with others
         vertex.add_sector(V(10, 40), V(40, 10))
@@ -128,7 +128,7 @@ class PolygonFunnelTest(unittest.TestCase):
             [[V(55, 80), V(45, 80)], [V(45, 80), V(0, 90)]],
             [[V(10, 60), V(10, 40)], [V(10, 40), V(40, 10)], [V(40, 10), V(60, 10)]],
             [[V(70, 30), V(85, 40)], [V(85, 40), V(80, 55)]]
-        ], vertex.sectors_gaps())
+        ], vertex.segments_gaps())
 
         # fill all the others
         vertex.add_sector(V(60, 10), V(70, 30))
@@ -149,25 +149,25 @@ class PolygonFunnelTest(unittest.TestCase):
             [V(60, 10), V(70, 30)],
             [V(70, 30), V(85, 40)],
             [V(85, 40), V(80, 55)],
-        ]], vertex.sectors_gaps())
+        ]], vertex.segments_gaps())
 
         # the last sector may be > pi*2
 
-    def test_sectors_complete(self):
+    def test_segments_complete(self):
         obj = RoomObject("test", P(0, 0), 20, 20)
         def V(x, y):
             return Vertex(obj, P(x, y))
         self.room.room_objects.append(obj)
 
         v1 = V(0, 0)
-        v1.sectors = [
+        v1.segments = [
             [V(10, -10), V(10, 10)],
             [V(10, 10), V(-10, 10)],
             [V(-10, 10), V(-10, -10)],
             [V(-10, -10), V(10, -10)],
         ]
 
-        self.assertTrue(v1.complete_sectors())
+        self.assertTrue(v1.complete_segments())
 
         self.assertEquals(None, self.geography.get_next_node(v1))
 
@@ -263,24 +263,24 @@ class PolygonFunnelTest(unittest.TestCase):
             return Vertex(obj, P(x, y))
         self.room.room_objects.append(obj)
 
-        vertices, sectors = self.geography.get_vertices(obj)
+        vertices, segments = self.geography.get_vertices(obj)
         v1, v2, v3, v4 = vertices
 
         node = self.geography.get_next_node(v1)
-        self.assertEquals(Segment(v1, v4, V(-50, 50)), node)
+        self.assertEquals(Sector(v1, v4, V(-50, 50)), node)
 
-        v1.sectors.append([v4, V(-50, 50)])
+        v1.segments.append([v4, V(-50, 50)])
 
         node = self.geography.get_next_node(v1)
-        self.assertEquals(Segment(v1, V(-50, 50), V(-50, -50)), node)
+        self.assertEquals(Sector(v1, V(-50, 50), V(-50, -50)), node)
 
-        v1.sectors.append([V(-50, 50), V(-50, -50)])
-        self.assertEquals(Segment(v1, V(-50, -50), V(50, -50)), self.geography.get_next_node(v1))
+        v1.segments.append([V(-50, 50), V(-50, -50)])
+        self.assertEquals(Sector(v1, V(-50, -50), V(50, -50)), self.geography.get_next_node(v1))
 
-        v1.sectors.append([V(-50, -50), V(50, -50)])
-        self.assertEquals(Segment(v1, V(50, -50), v2), self.geography.get_next_node(v1))
+        v1.segments.append([V(-50, -50), V(50, -50)])
+        self.assertEquals(Sector(v1, V(50, -50), v2), self.geography.get_next_node(v1))
 
-        v1.sectors.append([V(50, -50), v2])
+        v1.segments.append([V(50, -50), v2])
         self.assertEquals(None, self.geography.get_next_node(v1))
 
     def test_get_nodes_for(self):
@@ -289,22 +289,22 @@ class PolygonFunnelTest(unittest.TestCase):
             return Vertex(obj, P(x, y))
         self.room.room_objects.append(obj)
 
-        vertices, sectors = self.geography.get_vertices(obj)
+        vertices, segments = self.geography.get_vertices(obj)
         v1, v2, v3, v4 = vertices
 
         nodes = self.geography.get_nodes_for(v1)
         self.assertEquals(nodes, [
-            Segment(v1, v4, V(-50, 50)),
-            Segment(v1, V(-50, 50), V(-50, -50)),
-            Segment(v1, V(-50, -50), V(50, -50)),
-            Segment(v1, V(50, -50), v2),
+            Sector(v1, v4, V(-50, 50)),
+            Sector(v1, V(-50, 50), V(-50, -50)),
+            Sector(v1, V(-50, -50), V(50, -50)),
+            Sector(v1, V(50, -50), v2),
         ], nodes)
 
         self.fail("stop hanging")
         nodes = self.geography.get_nodes_for(v2)
         self.assertEquals(nodes, [
-            Segment(v2, V(50, -50), V(50, 50)),
-            Segment(v2, V(50, 50), v3),
+            Sector(v2, V(50, -50), V(50, 50)),
+            Sector(v2, V(50, 50), v3),
         ], nodes)
 
     def test_filter_occluded_polygons(self):
@@ -315,11 +315,11 @@ class PolygonFunnelTest(unittest.TestCase):
         v1 = V(-10, 50)
         v2 = V(10, 50)
 
-        # occluding segment
+        # occluding Sector
         v3 = V(-10, 20)
         v4 = V(10, 20)
         v5 = V(10, 30)
-        v3.sectors.append([v4, v5])
+        v3.segments.append([v4, v5])
 
         v6 = V(-20, 20)
 

@@ -2,7 +2,7 @@
 import math
 from .intersect import vertex_intersect, intersect
 
-class Segment(object):
+class Sector(object):
     def __init__(self, v1, v2, v3):
         self.v1 = v1
         self.v2 = v2
@@ -15,7 +15,7 @@ class Segment(object):
         return not self.__eq__(rhs)
 
     def __repr__(self):
-        return "<Segment %s %s %s>" % (self.v1, self.v2, self.v3)
+        return "<Sector %s %s %s>" % (self.v1, self.v2, self.v3)
 
 
 class Vertex(object):
@@ -24,7 +24,7 @@ class Vertex(object):
         self.position = position
         self.previous = None
         self.next = None
-        self.sectors = []
+        self.segments = []
 
     def __eq__(self, rhs):
         return rhs and self.position == rhs.position
@@ -39,38 +39,38 @@ class Vertex(object):
     def add_sector(self, from_vector, to_vector):
         new_sector = [from_vector, to_vector]
         # check for next linked sector
-        for index, (s1, s2) in enumerate(self.sectors):
+        for index, (s1, s2) in enumerate(self.segments):
             if s1 == to_vector:
-                self.sectors.insert(index, new_sector)
+                self.segments.insert(index, new_sector)
                 return
             if s2 == from_vector:
-                self.sectors.insert(index + 1, new_sector)
+                self.segments.insert(index + 1, new_sector)
                 return
 
-        # order sectors by angle
-        ordered_sectors = [(angle(self, s[0]), s) for s in self.sectors]
-        ordered_sectors.append((angle(self, from_vector), new_sector))
-        ordered_sectors = sorted(ordered_sectors)
+        # order segments by angle
+        ordered_segments = [(angle(self, s[0]), s) for s in self.segments]
+        ordered_segments.append((angle(self, from_vector), new_sector))
+        ordered_segments = sorted(ordered_segments)
 
-        sectors = [o[1] for o in ordered_sectors]
+        segments = [o[1] for o in ordered_segments]
 
         # insert in between existing
-        self.sectors = sectors
+        self.segments = segments
 
-    def sectors_gaps(self):
-        sectors = []
+    def segments_gaps(self):
+        segments = []
         last_sector = (None, None)
-        for from_vector, to_vector in self.sectors:
+        for from_vector, to_vector in self.segments:
             if last_sector[1] != from_vector:
-                sectors.append([])
-            sectors[-1].append([from_vector, to_vector])
+                segments.append([])
+            segments[-1].append([from_vector, to_vector])
             last_sector = (from_vector, to_vector)
-        return sectors
+        return segments
 
-    def complete_sectors(self):
-        first_v = self.sectors[0][0]
-        current_v = self.sectors[0][1]
-        for v1, v2 in self.sectors[1:]:
+    def complete_segments(self):
+        first_v = self.segments[0][0]
+        current_v = self.segments[0][1]
+        for v1, v2 in self.segments[1:]:
             if v1 != current_v:
                 return False
             current_v = v2
@@ -100,24 +100,24 @@ class PolygonFunnelGeography(object):
         v4.previous = v3
         v4.next = v1
 
-        s1 = Segment(v1, v2, v4)
-        s2 = Segment(v3, v4, v2)
+        s1 = Sector(v1, v2, v4)
+        s2 = Sector(v3, v4, v2)
 
-        v1.sectors = [[v2, v4]]
-        v2.sectors = [[v3, v4], [v4, v1]]
-        v3.sectors = [[v4, v2]]
-        v4.sectors = [[v1, v2], [v2, v3]]
+        v1.segments = [[v2, v4]]
+        v2.segments = [[v3, v4], [v4, v1]]
+        v3.segments = [[v4, v2]]
+        v4.segments = [[v1, v2], [v2, v3]]
 
         return [v1, v2, v3, v4], [s1, s2]
 
     def get_next_node(self, vertex):
-        # check for complete sectors
-        if vertex.complete_sectors():
+        # check for complete segments
+        if vertex.complete_segments():
             return None
 
 
-        # find next gap in sectors
-        next_v = vertex.sectors[0][1]
+        # find next gap in segments
+        next_v = vertex.segments[0][1]
 
         # get all the vertices in the room
         all_vertices = self.get_all_vertices()
@@ -128,20 +128,20 @@ class PolygonFunnelGeography(object):
         missing_initial = self.filter_occluded_vertices(vertex, missing_initial, all_vertices)
 
         if len(missing_initial) > 1:
-            return Segment(vertex, missing_initial[0], missing_initial[1])
+            return Sector(vertex, missing_initial[0], missing_initial[1])
         elif missing_initial:
-            return Segment(vertex, missing_initial[0], next_v)
+            return Sector(vertex, missing_initial[0], next_v)
 
-        # process sectors clockwise
+        # process segments clockwise
         index = 1
-        while index < len(vertex.sectors) and vertex.sectors[index][0] == next_v:
-            next_v = vertex.sectors[index][1]
+        while index < len(vertex.segments) and vertex.segments[index][0] == next_v:
+            next_v = vertex.segments[index][1]
             index += 1
 
-        if index == len(vertex.sectors) - 1:
-            next_next_v = vertex.sectors[index][0]
+        if index == len(vertex.segments) - 1:
+            next_next_v = vertex.segments[index][0]
         else:
-            next_next_v = vertex.sectors[0][0]
+            next_next_v = vertex.segments[0][0]
 
         # get all vertices reachable between next_v and next_next_v
         vertices = self.get_vertices_between(all_vertices, vertex, next_v, next_next_v)
@@ -151,28 +151,28 @@ class PolygonFunnelGeography(object):
 
         # fill in gap
         if vertices:
-            return Segment(vertex, next_v, vertices[0])
+            return Sector(vertex, next_v, vertices[0])
         else:
-            return Segment(vertex, next_v, next_next_v)
+            return Sector(vertex, next_v, next_next_v)
 
         # add node
 
         # return result or None if no gap
         pass
 
-    def any_intersect(self, from_x, from_y, to_x, to_y, s1, sectors):
-        for segment in sectors:
+    def any_intersect(self, from_x, from_y, to_x, to_y, s1, segments):
+        for sector in segments:
             if intersect(from_x, from_y, to_x, to_y, \
                             s1.x, s1.y,
-                            segment[0].position.x, segment[0].position.y):
+                            sector[0].position.x, sector[0].position.y):
                 return True
             if intersect(from_x, from_y, to_x, to_y, \
-                            segment[0].position.x, segment[0].position.y,
-                            segment[1].position.x, segment[1].position.y):
+                            sector[0].position.x, sector[0].position.y,
+                            sector[1].position.x, sector[1].position.y):
                 return True
 
             if intersect(from_x, from_y, to_x, to_y, \
-                            segment[1].position.x, segment[1].position.y,
+                            sector[1].position.x, sector[1].position.y,
                             s1.x, s1.y):
                 return True
         return False
@@ -184,8 +184,8 @@ class PolygonFunnelGeography(object):
             for existing in all_vertices:
                 from_x, from_y = vertex.position.x, vertex.position.y
                 to_x, to_y = v.position.x, v.position.y
-                sectors = existing.sectors
-                if self.any_intersect(from_x, from_y, to_x, to_y, existing.position, sectors):
+                segments = existing.segments
+                if self.any_intersect(from_x, from_y, to_x, to_y, existing.position, segments):
                     intersects = True
             if not intersects:
                 filtered.append(v)
@@ -228,18 +228,18 @@ class PolygonFunnelGeography(object):
 
     def get_nodes_for(self, vertex):
         nodes = []
-        segment = self.get_next_node(vertex)
-        if segment:
-            vertex.add_sector(segment.v2, segment.v3)
-            segment.v2.add_sector(segment.v3, vertex)
-            segment.v3.add_sector(vertex, segment.v2)
-        while segment:
-            nodes.append(segment)
-            segment = self.get_next_node(vertex)
-            if segment:
-                vertex.add_sector(segment.v2, segment.v3)
-                segment.v2.add_sector(segment.v3, vertex)
-                segment.v3.add_sector(vertex, segment.v2)
+        sector = self.get_next_node(vertex)
+        if sector:
+            vertex.add_sector(sector.v2, sector.v3)
+            sector.v2.add_sector(sector.v3, vertex)
+            sector.v3.add_sector(vertex, sector.v2)
+        while sector:
+            nodes.append(sector)
+            sector = self.get_next_node(vertex)
+            if sector:
+                vertex.add_sector(sector.v2, sector.v3)
+                sector.v2.add_sector(sector.v3, vertex)
+                sector.v3.add_sector(vertex, sector.v2)
         return nodes
 
     def get_all_the_things(self):
@@ -247,7 +247,7 @@ class PolygonFunnelGeography(object):
            # check for vertices inside another object
               # split out new vertices
         # for vertices in room
-           # fill sectors, create nodes
+           # fill segments, create nodes
         # for all nodes
            # link nodes
         pass
