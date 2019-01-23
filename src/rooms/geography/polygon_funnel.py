@@ -134,9 +134,11 @@ class PolygonFunnelGeography(object):
 
 
         # check for last sector which crosses 0 degrees
-        if vertex.almost_complete_sectors() and not self.get_vertices_betweenangle(all_vertices, vertex, vertex.sectors[-1][1], math.pi * 2) and \
+        if vertex.almost_complete_sectors() and \
+                not self.get_vertices_betweenangle(all_vertices, vertex, vertex.sectors[-1][1], math.pi * 2) and \
                 not self.get_vertices_betweenangle(all_vertices, vertex, vertex.sectors[0][0], 0):
-            return Sector(vertex, vertex.sectors[-1][1], vertex.sectors[0][0])
+            if self.filter_occluded_vertices(vertex, [vertex.sectors[-1][1], vertex.sectors[0][0]], all_vertices):
+                return Sector(vertex, vertex.sectors[-1][1], vertex.sectors[0][0])
 
         # start at 0 degrees - check for gaps starting from 0
         # if any non-occluded vertices exists between 0  degrees and next_v, add them
@@ -144,9 +146,11 @@ class PolygonFunnelGeography(object):
         missing_initial = self.filter_occluded_vertices(vertex, missing_initial, all_vertices)
 
         if len(missing_initial) > 1:
-            return Sector(vertex, missing_initial[0], missing_initial[1])
+            if [missing_initial[0], missing_initial[1]] not in vertex.sectors:
+                return Sector(vertex, missing_initial[0], missing_initial[1])
         elif missing_initial:
-            return Sector(vertex, missing_initial[0], next_v)
+            if [missing_initial[0], next_v] not in vertex.sectors:
+                return Sector(vertex, missing_initial[0], next_v)
 
         # process sectors clockwise
         index = 1
