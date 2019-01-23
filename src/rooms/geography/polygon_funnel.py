@@ -77,6 +77,16 @@ class Vertex(object):
 
         return current_v == first_v
 
+    def almost_complete_sectors(self):
+        first_v = self.sectors[0][0]
+        current_v = self.sectors[0][1]
+        for v1, v2 in self.sectors[1:]:
+            if v1 != current_v:
+                return False
+            current_v = v2
+
+        return True
+
 
 def angle(v1, v2):
     return (math.atan2(v1.position.y - v2.position.y, v1.position.x - v2.position.x) + math.pi) % (math.pi * 2)
@@ -121,6 +131,12 @@ class PolygonFunnelGeography(object):
 
         # get all the vertices in the room
         all_vertices = self.get_all_vertices()
+
+
+        # check for last sector which crosses 0 degrees
+        if vertex.almost_complete_sectors() and not self.get_vertices_betweenangle(all_vertices, vertex, vertex.sectors[-1][1], math.pi * 2) and \
+                not self.get_vertices_betweenangle(all_vertices, vertex, vertex.sectors[0][0], 0):
+            return Sector(vertex, vertex.sectors[-1][1], vertex.sectors[0][0])
 
         # start at 0 degrees - check for gaps starting from 0
         # if any non-occluded vertices exists between 0  degrees and next_v, add them

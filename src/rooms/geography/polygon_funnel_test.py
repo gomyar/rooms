@@ -300,12 +300,19 @@ class PolygonFunnelTest(unittest.TestCase):
             Sector(v1, V(50, -50), v2),
         ], sectors)
 
-        self.fail("stop hanging")
         sectors = self.geography.get_sectors_for(v2)
         self.assertEquals(sectors, [
-            Sector(v2, V(50, -50), V(50, 50)),
             Sector(v2, V(50, 50), v3),
+            Sector(v2, V(50, -50), V(50, 50)),
         ], sectors)
+
+        self.fail('stop hang')
+        sectors = self.geography.get_sectors_for(v3)
+        self.assertEquals(sectors, [
+            Sector(v3, V(50, 50), V(-50, 50)),
+            Sector(v3, V(-50, 50), v4),
+        ], sectors)
+
 
     def test_filter_occluded_polygons(self):
         obj = RoomObject("test", P(0, 0), 20, 20)
