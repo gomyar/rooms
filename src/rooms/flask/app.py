@@ -15,6 +15,7 @@ from rooms.master import Master
 from rooms.node import Node
 from rooms.geography.basic_geography import BasicGeography
 from rooms.geography.pointmap_geography import PointmapGeography
+from rooms.geography.polygon_funnel import PolygonFunnelGeography
 from rooms.room_builder import RoomBuilder
 from rooms.room_builder import FileMapSource
 from rooms.container import Container
@@ -57,7 +58,7 @@ room_builder = RoomBuilder(FileMapSource(mapdir), node)
 item_registry = ItemRegistry()
 if os.path.exists(itemdir):
     item_registry.load_from_directory(itemdir)
-container.geography = PointmapGeography()
+container.geography = PolygonFunnelGeography()
 container.room_builder = room_builder
 container.item_registry = item_registry
 
@@ -67,6 +68,7 @@ node.container = container
 GEOGRAPHIES = {
     'basic': BasicGeography(),
     'pointmap': PointmapGeography(),
+    'polygon_funnel': PolygonFunnelGeography(),
 }
 
 

@@ -86,4 +86,4 @@ if __name__ == '__main__':
     node.load_scripts('./scripts')
     node.start()
 
-    start_rooms_app(app)
+    start_rooms_app(app, "polygon_funnel")

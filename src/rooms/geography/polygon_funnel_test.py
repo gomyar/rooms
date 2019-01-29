@@ -17,7 +17,8 @@ class PolygonFunnelTest(unittest.TestCase):
         self.room = Room("game1", "room1", MockNode())
         self.room.coords(-50, -50, 50, 50)
 
-        self.geography = PolygonFunnelGeography(self.room)
+        self.geography = PolygonFunnelGeography()
+        self.geography.setup(self.room)
         self.room.geog = self.geography
 
     def test_get_object_vertices(self):
@@ -310,8 +311,6 @@ class PolygonFunnelTest(unittest.TestCase):
         self.assertEquals(sectors, [
             Sector(v3, V(50, 50), V(-50, 50)),
             Sector(v3, V(-50, 50), v4),
-            Sector(v3, v2, V(50, -50)), # ??
-            Sector(v3, V(50, -50), V(50, 50)),
         ], sectors)
 
         sectors = self.geography.get_sectors_for(v4)

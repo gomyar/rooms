@@ -129,23 +129,23 @@ class Room(object):
 
     @property
     def topleft(self):
-        return self.position.add_coords(-self.width / 2.0, -self.height / 2.0,
-                                        -self.depth / 2.0)
+        return Position(-self.width / 2.0, -self.height / 2.0,
+                        -self.depth / 2.0)
 
     @property
     def topright(self):
-        return self.position.add_coords(self.width / 2.0, -self.height / 2.0,
-                                        -self.depth / 2.0)
+        return Position(self.width / 2.0, -self.height / 2.0,
+                        -self.depth / 2.0)
 
     @property
     def bottomright(self):
-        return self.position.add_coords(self.width / 2.0, self.height / 2.0,
-                                        self.depth / 2.0)
+        return Position(self.width / 2.0, self.height / 2.0,
+                        self.depth / 2.0)
 
     @property
     def bottomleft(self):
-        return self.position.add_coords(-self.width / 2.0, self.height / 2.0,
-                                        self.depth / 2.0)
+        return Position(-self.width / 2.0, self.height / 2.0,
+                        self.depth / 2.0)
 
     def coords(self, x1, y1, x2, y2):
         self.position = Position(x1 + (x2 - x1) / 2, y1 + (y2 - y1) / 2)

@@ -9,6 +9,9 @@ class PointmapGeography(object):
         self.point_spacing = point_spacing
         self._pointmaps = dict()
 
+    def draw(self):
+        return {"type": "pointmap", "polygons": []}
+
     def _get_pointmap(self, room):
         if room not in self._pointmaps:
             pm_width = int(room.width / self.point_spacing) * self.point_spacing

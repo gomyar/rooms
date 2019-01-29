@@ -54,8 +54,8 @@ class RoomTest(unittest.TestCase):
     def testInitialSetup(self):
         self.assertEquals(50, self.room.width)
         self.assertEquals(50, self.room.height)
-        self.assertEquals(Position(0, 0, 0), self.room.topleft)
-        self.assertEquals(Position(50, 50, 0), self.room.bottomright)
+        self.assertEquals(Position(-25, -25, 0), self.room.topleft)
+        self.assertEquals(Position(25, 25, 0), self.room.bottomright)
         self.assertEquals(Position(25, 25, 0), self.room.position)
 
     def testCreateActor(self):

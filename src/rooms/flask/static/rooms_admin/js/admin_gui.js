@@ -332,6 +332,23 @@ gui.draw = function()
         gui.ctx.strokeRect(gui.canvas_x(x1), gui.canvas_y(y1), room.width / gui.zoom, room.height / gui.zoom)
     }
 
+    for (var p in admin.geography.polygons) {
+        var polygon = admin.geography.polygons[p];
+        gui.ctx.beginPath();
+        gui.ctx.moveTo(gui.canvas_x(api_rooms.room.position.x + polygon[0].x), gui.canvas_y(api_rooms.room.position.y + polygon[0].y));
+
+        for (var l=1; l<polygon.length; l++) {
+            gui.ctx.lineTo(gui.canvas_x(api_rooms.room.position.x + polygon[l].x), gui.canvas_y(api_rooms.room.position.y + polygon[l].y));
+        }
+        gui.ctx.closePath();
+
+        gui.ctx.fillStyle = "rgb(25, 25, 155)";
+        gui.ctx.fill();
+
+        gui.ctx.strokeStyle = "rgb(25, 25, 255)";
+        gui.ctx.stroke();
+    }
+
     // Draw current room
     gui.ctx.strokeStyle = "rgb(255, 255, 255)";
     var x1 = api_rooms.room.position.x - api_rooms.room.width / 2;

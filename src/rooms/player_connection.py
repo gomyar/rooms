@@ -60,7 +60,8 @@ class AdminConnection(PlayerConnection):
 
     def _sync_message(self, room):
         sync_msg = {"command": "sync", "data": {"now": Timer.now(),
-             "username": "admin", "room_id": room.room_id}}
+             "username": "admin", "room_id": room.room_id},
+             "geography": room.geography.draw()}
         sync_msg['map_url'] = "http://mapurl"
         return sync_msg
 

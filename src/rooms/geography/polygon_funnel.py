@@ -1,6 +1,8 @@
 
 import math
 from .intersect import vertex_intersect, intersect
+from .basic_geography import BasicGeography
+
 
 class Sector(object):
     def __init__(self, v1, v2, v3):
@@ -92,35 +94,61 @@ def angle(v1, v2):
     return (math.atan2(v1.position.y - v2.position.y, v1.position.x - v2.position.x) + math.pi) % (math.pi * 2)
 
 
-class PolygonFunnelGeography(object):
-    def __init__(self, room):
+class PolygonFunnelGeography(BasicGeography):
+    def setup(self, room):
         self.room = room
+        self._vertices = dict()
+        self._sectors = self._create_sectors()
+
+    def _create_sectors(self):
+        sectors = []
+        print "CREATE!!"
+        for vertex in self.get_all_vertices():
+            sectors.extend(self.get_sectors_for(vertex))
+        return sectors
+
+    def draw(self):
+        polygons = []
+        print "DRAW!!"
+        for sector in self._sectors:
+            poly = [
+                {'x': sector.v1.position.x, 'y': sector.v1.position.y},
+                {'x': sector.v2.position.x, 'y': sector.v2.position.y},
+                {'x': sector.v3.position.x, 'y': sector.v3.position.y},
+            ]
+            polygons.append(poly)
+        return {"polygons": polygons, "type": "polygon_funnel"}
 
     def get_vertices(self, room_object):
-        v1 = Vertex(room_object, room_object.position.add_coords(-room_object.width / 2, -room_object.height / 2))
-        v2 = Vertex(room_object, room_object.position.add_coords(room_object.width / 2, -room_object.height / 2))
-        v3 = Vertex(room_object, room_object.position.add_coords(room_object.width / 2, room_object.height / 2))
-        v4 = Vertex(room_object, room_object.position.add_coords(-room_object.width / 2, room_object.height / 2))
-        v1.previous = v4
-        v1.next = v2
-        v2.previous = v1
-        v2.next = v3
-        v3.previous = v2
-        v3.next = v4
-        v4.previous = v3
-        v4.next = v1
+        if room_object not in self._vertices:
+            v1 = Vertex(room_object, room_object.position.add_coords(-room_object.width / 2, -room_object.height / 2))
+            v2 = Vertex(room_object, room_object.position.add_coords(room_object.width / 2, -room_object.height / 2))
+            v3 = Vertex(room_object, room_object.position.add_coords(room_object.width / 2, room_object.height / 2))
+            v4 = Vertex(room_object, room_object.position.add_coords(-room_object.width / 2, room_object.height / 2))
+            v1.previous = v4
+            v1.next = v2
+            v2.previous = v1
+            v2.next = v3
+            v3.previous = v2
+            v3.next = v4
+            v4.previous = v3
+            v4.next = v1
 
-        s1 = Sector(v1, v2, v4)
-        s2 = Sector(v3, v4, v2)
+            s1 = Sector(v1, v2, v4)
+            s2 = Sector(v3, v4, v2)
 
-        v1.sectors = [[v2, v4]]
-        v2.sectors = [[v3, v4], [v4, v1]]
-        v3.sectors = [[v4, v2]]
-        v4.sectors = [[v1, v2], [v2, v3]]
+            v1.sectors = [[v2, v4]]
+            v2.sectors = [[v3, v4], [v4, v1]]
+            v3.sectors = [[v4, v2]]
+            v4.sectors = [[v1, v2], [v2, v3]]
 
-        return [v1, v2, v3, v4], [s1, s2]
+            self._vertices[room_object] = [v1, v2, v3, v4], [s1, s2]
+        return self._vertices[room_object]
 
     def get_next_sector(self, vertex):
+        if not vertex.sectors:
+            return None
+
         # check for complete sectors
         if vertex.complete_sectors():
             return None

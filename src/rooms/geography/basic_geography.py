@@ -11,3 +11,6 @@ class BasicGeography(object):
 
     def get_available_position_closest_to(self, room, position):
         return position
+
+    def draw(self):
+        return {"type": "basic", "polygons": []}

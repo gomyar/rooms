@@ -2,7 +2,8 @@
 var admin = {
     actor_list: [],
     selected_actor: null,
-    mapdata: {}
+    mapdata: {},
+    geography: {type: 'none', polygons: []}
 };
 
 
@@ -68,6 +69,7 @@ admin.game_callback = function(message) {
     {
         gui.init($('#screen')[0]);
         admin.load_room(message.data.room_id);
+        admin.geography = message.geography;
         gui.zoom = 1.0;
         turtlegui.reload();
     }
