@@ -23,9 +23,8 @@ class PolygonFunnelTest(unittest.TestCase):
 
     def test_get_object_vertices(self):
         room_object = RoomObject("test", P(50, 50), 20, 20)
-        vertices, sectors = self.geography.get_vertices(room_object)
+        vertices = self.geography.get_vertices(room_object)
         self.assertEquals(4, len(vertices))
-        self.assertEquals(2, len(sectors))
 
         v1, v2, v3, v4 = vertices
         self.assertEquals(P(40, 40), v1.position)
@@ -41,10 +40,6 @@ class PolygonFunnelTest(unittest.TestCase):
         self.assertEquals(v4, v3.next)
         self.assertEquals(v3, v4.previous)
         self.assertEquals(v1, v4.next)
-
-        s1, s2 = sectors
-        self.assertEquals(Sector(v1, v2, v4), s1)
-        self.assertEquals(Sector(v3, v4, v2), s2)
 
         self.assertEquals([[v2, v4]], v1.sectors)
         self.assertEquals([[v3, v4], [v4, v1]], v2.sectors)
@@ -264,7 +259,7 @@ class PolygonFunnelTest(unittest.TestCase):
             return Vertex(obj, P(x, y))
         self.room.room_objects.append(obj)
 
-        vertices, sectors = self.geography.get_vertices(obj)
+        vertices = self.geography.get_vertices(obj)
         v1, v2, v3, v4 = vertices
 
         node = self.geography.get_next_sector(v1)
@@ -290,7 +285,7 @@ class PolygonFunnelTest(unittest.TestCase):
             return Vertex(obj, P(x, y))
         self.room.room_objects.append(obj)
 
-        vertices, sectors = self.geography.get_vertices(obj)
+        vertices = self.geography.get_vertices(obj)
         v1, v2, v3, v4 = vertices
 
         sectors = self.geography.get_sectors_for(v1)
@@ -339,3 +334,19 @@ class PolygonFunnelTest(unittest.TestCase):
         filtered = self.geography.filter_occluded_vertices(vertex, vertices, all_vertices)
 
         self.assertEquals([v6], filtered)
+
+    def test_polygon_vertex_intersect(self):
+        obj = RoomObject("test", P(0, 0), 20, 20)
+        self.room.room_objects.append(obj)
+        obj2 = RoomObject("test", P(0, 0), 20, 20)
+        self.room.room_objects.append(obj2)
+
+        vertices = self.geography.get_vertices(obj)
+
+        polygon = Sector(Vertex(obj2, P(-10, -20)), Vertex(obj2, P(0, -20)), Vertex(obj2, P(0, 0)))
+        intersected = self.geography.get_polygon_intersects(polygon)
+
+        self.assertEquals([
+            (Vertex(None, P(-5, -10)), obj),
+            (Vertex(None, P(0, -10)), obj),
+        ], intersected)

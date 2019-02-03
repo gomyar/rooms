@@ -102,14 +102,12 @@ class PolygonFunnelGeography(BasicGeography):
 
     def _create_sectors(self):
         sectors = []
-        print "CREATE!!"
         for vertex in self.get_all_vertices():
             sectors.extend(self.get_sectors_for(vertex))
         return sectors
 
     def draw(self):
         polygons = []
-        print "DRAW!!"
         for sector in self._sectors:
             poly = [
                 {'x': sector.v1.position.x, 'y': sector.v1.position.y},
@@ -134,15 +132,12 @@ class PolygonFunnelGeography(BasicGeography):
             v4.previous = v3
             v4.next = v1
 
-            s1 = Sector(v1, v2, v4)
-            s2 = Sector(v3, v4, v2)
-
             v1.sectors = [[v2, v4]]
             v2.sectors = [[v3, v4], [v4, v1]]
             v3.sectors = [[v4, v2]]
             v4.sectors = [[v1, v2], [v2, v3]]
 
-            self._vertices[room_object] = [v1, v2, v3, v4], [s1, s2]
+            self._vertices[room_object] = [v1, v2, v3, v4]
         return self._vertices[room_object]
 
     def get_next_sector(self, vertex):
@@ -225,6 +220,10 @@ class PolygonFunnelGeography(BasicGeography):
                 return True
         return False
 
+    def get_intersections(self, x1, y1, x2, y2):
+        for sector in sectors:
+            pass
+
     def filter_occluded_vertices(self, vertex, vertices, all_vertices):
         filtered = []
         for v in vertices:
@@ -242,7 +241,7 @@ class PolygonFunnelGeography(BasicGeography):
     def get_all_vertices(self):
         vertices = []
         for obj in self.room.room_objects:
-            vs, _ = self.get_vertices(obj)
+            vs = self.get_vertices(obj)
             vertices.extend(vs)
         vertices.append(Vertex(None, self.room.topleft))
         vertices.append(Vertex(None, self.room.topright))
@@ -299,3 +298,13 @@ class PolygonFunnelGeography(BasicGeography):
         # for all sectors
            # link sectors
         pass
+
+    def get_polygon_intersects(self, polygon):
+        intersects = []
+        for room_object in self.room.room_objects:
+            vertices = self.get_vertices(room_object)
+            for vertex in vertices[:-1]:
+                for p in polygon.v1, polygon.v2, polygon.v3:
+                    intersect = intersect()
+        return intersects
+

@@ -1,6 +1,6 @@
 {
-    "map_id": "map1", 
     "positioning": "relative", 
+    "map_id": "map1", 
     "rooms": {
         "map1.room1": {
             "tags": [
@@ -10,13 +10,13 @@
                         "x": 70, 
                         "z": 0
                     }, 
-                    "tag_type": "actor.spawn", 
+                    "height": null, 
                     "data": {
                         "actor_type": "npc", 
                         "actor_script": "npc_script"
                     }, 
                     "width": null, 
-                    "height": null
+                    "tag_type": "actor.spawn"
                 }, 
                 {
                     "position": {
@@ -24,58 +24,67 @@
                         "x": 10, 
                         "z": 0
                     }, 
-                    "tag_type": "player.spawn", 
+                    "height": null, 
                     "data": {}, 
                     "width": null, 
-                    "height": null
+                    "tag_type": "player.spawn"
                 }
             ], 
             "room_objects": [
                 {
-                    "height": 120, 
                     "position": {
                         "y": -30, 
                         "x": -60, 
                         "z": 0
                     }, 
                     "object_type": "rect", 
-                    "width": 60
+                    "width": 60, 
+                    "height": 120
                 }, 
                 {
-                    "height": 50, 
                     "position": {
                         "y": 40, 
                         "x": 60
                     }, 
                     "object_type": "rect", 
-                    "width": 50
+                    "width": 50, 
+                    "height": 50
                 }, 
                 {
+                    "height": 25, 
                     "position": {
                         "y": 40, 
                         "x": 0
                     }, 
                     "object_type": "rect", 
-                    "width": 25, 
-                    "height": 25
+                    "width": 25
                 }, 
                 {
-                    "height": 30, 
                     "position": {
                         "y": -60, 
                         "x": 30
                     }, 
                     "object_type": "rect", 
-                    "width": 30
+                    "width": 30, 
+                    "height": 30
                 }, 
                 {
-                    "height": 25, 
                     "position": {
                         "y": 90, 
                         "x": -40
                     }, 
                     "object_type": "rect", 
-                    "width": 40
+                    "width": 40, 
+                    "height": 25
+                }, 
+                {
+                    "height": 20, 
+                    "position": {
+                        "y": -20, 
+                        "x": -30
+                    }, 
+                    "object_type": "rect", 
+                    "width": 20
                 }
             ], 
             "height": 250, 
@@ -105,13 +114,13 @@
             "tags": [], 
             "room_objects": [
                 {
+                    "height": 50, 
                     "position": {
                         "y": -60, 
                         "x": 0
                     }, 
                     "object_type": "rect", 
-                    "width": 50, 
-                    "height": 50
+                    "width": 50
                 }
             ], 
             "height": 250, 
