@@ -1,7 +1,8 @@
 
 import math
-from .intersect import vertex_intersect, intersect
+from .intersect import vertex_intersect, intersect, intersection_point
 from .basic_geography import BasicGeography
+from rooms.position import Position
 
 
 class Sector(object):
@@ -299,12 +300,33 @@ class PolygonFunnelGeography(BasicGeography):
            # link sectors
         pass
 
+    def get_room_object_overlaps(self, room_object):
+        vertices = self.get_vertices(room_object)
+        overlaps = []
+        for obj in self.room.room_objects:
+            if obj is not room_object:
+                obj_vertices = self.get_vertices(obj)
+                for vertex in vertices:
+                    for obj_vertex in obj_vertices:
+                        intersect = intersection_point(
+                            (vertex.position.x, vertex.position.y),
+                            (vertex.next.position.x, vertex.next.position.y),
+                            (obj_vertex.position.x, obj_vertex.position.y),
+                            (obj_vertex.next.position.x, obj_vertex.next.position.y))
+                        if intersect:
+                            overlaps.append((Vertex(room_object, Position(intersect[0], intersect[1])), obj))
+        return overlaps
+
     def get_polygon_intersects(self, polygon):
         intersects = []
         for room_object in self.room.room_objects:
             vertices = self.get_vertices(room_object)
             for vertex in vertices[:-1]:
-                for p in polygon.v1, polygon.v2, polygon.v3:
-                    intersect = intersect()
+                for (p1, p2) in (polygon.v1, polygon.v2), (polygon.v2, polygon.v3), (polygon.v3, polygon.v1):
+                    intersect = intersection_point(
+                        (p1.position.x, p1.position.y), (p2.position.x, p2.position.y),
+                        (vertex.position.x, vertex.position.y), (vertex.next.position.x, vertex.next.position.y))
+                if intersect:
+                    intersects.append(Vertex(None, Position(intersect[0], intersect[1])))
         return intersects
 

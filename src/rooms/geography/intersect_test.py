@@ -38,3 +38,19 @@ class IntersectTest(unittest.TestCase):
         self.assertEquals((0, 12), intersection_point((0, 0), (0, 20), (15, 0), (-10, 20)))
         self.assertEquals((0, 12.5), intersection_point((0, 0), (0, 20), (15, 0), (-9, 20)))
         self.assertEquals((0, 12.244897959183675), intersection_point((0, 0), (0, 20), (15, 0), (-9.5, 20)))
+
+    def test_room_object_intersections(self):
+        # top left
+        # top right
+        # bottom left
+        # bottom right
+        # top middle
+        # bottom middle
+        # left middle
+        # right middle
+        # top half
+        # bottom half
+        # left half
+        # right half
+        # horizontal
+        # vertical

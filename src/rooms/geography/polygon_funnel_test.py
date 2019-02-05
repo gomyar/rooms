@@ -335,6 +335,19 @@ class PolygonFunnelTest(unittest.TestCase):
 
         self.assertEquals([v6], filtered)
 
+    def test_room_object_overlap(self):
+        obj1 = RoomObject("test", P(0, 0), 20, 20)
+        obj2 = RoomObject("test", P(10, 10), 20, 20)
+
+        self.room.room_objects.append(obj1)
+        self.room.room_objects.append(obj2)
+
+        overlaps = self.geography.get_room_object_overlaps(obj1)
+        self.assertEquals([
+            (Vertex(obj1, P(10, 0)), obj2),
+            (Vertex(obj1, P(0, 10)), obj2),
+        ], overlaps)
+
     def test_polygon_vertex_intersect(self):
         obj = RoomObject("test", P(0, 0), 20, 20)
         self.room.room_objects.append(obj)
