@@ -96,6 +96,10 @@ class Room(object):
     def __repr__(self):
         return "<Room %s %s>" % (self.game_id, self.room_id)
 
+    def add_object(self, room_object):
+        self.room_objects.append(room_object)
+        self.geog.add_object(room_object)
+
     @property
     def item_registry(self):
         return self.node.container.item_registry
@@ -258,6 +262,14 @@ class Room(object):
             if position.is_within(room_object.topleft, room_object.bottomright):
                 return True
         return False
+
+    def position_within(self, position):
+        return (
+            position.x >= -self.width / 2 and
+            position.y >= -self.height / 2 and
+            position.x <= self.width / 2 and
+            position.y <= self.height / 2
+        )
 
     def send_message(self, message_type, position, data):
         self.vision.send_message(message_type, position, data)

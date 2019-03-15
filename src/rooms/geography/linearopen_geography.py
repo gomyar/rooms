@@ -10,3 +10,6 @@ class LinearOpenGeography(object):
         end = (min(max(0, end[0]), room.width),
             min(max(0, end[1]), room.height))
         return [start, end]
+
+    def add_object(self, room_object):
+        pass

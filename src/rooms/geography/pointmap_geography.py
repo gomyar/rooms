@@ -49,3 +49,6 @@ class PointmapGeography(object):
 
     def setup(self, room):
         pass
+
+    def add_object(self, room_object):
+        pass
