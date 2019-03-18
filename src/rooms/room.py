@@ -97,8 +97,8 @@ class Room(object):
         return "<Room %s %s>" % (self.game_id, self.room_id)
 
     def add_object(self, room_object):
-        self.room_objects.append(room_object)
         self.geog.add_object(room_object)
+        self.room_objects.append(room_object)
 
     @property
     def item_registry(self):
