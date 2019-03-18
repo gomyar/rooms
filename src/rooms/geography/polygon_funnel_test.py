@@ -44,6 +44,30 @@ class PolygonFunnelTest(unittest.TestCase):
             Vertex(-50.0, 10.0)],
             vertices)
 
+        self.assertEquals(self.geography.vertex_at(-50, -50).next, Vertex(-50, -10))
+        self.assertEquals(self.geography.vertex_at(-50, -50).previous, Vertex(50, -50))
+
+        self.assertEquals(self.geography.vertex_at(-50, 50).next, Vertex(50, 50))
+        self.assertEquals(self.geography.vertex_at(-50, 50).previous, Vertex(-50, 10))
+
+        self.assertEquals(self.geography.vertex_at(50, 50).next, Vertex(50, -50))
+        self.assertEquals(self.geography.vertex_at(50, 50).previous, Vertex(-50, 50))
+
+        self.assertEquals(self.geography.vertex_at(50, -50).next, Vertex(-50, -50))
+        self.assertEquals(self.geography.vertex_at(50, -50).previous, Vertex(50, 50))
+
+        self.assertEquals(self.geography.vertex_at(-50, -10).next, Vertex(-40, -10))
+        self.assertEquals(self.geography.vertex_at(-50, -10).previous, Vertex(-50, -50))
+
+        self.assertEquals(self.geography.vertex_at(-40, -10).next, Vertex(-40, 10))
+        self.assertEquals(self.geography.vertex_at(-40, -10).previous, Vertex(-50, -10))
+
+        self.assertEquals(self.geography.vertex_at(-40, 10).next, Vertex(-50, 10))
+        self.assertEquals(self.geography.vertex_at(-40, 10).previous, Vertex(-40, -10))
+
+        self.assertEquals(self.geography.vertex_at(-50, 10).next, Vertex(-50, 50))
+        self.assertEquals(self.geography.vertex_at(-50, 10).previous, Vertex(-40, 10))
+
     def test_is_occluded(self):
         room_object = RoomObject("table", Position(-50, 0), 20, 20)
         self.room.add_object(room_object)
@@ -112,3 +136,20 @@ class PolygonFunnelTest(unittest.TestCase):
             (Vertex(-50.0, 20.0), Vertex(-50.0, 50.0))
             ], self.geography._build_edges())
 
+        room_object_2 = RoomObject("table", Position(-20, -10), 40, 40)
+        self.room.add_object(room_object_2)
+
+        self.assertEquals([
+            (Vertex(-50.0, -50.0), Vertex(-50.0, -20.0)),
+            (Vertex(-50.0, 50.0), Vertex(50.0, 50.0)),
+            (Vertex(50.0, 50.0), Vertex(50.0, -50.0)),
+            (Vertex(50.0, -50.0), Vertex(-50.0, -50.0)),
+            (Vertex(-50.0, -20.0), Vertex(-40.0, -20.0)),
+            (Vertex(-20.0, 20.0), Vertex(-50.0, 20.0)),
+            (Vertex(-50.0, 20.0), Vertex(-50.0, 50.0)),
+            (Vertex(0.0, -30.0), Vertex(0.0, 10.0)),
+            (Vertex(0.0, 10.0), Vertex(-20.0, 10.0)),
+            (Vertex(-20.0, 10.0), Vertex(-20.0, 20.0)),
+            (Vertex(-40.0, -20.0), Vertex(-40.0, -30.0)),
+            (Vertex(-40.0, -30.0), Vertex(0.0, -30.0))
+            ], self.geography._build_edges())

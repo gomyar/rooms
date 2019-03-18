@@ -58,6 +58,14 @@ class RoomObject(object):
         return self.position.add_coords(self.width / 2.0, self.height / 2.0,
                                         self.depth / 2.0)
 
+    def position_within(self, position):
+        return (
+            position.x >= self.position.x - self.width / 2 and
+            position.y >= self.position.y - self.height / 2 and
+            position.x <= self.position.x + self.width / 2 and
+            position.y <= self.position.y + self.height / 2
+        )
+
 
 class Door(object):
     def __init__(self, exit_room_id, position, exit_position):

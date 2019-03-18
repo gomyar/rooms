@@ -34,6 +34,12 @@ class PolygonFunnel(BasicGeography):
             self._vertices = self._build_room_vertices()
         return self._vertices
 
+    def vertex_at(self, x, y):
+        for vertex in self.vertices:
+            if vertex.x == x and vertex.y == y:
+                return vertex
+        return None
+
     def _build_room_vertices(self):
         # room vertices go counterclockwise, object vertices go clockwise
         tl = Vertex(self.room.topleft.x, self.room.topleft.y)
@@ -129,6 +135,10 @@ class PolygonFunnel(BasicGeography):
             # add a vertex
             # swap in / out
             # hook up previous next
+        # remove newly occluded vertices
+        for vertex in self._vertices:
+            if room_object.position_within(Position(vertex.x, vertex.y)):
+                self._vertices.remove(vertex)
         for vertex in for_addition:
             vertex.previous.next = vertex
             vertex.next.previous = vertex
