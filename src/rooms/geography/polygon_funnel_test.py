@@ -153,3 +153,45 @@ class PolygonFunnelTest(unittest.TestCase):
             (Vertex(-40.0, -20.0), Vertex(-40.0, -30.0)),
             (Vertex(-40.0, -30.0), Vertex(0.0, -30.0))
             ], self.geography._build_edges())
+
+    def test_create_edges_overlap(self):
+        room_object = RoomObject("table", Position(0, 0), 40, 40)
+        self.room.add_object(room_object)
+
+        room_object_2 = RoomObject("table", Position(20, 10), 20, 20)
+        self.room.add_object(room_object_2)
+
+        self.assertEquals([
+            (Vertex(-50.0, -50.0), Vertex(-50.0, 50.0)),
+            (Vertex(-50.0, 50.0), Vertex(50.0, 50.0)),
+            (Vertex(50.0, 50.0), Vertex(50.0, -50.0)),
+            (Vertex(50.0, -50.0), Vertex(-50.0, -50.0)),
+            (Vertex(20.0, -20.0), Vertex(20.0, 0.0)),
+            (Vertex(-20.0, 20.0), Vertex(-20.0, -20.0)),
+            (Vertex(-20.0, -20.0), Vertex(20.0, -20.0)),
+            (Vertex(20.0, 0.0), Vertex(30.0, 0.0)),
+            (Vertex(30.0, 0.0), Vertex(30.0, 20.0)),
+            (Vertex(30.0, 20.0), Vertex(20.0, 20.0)),
+            (Vertex(20.0, 20.0), Vertex(-20.0, 20.0))],
+            self.geography._build_edges())
+
+    def test_create_edges_overlap_2(self):
+        room_object = RoomObject("table", Position(0, 0), 40, 40)
+        self.room.add_object(room_object)
+
+        room_object_2 = RoomObject("table", Position(-20, 10), 20, 20)
+        self.room.add_object(room_object_2)
+
+        self.assertEquals([
+            (Vertex(-50.0, -50.0), Vertex(-50.0, 50.0)),
+            (Vertex(-50.0, 50.0), Vertex(50.0, 50.0)),
+            (Vertex(50.0, 50.0), Vertex(50.0, -50.0)),
+            (Vertex(50.0, -50.0), Vertex(-50.0, -50.0)),
+            (Vertex(20.0, -20.0), Vertex(20.0, 20.0)),
+            (Vertex(20.0, 20.0), Vertex(-20.0, 20.0)),
+            (Vertex(-20.0, -20.0), Vertex(20.0, -20.0)),
+            (Vertex(-20.0, 0.0), Vertex(-20.0, -20.0)),
+            (Vertex(-20.0, 20.0), Vertex(-30.0, 20.0)),
+            (Vertex(-30.0, 20.0), Vertex(-30.0, 0.0)),
+            (Vertex(-30.0, 0.0), Vertex(-20.0, 0.0))],
+            self.geography._build_edges())

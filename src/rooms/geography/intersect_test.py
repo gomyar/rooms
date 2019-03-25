@@ -55,3 +55,14 @@ class IntersectTest(unittest.TestCase):
         # horizontal
         # vertical
         pass
+
+    def test_is_between(self):
+        self.assertTrue(is_between(Vertex(10, 10), Vertex(30, 10), Vertex(20, 10)))
+        self.assertFalse(is_between(Vertex(10, 10), Vertex(30, 11), Vertex(20, 10)))
+        self.assertFalse(is_between(Vertex(10, 10), Vertex(30, 10), Vertex(20, 11)))
+        self.assertTrue(is_between(Vertex(10, 10), Vertex(30, 10), Vertex(30, 10)))
+        self.assertTrue(is_between(Vertex(10, 10), Vertex(30, 10), Vertex(10, 10)))
+
+        self.assertTrue(is_between(Vertex(10, 10), Vertex(30, 30), Vertex(15, 15)))
+        self.assertTrue(is_between(Vertex(30, 30), Vertex(10, 10), Vertex(15, 15)))
+        self.assertTrue(is_between(Vertex(10, 30), Vertex(30, 10), Vertex(20, 20)))

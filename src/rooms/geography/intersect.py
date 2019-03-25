@@ -2,6 +2,26 @@
 import math
 
 
+DET_TOLERANCE = 0.00000001
+
+
+def is_between(from_p, to_p, p):
+    crossproduct = (p.y - from_p.y) * (to_p.x - from_p.x) - (p.x - from_p.x) * (to_p.y - from_p.y)
+
+    if abs(crossproduct) > DET_TOLERANCE:
+        return False
+
+    dotproduct = (p.x - from_p.x) * (to_p.x - from_p.x) + (p.y - from_p.y)*(to_p.y - from_p.y)
+    if dotproduct < 0:
+        return False
+
+    squaredlengthba = (to_p.x - from_p.x)*(to_p.x - from_p.x) + (to_p.y - from_p.y)*(to_p.y - from_p.y)
+    if dotproduct > squaredlengthba:
+        return False
+
+    return True
+
+
 def intersect(x1, y1, x2, y2, x3, y3, x4, y4):
     if (x1, y1) in ( (x3, y3), (x4, y4) ) or (x2, y2) in ( (x3, y3), (x4, y4) ):
         return False
@@ -53,7 +73,7 @@ def intersection_point(pt1, pt2, ptA, ptB ):
             valid == 0 if there are 0 or inf. intersections (invalid)
             valid == 1 if it has a unique intersection ON the segment    """
 
-    DET_TOLERANCE = 0.00000001
+    # DET_TOLERANCE = 0.00000001
 
     # the first line is pt1 + r*(pt2-pt1)
     # in component form:

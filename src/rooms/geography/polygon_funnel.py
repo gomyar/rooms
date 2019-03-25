@@ -2,7 +2,7 @@
 
 from .basic_geography import BasicGeography
 from rooms.position import Position
-from rooms.geography.intersect import intersection_point
+from rooms.geography.intersect import intersection_point, is_between
 
 
 class Vertex(object):
@@ -96,6 +96,10 @@ class PolygonFunnel(BasicGeography):
             intersect = intersection_point(from_v.coords, to_v.coords, edge_from.coords, edge_to.coords)
             if intersect and intersect not in (from_v.coords, to_v.coords, edge_from.coords, edge_to.coords):
                 intersects.append((intersect, edge_from, edge_to))
+        # add vertices that are on the line from_v -> to_v as they don't show up on intersect
+        for vertex in self.vertices:
+            if is_between(from_v, to_v, vertex):
+                intersects.append(((vertex.x, vertex.y), vertex.previous, vertex.next))
         # sort intersect points by distance from "from_v"
         def cmpdist(v):
             return Position(from_v.x, from_v.y).distance_to(Position(v[0][0], v[0][1]))
