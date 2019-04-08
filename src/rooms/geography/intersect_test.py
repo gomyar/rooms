@@ -1,7 +1,8 @@
 
 import unittest
 
-from .intersect import intersect, intersection_point
+from .intersect import intersect, intersection_point, is_between
+from .polygon_funnel import Vertex
 
 
 class IntersectTest(unittest.TestCase):

@@ -124,8 +124,14 @@ def intersection_point(pt1, pt2, ptA, ptB ):
     # return the average of the two descriptions
     xi = (x1 + r*dx1 + x + s*dx)/2.0
     yi = (y1 + r*dy1 + y + s*dy)/2.0
-    if r < 0 or s < 0:
+
+    # added by ray - filters out endpoint intersects
+#    if r < 0 or s < 0:
+#        return None
+#    if r > 1.0 or s > 1.0:
+#        return None
+    # added by ray - filters out points off either end of p1,p2 line
+    if r < 0 or r > 1.0:
         return None
-    if r > 1.0 or s > 1.0:
-        return None
+
     return ( xi, yi) #, 1, r, s )
