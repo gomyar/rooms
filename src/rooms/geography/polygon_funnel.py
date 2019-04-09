@@ -107,7 +107,8 @@ class PolygonFunnelGeography(BasicGeography):
     def setup(self, room):
         self.room = room
         self._vertices = dict()
-        self._sectors = self._create_sectors()
+#        self._sectors = self._create_sectors()
+        self._polygons = self.polyfill()
 
     def _create_sectors(self):
         sectors = []
@@ -119,11 +120,11 @@ class PolygonFunnelGeography(BasicGeography):
     def draw(self):
         polygons = []
         print "DRAW!!"
-        for sector in self._sectors:
+        for polygon in self._polygons:
             poly = [
-                {'x': sector.v1.position.x, 'y': sector.v1.position.y},
-                {'x': sector.v2.position.x, 'y': sector.v2.position.y},
-                {'x': sector.v3.position.x, 'y': sector.v3.position.y},
+                {'x': polygon.vertices[0].position.x, 'y': polygon.vertices[0].position.y},
+                {'x': polygon.vertices[1].position.x, 'y': polygon.vertices[1].position.y},
+                {'x': polygon.vertices[2].position.x, 'y': polygon.vertices[2].position.y},
             ]
             polygons.append(poly)
         return {"polygons": polygons, "type": "polygon_funnel"}
@@ -374,8 +375,11 @@ class PolygonFunnelGeography(BasicGeography):
             edges = self._get_edges(vertex, vertices)
             edges = self._filter_edges_for_occlusion(edges, polygons)
             #   for each connected vertex
-            for from_v, to_v in edges:
-            #     create polygon
-                polygons.append(Polygon(vertex, from_v, to_v))
-            #     link to connected polygons
+            for index in range(len(edges) - 1):
+                to_v1 = edges[index][1]
+                to_v2 = edges[index + 1][1]
+                if not self._edge_occluded_at_midpoint((to_v1, to_v2)):
+                #     create polygon
+                    polygons.append(Polygon(vertex, to_v1, to_v2))
+                #     link to connected polygons
         return polygons
