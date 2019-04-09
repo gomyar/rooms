@@ -345,6 +345,12 @@ class PolygonFunnelGeography(BasicGeography):
                 if intersect(edge[0].position.x, edge[0].position.y, edge[1].position.x, edge[1].position.y,
                         from_v.position.x, from_v.position.y, to_v.position.x, to_v.position.y):
                     return True
+            from_v = polygon.vertices[2]
+            to_v = polygon.vertices[0]
+            if intersect(edge[0].position.x, edge[0].position.y, edge[1].position.x, edge[1].position.y,
+                    from_v.position.x, from_v.position.y, to_v.position.x, to_v.position.y):
+                return True
+
         return False
 
     def _edge_occluded_at_midpoint(self, edge):
@@ -364,6 +370,16 @@ class PolygonFunnelGeography(BasicGeography):
 
         return edges
 
+    def _polygon_contains_object(self, v1, v2, v3):
+        for room_object in self.room.room_objects:
+            from_x, from_y, to_x, to_y = room_object.position.x, room_object.position.y, room_object.position.x, -1000
+            int1 = intersect(from_x, from_y, to_x, to_y, v1.position.x, v1.position.y, v2.position.x, v2.position.y)
+            int2 = intersect(from_x, from_y, to_x, to_y, v2.position.x, v2.position.y, v3.position.x, v3.position.y)
+            int3 = intersect(from_x, from_y, to_x, to_y, v3.position.x, v3.position.y, v1.position.x, v1.position.y)
+            if (int(int1) + int(int2) + int(int3)) % 2:
+                return True
+        return False
+
     def polyfill(self):
         polygons = []
         # get vertices - corners, object corners, intersects between objects/objects/room walls
@@ -378,7 +394,10 @@ class PolygonFunnelGeography(BasicGeography):
             for index in range(len(edges) - 1):
                 to_v1 = edges[index][1]
                 to_v2 = edges[index + 1][1]
-                if not self._edge_occluded_at_midpoint((to_v1, to_v2)):
+                if (not self._edge_occluded_at_midpoint((to_v1, to_v2)) and
+                    not self._edge_intersects_objects((to_v1, to_v2)) and
+                    not self._edge_intersects_polygons((to_v1, to_v2), polygons) and
+                    not self._polygon_contains_object(vertex, to_v1, to_v2)):
                 #     create polygon
                     polygons.append(Polygon(vertex, to_v1, to_v2))
                 #     link to connected polygons
