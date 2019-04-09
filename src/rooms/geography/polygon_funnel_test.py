@@ -339,3 +339,8 @@ class PolygonFunnelTest(unittest.TestCase):
         filtered = self.geography.filter_occluded_vertices(vertex, vertices, all_vertices)
 
         self.assertEquals([v6], filtered)
+
+    def test_polyfill(self):
+        self.room.room_objects.append(RoomObject("test", P(0, 0), 20, 20))
+
+        self.assertEquals([], self.geography.polyfill())

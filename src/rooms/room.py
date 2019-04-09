@@ -52,11 +52,24 @@ class RoomObject(object):
     def topleft(self):
         return self.position.add_coords(-self.width / 2.0, -self.height / 2.0,
                                         -self.depth / 2.0)
+    @property
+    def topright(self):
+        return self.position.add_coords(self.width / 2.0, -self.height / 2.0,
+                                        -self.depth / 2.0)
+
+    @property
+    def bottomleft(self):
+        return self.position.add_coords(-self.width / 2.0, self.height / 2.0,
+                                        self.depth / 2.0)
 
     @property
     def bottomright(self):
         return self.position.add_coords(self.width / 2.0, self.height / 2.0,
                                         self.depth / 2.0)
+
+    def position_within(self, position):
+        return position.x > self.topleft.x and position.y > self.topleft.y and \
+            position.x < self.bottomright.x and position.y < self.bottomright.y
 
 
 class Door(object):
@@ -277,3 +290,7 @@ class Room(object):
         return [a for a in self.actors.values() if \
             search_actor_test(a, actor_type, state, visible, distance,
             distance_to)]
+
+    def position_within(self, position):
+        return position.x >= self.topleft.x and position.y >= self.topleft.y and \
+            position.x <= self.bottomright.x and position.y <= self.bottomright.y

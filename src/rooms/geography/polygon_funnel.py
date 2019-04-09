@@ -2,6 +2,15 @@
 import math
 from .intersect import vertex_intersect, intersect
 from .basic_geography import BasicGeography
+from rooms.position import Position
+
+
+class Polygon(object):
+    def __init__(self, v1, v2, v3):
+        self.vertices = [v1, v2, v3]
+
+    def __repr__(self):
+        return "Polygon(%s, %s, %s)" % (self.vertices[0], self.vertices[1], self.vertices[2])
 
 
 class Sector(object):
@@ -299,3 +308,74 @@ class PolygonFunnelGeography(BasicGeography):
         # for all sectors
            # link sectors
         pass
+
+    def _is_occluded(self, vertex):
+        if not self.room.position_within(vertex.position):
+            return True
+        for room_object in self.room.room_objects:
+            if room_object.position_within(vertex.position):
+                return True
+        return False
+
+    def _get_edges(self, vertex, vertices):
+        edges = []
+        for v in vertices:
+            if v != vertex:
+                edges.append((vertex, v))
+        return sorted(edges, key=lambda v: angle(vertex, v[1]))
+
+    def _edge_intersects_objects(self, edge):
+        for room_object in self.room.room_objects:
+            for from_p, to_p in [
+                    (room_object.topleft, room_object.topright),
+                    (room_object.topleft, room_object.bottomleft),
+                    (room_object.topright, room_object.bottomright),
+                    (room_object.bottomleft, room_object.bottomright)]:
+                if intersect(edge[0].position.x, edge[0].position.y, edge[1].position.x, edge[1].position.y,
+                        from_p.x, from_p.y, to_p.x, to_p.y):
+                    return True
+        return False
+
+    def _edge_intersects_polygons(self, edge, polygons):
+        for polygon in polygons:
+            for index in range(len(polygon.vertices) - 1):
+                from_v = polygon.vertices[index]
+                to_v = polygon.vertices[index + 1]
+                if intersect(edge[0].position.x, edge[0].position.y, edge[1].position.x, edge[1].position.y,
+                        from_v.position.x, from_v.position.y, to_v.position.x, to_v.position.y):
+                    return True
+        return False
+
+    def _edge_occluded_at_midpoint(self, edge):
+        midpoint = Position((edge[0].position.x + edge[1].position.x) / 2.0, (edge[0].position.y + edge[1].position.y) / 2.0)
+        for room_object in self.room.room_objects:
+            if room_object.position_within(midpoint):
+                return True
+        return False
+
+    def _filter_edges_for_occlusion(self, edges, polygons):
+        #   remove edges which intersect any objects
+        edges = [e for e in edges if not self._edge_intersects_objects(e)]
+        #   remove edges which intersect existing polygons
+        edges = [e for e in edges if not self._edge_intersects_polygons(e, polygons)]
+        #   remove edges which are occluded at their midpoint
+        edges = [e for e in edges if not self._edge_occluded_at_midpoint(e)]
+
+        return edges
+
+    def polyfill(self):
+        polygons = []
+        # get vertices - corners, object corners, intersects between objects/objects/room walls
+        # remove occluded vertices
+        vertices = [v for v in self.get_all_vertices() if not self._is_occluded(v)]
+        # for each vertex
+        for vertex in vertices:
+            #   get edges between vertex and all other vertices
+            edges = self._get_edges(vertex, vertices)
+            edges = self._filter_edges_for_occlusion(edges, polygons)
+            #   for each connected vertex
+            for from_v, to_v in edges:
+            #     create polygon
+                polygons.append(Polygon(vertex, from_v, to_v))
+            #     link to connected polygons
+        return polygons
