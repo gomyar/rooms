@@ -38,7 +38,7 @@
                         "x": -60, 
                         "z": 0
                     }, 
-                    "object_type": "rect", 
+                    "object_type": "rect1", 
                     "width": 60
                 }, 
                 {
@@ -47,7 +47,7 @@
                         "y": 40, 
                         "x": 60
                     }, 
-                    "object_type": "rect", 
+                    "object_type": "rect2", 
                     "width": 50
                 }, 
                 {
@@ -55,7 +55,7 @@
                         "y": 40, 
                         "x": 0
                     }, 
-                    "object_type": "rect", 
+                    "object_type": "rect3", 
                     "width": 25, 
                     "height": 25
                 }, 
@@ -65,7 +65,7 @@
                         "y": -60, 
                         "x": 30
                     }, 
-                    "object_type": "rect", 
+                    "object_type": "rect4", 
                     "width": 30
                 }, 
                 {
@@ -74,7 +74,7 @@
                         "y": 90, 
                         "x": -40
                     }, 
-                    "object_type": "rect", 
+                    "object_type": "test1", 
                     "width": 40
                 }
             ], 

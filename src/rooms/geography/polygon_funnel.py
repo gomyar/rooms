@@ -131,10 +131,10 @@ class PolygonFunnelGeography(BasicGeography):
 
     def get_vertices(self, room_object):
         if room_object not in self._vertices:
-            v1 = Vertex(room_object, room_object.position.add_coords(-room_object.width / 2, -room_object.height / 2))
-            v2 = Vertex(room_object, room_object.position.add_coords(room_object.width / 2, -room_object.height / 2))
-            v3 = Vertex(room_object, room_object.position.add_coords(room_object.width / 2, room_object.height / 2))
-            v4 = Vertex(room_object, room_object.position.add_coords(-room_object.width / 2, room_object.height / 2))
+            v1 = Vertex(room_object, room_object.position.add_coords(-room_object.width / 2.0, -room_object.height / 2.0))
+            v2 = Vertex(room_object, room_object.position.add_coords(room_object.width / 2.0, -room_object.height / 2.0))
+            v3 = Vertex(room_object, room_object.position.add_coords(room_object.width / 2.0, room_object.height / 2.0))
+            v4 = Vertex(room_object, room_object.position.add_coords(-room_object.width / 2.0, room_object.height / 2.0))
             v1.previous = v4
             v1.next = v2
             v2.previous = v1
