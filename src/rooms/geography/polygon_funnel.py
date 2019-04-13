@@ -1,6 +1,6 @@
 
 import math
-from .intersect import vertex_intersect, intersect
+from .intersect import vertex_intersect, intersect, intersection_point
 from .basic_geography import BasicGeography
 from rooms.position import Position
 
@@ -46,6 +46,10 @@ class Vertex(object):
     def __repr__(self):
         return "<Vertex %s (%s, %s)>" % (self.room_object.object_type if self.room_object else None,
                                          self.position.x, self.position.y)
+
+    @property
+    def coords(self):
+        return (self.position.x, self.position.y)
 
     def add_sector(self, from_vector, to_vector):
         new_sector = [from_vector, to_vector]
@@ -112,14 +116,12 @@ class PolygonFunnelGeography(BasicGeography):
 
     def _create_sectors(self):
         sectors = []
-        print "CREATE!!"
         for vertex in self.get_all_vertices():
             sectors.extend(self.get_sectors_for(vertex))
         return sectors
 
     def draw(self):
         polygons = []
-        print "DRAW!!"
         for polygon in self._polygons:
             poly = [
                 {'x': polygon.vertices[0].position.x, 'y': polygon.vertices[0].position.y},
@@ -251,13 +253,41 @@ class PolygonFunnelGeography(BasicGeography):
 
     def get_all_vertices(self):
         vertices = []
+
+        tl = Vertex(None, self.room.topleft)
+        tr = Vertex(None, self.room.topright)
+        br = Vertex(None, self.room.bottomright)
+        bl = Vertex(None, self.room.bottomleft)
+
+        tl.next = tr
+        tr.next = br
+        br.next = bl
+        bl.next = tl
+
+        vertices.append(tl)
+        vertices.append(tr)
+        vertices.append(br)
+        vertices.append(bl)
+
         for obj in self.room.room_objects:
             vs, _ = self.get_vertices(obj)
             vertices.extend(vs)
-        vertices.append(Vertex(None, self.room.topleft))
-        vertices.append(Vertex(None, self.room.topright))
-        vertices.append(Vertex(None, self.room.bottomright))
-        vertices.append(Vertex(None, self.room.bottomleft))
+
+        intersects = []
+
+        for from_vertex in vertices:
+            for to_vertex in vertices:
+                intersect = intersection_point(
+                    from_vertex.coords,
+                    from_vertex.next.coords,
+                    to_vertex.coords,
+                    to_vertex.next.coords)
+                if intersect:
+                    int_vertex = Vertex(None, Position(*intersect))
+                    if int_vertex not in vertices and int_vertex not in intersects:
+                        intersects.append(int_vertex)
+
+        vertices.extend(intersects)
         return vertices
 
     def get_vertices_between(self, all_vertices, v1, v2, v3):
@@ -332,8 +362,10 @@ class PolygonFunnelGeography(BasicGeography):
                     (room_object.topleft, room_object.bottomleft),
                     (room_object.topright, room_object.bottomright),
                     (room_object.bottomleft, room_object.bottomright)]:
+#                if intersection_point((edge[0].position.x, edge[0].position.y), (edge[1].position.x, edge[1].position.y),
+#                        (from_p.x, from_p.y), (to_p.x, to_p.y), False):
                 if intersect(edge[0].position.x, edge[0].position.y, edge[1].position.x, edge[1].position.y,
-                        from_p.x, from_p.y, to_p.x, to_p.y):
+                              from_p.x, from_p.y, to_p.x, to_p.y):
                     return True
         return False
 

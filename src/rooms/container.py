@@ -23,7 +23,7 @@ log = logging.getLogger("rooms.container")
 class Container(object):
     def __init__(self, dbase, node):
         self.dbase = dbase
-        self.geography = BasicGeography()
+        self.geography = BasicGeography
         self.node = node
         self.room_builder = SimpleRoomBuilder()
         self.item_registry = ItemRegistry()

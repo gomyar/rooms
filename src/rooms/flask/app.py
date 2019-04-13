@@ -58,7 +58,7 @@ room_builder = RoomBuilder(FileMapSource(mapdir), node)
 item_registry = ItemRegistry()
 if os.path.exists(itemdir):
     item_registry.load_from_directory(itemdir)
-container.geography = PolygonFunnelGeography()
+container.geography = PolygonFunnelGeography
 container.room_builder = room_builder
 container.item_registry = item_registry
 
@@ -66,9 +66,9 @@ master = Master(container)
 node.container = container
 
 GEOGRAPHIES = {
-    'basic': BasicGeography(),
-    'pointmap': PointmapGeography(),
-    'polygon_funnel': PolygonFunnelGeography(),
+    'basic': BasicGeography,
+    'pointmap': PointmapGeography,
+    'polygon_funnel': PolygonFunnelGeography,
 }
 
 

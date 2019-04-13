@@ -110,8 +110,17 @@
                         "x": 0
                     }, 
                     "object_type": "rect", 
-                    "width": 50, 
+                    "width": 200, 
                     "height": 50
+                }, 
+                {
+                    "position": {
+                        "y": -25, 
+                        "x": 65
+                    }, 
+                    "object_type": "rect2", 
+                    "width": 50, 
+                    "height": 150
                 }
             ], 
             "height": 250, 
@@ -170,7 +179,26 @@
                     "tag_type": "actor.spawn"
                 }
             ], 
-            "room_objects": [], 
+            "room_objects": [
+                {
+                    "height": 50, 
+                    "position": {
+                        "y": -60, 
+                        "x": 0
+                    }, 
+                    "object_type": "rect", 
+                    "width": 200
+                }, 
+                {
+                    "height": 150, 
+                    "position": {
+                        "y": -25, 
+                        "x": 65
+                    }, 
+                    "object_type": "rect2", 
+                    "width": 70
+                }
+            ], 
             "height": 250, 
             "width": 250, 
             "doors": [

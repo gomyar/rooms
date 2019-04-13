@@ -143,11 +143,11 @@ class GameFactory(object):
             data['game_id'], data['room_id'])
         room.state = data['state']
         room.initialized = data.get('initialized', False)
-        room.geography = self.container.geography
+        room.geography = self.container.geography()
         room._node_name = data.get('node_name')
         if data.get('script_name'):
             room.script = load_script(data['script_name'])
-        self.container.geography.setup(room)
+        room.geography.setup(room)
         return room
 
     # Door
