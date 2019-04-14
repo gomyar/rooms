@@ -23,7 +23,7 @@ from rooms.script import Script
 class ContainerTest(unittest.TestCase):
     def setUp(self):
         self.dbase = MockDbase()
-        self.geography = MockGeog()
+        self.geography = MockGeog
         self.node = MockNode()
         self.room2 = Room("games_0", "room2", self.node)
         self.room2.coords(0, 0, 10, 10)
