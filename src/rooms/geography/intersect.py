@@ -114,12 +114,13 @@ def intersection_point(pt1, pt2, ptA, ptB, include_endpoints=True):
         if r > 1.0 or s > 1.0:
             return None
     else:
-        if r <= 0 or s <= 0:
+        if r <= DET_TOLERANCE or s <= DET_TOLERANCE:
             return None
-        if r >= 1.0 or s >= 1.0:
+        if r >= (1.0-DET_TOLERANCE) or s >= (1.0-DET_TOLERANCE):
             return None
-    # added by ray - filters out points off either end of p1,p2 line
-#    if r < 0 or r > 1.0:
-#        return None
 
     return ( xi, yi) #, 1, r, s )
+
+
+def intersect(x1, y1, x2, y2, x3, y3, x4, y4):
+    return intersection_point((x1, y1), (x2, y2), (x3, y3), (x4, y4), False) is not None
