@@ -9,6 +9,8 @@ from rooms.testutils import MockNode
 from .polygon_funnel import PolygonFunnelGeography
 from .polygon_funnel import Vertex
 from .polygon_funnel import Polygon
+from .polygon_funnel import Node
+from .polygon_funnel import Connection
 from .polygon_funnel import angle
 
 
@@ -18,10 +20,11 @@ class PolygonFunnelTest(unittest.TestCase):
         self.room.coords(-50, -50, 50, 50)
 
         self.geography = PolygonFunnelGeography()
+
+    def test_get_object_vertices(self):
         self.geography.setup(self.room)
         self.room.geog = self.geography
 
-    def test_get_object_vertices(self):
         room_object = RoomObject("test", P(50, 50), 20, 20)
         vertices = self.geography.get_vertices(room_object)
         self.assertEquals(4, len(vertices))
@@ -55,6 +58,9 @@ class PolygonFunnelTest(unittest.TestCase):
         self.assertEquals(math.pi * 7 / 4, angle(V(0, 0), V(10, -10)))
 
     def test_get_all_vertices(self):
+        self.geography.setup(self.room)
+        self.room.geog = self.geography
+
         obj = RoomObject("test", P(0, 0), 20, 20)
         def V(x, y):
             return Vertex(obj, P(x, y))
@@ -98,6 +104,9 @@ class PolygonFunnelTest(unittest.TestCase):
         ], vertices)
 
     def test_polyfill(self):
+        self.geography.setup(self.room)
+        self.room.geog = self.geography
+
         self.room.room_objects.append(RoomObject("test", P(0, 0), 20, 20))
 
         self.assertEquals([
@@ -124,3 +133,30 @@ class PolygonFunnelTest(unittest.TestCase):
             Polygon(Vertex(None, P(-10.0, 10.0)), Vertex(None, P(-50.0, 50.0)), Vertex(None, P(-50.0, -50.0))),
             Polygon(Vertex(None, P(-10.0, 10.0)), Vertex(None, P(-50.0, -50.0)), Vertex(None, P(-10.0, -10.0))),
         ], self.geography.polyfill())
+
+    def test_polygon_midpoint(self):
+        polygon1 = Polygon(Vertex(None, P(0.0, 0.0)), Vertex(None, P(60.0, 0.0)), Vertex(None, P(0.0, 60.0)))
+        polygon2 = Polygon(Vertex(None, P(0.0, 60.0)), Vertex(None, P(60.0, 0.0)), Vertex(None, P(60.0, 60.0)))
+
+        self.assertEquals(Vertex(None, P(20, 20)), polygon1.midpoint)
+        self.assertEquals(Vertex(None, P(40, 40)), polygon2.midpoint)
+
+        self.assertEquals(28.284271247461902, polygon1.distance_to(polygon2))
+
+    def test_create_graph(self):
+        polygon1 = Polygon(Vertex(None, P(0.0, 0.0)), Vertex(None, P(60.0, 0.0)), Vertex(None, P(0.0, 60.0)))
+        polygon2 = Polygon(Vertex(None, P(0.0, 60.0)), Vertex(None, P(60.0, 0.0)), Vertex(None, P(60.0, 60.0)))
+
+        polygons = [
+            polygon1,
+            polygon2,
+        ]
+
+        graph = self.geography.create_graph(polygons)
+
+        self.assertEquals([
+            Node(polygon1, [
+                Connection(polygon2, Vertex(None, P(60, 0)), Vertex(None, P(0, 60)))]),
+            Node(polygon2, [
+                Connection(polygon1, Vertex(None, P(0, 60)), Vertex(None, P(60, 0)))]),
+        ], graph)

@@ -18,6 +18,16 @@ class Polygon(object):
             self.vertices[1] in rhs.vertices and
             self.vertices[2] in rhs.vertices)
 
+    @property
+    def midpoint(self):
+        return Vertex(None, Position(
+            sum(v.position.x for v in self.vertices) / 3.0,
+            sum(v.position.y for v in self.vertices) / 3.0
+        ))
+
+    def distance_to(self, target_polygon):
+        return self.midpoint.position.distance_to(target_polygon.midpoint.position)
+
 
 class Vertex(object):
     def __init__(self, room_object, position):
@@ -33,12 +43,37 @@ class Vertex(object):
         return not self.__eq__(rhs)
 
     def __repr__(self):
-        return "<Vertex %s (%s, %s)>" % (self.room_object.object_type if self.room_object else None,
-                                         self.position.x, self.position.y)
+        return "Vertex(%s, %s)" % (self.room_object.object_type if self.room_object else None,
+                                   self.position)
 
     @property
     def coords(self):
         return (self.position.x, self.position.y)
+
+
+class Connection(object):
+    def __init__(self, target_polygon, left_vertex, right_vertex):
+        self.target_polygon = target_polygon
+        self.left_vertex = left_vertex
+        self.right_vertex = right_vertex
+
+    def __repr__(self):
+        return "Connection(%s, %s, %s)" % (self.target_polygon, self.left_vertex, self.right_vertex)
+
+    def __eq__(self, rhs):
+        return rhs and rhs.target_polygon == self.target_polygon and rhs.left_vertex == self.left_vertex and rhs.right_vertex == self.right_vertex
+
+
+class Node(object):
+    def __init__(self, polygon, connections=None):
+        self.polygon = polygon
+        self.connections = connections or []
+
+    def __eq__(self, rhs):
+        return rhs and rhs.polygon == self.polygon and rhs.connections == self.connections
+
+    def __repr__(self):
+        return "Node(%s, %s)" % (self.polygon, self.connections)
 
 
 def angle(v1, v2):
@@ -50,6 +85,7 @@ class PolygonFunnelGeography(BasicGeography):
         self.room = room
         self._vertices = dict()
         self._polygons = self.polyfill()
+        self._nodes = self.create_graph(self._polygons)
 
     def draw(self):
         polygons = []
@@ -227,3 +263,15 @@ class PolygonFunnelGeography(BasicGeography):
                     #     create polygon
                     polygons.append(Polygon(vertex, to_v1, to_v2))
         return polygons
+
+    def create_graph(self, polygons):
+        graph = []
+        for polygon in polygons:
+            node = Node(polygon)
+            for match in polygons:
+                vertices = [v for v in polygon.vertices if v in match.vertices]
+                if polygon is not match and len(vertices) == 2:
+                    left_vertex, right_vertex = vertices
+                    node.connections.append(Connection(match, left_vertex, right_vertex))
+            graph.append(node)
+        return graph
