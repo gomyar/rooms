@@ -9,7 +9,6 @@ from rooms.testutils import MockNode
 from .polygon_funnel import PolygonFunnelGeography
 from .polygon_funnel import Vertex
 from .polygon_funnel import Polygon
-from .polygon_funnel import Node
 from .polygon_funnel import Connection
 from .polygon_funnel import angle
 
@@ -110,36 +109,22 @@ class PolygonFunnelTest(unittest.TestCase):
         self.room.room_objects.append(RoomObject("test", P(0, 0), 20, 20))
 
         self.assertEquals([
-            Polygon(Vertex(None, P(-50.0, -50.0)), Vertex(None, P(50.0, -50.0)), Vertex(None, P(10.0, -10.0))),
-            Polygon(Vertex(None, P(-50.0, -50.0)), Vertex(None, P(10.0, -10.0)), Vertex(None, P(-10.0, -10.0))),
-            Polygon(Vertex(None, P(-50.0, -50.0)), Vertex(None, P(10.0, 10.0)), Vertex(None, P(-10.0, 10.0))),
-            Polygon(Vertex(None, P(-50.0, -50.0)), Vertex(None, P(-10.0, 10.0)), Vertex(None, P(-50.0, 50.0))),
-            Polygon(Vertex(None, P(50.0, -50.0)), Vertex(None, P(50.0, 50.0)), Vertex(None, P(10.0, 10.0))),
-            Polygon(Vertex(None, P(50.0, -50.0)), Vertex(None, P(10.0, 10.0)), Vertex(None, P(10.0, -10.0))),
-            Polygon(Vertex(None, P(50.0, -50.0)), Vertex(None, P(10.0, -10.0)), Vertex(None, P(-50.0, -50.0))),
-            Polygon(Vertex(None, P(50.0, 50.0)), Vertex(None, P(-50.0, 50.0)), Vertex(None, P(-10.0, 10.0))),
-            Polygon(Vertex(None, P(50.0, 50.0)), Vertex(None, P(-10.0, 10.0)), Vertex(None, P(-10.0, -10.0))),
-            Polygon(Vertex(None, P(50.0, 50.0)), Vertex(None, P(10.0, 10.0)), Vertex(None, P(50.0, -50.0))),
-            Polygon(Vertex(None, P(-50.0, 50.0)), Vertex(None, P(-50.0, -50.0)), Vertex(None, P(-10.0, 10.0))),
-            Polygon(Vertex(None, P(-10.0, -10.0)), Vertex(None, P(50.0, 50.0)), Vertex(None, P(-10.0, 10.0))),
-            Polygon(Vertex(None, P(-10.0, -10.0)), Vertex(None, P(-10.0, 10.0)), Vertex(None, P(-50.0, -50.0))),
-            Polygon(Vertex(None, P(10.0, -10.0)), Vertex(None, P(-10.0, -10.0)), Vertex(None, P(-50.0, -50.0))),
-            Polygon(Vertex(None, P(10.0, -10.0)), Vertex(None, P(-50.0, -50.0)), Vertex(None, P(50.0, -50.0))),
-            Polygon(Vertex(None, P(10.0, 10.0)), Vertex(None, P(50.0, 50.0)), Vertex(None, P(-10.0, 10.0))),
-            Polygon(Vertex(None, P(10.0, 10.0)), Vertex(None, P(-10.0, 10.0)), Vertex(None, P(-50.0, -50.0))),
-            Polygon(Vertex(None, P(10.0, 10.0)), Vertex(None, P(10.0, -10.0)), Vertex(None, P(50.0, -50.0))),
-            Polygon(Vertex(None, P(-10.0, 10.0)), Vertex(None, P(10.0, 10.0)), Vertex(None, P(50.0, 50.0))),
-            Polygon(Vertex(None, P(-10.0, 10.0)), Vertex(None, P(50.0, 50.0)), Vertex(None, P(-50.0, 50.0))),
-            Polygon(Vertex(None, P(-10.0, 10.0)), Vertex(None, P(-50.0, 50.0)), Vertex(None, P(-50.0, -50.0))),
-            Polygon(Vertex(None, P(-10.0, 10.0)), Vertex(None, P(-50.0, -50.0)), Vertex(None, P(-10.0, -10.0))),
-        ], self.geography.polyfill())
+            Polygon(Vertex(None, P(-50.0,-50.0)), Vertex(None, P(50.0,-50.0)), Vertex(None, P(10.0,-10.0))),
+            Polygon(Vertex(None, P(-50.0,-50.0)), Vertex(None, P(10.0,-10.0)), Vertex(None, P(-10.0,-10.0))),
+            Polygon(Vertex(None, P(-50.0,-50.0)), Vertex(None, P(-10.0,-10.0)), Vertex(None, P(-10.0,10.0))),
+            Polygon(Vertex(None, P(-50.0,-50.0)), Vertex(None, P(-10.0,10.0)), Vertex(None, P(-50.0,50.0))),
+            Polygon(Vertex(None, P(50.0,-50.0)), Vertex(None, P(50.0,50.0)), Vertex(None, P(10.0,10.0))),
+            Polygon(Vertex(None, P(50.0,-50.0)), Vertex(None, P(10.0,10.0)), Vertex(None, P(10.0,-10.0))),
+            Polygon(Vertex(None, P(50.0,50.0)), Vertex(None, P(-50.0,50.0)), Vertex(None, P(-10.0,10.0))),
+            Polygon(Vertex(None, P(50.0,50.0)), Vertex(None, P(-10.0,10.0)), Vertex(None, P(10.0,10.0)))],
+            self.geography.polyfill())
 
     def test_polygon_midpoint(self):
         polygon1 = Polygon(Vertex(None, P(0.0, 0.0)), Vertex(None, P(60.0, 0.0)), Vertex(None, P(0.0, 60.0)))
         polygon2 = Polygon(Vertex(None, P(0.0, 60.0)), Vertex(None, P(60.0, 0.0)), Vertex(None, P(60.0, 60.0)))
 
-        self.assertEquals(Vertex(None, P(20, 20)), polygon1.midpoint)
-        self.assertEquals(Vertex(None, P(40, 40)), polygon2.midpoint)
+        self.assertEquals(P(20, 20), polygon1.midpoint)
+        self.assertEquals(P(40, 40), polygon2.midpoint)
 
         self.assertEquals(28.284271247461902, polygon1.distance_to(polygon2))
 
@@ -147,16 +132,34 @@ class PolygonFunnelTest(unittest.TestCase):
         polygon1 = Polygon(Vertex(None, P(0.0, 0.0)), Vertex(None, P(60.0, 0.0)), Vertex(None, P(0.0, 60.0)))
         polygon2 = Polygon(Vertex(None, P(0.0, 60.0)), Vertex(None, P(60.0, 0.0)), Vertex(None, P(60.0, 60.0)))
 
-        polygons = [
+        self.geography.polygons = [
             polygon1,
             polygon2,
         ]
 
-        graph = self.geography.create_graph(polygons)
+        self.geography.connect_polygons()
 
-        self.assertEquals([
-            Node(polygon1, [
-                Connection(polygon2, Vertex(None, P(60, 0)), Vertex(None, P(0, 60)))]),
-            Node(polygon2, [
-                Connection(polygon1, Vertex(None, P(0, 60)), Vertex(None, P(60, 0)))]),
-        ], graph)
+        self.assertEquals(polygon1.connections, [
+            Connection(polygon2, Vertex(None, P(60, 0)), Vertex(None, P(0, 60)))])
+        self.assertEquals(polygon2.connections, [
+            Connection(polygon1, Vertex(None, P(0, 60)), Vertex(None, P(60, 0)))])
+
+    def test_point_within_polygon(self):
+        polygon1 = Polygon(Vertex(None, P(0.0, 0.0)), Vertex(None, P(60.0, 0.0)), Vertex(None, P(0.0, 60.0)))
+        polygon2 = Polygon(Vertex(None, P(0.0, 60.0)), Vertex(None, P(60.0, 0.0)), Vertex(None, P(60.0, 60.0)))
+
+        self.assertTrue(polygon1.point_within(P(1, 1)))
+        self.assertTrue(polygon1.point_within(P(1, 58)))
+        self.assertTrue(polygon1.point_within(P(58, 1)))
+        self.assertFalse(polygon1.point_within(P(-1, 1)))
+        self.assertFalse(polygon1.point_within(P(1, -1)))
+        self.assertFalse(polygon1.point_within(P(1, 60)))
+        self.assertFalse(polygon1.point_within(P(60, 1)))
+
+        self.assertTrue(polygon2.point_within(P(5, 59)))
+
+    def test_polygon_equality(self):
+        polygon1 = Polygon(Vertex(None, P(0.0, 0.0)), Vertex(None, P(60.0, 0.0)), Vertex(None, P(0.0, 60.0)))
+        polygon2 = Polygon(Vertex(None, P(0.0, 60.0)), Vertex(None, P(0.0, 0.0)), Vertex(None, P(60.0, 0.0)))
+
+        self.assertTrue(polygon1 == polygon2)

@@ -1,13 +1,15 @@
 
 import math
-from .intersect import intersect, intersection_point
+from .intersect import intersect, intersection_point, is_between
 from .basic_geography import BasicGeography
 from rooms.position import Position
+from rooms.geography.astar_polyfunnel import AStar
 
 
 class Polygon(object):
     def __init__(self, v1, v2, v3):
         self.vertices = [v1, v2, v3]
+        self.connections = []
 
     def __repr__(self):
         return "Polygon(%s, %s, %s)" % (self.vertices[0], self.vertices[1], self.vertices[2])
@@ -20,13 +22,22 @@ class Polygon(object):
 
     @property
     def midpoint(self):
-        return Vertex(None, Position(
+        return Position(
             sum(v.position.x for v in self.vertices) / 3.0,
             sum(v.position.y for v in self.vertices) / 3.0
-        ))
+        )
 
     def distance_to(self, target_polygon):
-        return self.midpoint.position.distance_to(target_polygon.midpoint.position)
+        return self.midpoint.distance_to(target_polygon.midpoint)
+
+    def point_within(self, position):
+        p0, p1, p2 = [v.position for v in self.vertices]
+        p = position
+        A = 0.5 * (-p1.y * p2.x + p0.y * (-p1.x + p2.x) + p0.x * (p1.y - p2.y) + p1.x * p2.y)
+        sign = -1 if A < 0 else 1
+        s = (p0.y * p2.x - p0.x * p2.y + (p2.y - p0.y) * p.x + (p0.x - p2.x) * p.y) * sign
+        t = (p0.x * p1.y - p0.y * p1.x + (p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y) * sign
+        return s >= 0 and t >= 0 and (s + t) <= 2.0 * A * sign
 
 
 class Vertex(object):
@@ -64,18 +75,6 @@ class Connection(object):
         return rhs and rhs.target_polygon == self.target_polygon and rhs.left_vertex == self.left_vertex and rhs.right_vertex == self.right_vertex
 
 
-class Node(object):
-    def __init__(self, polygon, connections=None):
-        self.polygon = polygon
-        self.connections = connections or []
-
-    def __eq__(self, rhs):
-        return rhs and rhs.polygon == self.polygon and rhs.connections == self.connections
-
-    def __repr__(self):
-        return "Node(%s, %s)" % (self.polygon, self.connections)
-
-
 def angle(v1, v2):
     return (math.atan2(v1.position.y - v2.position.y, v1.position.x - v2.position.x) + math.pi) % (math.pi * 2)
 
@@ -84,12 +83,12 @@ class PolygonFunnelGeography(BasicGeography):
     def setup(self, room):
         self.room = room
         self._vertices = dict()
-        self._polygons = self.polyfill()
-        self._nodes = self.create_graph(self._polygons)
+        self.polygons = self.polyfill()
+        self.connect_polygons()
 
     def draw(self):
         polygons = []
-        for polygon in self._polygons:
+        for polygon in self.polygons:
             poly = [
                 {'x': polygon.vertices[0].position.x, 'y': polygon.vertices[0].position.y},
                 {'x': polygon.vertices[1].position.x, 'y': polygon.vertices[1].position.y},
@@ -222,13 +221,21 @@ class PolygonFunnelGeography(BasicGeography):
                 return True
         return False
 
-    def _filter_edges_for_occlusion(self, edges, polygons):
+    def _edge_intersects_vertices(self, edge, vertices):
+        for vertex in vertices:
+            if vertex not in edge and is_between(edge[0].position, edge[1].position, vertex.position):
+                return True
+        return False
+
+    def _filter_edges_for_occlusion(self, edges, polygons, vertices):
         #   remove edges which intersect any objects
         edges = [e for e in edges if not self._edge_intersects_objects(e)]
         #   remove edges which intersect existing polygons
         edges = [e for e in edges if not self._edge_intersects_polygons(e, polygons)]
         #   remove edges which are occluded at their midpoint
         edges = [e for e in edges if not self._edge_occluded_at_midpoint(e)]
+        # remove edges which are intersected by vertices
+        edges = [e for e in edges if not self._edge_intersects_vertices(e, vertices)]
 
         return edges
 
@@ -251,7 +258,7 @@ class PolygonFunnelGeography(BasicGeography):
         for vertex in vertices:
             #   get edges between vertex and all other vertices
             edges = self._get_edges(vertex, vertices)
-            edges = self._filter_edges_for_occlusion(edges, polygons)
+            edges = self._filter_edges_for_occlusion(edges, polygons, vertices)
             #   for each connected vertex
             for index in range(len(edges) - 1):
                 to_v1 = edges[index][1]
@@ -259,19 +266,28 @@ class PolygonFunnelGeography(BasicGeography):
                 if (not self._edge_occluded_at_midpoint((to_v1, to_v2)) and
                     not self._edge_intersects_objects((to_v1, to_v2)) and
                     not self._edge_intersects_polygons((to_v1, to_v2), polygons) and
+                    not self._edge_intersects_vertices((to_v1, to_v2), vertices) and
                     not self._polygon_contains_object(vertex, to_v1, to_v2)):
                     #     create polygon
-                    polygons.append(Polygon(vertex, to_v1, to_v2))
+                    new_polygon = Polygon(vertex, to_v1, to_v2)
+                    if new_polygon not in polygons:
+                        polygons.append(new_polygon)
         return polygons
 
-    def create_graph(self, polygons):
-        graph = []
-        for polygon in polygons:
-            node = Node(polygon)
-            for match in polygons:
+    def connect_polygons(self):
+        for polygon in self.polygons:
+            for match in self.polygons:
                 vertices = [v for v in polygon.vertices if v in match.vertices]
                 if polygon is not match and len(vertices) == 2:
                     left_vertex, right_vertex = vertices
-                    node.connections.append(Connection(match, left_vertex, right_vertex))
-            graph.append(node)
-        return graph
+                    polygon.connections.append(Connection(match, left_vertex, right_vertex))
+
+    def find_poly_at_point(self, point):
+        for polygon in self.polygons:
+            if polygon.point_within(point):
+                return polygon
+        return None
+
+    def _find_path(self, room, from_point, to_point):
+        path = AStar(self).find_path(from_point, to_point)
+        return path

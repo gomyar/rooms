@@ -82,3 +82,20 @@ def intersection_point(pt1, pt2, ptA, ptB, include_endpoints=True):
 
 def intersect(x1, y1, x2, y2, x3, y3, x4, y4):
     return intersection_point((x1, y1), (x2, y2), (x3, y3), (x4, y4), False) is not None
+
+
+def is_between(from_p, to_p, p):
+    crossproduct = (p.y - from_p.y) * (to_p.x - from_p.x) - (p.x - from_p.x) * (to_p.y - from_p.y)
+
+    if abs(crossproduct) > DET_TOLERANCE:
+        return False
+
+    dotproduct = (p.x - from_p.x) * (to_p.x - from_p.x) + (p.y - from_p.y)*(to_p.y - from_p.y)
+    if dotproduct < 0:
+        return False
+
+    squaredlengthba = (to_p.x - from_p.x)*(to_p.x - from_p.x) + (to_p.y - from_p.y)*(to_p.y - from_p.y)
+    if dotproduct > squaredlengthba:
+        return False
+
+    return True
