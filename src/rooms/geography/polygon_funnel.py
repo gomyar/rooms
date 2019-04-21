@@ -12,7 +12,9 @@ class Polygon(object):
         self.connections = []
 
     def __repr__(self):
-        return "Polygon(%s, %s, %s)" % (self.vertices[0], self.vertices[1], self.vertices[2])
+        return "Polygon(%s, %s, %s)" % (self.vertices[0].position.coords(),
+                                        self.vertices[1].position.coords(),
+                                        self.vertices[2].position.coords())
 
     def __eq__(self, rhs):
         return rhs and len(rhs.vertices) == len(self.vertices) and (
@@ -288,6 +290,6 @@ class PolygonFunnelGeography(BasicGeography):
                 return polygon
         return None
 
-    def _find_path(self, room, from_point, to_point):
+    def find_path(self, room, from_point, to_point):
         path = AStar(self).find_path(from_point, to_point)
-        return path
+        return [p.midpoint for p in path]

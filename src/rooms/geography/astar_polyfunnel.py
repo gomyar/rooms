@@ -21,7 +21,7 @@ class Point(object):
         return rhs and self.polygon == rhs.polygon
 
     def __repr__(self):
-        return "<Point %s, %s>" % (self.x, self.y)
+        return "Point(%s)" % (self.polygon)
 
     def connected(self):
         if self._connected is None:
@@ -109,12 +109,12 @@ class AStar(object):
 
         # working backwards from target, using parents, to build path
         path = []
-        current = to_point
+        #current = to_point
         while current.parent and current.parent != from_point:
             path.append(current.parent.polygon)
             current = current.parent
 
         path.reverse()
-        path.insert(0, from_point.polygon)
+        #path.insert(0, from_point.polygon)
         path.append(to_point.polygon)
         return path
