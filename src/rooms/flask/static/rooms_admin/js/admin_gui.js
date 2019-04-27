@@ -342,10 +342,10 @@ gui.draw = function()
         }
         gui.ctx.closePath();
 
-        gui.ctx.fillStyle = "rgb(25, 25, 155)";
+        gui.ctx.fillStyle = "rgb(15, 15, 105)";
         gui.ctx.fill();
 
-        gui.ctx.strokeStyle = "rgb(25, 25, 255)";
+        gui.ctx.strokeStyle = "rgb(15, 15, 205)";
         gui.ctx.stroke();
     }
 
@@ -397,7 +397,7 @@ gui.draw = function()
     // Draw actor paths
     for (var actor_id in api_rooms.actors)
     {
-        gui.ctx.strokeStyle = "rgb(0,0,150)";
+        gui.ctx.strokeStyle = "rgb(250, 250, 250)";
         var actor = api_rooms.actors[actor_id];
         gui.ctx.beginPath();
         gui.ctx.moveTo(gui.canvas_x(api_rooms.room.position.x + actor.vector.start_pos.x), gui.canvas_y(api_rooms.room.position.y + actor.vector.start_pos.y));

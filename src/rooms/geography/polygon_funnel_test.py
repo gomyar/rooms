@@ -11,6 +11,8 @@ from .polygon_funnel import Vertex
 from .polygon_funnel import Polygon
 from .polygon_funnel import Connection
 from .polygon_funnel import angle
+from .polygon_funnel import diff_angles
+from .polygon_funnel import connect_polygons
 
 
 class PolygonFunnelTest(unittest.TestCase):
@@ -132,12 +134,12 @@ class PolygonFunnelTest(unittest.TestCase):
         polygon1 = Polygon(Vertex(None, P(0.0, 0.0)), Vertex(None, P(60.0, 0.0)), Vertex(None, P(0.0, 60.0)))
         polygon2 = Polygon(Vertex(None, P(0.0, 60.0)), Vertex(None, P(60.0, 0.0)), Vertex(None, P(60.0, 60.0)))
 
-        self.geography.polygons = [
+        polygons = [
             polygon1,
             polygon2,
         ]
 
-        self.geography.connect_polygons()
+        connect_polygons(polygons)
 
         self.assertEquals(polygon1.connections, [
             Connection(polygon2, Vertex(None, P(60, 0)), Vertex(None, P(0, 60)))])
@@ -163,3 +165,122 @@ class PolygonFunnelTest(unittest.TestCase):
         polygon2 = Polygon(Vertex(None, P(0.0, 60.0)), Vertex(None, P(0.0, 0.0)), Vertex(None, P(60.0, 0.0)))
 
         self.assertTrue(polygon1 == polygon2)
+
+    def test_funnelling(self):
+        def createpoly(p1, p2, p3):
+            return Polygon(Vertex(None, p1), Vertex(None, p2), Vertex(None, p3))
+        poly_chain = [
+            createpoly(P(0, 20), P(20, 20), P(10, 30)),
+            createpoly(P(0, 20), P(20, 10), P(20, 20)),
+            createpoly(P(0, 20), P(0, 10), P(20, 10)),
+            createpoly(P(0, 10), P(10, 0), P(20, 10)),
+        ]
+        connect_polygons(poly_chain)
+        path = self.geography.funnel_poly_chain(poly_chain, P(10, 25), P(10, 5))
+
+        self.assertEquals([P(10, 25), P(10, 5)], path)
+
+    def test_funnel_left(self):
+        def createpoly(p1, p2, p3):
+            return Polygon(Vertex(None, p1), Vertex(None, p2), Vertex(None, p3))
+        poly_chain = [
+            createpoly(P(10, 30), P(0, 20), P(20, 20)),
+            createpoly(P(0, 20), P(0, 10), P(20, 20)),
+            createpoly(P(0, 20), P(-10, 10), P(0, 10)),
+            createpoly(P(-10, 10), P(0, 0), P(0, 10)),
+            createpoly(P(0, 0), P(20, 0), P(0, 10)),
+            createpoly(P(0, 0), P(10, -10), P(20, 0)),
+        ]
+        connect_polygons(poly_chain)
+        path = self.geography.funnel_poly_chain(poly_chain, P(10, 25), P(10, 5))
+
+        self.assertEquals([P(10, 25), P(0, 10), P(10, 5)], path)
+
+    def test_funnel_left_left_left(self):
+        def createpoly(p1, p2, p3):
+            return Polygon(Vertex(None, p1), Vertex(None, p2), Vertex(None, p3))
+        poly_chain = [
+            createpoly(P(10, 30), P(0, 20), P(20, 20)),
+            createpoly(P(0, 20), P(0, 10), P(20, 20)),
+            createpoly(P(0, 20), P(-10, 10), P(0, 10)),
+            createpoly(P(-10, 10), P(0, 0), P(0, 10)),
+            createpoly(P(0, 0), P(20, 0), P(0, 10)),
+            createpoly(P(0, 0), P(10, -10), P(20, 0)),
+
+            createpoly(P(0, 0), P(0, -10), P(10, -10)),
+            createpoly(P(0, 0), P(-10, -10), P(0, -10)),
+        ]
+        connect_polygons(poly_chain)
+        path = self.geography.funnel_poly_chain(poly_chain, P(10, 25), P(-5, -7))
+
+        self.assertEquals([P(10, 25), P(0, 10), P(0, 0), P(-5, -7)], path)
+
+
+    def test_funnel_no_polys(self):
+        self.assertEquals([], self.geography.funnel_poly_chain([], P(10, 10), P(20, 20)))
+
+    def test_funnel_same_poly(self):
+        poly_chain = [
+            Polygon(Vertex(None, P(0, 0)), Vertex(None, P(30, 0)), Vertex(None, P(0, 30)))
+        ]
+        connect_polygons(poly_chain)
+        self.assertEquals([P(10, 10), P(20, 20)], self.geography.funnel_poly_chain(poly_chain, P(10, 10), P(20, 20)))
+
+    def test_two_polys_left_occluded(self):
+        def createpoly(p1, p2, p3):
+            return Polygon(Vertex(None, p1), Vertex(None, p2), Vertex(None, p3))
+        poly_chain = [
+            createpoly(P(0, 0), P(20, 0), P(0, 20)),
+            createpoly(P(0, 0), P(-20, -20), P(20, 0)),
+        ]
+        connect_polygons(poly_chain)
+        expected = [P(2, 15), P(0, 0), P(-15, -15)]
+        self.assertEquals(expected, self.geography.funnel_poly_chain(poly_chain, P(2, 15), P(-15, -15)))
+
+    def test_two_polys_right_occluded(self):
+        def createpoly(p1, p2, p3):
+            return Polygon(Vertex(None, p1), Vertex(None, p2), Vertex(None, p3))
+        poly_chain = [
+            createpoly(P(0, 0), P(0, 20), P(-20, 0)),
+            createpoly(P(0, 0), P(-20, 0), P(20, -20)),
+        ]
+        connect_polygons(poly_chain)
+        expected = [P(-2, 15), P(0, 0), P(15, -15)]
+        self.assertEquals(expected, self.geography.funnel_poly_chain(poly_chain, P(-2, 15), P(15, -15)))
+
+    def test_diff_angles(self):
+        self.assertEquals(math.pi / 4, diff_angles(P(0, 0), P(10, 10), P(0, 0), P(0, 10)))
+        self.assertEquals(math.pi / 4, diff_angles(P(0, 0), P(-10, -10), P(0, 0), P(0, -10)))
+        self.assertEquals(math.pi / 2, diff_angles(P(0, 0), P(10, -10), P(0, 0), P(10, 10)))
+        self.assertEquals(-math.pi / 2, diff_angles(P(0, 0), P(10, 10), P(0, 0), P(10, -10)))
+        self.assertEquals(math.pi / 2, diff_angles(P(0, 0), P(-10, 10), P(0, 0), P(-10, -10)))
+        self.assertEquals(-math.pi / 2, diff_angles(P(0, 0), P(-10, -10), P(0, 0), P(-10, 10)))
+
+    def test_narrow_then_wide_around_corner(self):
+        def createpoly(p1, p2, p3):
+            return Polygon(Vertex(None, p1), Vertex(None, p2), Vertex(None, p3))
+        poly_chain = [
+            createpoly(P(0, 20), P(10, -10), P(10, 20)),
+            createpoly(P(0, 0), P(10, -10), P(0, 20)),
+            createpoly(P(0, 0), P(-20, 0), P(10, -10)),
+        ]
+        connect_polygons(poly_chain)
+        expected = [P(5, 15), P(0, 0), P(-15, -5)]
+        self.assertEquals(expected, self.geography.funnel_poly_chain(poly_chain, P(5, 15), P(-15, -5)))
+
+    def test_narrow_then_wide_around_corner_2(self):
+        def createpoly(p1, p2, p3):
+            return Polygon(Vertex(None, p1), Vertex(None, p2), Vertex(None, p3))
+        poly_chain = [
+            createpoly(P(-10, 30), P(0, 0), P(50, 30)),
+            createpoly(P(0, 0), P(20, 0), P(50, 30)),
+            createpoly(P(20, 0), P(20, -15), P(50, 30)),
+            createpoly(P(20, -15), P(25, -30), P(50, 30)),
+            createpoly(P(20, -15), P(25, -45), P(25, -30)),
+            createpoly(P(0, -15), P(25, -45), P(20, -15)),
+            createpoly(P(0, -15), P(25, -60), P(25, -45)),
+            createpoly(P(-30, -5), P(25, -60), P(0, -15)),
+        ]
+        connect_polygons(poly_chain)
+        expected = [P(30, 25), P(20, -15), P(5, -30)]
+        self.assertEquals(expected, self.geography.funnel_poly_chain(poly_chain, P(30, 25), P(5, -30)))

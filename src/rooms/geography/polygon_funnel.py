@@ -41,6 +41,12 @@ class Polygon(object):
         t = (p0.x * p1.y - p0.y * p1.x + (p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y) * sign
         return s >= 0 and t >= 0 and (s + t) <= 2.0 * A * sign
 
+    def connection_for(self, target_polygon):
+        for connection in self.connections:
+            if connection.target_polygon == target_polygon:
+                return connection
+        return None
+
 
 class Vertex(object):
     def __init__(self, room_object, position):
@@ -81,12 +87,41 @@ def angle(v1, v2):
     return (math.atan2(v1.position.y - v2.position.y, v1.position.x - v2.position.x) + math.pi) % (math.pi * 2)
 
 
+def angle_p(p1, p2):
+    return (math.atan2(p1.y - p2.y, p1.x - p2.x) + math.pi) % (math.pi * 2)
+
+
+def diff_angles(left_from, left_to, right_from, right_to):
+    ' Difference between angles of right_from->right_to - left_from->left_to '
+    left_angle = angle_p(left_from, left_to) # math.atan2(left_from.y - left_to.y, left_from.x - left_to.x)
+    right_angle = angle_p(right_from, right_to) # math.atan2(right_from.y - right_to.y, right_from.x - right_to.x)
+    if left_angle - right_angle > math.pi:
+        return (math.pi * 2 - left_angle) + right_angle
+    elif right_angle - left_angle > math.pi:
+        return right_angle - left_angle - math.pi * 2
+    else:
+        return right_angle - left_angle
+
+
+def connect_polygons(polygons):
+    for polygon in polygons:
+        for match in polygons:
+            vertices = [v for v in polygon.vertices if v in match.vertices]
+            if polygon is not match and len(vertices) == 2:
+                # case where vertices are looped
+                if polygon.vertices[0] == vertices[0] and polygon.vertices[2] == vertices[1]:
+                    right_vertex, left_vertex = vertices
+                else:
+                    left_vertex, right_vertex = vertices
+                polygon.connections.append(Connection(match, left_vertex, right_vertex))
+
+
 class PolygonFunnelGeography(BasicGeography):
     def setup(self, room):
         self.room = room
         self._vertices = dict()
         self.polygons = self.polyfill()
-        self.connect_polygons()
+        connect_polygons(self.polygons)
 
     def draw(self):
         polygons = []
@@ -276,14 +311,6 @@ class PolygonFunnelGeography(BasicGeography):
                         polygons.append(new_polygon)
         return polygons
 
-    def connect_polygons(self):
-        for polygon in self.polygons:
-            for match in self.polygons:
-                vertices = [v for v in polygon.vertices if v in match.vertices]
-                if polygon is not match and len(vertices) == 2:
-                    left_vertex, right_vertex = vertices
-                    polygon.connections.append(Connection(match, left_vertex, right_vertex))
-
     def find_poly_at_point(self, point):
         for polygon in self.polygons:
             if polygon.point_within(point):
@@ -291,5 +318,63 @@ class PolygonFunnelGeography(BasicGeography):
         return None
 
     def find_path(self, room, from_point, to_point):
-        path = AStar(self).find_path(from_point, to_point)
-        return [p.midpoint for p in path]
+        # get poly chain
+        poly_chain = AStar(self).find_path(from_point, to_point)
+        path = self.funnel_poly_chain(poly_chain, from_point, to_point)
+        print "Path: %s" % (path,)
+        return path
+
+    def funnel_poly_chain(self, poly_chain, from_position, to_position):
+
+        if not poly_chain:
+            return []
+        if len(poly_chain) == 1:
+            return [from_position, to_position]
+
+        path = [from_position]
+        current_position = from_position
+
+        if len(poly_chain) == 2:
+            current_polygon = poly_chain.pop(0)
+            next_polygon = poly_chain.pop(0)
+            connection = current_polygon.connection_for(next_polygon)
+            if diff_angles(current_position, connection.left_vertex.position, current_position, to_position) < 0:
+                path.append(connection.left_vertex.position)
+            if diff_angles(current_position, to_position, current_position, connection.right_vertex.position) < 0:
+                path.append(connection.right_vertex.position)
+
+            path.append(to_position)
+            return path
+
+        first_polygon = poly_chain.pop(0)
+        current_polygon = poly_chain.pop(0)
+        connection = first_polygon.connection_for(current_polygon)
+        left_position = connection.left_vertex.position
+        right_position = connection.right_vertex.position
+        while len(poly_chain) > 1:
+            next_polygon = poly_chain.pop(0)
+            connection = current_polygon.connection_for(next_polygon)
+            if left_position == connection.left_vertex.position:
+                angle = diff_angles(current_position, left_position, current_position, connection.right_vertex.position)
+                if angle < 0:
+                    current_position = left_position
+                    path.append(current_position)
+            if right_position == connection.right_vertex.position:
+                angle = diff_angles(current_position, connection.left_vertex.position, current_position, right_position)
+                if angle < 0:
+                    current_position = right_position
+                    path.append(current_position)
+
+            current_polygon = next_polygon
+            left_position = connection.left_vertex.position
+            right_position = connection.right_vertex.position
+
+        next_polygon = poly_chain.pop(0)
+        connection = current_polygon.connection_for(next_polygon)
+        if diff_angles(current_position, connection.left_vertex.position, current_position, to_position) < 0:
+            path.append(connection.left_vertex.position)
+        if diff_angles(current_position, to_position, current_position, connection.right_vertex.position) < 0:
+            path.append(connection.right_vertex.position)
+
+        path.append(to_position)
+        return path
