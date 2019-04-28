@@ -93,8 +93,26 @@ def angle_p(p1, p2):
 
 def diff_angles(left_from, left_to, right_from, right_to):
     ' Difference between angles of right_from->right_to - left_from->left_to '
-    left_angle = angle_p(left_from, left_to) # math.atan2(left_from.y - left_to.y, left_from.x - left_to.x)
-    right_angle = angle_p(right_from, right_to) # math.atan2(right_from.y - right_to.y, right_from.x - right_to.x)
+    left_angle = angle_p(left_from, left_to)
+    right_angle = angle_p(right_from, right_to)
+    return diff(left_angle, right_angle)
+
+
+def angle_max(lhs, rhs):
+    if diff(lhs, rhs) < 0:
+        return lhs
+    else:
+        return rhs
+
+
+def angle_min(lhs, rhs):
+    if diff(lhs, rhs) < 0:
+        return rhs
+    else:
+        return lhs
+
+
+def diff(left_angle, right_angle):
     if left_angle - right_angle > math.pi:
         return (math.pi * 2 - left_angle) + right_angle
     elif right_angle - left_angle > math.pi:
@@ -351,19 +369,29 @@ class PolygonFunnelGeography(BasicGeography):
         connection = first_polygon.connection_for(current_polygon)
         left_position = connection.left_vertex.position
         right_position = connection.right_vertex.position
+        left_angle = angle_p(current_position, left_position)
+        right_angle = angle_p(current_position, right_position)
         while len(poly_chain) > 1:
             next_polygon = poly_chain.pop(0)
             connection = current_polygon.connection_for(next_polygon)
             if left_position == connection.left_vertex.position:
-                angle = diff_angles(current_position, left_position, current_position, connection.right_vertex.position)
-                if angle < 0:
+                left_angle = angle_max(left_angle, angle_p(current_position, left_position))
+                right_angle = angle_min(right_angle, angle_p(current_position, connection.right_vertex.position))
+
+                angle = diff(left_angle, right_angle)
+                if angle < 0 or diff_angles(current_position, left_position, current_position, to_position) < 0:
                     current_position = left_position
-                    path.append(current_position)
+                    if current_position not in path:
+                        path.append(current_position)
             if right_position == connection.right_vertex.position:
-                angle = diff_angles(current_position, connection.left_vertex.position, current_position, right_position)
-                if angle < 0:
+                left_angle = angle_max(left_angle, angle_p(current_position, connection.left_vertex.position))
+                right_angle = angle_min(right_angle, angle_p(current_position, right_position))
+
+                angle = diff(left_angle, right_angle)
+                if angle < 0 or diff_angles(current_position, to_position, current_position, right_position) < 0:
                     current_position = right_position
-                    path.append(current_position)
+                    if current_position not in path:
+                        path.append(current_position)
 
             current_polygon = next_polygon
             left_position = connection.left_vertex.position
@@ -371,6 +399,10 @@ class PolygonFunnelGeography(BasicGeography):
 
         next_polygon = poly_chain.pop(0)
         connection = current_polygon.connection_for(next_polygon)
+
+        left_angle = angle_max(left_angle, angle_p(current_position, left_position))
+        right_angle = angle_min(right_angle, angle_p(current_position, right_position))
+
         if diff_angles(current_position, connection.left_vertex.position, current_position, to_position) < 0:
             path.append(connection.left_vertex.position)
         if diff_angles(current_position, to_position, current_position, connection.right_vertex.position) < 0:

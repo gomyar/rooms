@@ -12,6 +12,8 @@ from .polygon_funnel import Polygon
 from .polygon_funnel import Connection
 from .polygon_funnel import angle
 from .polygon_funnel import diff_angles
+from .polygon_funnel import angle_max
+from .polygon_funnel import angle_min
 from .polygon_funnel import connect_polygons
 
 
@@ -255,6 +257,15 @@ class PolygonFunnelTest(unittest.TestCase):
         self.assertEquals(-math.pi / 2, diff_angles(P(0, 0), P(10, 10), P(0, 0), P(10, -10)))
         self.assertEquals(math.pi / 2, diff_angles(P(0, 0), P(-10, 10), P(0, 0), P(-10, -10)))
         self.assertEquals(-math.pi / 2, diff_angles(P(0, 0), P(-10, -10), P(0, 0), P(-10, 10)))
+
+    def test_angle_max_min(self):
+        self.assertEquals(0.2, angle_max(0.1, 0.2))
+        self.assertEquals(0.2, angle_max(0.2, 0.1))
+        self.assertEquals(0.1, angle_min(0.1, 0.2))
+        self.assertEquals(0.1, angle_min(0.2, 0.1))
+
+        self.assertEquals(0.1, angle_max(0.1, math.pi * 2 * 7 / 8))
+        self.assertEquals(math.pi * 2 * 7 / 8, angle_min(0.1, math.pi * 2 * 7 / 8))
 
     def test_narrow_then_wide_around_corner(self):
         def createpoly(p1, p2, p3):
