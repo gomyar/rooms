@@ -99,6 +99,8 @@ def diff_angles(left_from, left_to, right_from, right_to):
 
 
 def angle_max(lhs, rhs):
+    if lhs is None:
+        return rhs
     if diff(lhs, rhs) < 0:
         return lhs
     else:
@@ -106,6 +108,8 @@ def angle_max(lhs, rhs):
 
 
 def angle_min(lhs, rhs):
+    if lhs is None:
+        return rhs
     if diff(lhs, rhs) < 0:
         return rhs
     else:
@@ -339,22 +343,28 @@ class PolygonFunnelGeography(BasicGeography):
         # get poly chain
         poly_chain = AStar(self).find_path(from_point, to_point)
         path = self.funnel_poly_chain(poly_chain, from_point, to_point)
-        print "Path: %s" % (path,)
         return path
 
     def funnel_poly_chain(self, poly_chain, from_position, to_position):
+        def create_poly_queue(chain):
+            queue = []
+            current_poly = chain[0]
+            for poly in chain[1:]:
+                queue.append(current_poly, current_poly.connection_for(poly))
+            return queue
+        poly_queue = create_poly_queue(poly_chain)
 
-        if not poly_chain:
+        if not poly_queue:
             return []
-        if len(poly_chain) == 1:
+        if len(poly_queue) == 1:
             return [from_position, to_position]
 
         path = [from_position]
         current_position = from_position
 
-        if len(poly_chain) == 2:
-            current_polygon = poly_chain.pop(0)
-            next_polygon = poly_chain.pop(0)
+        if len(poly_queue) == 2:
+            current_polygon = poly_queue.pop(0)
+            next_polygon = poly_queue.pop(0)
             connection = current_polygon.connection_for(next_polygon)
             if diff_angles(current_position, connection.left_vertex.position, current_position, to_position) < 0:
                 path.append(connection.left_vertex.position)
@@ -364,23 +374,32 @@ class PolygonFunnelGeography(BasicGeography):
             path.append(to_position)
             return path
 
-        first_polygon = poly_chain.pop(0)
-        current_polygon = poly_chain.pop(0)
+        first_polygon = poly_queue.pop(0)
+        current_polygon = poly_queue.pop(0)
         connection = first_polygon.connection_for(current_polygon)
         left_position = connection.left_vertex.position
         right_position = connection.right_vertex.position
         left_angle = angle_p(current_position, left_position)
         right_angle = angle_p(current_position, right_position)
-        while len(poly_chain) > 1:
-            next_polygon = poly_chain.pop(0)
+        left_angle_position = left_position
+        right_angle_position = right_position
+        left_last_polygon = first_polygon
+        right_last_polygon = first_polygon
+
+        while len(poly_queue) > 1:
+            next_polygon = poly_queue.pop(0)
             connection = current_polygon.connection_for(next_polygon)
             if left_position == connection.left_vertex.position:
                 left_angle = angle_max(left_angle, angle_p(current_position, left_position))
                 right_angle = angle_min(right_angle, angle_p(current_position, connection.right_vertex.position))
 
                 angle = diff(left_angle, right_angle)
-                if angle < 0 or diff_angles(current_position, left_position, current_position, to_position) < 0:
+                if angle < 0:
                     current_position = left_position
+                    left_angle_position = left_position
+                    left_last_polygon = current_polygon
+                    left_angle = None
+                    right_angle = None
                     if current_position not in path:
                         path.append(current_position)
             if right_position == connection.right_vertex.position:
@@ -388,8 +407,12 @@ class PolygonFunnelGeography(BasicGeography):
                 right_angle = angle_min(right_angle, angle_p(current_position, right_position))
 
                 angle = diff(left_angle, right_angle)
-                if angle < 0 or diff_angles(current_position, to_position, current_position, right_position) < 0:
+                if angle < 0:
                     current_position = right_position
+                    right_angle_position = right_position
+                    right_last_polygon = current_polygon
+                    left_angle = None
+                    right_angle = None
                     if current_position not in path:
                         path.append(current_position)
 
@@ -397,16 +420,124 @@ class PolygonFunnelGeography(BasicGeography):
             left_position = connection.left_vertex.position
             right_position = connection.right_vertex.position
 
-        next_polygon = poly_chain.pop(0)
+        next_polygon = poly_queue.pop(0)
         connection = current_polygon.connection_for(next_polygon)
 
         left_angle = angle_max(left_angle, angle_p(current_position, left_position))
         right_angle = angle_min(right_angle, angle_p(current_position, right_position))
 
-        if diff_angles(current_position, connection.left_vertex.position, current_position, to_position) < 0:
-            path.append(connection.left_vertex.position)
-        if diff_angles(current_position, to_position, current_position, connection.right_vertex.position) < 0:
-            path.append(connection.right_vertex.position)
+        if diff(left_angle, angle_p(current_position, to_position)) < 0:
+            while diff(left_angle, angle_p(current_position, to_position)) < 0:
+                poly_queue = poly_chain[poly_chain.index(left_last_polygon)+1:]
+                next_corner_polygon = max(poly_queue, key=lambda p: angle_p(current_position, p.connection.left_vertex.position))
+                current_position = next_corner_polygon.left_vertex.position
+                left_last_polygon = next_corner_polygon
+
+        elif diff(angle_p(current_position, to_position), right_angle) < 0:
+            while diff(angle_p(current_position, to_position), right_angle) < 0:
+                poly_queue = poly_chain[poly_chain.index(right_last_polygon)+1:]
+                next_corner_polygon = min(poly_queue, key=lambda p: angle_p(current_position, p.connection.right_vertex.position))
+                current_position = next_corner_polygon.right_vertex.position
+                right_last_polygon = next_corner_polygon
 
         path.append(to_position)
         return path
+
+
+
+'''
+    def funnel_poly_chain(self, poly_chain, from_position, to_position):
+
+        def triarea2(a, b, c):
+            ax = bx - ax
+            ay = by - ay
+            bx = cx - ax
+            by = cy - ay
+            return bx*ay - ax*by
+
+        int stringPull(const float* portals, int nportals,
+                float* pts, const int maxPts)
+        {
+            // Find straight path.
+        int npts = 0;
+            // Init scan state
+        float portalApex[2], portalLeft[2], portalRight[2];
+        int apexIndex = 0, leftIndex = 0, rightIndex = 0;
+        vcpy(portalApex, &portals[0]);
+        vcpy(portalLeft, &portals[0]);
+        vcpy(portalRight, &portals[2]);
+
+            // Add start point.
+        vcpy(&pts[npts*2], portalApex);
+        npts++;
+
+        for (int i = 1; i < nportals && npts < maxPts; ++i)
+        {
+            const float* left = &portals[i*4+0];
+            const float* right = &portals[i*4+2];
+
+            // Update right vertex.
+            if (triarea2(portalApex, portalRight, right) <= 0.0f)
+            {
+                if (vequal(portalApex, portalRight) || triarea2(portalApex, portalLeft, right) > 0.0f)
+                {
+                    // Tighten the funnel.
+                    vcpy(portalRight, right);
+                    rightIndex = i;
+                }
+                else
+                {
+                        // Right over left, insert left to path and restart scan from portal left point.
+                    vcpy(&pts[npts*2], portalLeft);
+                    npts++;
+                        // Make current left the new apex.
+                    vcpy(portalApex, portalLeft);
+                    apexIndex = leftIndex;
+                        // Reset portal
+                    vcpy(portalLeft, portalApex);
+                    vcpy(portalRight, portalApex);
+                    leftIndex = apexIndex;
+                    rightIndex = apexIndex;
+                        // Restart scan
+                    i = apexIndex;
+                    continue;
+                }
+            }
+
+            // Update left vertex.
+            if (triarea2(portalApex, portalLeft, left) >= 0.0f)
+            {
+                if (vequal(portalApex, portalLeft) || triarea2(portalApex, portalRight, left) < 0.0f)
+                {
+                    // Tighten the funnel.
+                    vcpy(portalLeft, left);
+                    leftIndex = i;
+                }
+                else
+                {
+                    // Left over right, insert right to path and restart scan from portal right point.
+                    vcpy(&pts[npts*2], portalRight);
+                    npts++;
+                        // Make current right the new apex.
+                    vcpy(portalApex, portalRight);
+                    apexIndex = rightIndex;
+                        // Reset portal
+                    vcpy(portalLeft, portalApex);
+                    vcpy(portalRight, portalApex);
+                    leftIndex = apexIndex;
+                    rightIndex = apexIndex;
+                        // Restart scan
+                    i = apexIndex;
+                    continue;
+                }
+            }
+        }
+        // Append last point to path.
+        if (npts < maxPts)
+        {
+            vcpy(&pts[npts*2], &portals[(nportals-1)*4+0]);
+            npts++;
+        }
+
+        return npts;
+'''
