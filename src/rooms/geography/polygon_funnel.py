@@ -1,5 +1,6 @@
 
 import math
+import operator
 from .intersect import intersect, intersection_point, is_between
 from .basic_geography import BasicGeography
 from rooms.position import Position
@@ -346,104 +347,146 @@ class PolygonFunnelGeography(BasicGeography):
         return path
 
     def funnel_poly_chain(self, poly_chain, from_position, to_position):
+        if not poly_chain:
+            return []
+        if len(poly_chain) == 1:
+            return [from_position, to_position]
+
         def create_poly_queue(chain):
             queue = []
             current_poly = chain[0]
             for poly in chain[1:]:
-                queue.append(current_poly, current_poly.connection_for(poly))
+                connection = current_poly.connection_for(poly)
+                queue.append((current_poly, connection.left_vertex.position, connection.right_vertex.position))
+                current_poly = poly
             return queue
         poly_queue = create_poly_queue(poly_chain)
-
-        if not poly_queue:
-            return []
-        if len(poly_queue) == 1:
-            return [from_position, to_position]
 
         path = [from_position]
         current_position = from_position
 
-        if len(poly_queue) == 2:
-            current_polygon = poly_queue.pop(0)
-            next_polygon = poly_queue.pop(0)
-            connection = current_polygon.connection_for(next_polygon)
-            if diff_angles(current_position, connection.left_vertex.position, current_position, to_position) < 0:
-                path.append(connection.left_vertex.position)
-            if diff_angles(current_position, to_position, current_position, connection.right_vertex.position) < 0:
-                path.append(connection.right_vertex.position)
-
-            path.append(to_position)
-            return path
-
-        first_polygon = poly_queue.pop(0)
-        current_polygon = poly_queue.pop(0)
-        connection = first_polygon.connection_for(current_polygon)
-        left_position = connection.left_vertex.position
-        right_position = connection.right_vertex.position
+        current_polygon, left_position, right_position = poly_queue.pop(0)
         left_angle = angle_p(current_position, left_position)
         right_angle = angle_p(current_position, right_position)
-        left_angle_position = left_position
-        right_angle_position = right_position
-        left_last_polygon = first_polygon
-        right_last_polygon = first_polygon
+        last_polygon = current_polygon
+        left_narrow_position = left_position
+        right_narrow_position = right_position
 
-        while len(poly_queue) > 1:
-            next_polygon = poly_queue.pop(0)
-            connection = current_polygon.connection_for(next_polygon)
-            if left_position == connection.left_vertex.position:
-                left_angle = angle_max(left_angle, angle_p(current_position, left_position))
-                right_angle = angle_min(right_angle, angle_p(current_position, connection.right_vertex.position))
+        while poly_queue:
+            current_polygon, left_next_position, right_next_position = poly_queue.pop(0)
 
+            # narrow left portal
+            left_next_angle = angle_p(current_position, left_next_position)
+            if left_angle is None or left_next_angle > left_angle:
+                left_angle = left_next_angle
+                left_narrow_position = left_next_position
+
+            # narrow right portal
+            right_next_angle = angle_p(current_position, right_next_position)
+            if right_angle is None or right_next_angle < right_angle:
+                right_angle = right_next_angle
+                right_narrow_position = right_next_position
+
+            # detect left corner
+            if left_position == left_next_position:
                 angle = diff(left_angle, right_angle)
                 if angle < 0:
-                    current_position = left_position
-                    left_angle_position = left_position
-                    left_last_polygon = current_polygon
-                    left_angle = None
-                    right_angle = None
-                    if current_position not in path:
-                        path.append(current_position)
-            if right_position == connection.right_vertex.position:
-                left_angle = angle_max(left_angle, angle_p(current_position, connection.left_vertex.position))
-                right_angle = angle_min(right_angle, angle_p(current_position, right_position))
+                    #import ipdb; ipdb.set_trace()
+                    left_poly_queue = create_poly_queue(poly_chain[poly_chain.index(last_polygon):poly_chain.index(current_polygon)+1])
+                    while len(left_poly_queue) > 1:
+                        current_polygon_l, left_next_position_l, right_next_position_l = left_poly_queue.pop(0)
+                        subsequent_left_angles = [
+                            diff(angle_p(current_position, poly[1]), angle_p(current_position, to_position)) for poly in left_poly_queue]
+                        index, value = min(enumerate(subsequent_left_angles), key=operator.itemgetter(1))
+                        if value < 0:
+                            current_position = left_poly_queue[index][1]
+                            last_polygon = current_polygon_l
+                            if current_position not in path:
+                                path.append(current_position)
+                            left_poly_queue = left_poly_queue[index+1:]
+                            left_angle = None
+                            right_angle = None
 
+                    #current_position = left_narrow_position
+                    #last_polygon = current_polygon
+                    #left_angle = None
+                    #right_angle = None
+                    #if current_position not in path:
+                    #    path.append(current_position)
+
+            # detect right corner
+            if right_position == right_next_position:
                 angle = diff(left_angle, right_angle)
                 if angle < 0:
-                    current_position = right_position
-                    right_angle_position = right_position
-                    right_last_polygon = current_polygon
-                    left_angle = None
-                    right_angle = None
-                    if current_position not in path:
-                        path.append(current_position)
 
-            current_polygon = next_polygon
-            left_position = connection.left_vertex.position
-            right_position = connection.right_vertex.position
+                    right_poly_queue = create_poly_queue(poly_chain[poly_chain.index(last_polygon):poly_chain.index(current_polygon)+1])
+                    while len(right_poly_queue) > 1:
+                        current_polygon_r, right_next_position_r, right_next_position_r = right_poly_queue.pop(0)
+                        subsequent_right_angles = [
+                            diff(angle_p(current_position, to_position), angle_p(current_position, poly[1])) for poly in right_poly_queue]
+                        index, value = min(enumerate(subsequent_right_angles), key=operator.itemgetter(1))
+                        if value < 0:
+                            current_position = right_poly_queue[index][1]
+                            last_polygon = current_polygon_r
+                            if current_position not in path:
+                                path.append(current_position)
+                            right_poly_queue = right_poly_queue[index+1:]
+                            left_angle = None
+                            right_angle = None
 
-        next_polygon = poly_queue.pop(0)
-        connection = current_polygon.connection_for(next_polygon)
+                    #current_position = right_narrow_position
+                    #last_polygon = current_polygon
+                    #left_angle = None
+                    #right_angle = None
+                    #if current_position not in path:
+                    #    path.append(current_position)
 
-        left_angle = angle_max(left_angle, angle_p(current_position, left_position))
-        right_angle = angle_min(right_angle, angle_p(current_position, right_position))
+            left_position = left_next_position
+            right_position = right_next_position
 
-        if diff(left_angle, angle_p(current_position, to_position)) < 0:
-            while diff(left_angle, angle_p(current_position, to_position)) < 0:
-                poly_queue = poly_chain[poly_chain.index(left_last_polygon)+1:]
-                next_corner_polygon = max(poly_queue, key=lambda p: angle_p(current_position, p.connection.left_vertex.position))
-                current_position = next_corner_polygon.left_vertex.position
-                left_last_polygon = next_corner_polygon
+        # second pass
+        # turning left
+        # create poly_queue since last_polygon
+        left_poly_queue = create_poly_queue(poly_chain[poly_chain.index(last_polygon)+1:])
+        while len(left_poly_queue) > 1:
+            current_polygon, left_next_position, right_next_position = left_poly_queue.pop(0)
+            subsequent_left_angles = [
+                diff(angle_p(current_position, poly[1]), angle_p(current_position, to_position)) for poly in left_poly_queue]
+            index, value = min(enumerate(subsequent_left_angles), key=operator.itemgetter(1))
+            if value < 0:
+                current_position = left_poly_queue[index][1]
+                if current_position not in path:
+                    path.append(current_position)
+                left_poly_queue = left_poly_queue[index:]
 
-        elif diff(angle_p(current_position, to_position), right_angle) < 0:
-            while diff(angle_p(current_position, to_position), right_angle) < 0:
-                poly_queue = poly_chain[poly_chain.index(right_last_polygon)+1:]
-                next_corner_polygon = min(poly_queue, key=lambda p: angle_p(current_position, p.connection.right_vertex.position))
-                current_position = next_corner_polygon.right_vertex.position
-                right_last_polygon = next_corner_polygon
+        # turning right
+        # create poly_queue since last_polygon
+        right_poly_queue = create_poly_queue(poly_chain[poly_chain.index(last_polygon)+1:])
+        while len(right_poly_queue) > 1:
+            current_polygon, right_next_position, right_next_position = right_poly_queue.pop(0)
+            subsequent_right_angles = [
+                diff(angle_p(current_position, to_position), angle_p(current_position, poly[1])) for poly in right_poly_queue]
+            index, value = min(enumerate(subsequent_right_angles), key=operator.itemgetter(1))
+            if value < 0:
+                current_position = right_poly_queue[index][1]
+                if current_position not in path:
+                    path.append(current_position)
+                right_poly_queue = right_poly_queue[index:]
 
+        '''
+        right_poly_queue = create_poly_queue(poly_chain[poly_chain.index(last_polygon)+1:])
+        while len(right_poly_queue) > 1:
+            current_polygon, right_next_position, right_next_position = right_poly_queue.pop(0)
+            subsequent_right_positions = [angle_p(current_position, poly[2]) for poly in right_poly_queue]
+            index, value = max(enumerate(subsequent_right_positions), key=operator.itemgetter(1))
+            if index == 0 and value < angle_p(current_position, to_position):
+                if right_next_position not in path:
+                    path.append(right_next_position)
+                current_position = right_next_position
+
+        '''
         path.append(to_position)
         return path
-
-
 
 '''
     def funnel_poly_chain(self, poly_chain, from_position, to_position):
