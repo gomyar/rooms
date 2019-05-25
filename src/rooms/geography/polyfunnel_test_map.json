@@ -1,0 +1,226 @@
+{
+    "map_id": "polyfunnel_test_map", 
+    "positioning": "relative", 
+    "rooms": {
+        "polyfunnel_test_map.room1": {
+            "tags": [
+                {
+                    "position": {
+                        "y": 80, 
+                        "x": 70, 
+                        "z": 0
+                    }, 
+                    "tag_type": "actor.spawn", 
+                    "data": {
+                        "actor_type": "npc", 
+                        "actor_script": "npc_script"
+                    }, 
+                    "width": null, 
+                    "height": null
+                }, 
+                {
+                    "position": {
+                        "y": -60, 
+                        "x": 10, 
+                        "z": 0
+                    }, 
+                    "tag_type": "player.spawn", 
+                    "data": {}, 
+                    "width": null, 
+                    "height": null
+                }
+            ], 
+            "room_objects": [
+                {
+                    "height": 120, 
+                    "position": {
+                        "y": -30, 
+                        "x": -60, 
+                        "z": 0
+                    }, 
+                    "object_type": "rect1", 
+                    "width": 60
+                }, 
+                {
+                    "height": 50, 
+                    "position": {
+                        "y": 40, 
+                        "x": 60
+                    }, 
+                    "object_type": "rect2", 
+                    "width": 50
+                }, 
+                {
+                    "position": {
+                        "y": 40, 
+                        "x": 0
+                    }, 
+                    "object_type": "rect3", 
+                    "width": 25, 
+                    "height": 25
+                }, 
+                {
+                    "height": 30, 
+                    "position": {
+                        "y": -60, 
+                        "x": 30
+                    }, 
+                    "object_type": "rect4", 
+                    "width": 30
+                }, 
+                {
+                    "height": 25, 
+                    "position": {
+                        "y": 90, 
+                        "x": -40
+                    }, 
+                    "object_type": "test1", 
+                    "width": 40
+                }
+            ], 
+            "height": 250, 
+            "width": 250, 
+            "doors": [
+                {
+                    "position": {
+                        "y": 0, 
+                        "x": 125, 
+                        "z": 0
+                    }, 
+                    "exit_room_id": "polyfunnel_test_map.room2", 
+                    "exit_position": {
+                        "y": 0, 
+                        "x": -125, 
+                        "z": 0
+                    }
+                }
+            ], 
+            "position": {
+                "y": 120, 
+                "x": 120, 
+                "z": 0
+            }
+        }, 
+        "polyfunnel_test_map.room2": {
+            "tags": [], 
+            "room_objects": [
+                {
+                    "position": {
+                        "y": -60, 
+                        "x": 0
+                    }, 
+                    "object_type": "rect", 
+                    "width": 200, 
+                    "height": 50
+                }, 
+                {
+                    "position": {
+                        "y": -25, 
+                        "x": 65
+                    }, 
+                    "object_type": "rect2", 
+                    "width": 50, 
+                    "height": 150
+                }
+            ], 
+            "height": 250, 
+            "width": 250, 
+            "doors": [
+                {
+                    "position": {
+                        "y": 0, 
+                        "x": -125, 
+                        "z": 0
+                    }, 
+                    "exit_room_id": "polyfunnel_test_map.room1", 
+                    "exit_position": {
+                        "y": 0, 
+                        "x": 125, 
+                        "z": 0
+                    }
+                }, 
+                {
+                    "position": {
+                        "y": 125, 
+                        "x": 0, 
+                        "z": 0
+                    }, 
+                    "exit_room_id": "polyfunnel_test_map.room3", 
+                    "exit_position": {
+                        "y": -125, 
+                        "x": 0, 
+                        "z": 0
+                    }
+                }
+            ], 
+            "position": {
+                "y": 120, 
+                "x": 370, 
+                "z": 0
+            }
+        }, 
+        "polyfunnel_test_map.room3": {
+            "bottomright": {
+                "y": 500, 
+                "x": 500, 
+                "z": 0
+            }, 
+            "tags": [
+                {
+                    "position": {
+                        "y": 70, 
+                        "x": 70, 
+                        "z": 0
+                    }, 
+                    "data": {
+                        "actor_type": "npc", 
+                        "actor_script": "npc_script"
+                    }, 
+                    "tag_type": "actor.spawn"
+                }
+            ], 
+            "room_objects": [
+                {
+                    "height": 50, 
+                    "position": {
+                        "y": -60, 
+                        "x": 0
+                    }, 
+                    "object_type": "rect", 
+                    "width": 200
+                }, 
+                {
+                    "height": 150, 
+                    "position": {
+                        "y": -25, 
+                        "x": 65
+                    }, 
+                    "object_type": "rect2", 
+                    "width": 70
+                }
+            ], 
+            "height": 250, 
+            "width": 250, 
+            "doors": [
+                {
+                    "position": {
+                        "y": -125, 
+                        "x": 0, 
+                        "z": 0
+                    }, 
+                    "exit_room_id": "polyfunnel_test_map.room2", 
+                    "exit_position": {
+                        "y": 125, 
+                        "x": 0, 
+                        "z": 0
+                    }
+                }
+            ], 
+            "position": {
+                "y": 370, 
+                "x": 370, 
+                "z": 0
+            }
+        }
+    }
+}

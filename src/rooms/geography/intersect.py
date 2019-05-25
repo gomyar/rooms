@@ -99,3 +99,19 @@ def is_between(from_p, to_p, p):
         return False
 
     return True
+
+def is_between_tuple(from_p, to_p, p):
+    crossproduct = (p[1] - from_p[1]) * (to_p[0] - from_p[0]) - (p[0] - from_p[0]) * (to_p[1] - from_p[1])
+
+    if abs(crossproduct) > DET_TOLERANCE:
+        return False
+
+    dotproduct = (p[0] - from_p[0]) * (to_p[0] - from_p[0]) + (p[1] - from_p[1])*(to_p[1] - from_p[1])
+    if dotproduct < 0:
+        return False
+
+    squaredlengthba = (to_p[0] - from_p[0])*(to_p[0] - from_p[0]) + (to_p[1] - from_p[1])*(to_p[1] - from_p[1])
+    if dotproduct > squaredlengthba:
+        return False
+
+    return True

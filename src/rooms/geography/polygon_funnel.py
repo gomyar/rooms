@@ -5,6 +5,7 @@ from .intersect import intersect, intersection_point, is_between
 from .basic_geography import BasicGeography
 from rooms.position import Position
 from rooms.geography.astar_polyfunnel import AStar
+from rooms.geography.funnel_poly_chain import stringPull
 
 
 class Polygon(object):
@@ -137,6 +138,16 @@ def connect_polygons(polygons):
                 else:
                     left_vertex, right_vertex = vertices
                 polygon.connections.append(Connection(match, left_vertex, right_vertex))
+
+
+def create_poly_queue(chain):
+    queue = []
+    current_poly = chain[0]
+    for poly in chain[1:]:
+        connection = current_poly.connection_for(poly)
+        queue.append((current_poly, connection.left_vertex.position, connection.right_vertex.position))
+        current_poly = poly
+    return queue
 
 
 class PolygonFunnelGeography(BasicGeography):
@@ -343,8 +354,13 @@ class PolygonFunnelGeography(BasicGeography):
     def find_path(self, room, from_point, to_point):
         # get poly chain
         poly_chain = AStar(self).find_path(from_point, to_point)
-        path = self.funnel_poly_chain(poly_chain, from_point, to_point)
-        return path
+
+        poly_queue = create_poly_queue(poly_chain)
+        portals = [((q[1].x, q[1].y), (q[2].x, q[2].y)) for q in poly_queue]
+
+#        path = self.funnel_poly_chain(poly_chain, from_point, to_point)
+        path = stringPull(portals, from_point.coords(), to_point.coords())
+        return [Position(p[0], p[1]) for p in path]
 
     def funnel_poly_chain(self, poly_chain, from_position, to_position):
         if not poly_chain:
@@ -352,14 +368,6 @@ class PolygonFunnelGeography(BasicGeography):
         if len(poly_chain) == 1:
             return [from_position, to_position]
 
-        def create_poly_queue(chain):
-            queue = []
-            current_poly = chain[0]
-            for poly in chain[1:]:
-                connection = current_poly.connection_for(poly)
-                queue.append((current_poly, connection.left_vertex.position, connection.right_vertex.position))
-                current_poly = poly
-            return queue
         poly_queue = create_poly_queue(poly_chain)
 
         path = [from_position]
