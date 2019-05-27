@@ -53,12 +53,18 @@ class FunnelPolysTest(unittest.TestCase):
                    (P(0.0,-15.0), P(25.0,-45.0)),
                    (P(0.0,-15.0), P(25.0,-60.0))]
         portals = [((q[1].x, q[1].y), (q[2].x, q[2].y)) for q in queue]
-        self.assertEquals([
-            (0, 5),
-            (0.0, 0.0),
-            (50.0, 30.0),
-            (20.0, -15.0),
-            (-29, -6)], stringPull(portals, (0, 5), (-29, -6)))
+
+        path = stringPull(portals, (0, 5), (-29, -6))
+
+#        from webpolys import WebCanvas
+#        mister = WebCanvas()
+#        polys = [[(v.position) for v in p.vertices] for p in poly_chain]
+#        mister.add_poly_list(polys)
+#        mister.add_line(path)
+#        mister.handle_request()
+
+        self.assertEquals([(0, 5), (20.0, 0.0), (20.0, -15.0),
+                           (0.0, -15.0), (-29, -6)], path)
 
     def test_real_path(self):
         from_position = P(105, -95)
@@ -80,4 +86,10 @@ class FunnelPolysTest(unittest.TestCase):
             ((-100.0, -35.0), (30.0, 50.0))], portals)
         path = stringPull(portals, from_position.coords(), to_position.coords())
 
-        self.assertEquals([], path)
+        self.assertEquals([
+            (105.0, -95.0),
+            (100.0, -100.0),
+            (30.0, -100.0),
+            (-100.0, -85.0),
+            (-100.0, -35.0),
+            (-5.0, -20.0)], path)

@@ -358,7 +358,6 @@ class PolygonFunnelGeography(BasicGeography):
         poly_queue = create_poly_queue(poly_chain)
         portals = [((q[1].x, q[1].y), (q[2].x, q[2].y)) for q in poly_queue]
 
-#        path = self.funnel_poly_chain(poly_chain, from_point, to_point)
         path = stringPull(portals, from_point.coords(), to_point.coords())
         return [Position(p[0], p[1]) for p in path]
 

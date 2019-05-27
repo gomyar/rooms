@@ -21,4 +21,5 @@ class AStarPolyFunnelTest(unittest.TestCase):
         self.geography.setup(self.room)
 
     def test_path(self):
-        self.assertEquals([], self.geography.find_path(self.room, P(-40, -40), P(40, 40)))
+        self.assertEquals([P(-40.0,-40.0), P(20.0,-20.0), P(40.0,40.0)],
+                          self.geography.find_path(self.room, P(-40, -40), P(40, 40)))

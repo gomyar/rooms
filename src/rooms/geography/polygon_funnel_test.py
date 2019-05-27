@@ -15,6 +15,8 @@ from .polygon_funnel import diff_angles
 from .polygon_funnel import angle_max
 from .polygon_funnel import angle_min
 from .polygon_funnel import connect_polygons
+from rooms.geography.funnel_poly_chain import stringPull
+from rooms.geography.polygon_funnel import create_poly_queue
 
 
 class PolygonFunnelTest(unittest.TestCase):
@@ -178,9 +180,13 @@ class PolygonFunnelTest(unittest.TestCase):
             createpoly(P(0, 10), P(10, 0), P(20, 10)),
         ]
         connect_polygons(poly_chain)
-        path = self.geography.funnel_poly_chain(poly_chain, P(10, 25), P(10, 5))
 
-        self.assertEquals([P(10, 25), P(10, 5)], path)
+        poly_queue = create_poly_queue(poly_chain)
+        portals = [((q[1].x, q[1].y), (q[2].x, q[2].y)) for q in poly_queue]
+
+        path = stringPull(portals, (10, 25), (10, 5))
+
+        self.assertEquals([(10, 25), (10, 5)], path)
 
     def test_funnel_left(self):
         def createpoly(p1, p2, p3):
@@ -194,9 +200,13 @@ class PolygonFunnelTest(unittest.TestCase):
             createpoly(P(0, 0), P(10, -10), P(20, 0)),
         ]
         connect_polygons(poly_chain)
-        path = self.geography.funnel_poly_chain(poly_chain, P(10, 25), P(10, 5))
 
-        self.assertEquals([P(10, 25), P(0, 10), P(10, 5)], path)
+        poly_queue = create_poly_queue(poly_chain)
+        portals = [((q[1].x, q[1].y), (q[2].x, q[2].y)) for q in poly_queue]
+
+        path = stringPull(portals, (10, 25), (10, 5))
+
+        self.assertEquals([(10, 25), (0, 10), (20, 0), (10, 5)], path)
 
     def test_funnel_left_left_left(self):
         def createpoly(p1, p2, p3):
@@ -213,10 +223,13 @@ class PolygonFunnelTest(unittest.TestCase):
             createpoly(P(0, 0), P(-10, -10), P(0, -10)),
         ]
         connect_polygons(poly_chain)
-        path = self.geography.funnel_poly_chain(poly_chain, P(10, 25), P(-5, -7))
 
-        self.assertEquals([P(10, 25), P(0, 10), P(0, 0), P(-5, -7)], path)
+        poly_queue = create_poly_queue(poly_chain)
+        portals = [((q[1].x, q[1].y), (q[2].x, q[2].y)) for q in poly_queue]
 
+        path = stringPull(portals, (10, 25), (-5, -7))
+
+        self.assertEquals([(10, 25), (0, 10), (0, 0), (-5, -7)], path)
 
     def test_funnel_no_polys(self):
         self.assertEquals([], self.geography.funnel_poly_chain([], P(10, 10), P(20, 20)))
@@ -236,8 +249,14 @@ class PolygonFunnelTest(unittest.TestCase):
             createpoly(P(0, 0), P(-20, -20), P(20, 0)),
         ]
         connect_polygons(poly_chain)
-        expected = [P(2, 15), P(0, 0), P(-15, -15)]
-        self.assertEquals(expected, self.geography.funnel_poly_chain(poly_chain, P(2, 15), P(-15, -15)))
+        expected = [(2, 15), (0, 0), (-15, -15)]
+
+        poly_queue = create_poly_queue(poly_chain)
+        portals = [((q[1].x, q[1].y), (q[2].x, q[2].y)) for q in poly_queue]
+
+        path = stringPull(portals, (2, 15), (-15, -15))
+
+        self.assertEquals(expected, path)
 
     def test_two_polys_right_occluded(self):
         def createpoly(p1, p2, p3):
@@ -247,8 +266,14 @@ class PolygonFunnelTest(unittest.TestCase):
             createpoly(P(0, 0), P(-20, 0), P(20, -20)),
         ]
         connect_polygons(poly_chain)
-        expected = [P(-2, 15), P(0, 0), P(15, -15)]
-        self.assertEquals(expected, self.geography.funnel_poly_chain(poly_chain, P(-2, 15), P(15, -15)))
+        expected = [(-2, 15), (0, 0), (15, -15)]
+
+        poly_queue = create_poly_queue(poly_chain)
+        portals = [((q[1].x, q[1].y), (q[2].x, q[2].y)) for q in poly_queue]
+
+        path = stringPull(portals, (-2, 15), (15, -15))
+
+        self.assertEquals(expected, path)
 
     def test_diff_angles(self):
         self.assertEquals(math.pi / 4, diff_angles(P(0, 0), P(10, 10), P(0, 0), P(0, 10)))
@@ -276,8 +301,14 @@ class PolygonFunnelTest(unittest.TestCase):
             createpoly(P(0, 0), P(-20, 0), P(10, -10)),
         ]
         connect_polygons(poly_chain)
-        expected = [P(5, 15), P(0, 0), P(-15, -5)]
-        self.assertEquals(expected, self.geography.funnel_poly_chain(poly_chain, P(5, 15), P(-15, -5)))
+        expected = [(5, 15), (0, 0), (-15, -5)]
+
+        poly_queue = create_poly_queue(poly_chain)
+        portals = [((q[1].x, q[1].y), (q[2].x, q[2].y)) for q in poly_queue]
+
+        path = stringPull(portals, (5, 15), (-15, -5))
+
+        self.assertEquals(expected, path)
 
     def test_narrow_then_wide_around_corner_2(self):
         def createpoly(p1, p2, p3):
@@ -293,5 +324,11 @@ class PolygonFunnelTest(unittest.TestCase):
             createpoly(P(-30, -5), P(25, -60), P(0, -15)),
         ]
         connect_polygons(poly_chain)
-        expected = [P(30, 25), P(20, -15), P(5, -30)]
-        self.assertEquals(expected, self.geography.funnel_poly_chain(poly_chain, P(30, 25), P(5, -30)))
+        expected = [(30, 25), (20, -15), (5, -30)]
+
+        poly_queue = create_poly_queue(poly_chain)
+        portals = [((q[1].x, q[1].y), (q[2].x, q[2].y)) for q in poly_queue]
+
+        path = stringPull(portals, (30, 25), (5, -30))
+
+        self.assertEquals(expected, path)
