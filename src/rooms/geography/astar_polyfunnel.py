@@ -104,7 +104,7 @@ class AStar(object):
                 break
         # open list is empty (no path) (extra check for linear paths)
         if not self.open_list and \
-                len(self.closed_list) != len(self.point_map._points):
+                len(self.closed_list) != len(self.geography.polygons):
             return []
 
         # working backwards from target, using parents, to build path

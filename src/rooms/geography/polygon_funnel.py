@@ -2,6 +2,7 @@
 import math
 import operator
 from .intersect import intersect, intersection_point, is_between
+from rooms.position import FLOAT_TOLERANCE
 from .basic_geography import BasicGeography
 from rooms.position import Position
 from rooms.geography.astar_polyfunnel import AStar
@@ -58,7 +59,11 @@ class Vertex(object):
         self.next = None
 
     def __eq__(self, rhs):
-        return rhs and self.position == rhs.position
+        if not rhs:
+            return False
+        x1, y1 = self.position.coords()
+        x2, y2 = rhs.coords
+        return math.fabs(x1 - x2) < FLOAT_TOLERANCE and math.fabs(y1 - y2) < FLOAT_TOLERANCE
 
     def __ne__(self, rhs):
         return not self.__eq__(rhs)
@@ -343,6 +348,7 @@ class PolygonFunnelGeography(BasicGeography):
                     new_polygon = Polygon(vertex, to_v1, to_v2)
                     if new_polygon not in polygons:
                         polygons.append(new_polygon)
+
         return polygons
 
     def find_poly_at_point(self, point):
@@ -355,6 +361,8 @@ class PolygonFunnelGeography(BasicGeography):
         # get poly chain
         poly_chain = AStar(self).find_path(from_point, to_point)
 
+        if not poly_chain:
+            return []
         poly_queue = create_poly_queue(poly_chain)
         portals = [((q[1].x, q[1].y), (q[2].x, q[2].y)) for q in poly_queue]
 
@@ -398,7 +406,6 @@ class PolygonFunnelGeography(BasicGeography):
             if left_position == left_next_position:
                 angle = diff(left_angle, right_angle)
                 if angle < 0:
-                    #import ipdb; ipdb.set_trace()
                     left_poly_queue = create_poly_queue(poly_chain[poly_chain.index(last_polygon):poly_chain.index(current_polygon)+1])
                     while len(left_poly_queue) > 1:
                         current_polygon_l, left_next_position_l, right_next_position_l = left_poly_queue.pop(0)

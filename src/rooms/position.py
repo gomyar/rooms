@@ -1,10 +1,21 @@
 
 import math
 
+FLOAT_TOLERANCE = 0.00000001
+ROUND_TO = 8
+
+
+# consider switching to Decimal
+def eq(lhs, rhs):
+    return math.fabs(lhs - rhs) < FLOAT_TOLERANCE
+
 
 class Position(object):
     def __init__(self, x, y, z=0):
-        self.x, self.y, self.z = float(x), float(y), float(z)
+        self.x, self.y, self.z = (
+            round(float(x), ROUND_TO),
+            round(float(y), ROUND_TO),
+            round(float(z), ROUND_TO))
 
     def __repr__(self):
         if self.z != 0:

@@ -61,7 +61,7 @@ class FlaskAppTest(unittest.TestCase):
         self.login('bob', 'pass')
         res = self.client.get('/rooms/connect/games_0')
         self.assertEquals(200, res.status_code)
-        self.assertEquals('{\n  "wait": 1\n}\n', res.data)
+        self.assertEquals('{"wait":1}\n', res.data)
 
         app.node.load_next_pending_room()
 
@@ -86,7 +86,7 @@ class FlaskAppTest(unittest.TestCase):
         self.login('bob', 'pass')
         res = self.client.get('/rooms/connect/%s' % (game_id,))
         self.assertEquals(200, res.status_code)
-        self.assertEquals('{\n  "wait": 1\n}\n', res.data)
+        self.assertEquals('{"wait":1}\n', res.data)
 
         app.node.load_next_pending_room()
 

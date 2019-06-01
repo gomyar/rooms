@@ -1,0 +1,115 @@
+{
+    "map_id": "kitchen_test", 
+    "positioning": "relative", 
+    "rooms": {
+        "kitchen_test.kitchen": {
+            "info": {
+                "description": "Kitchen", 
+                "floor": "floor_darktiles"
+            }, 
+            "tags": [
+                {
+                    "position": {
+                        "y": -35, 
+                        "x": 120
+                    }, 
+                    "data": {
+                        "actor_type": "npc", 
+                        "actor_script": "cook"
+                    }, 
+                    "tag_type": "actor.spawn"
+                }, 
+                {
+                    "position": {
+                        "y": -35, 
+                        "x": 15
+                    }, 
+                    "data": {}, 
+                    "tag_type": "cook.working"
+                }
+            ], 
+            "room_objects": [
+                {
+                    "object_type": "table", 
+                    "height": 220, 
+                    "width": 100, 
+                    "doors": [], 
+                    "position": {
+                        "y": -30, 
+                        "x": -40
+                    }, 
+                    "data": {
+                        "facing": 0, 
+                        "model": "diningroom_table"
+                    }
+                }, 
+                {
+                    "height": 150, 
+                    "position": {
+                        "y": 10, 
+                        "x": 190
+                    }, 
+                    "object_type": "sink", 
+                    "data": {
+                        "facing": 180, 
+                        "model": "sink"
+                    }, 
+                    "width": 50
+                }
+            ], 
+            "height": 515.8346330730188, 
+            "width": 424.79134173174526, 
+            "doors": [
+                {
+                    "position": {
+                        "y": 260, 
+                        "x": -80
+                    }, 
+                    "exit_room_id": "kitchen_test.lounge", 
+                    "exit_position": {
+                        "y": -200, 
+                        "x": -140, 
+                        "z": 0
+                    }, 
+                    "width": 26.215411203426676, 
+                    "height": 26.215411203426676
+                }, 
+                {
+                    "position": {
+                        "y": -260, 
+                        "x": -30
+                    }, 
+                    "exit_room_id": "kitchen_test.pantry", 
+                    "exit_position": {
+                        "y": 170, 
+                        "x": 80, 
+                        "z": 0
+                    }, 
+                    "width": 38.18317571146666, 
+                    "height": 38.18317571146666
+                }, 
+                {
+                    "exit_room_id": "kitchen_test.diningroom", 
+                    "exit_position": {
+                        "y": 260, 
+                        "x": -230, 
+                        "z": 0
+                    }, 
+                    "height": 41.801873441850134, 
+                    "width": 41.801873441850134, 
+                    "position": {
+                        "y": -180, 
+                        "x": 210
+                    }, 
+                    "data": {
+                        "facing": 270
+                    }
+                }
+            ], 
+            "position": {
+                "y": 280, 
+                "x": 80
+            }
+        }
+    }
+}

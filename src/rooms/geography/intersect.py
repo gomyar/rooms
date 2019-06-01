@@ -1,7 +1,7 @@
 
 import math
 
-DET_TOLERANCE = 0.00000001
+from rooms.position import FLOAT_TOLERANCE
 
 
 def intersection_point(pt1, pt2, ptA, ptB, include_endpoints=True):
@@ -13,7 +13,7 @@ def intersection_point(pt1, pt2, ptA, ptB, include_endpoints=True):
             valid == 0 if there are 0 or inf. intersections (invalid)
             valid == 1 if it has a unique intersection ON the segment    """
 
-    # DET_TOLERANCE = 0.00000001
+    # FLOAT_TOLERANCE = 0.00000001
 
     # the first line is pt1 + r*(pt2-pt1)
     # in component form:
@@ -49,7 +49,7 @@ def intersection_point(pt1, pt2, ptA, ptB, include_endpoints=True):
     #
     DET = (-dx1 * dy + dy1 * dx)
 
-    if math.fabs(DET) < DET_TOLERANCE:
+    if math.fabs(DET) < FLOAT_TOLERANCE:
         return None
 
     # now, the determinant should be OK
@@ -72,9 +72,9 @@ def intersection_point(pt1, pt2, ptA, ptB, include_endpoints=True):
         if r > 1.0 or s > 1.0:
             return None
     else:
-        if r <= DET_TOLERANCE or s <= DET_TOLERANCE:
+        if r <= FLOAT_TOLERANCE or s <= FLOAT_TOLERANCE:
             return None
-        if r >= (1.0-DET_TOLERANCE) or s >= (1.0-DET_TOLERANCE):
+        if r >= (1.0-FLOAT_TOLERANCE) or s >= (1.0-FLOAT_TOLERANCE):
             return None
 
     return ( xi, yi) #, 1, r, s )
@@ -87,7 +87,7 @@ def intersect(x1, y1, x2, y2, x3, y3, x4, y4):
 def is_between(from_p, to_p, p):
     crossproduct = (p.y - from_p.y) * (to_p.x - from_p.x) - (p.x - from_p.x) * (to_p.y - from_p.y)
 
-    if abs(crossproduct) > DET_TOLERANCE:
+    if abs(crossproduct) > FLOAT_TOLERANCE:
         return False
 
     dotproduct = (p.x - from_p.x) * (to_p.x - from_p.x) + (p.y - from_p.y)*(to_p.y - from_p.y)
@@ -103,7 +103,7 @@ def is_between(from_p, to_p, p):
 def is_between_tuple(from_p, to_p, p):
     crossproduct = (p[1] - from_p[1]) * (to_p[0] - from_p[0]) - (p[0] - from_p[0]) * (to_p[1] - from_p[1])
 
-    if abs(crossproduct) > DET_TOLERANCE:
+    if abs(crossproduct) > FLOAT_TOLERANCE:
         return False
 
     dotproduct = (p[0] - from_p[0]) * (to_p[0] - from_p[0]) + (p[1] - from_p[1])*(to_p[1] - from_p[1])
