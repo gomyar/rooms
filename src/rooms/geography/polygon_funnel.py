@@ -352,6 +352,11 @@ class PolygonFunnelGeography(BasicGeography):
         return polygons
 
     def find_poly_at_point(self, point):
+        # find closest polygon
+        return (self.get_poly_at_point(point) or
+                min(self.polygons, key=lambda p: p.midpoint.distance_to(point)))
+
+    def get_poly_at_point(self, point):
         for polygon in self.polygons:
             if polygon.point_within(point):
                 return polygon
@@ -501,100 +506,3 @@ class PolygonFunnelGeography(BasicGeography):
         '''
         path.append(to_position)
         return path
-
-'''
-    def funnel_poly_chain(self, poly_chain, from_position, to_position):
-
-        def triarea2(a, b, c):
-            ax = bx - ax
-            ay = by - ay
-            bx = cx - ax
-            by = cy - ay
-            return bx*ay - ax*by
-
-        int stringPull(const float* portals, int nportals,
-                float* pts, const int maxPts)
-        {
-            // Find straight path.
-        int npts = 0;
-            // Init scan state
-        float portalApex[2], portalLeft[2], portalRight[2];
-        int apexIndex = 0, leftIndex = 0, rightIndex = 0;
-        vcpy(portalApex, &portals[0]);
-        vcpy(portalLeft, &portals[0]);
-        vcpy(portalRight, &portals[2]);
-
-            // Add start point.
-        vcpy(&pts[npts*2], portalApex);
-        npts++;
-
-        for (int i = 1; i < nportals && npts < maxPts; ++i)
-        {
-            const float* left = &portals[i*4+0];
-            const float* right = &portals[i*4+2];
-
-            // Update right vertex.
-            if (triarea2(portalApex, portalRight, right) <= 0.0f)
-            {
-                if (vequal(portalApex, portalRight) || triarea2(portalApex, portalLeft, right) > 0.0f)
-                {
-                    // Tighten the funnel.
-                    vcpy(portalRight, right);
-                    rightIndex = i;
-                }
-                else
-                {
-                        // Right over left, insert left to path and restart scan from portal left point.
-                    vcpy(&pts[npts*2], portalLeft);
-                    npts++;
-                        // Make current left the new apex.
-                    vcpy(portalApex, portalLeft);
-                    apexIndex = leftIndex;
-                        // Reset portal
-                    vcpy(portalLeft, portalApex);
-                    vcpy(portalRight, portalApex);
-                    leftIndex = apexIndex;
-                    rightIndex = apexIndex;
-                        // Restart scan
-                    i = apexIndex;
-                    continue;
-                }
-            }
-
-            // Update left vertex.
-            if (triarea2(portalApex, portalLeft, left) >= 0.0f)
-            {
-                if (vequal(portalApex, portalLeft) || triarea2(portalApex, portalRight, left) < 0.0f)
-                {
-                    // Tighten the funnel.
-                    vcpy(portalLeft, left);
-                    leftIndex = i;
-                }
-                else
-                {
-                    // Left over right, insert right to path and restart scan from portal right point.
-                    vcpy(&pts[npts*2], portalRight);
-                    npts++;
-                        // Make current right the new apex.
-                    vcpy(portalApex, portalRight);
-                    apexIndex = rightIndex;
-                        // Reset portal
-                    vcpy(portalLeft, portalApex);
-                    vcpy(portalRight, portalApex);
-                    leftIndex = apexIndex;
-                    rightIndex = apexIndex;
-                        // Restart scan
-                    i = apexIndex;
-                    continue;
-                }
-            }
-        }
-        // Append last point to path.
-        if (npts < maxPts)
-        {
-            vcpy(&pts[npts*2], &portals[(nportals-1)*4+0]);
-            npts++;
-        }
-
-        return npts;
-'''

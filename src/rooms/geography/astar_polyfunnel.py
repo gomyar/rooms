@@ -66,7 +66,7 @@ class AStar(object):
         self.closed_list = []
 
         from_poly = self.geography.find_poly_at_point(from_position)
-        to_poly = self.geography.find_poly_at_point(to_position)
+        to_poly = self.geography.get_poly_at_point(to_position)
         if not from_poly or not to_poly:
             return []
 
