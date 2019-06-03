@@ -67,8 +67,8 @@ class AStar(object):
 
         from_poly = self.geography.find_poly_at_point(from_position)
         to_poly = self.geography.get_poly_at_point(to_position)
-        if not from_poly or not to_poly:
-            return []
+        if not to_poly:
+            to_poly = self.geography.find_poly_at_point(to_position)
 
         from_point = Point(from_poly)
         to_point = Point(to_poly)

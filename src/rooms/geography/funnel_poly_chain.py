@@ -29,8 +29,7 @@ def funnel_poly_chain(portals, from_pos, to_pos):
     rightIndex = 0
     apexIndex = 0
     index = 0
-    max_pts = 20
-    while index < len(portals) and len(pts) < max_pts:
+    while index < len(portals):
         right, left = portals[index]
 
         # Update right vertex.
@@ -76,9 +75,6 @@ def funnel_poly_chain(portals, from_pos, to_pos):
                 continue
 
         index += 1
-    # Append last point to path.
-    if len(pts) < max_pts:
-        pts.append(to_pos)
-    else:
-        print "Path exceeded max length: %s" % (pts,)
+
+    pts.append(to_pos)
     return pts

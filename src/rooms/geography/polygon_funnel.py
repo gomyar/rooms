@@ -276,19 +276,26 @@ class PolygonFunnelGeography(BasicGeography):
 
     def _edge_intersects_polygons(self, edge, polygons):
         for polygon in polygons:
-            for index in range(len(polygon.vertices) - 1):
-                from_v = polygon.vertices[index]
-                to_v = polygon.vertices[index + 1]
-                if intersect(edge[0].position.x, edge[0].position.y, edge[1].position.x, edge[1].position.y,
-                        from_v.position.x, from_v.position.y, to_v.position.x, to_v.position.y):
-                    return True
-            from_v = polygon.vertices[2]
-            to_v = polygon.vertices[0]
-            if intersect(edge[0].position.x, edge[0].position.y, edge[1].position.x, edge[1].position.y,
-                    from_v.position.x, from_v.position.y, to_v.position.x, to_v.position.y):
+            if self.line_intersects_polygon(edge[0].position, edge[1].position, polygon, False):
                 return True
-
         return False
+
+    def line_intersects_polygon(self, from_position, to_position, polygon, include_endpoints=True):
+        for index in range(len(polygon.vertices) - 1):
+            from_v = polygon.vertices[index]
+            to_v = polygon.vertices[index + 1]
+            intersect_point = intersection_point(from_position.coords(), to_position.coords(),
+                    from_v.position.coords(), to_v.position.coords(), include_endpoints)
+            if intersect_point:
+                return Position(*intersect_point)
+        from_v = polygon.vertices[2]
+        to_v = polygon.vertices[0]
+        intersect_point = intersection_point(from_position.coords(), to_position.coords(),
+                from_v.position.coords(), to_v.position.coords(), include_endpoints)
+        if intersect_point:
+            return Position(*intersect_point)
+
+        return None
 
     def _edge_occluded_at_midpoint(self, edge):
         midpoint = Position((edge[0].position.x + edge[1].position.x) / 2.0, (edge[0].position.y + edge[1].position.y) / 2.0)
@@ -372,4 +379,12 @@ class PolygonFunnelGeography(BasicGeography):
         portals = [((q[1].x, q[1].y), (q[2].x, q[2].y)) for q in poly_queue]
 
         path = funnel_poly_chain(portals, from_point.coords(), to_point.coords())
-        return [Position(p[0], p[1]) for p in path]
+
+        path = [Position(p[0], p[1]) for p in path]
+
+        # kludge check endpoint is within polygon
+        if path and not self.get_poly_at_point(to_point):
+            to_poly = self.find_poly_at_point(to_point)
+            path[-1] = self.line_intersects_polygon(to_poly.midpoint, to_point, to_poly)
+
+        return path

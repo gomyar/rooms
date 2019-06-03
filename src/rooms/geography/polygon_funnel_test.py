@@ -231,15 +231,13 @@ class PolygonFunnelTest(unittest.TestCase):
 
         self.assertEquals([(10, 25), (0, 10), (0, 0), (-5, -7)], path)
 
-    def test_funnel_no_polys(self):
-        self.assertEquals([], funnel_poly_chain([], (10, 10), (20, 20)))
-
     def test_funnel_same_poly(self):
         poly_chain = [
             Polygon(Vertex(None, P(0, 0)), Vertex(None, P(30, 0)), Vertex(None, P(0, 30)))
         ]
         connect_polygons(poly_chain)
-        self.assertEquals([(10, 10), (20, 20)], funnel_poly_chain(poly_chain, (10, 10), (20, 20)))
+        poly_queue = create_poly_queue(poly_chain)
+        self.assertEquals([(10, 10), (20, 20)], funnel_poly_chain(poly_queue, (10, 10), (20, 20)))
 
     def test_two_polys_left_occluded(self):
         def createpoly(p1, p2, p3):
