@@ -5,7 +5,7 @@ from .polygon_funnel import connect_polygons
 from .polygon_funnel import create_poly_queue
 from .polygon_funnel import Polygon
 from .polygon_funnel import Vertex
-from .funnel_poly_chain import stringPull
+from .funnel_poly_chain import funnel_poly_chain
 from .polygon_funnel import PolygonFunnelGeography
 from rooms.position import Position as P
 from rooms.geography.astar_polyfunnel import AStar
@@ -54,7 +54,7 @@ class FunnelPolysTest(unittest.TestCase):
                    (P(0.0,-15.0), P(25.0,-60.0))]
         portals = [((q[1].x, q[1].y), (q[2].x, q[2].y)) for q in queue]
 
-        path = stringPull(portals, (0, 5), (-29, -6))
+        path = funnel_poly_chain(portals, (0, 5), (-29, -6))
 
 #        from webpolys import WebCanvas
 #        mister = WebCanvas()
@@ -84,7 +84,7 @@ class FunnelPolysTest(unittest.TestCase):
             ((-100.0, -35.0), (-125.0, 125.0)),
             ((-100.0, -35.0), (125.0, 125.0)),
             ((-100.0, -35.0), (30.0, 50.0))], portals)
-        path = stringPull(portals, from_position.coords(), to_position.coords())
+        path = funnel_poly_chain(portals, from_position.coords(), to_position.coords())
 
         self.assertEquals([
             (105.0, -95.0),

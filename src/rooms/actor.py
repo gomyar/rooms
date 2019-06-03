@@ -93,10 +93,12 @@ class Actor(object):
             'kickoff', self)
 
     def move_to(self, position, path=None):
-        self.path = path or self.room.find_path(self.position, position)
-        self.vector = create_vector(self.path[0], self.path[1], self._speed)
-        self._kill_move_gthread()
-        self._start_move_gthread()
+        path = path or self.room.find_path(self.position, position)
+        if path:
+            self.path = path
+            self.vector = create_vector(self.path[0], self.path[1], self._speed)
+            self._kill_move_gthread()
+            self._start_move_gthread()
 
     def _start_move_gthread(self):
         self._move_gthread = gevent.spawn(self._move_update)

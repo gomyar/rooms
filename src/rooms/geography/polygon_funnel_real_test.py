@@ -5,7 +5,7 @@ from .polygon_funnel import connect_polygons
 from .polygon_funnel import create_poly_queue
 from .polygon_funnel import Polygon
 from .polygon_funnel import Vertex
-from .funnel_poly_chain import stringPull
+from .funnel_poly_chain import funnel_poly_chain
 from .polygon_funnel import PolygonFunnelGeography
 from rooms.position import Position as P
 from rooms.geography.astar_polyfunnel import AStar

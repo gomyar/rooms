@@ -10,7 +10,7 @@ def triarea2(a, b, c):
     return bx*ay - ax*by
 
 
-def stringPull(portals, from_pos, to_pos):
+def funnel_poly_chain(portals, from_pos, to_pos):
     pts = []
     # Find straight path.
 
