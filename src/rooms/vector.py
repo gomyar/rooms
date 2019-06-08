@@ -8,6 +8,15 @@ def create_vector(start_pos, end_pos, speed=1):
     end_time = start_time + time_to_position(start_pos, end_pos, speed)
     return Vector(start_pos, start_time, end_pos, end_time)
 
+def create_vector_list(path, speed):
+    vectors = []
+    time = Timer.now()
+    for i in range(len(path) - 1):
+        end_time = time + time_to_position(path[i], path[i + 1], speed)
+        vectors.append(Vector(path[i], time, path[i + 1], end_time))
+        time += end_time
+    return vectors
+
 
 def build_vector(x1, y1, x2, y2, speed=1):
     return create_vector(Position(x1, y1), Position(x2, y2), speed)

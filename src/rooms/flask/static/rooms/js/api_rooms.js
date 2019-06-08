@@ -39,8 +39,21 @@ api_rooms.Actor.prototype._calc_d = function(start_d, end_d, start_t, end_t)
     return start_d + diff_x * inc;
 }
 
+api_rooms.Actor.prototype._fast_forward_vector = function()
+{
+    var now = api_rooms.get_now();
+    for (var v in this.path) {
+        var vector = this.path[v];
+        if (now >= vector.start_time && now <= vector.end_time) {
+            this.vector = vector;
+            break;
+        }
+    }
+}
+
 api_rooms.Actor.prototype.x = function()
 {
+    this._fast_forward_vector();
     var vector = this.vector;
     if (this.parent_actor())
         vector = this.parent_actor().vector;
@@ -49,6 +62,7 @@ api_rooms.Actor.prototype.x = function()
 
 api_rooms.Actor.prototype.y = function()
 {
+    this._fast_forward_vector();
     var vector = this.vector;
     if (this.parent_actor())
         vector = this.parent_actor().vector;
@@ -57,6 +71,7 @@ api_rooms.Actor.prototype.y = function()
 
 api_rooms.Actor.prototype.z = function()
 {
+    this._fast_forward_vector();
     var vector = this.vector;
     if (this.parent_actor())
         vector = this.parent_actor().vector;

@@ -4,7 +4,9 @@ import math
 
 from testutils import MockTimer
 from rooms.vector import create_vector
+from rooms.vector import create_vector_list
 from rooms.position import Position
+from rooms.vector import Vector
 
 
 class VectorTest(unittest.TestCase):
@@ -54,3 +56,10 @@ class VectorTest(unittest.TestCase):
         self.assertEquals(Position(15, 0), extrap)
         extrap = self.vector.extrapolate(ratio=1.5)
         self.assertEquals(Position(25, 0), extrap)
+
+    def testCreateVectorList(self):
+        vectors = create_vector_list([Position(0, 0), Position(10, 0), Position(20, 0)], 1)
+        self.assertEquals([
+            Vector(Position(0, 0), 0, Position(10, 0), 10),
+            Vector(Position(10, 0), 10, Position(20, 0), 20),
+        ], vectors)

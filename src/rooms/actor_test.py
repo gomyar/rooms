@@ -95,8 +95,7 @@ class ActorTest(unittest.TestCase):
         self.actor.move_to(Position(10, 0))
 
         self.assertEquals([
-            Position(0, 0),
-            Position(10, 0),
+            create_vector(Position(0, 0), Position(10, 0)),
         ], self.actor.path)
 
         self.assertEquals([
@@ -106,7 +105,6 @@ class ActorTest(unittest.TestCase):
         MockTimer.fast_forward(1)
 
         self.assertEquals([
-            ("actor_vector_changed", self.actor),
             ("actor_vector_changed", self.actor),
             ],
             self.vision.messages)
@@ -120,15 +118,13 @@ class ActorTest(unittest.TestCase):
             Position(10, 0)])
 
         self.assertEquals([
-            Position(0, 0),
-            Position(5, 0),
-            Position(10, 0),
+            Vector(Position(0, 0), 0, Position(5, 0), 5),
+            Vector(Position(5, 0), 5, Position(10, 0), 10),
         ], self.actor.path)
 
         MockTimer.fast_forward(1)
 
         self.assertEquals([
-            ("actor_vector_changed", self.actor),
             ("actor_vector_changed", self.actor),
             ],
             self.vision.messages)
@@ -136,8 +132,6 @@ class ActorTest(unittest.TestCase):
         MockTimer.fast_forward(5)
 
         self.assertEquals([
-            ("actor_vector_changed", self.actor),
-            ("actor_vector_changed", self.actor),
             ("actor_vector_changed", self.actor),
             ],
             self.vision.messages)
@@ -149,15 +143,13 @@ class ActorTest(unittest.TestCase):
             Position(10, 0)])
 
         self.assertEquals([
-            Position(0, 0),
-            Position(5, 0),
-            Position(10, 0),
+            Vector(Position(0, 0), 0, Position(5, 0), 2.5),
+            Vector(Position(5, 0), 2.5, Position(10, 0), 5),
         ], self.actor.path)
 
         MockTimer.fast_forward(1)
 
         self.assertEquals([
-            ("actor_vector_changed", self.actor),
             ("actor_vector_changed", self.actor),
             ],
             self.vision.messages)
@@ -168,8 +160,7 @@ class ActorTest(unittest.TestCase):
         self.actor.move_wait(Position(10, 0))
 
         self.assertEquals([
-        #    Position(0, 0),
-            Position(10, 0),
+            Vector(Position(0, 0), 0, Position(10, 0), 10.0),
         ], self.actor.path)
 
         MockTimer.fast_forward(1)
@@ -225,8 +216,7 @@ class ActorTest(unittest.TestCase):
         MockTimer.fast_forward(1)
 
         self.assertEquals([
-            ('actor_vector_changed', self.actor),
-            ('actor_vector_changed', self.actor)], # second update is admin q
+            ('actor_vector_changed', self.actor)],
             self.vision.messages)
 
     def testVisible(self):
@@ -258,7 +248,6 @@ class ActorTest(unittest.TestCase):
         self.assertEquals([
             ("actor_state_changed", self.actor2),
             ("actor_state_changed", self.actor),
-            ("actor_vector_changed", self.actor2),
             ("actor_state_changed", self.actor),
             ("actor_state_changed", self.actor2),
             ],
@@ -300,43 +289,47 @@ class ActorTest(unittest.TestCase):
 
         MockTimer.fast_forward(3)
         self.assertEquals(Position(13, 10), self.actor.position)
-        self.assertEquals(
-            [Position(10, 10), Position(25, 10), Position(50, 10)],
+        self.assertEquals([
+            Vector(Position(10, 10), 0, Position(25, 10), 15),
+            Vector(Position(25, 10), 15, Position(50, 10), 40)],
             self.actor.path)
         self.assertEquals(Vector(Position(10, 10), 0, Position(25, 10), 15),
             self.actor.vector)
 
         MockTimer.fast_forward(17)
         self.assertEquals(Position(30, 10), self.actor.position)
-        self.assertEquals(
-            [Position(25, 10), Position(50, 10)],
+        self.assertEquals([
+            Vector(Position(10, 10), 0, Position(25, 10), 15),
+            Vector(Position(25, 10), 15, Position(50, 10), 40)],
             self.actor.path)
         self.assertEquals(Vector(Position(25, 10), 15, Position(50, 10), 40),
             self.actor.vector)
 
         MockTimer.fast_forward(15)
         self.assertEquals(Position(45, 10), self.actor.position)
-        self.assertEquals(
-            [Position(25, 10), Position(50, 10)],
+        self.assertEquals([
+            Vector(Position(10, 10), 0, Position(25, 10), 15),
+            Vector(Position(25, 10), 15, Position(50, 10), 40)],
             self.actor.path)
         self.assertEquals(Vector(Position(25, 10), 15, Position(50, 10), 40),
             self.actor.vector)
 
         MockTimer.fast_forward(10)
         self.assertEquals(Position(50, 10), self.actor.position)
-        self.assertEquals(
-            [Position(50, 10)],
+        self.assertEquals([
+            Vector(Position(10, 10), 0, Position(25, 10), 15),
+            Vector(Position(25, 10), 15, Position(50, 10), 40)],
             self.actor.path)
         self.assertEquals(Vector(Position(25, 10), 15, Position(50, 10), 40),
             self.actor.vector)
 
     def testTimeToVectorEnd(self):
         self.actor.move_to(Position(20, 10))
-        self.assertEquals(22, round(self.actor.vector.time_to_destination()))
+        self.assertEquals(22, round(self.actor.time_to_destination()))
 
         self.actor.move_to(Position(30, 10),
             [Position(20, 10), Position(30, 10)])
-        self.assertEquals(10, self.actor.vector.time_to_destination())
+        self.assertEquals(10, self.actor.time_to_destination())
 
     def testTrackTargetVector(self):
         self.actor2 = Actor(self.room, "mock_actor", Script("actor_script",

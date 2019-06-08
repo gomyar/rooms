@@ -4,6 +4,12 @@ bugs:
    - joining a new game as bob when ray is already in the next room repros also
  
 
+todos:
+ - fix path broadcast (just broadcast entire path)
+ - save incrementally to DB
+ - write incrementally to websocket
+
+
 fancy debug:
  - pause gevent for actor from admin
  - update state for actor from admin
@@ -124,13 +130,9 @@ Nice to haves:
  - settings for master domain
  - settings for node domain(s) (possibly startup option on node)
 
- - buggered if this api isn't crying out to be RESTful
-
- - learn how bower works
-
  - add master_domain to master and node
 
- - node polls dbase for actors entering rooms (mongo query-update)
+ - node polls dbase for actors entering rooms (mongo query-update) - done
 
  - check RPCWaitsExceptions for:
    - player moves room to offline node

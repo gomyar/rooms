@@ -95,17 +95,7 @@ class ContainerTest(unittest.TestCase):
               u'token': None,
               u'timeout_time': None,
               u'initialized': False,
-              u'vector': {u'__type__': u'Vector',
-                          u'end_pos': {u'__type__': u'Position',
-                                       u'x': 0.0,
-                                       u'y': 0.0,
-                                       u'z': 0.0},
-                          u'end_time': 0.0,
-                          u'start_pos': {u'__type__': u'Position',
-                                         u'x': 0.0,
-                                         u'y': 0.0,
-                                         u'z': 0.0},
-                          u'start_time': 0}}}
+        }}
         self.assertEquals(expected, self.dbase.dbases['actors'])
 
     def testLoadPlayer(self):
@@ -204,17 +194,6 @@ class ContainerTest(unittest.TestCase):
             u'docked_with': None,
             u'initialized': True,
             u'state': {u'__type__': u'SyncDict'},
-            u'vector': {u'__type__': u'Vector',
-                        u'end_pos': {u'__type__': u'Position',
-                                    u'x': 0.0,
-                                    u'y': 0.0,
-                                    u'z': 0.0},
-                        u'end_time': 0.0,
-                        u'start_pos': {u'__type__': u'Position',
-                                        u'x': 0.0,
-                                        u'y': 0.0,
-                                        u'z': 0.0},
-                        u'start_time': 0},
             u'visible': True}
         self.assertEquals(expected, actor_dict)
 
@@ -245,18 +224,7 @@ class ContainerTest(unittest.TestCase):
             u'docked_with': None,
             u'initialized': True,
             u'state': {u'__type__': u'SyncDict'},
-            u'vector': {u'__type__': u'Vector',
-                        u'end_pos': {u'__type__': u'Position',
-                                    u'x': 20.0,
-                                    u'y': 10.0,
-                                    u'z': 0.0},
-                        u'end_time': 0.0,
-                        u'start_pos': {u'__type__': u'Position',
-                                        u'x': 20.0,
-                                        u'y': 10.0,
-                                        u'z': 0.0},
-                        u'start_time': 0}}
-            , self.dbase.dbases['actors']['actors_0'])
+            }, self.dbase.dbases['actors']['actors_0'])
 
         actor.state.testme = "value1"
         self.container.save_actor(actor)

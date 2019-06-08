@@ -6,6 +6,7 @@ from rooms.position import Position
 from rooms.vector import build_vector
 from rooms.actor import Actor
 from rooms.vision import Vision
+from rooms.geography.basic_geography import BasicGeography
 
 
 class SimpleVisionTest(unittest.TestCase):
@@ -14,11 +15,14 @@ class SimpleVisionTest(unittest.TestCase):
         self.room.coords(0, 0, 100, 100)
         self.vision = Vision(self.room)
         self.room.vision = self.vision
+        self.room.geography = BasicGeography()
 
-        self.actor1 = Actor(None, None, None, actor_id="actor1")
-        self.actor1.vector = build_vector(1, 1, 5, 5)
-        self.actor2 = Actor(None, None, None, actor_id="actor2")
-        self.actor2.vector = build_vector(1, 1, 5, 5)
+        self.actor1 = Actor(self.room, None, None, actor_id="actor1")
+        self.actor1.position = Position(1, 1)
+        self.actor1.move_to(Position(5, 5))
+        self.actor2 = Actor(self.room, None, None, actor_id="actor2")
+        self.actor2.position = Position(1, 1)
+        self.actor2.move_to(Position(5, 5))
 
     def testPropagateMessages(self):
         self.room.put_actor(self.actor1)

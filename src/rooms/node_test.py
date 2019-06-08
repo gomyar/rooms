@@ -318,7 +318,7 @@ class NodeTest(unittest.TestCase):
         MockTimer.fast_forward(1)
 
         # there's an extra actor update that shouldn't be there
-        self.assertEquals(4, len(ws.updates))
+        self.assertEquals(3, len(ws.updates))
         self.assertEquals(
             {u'command': u'sync',
              u'data': {u'now': 0,

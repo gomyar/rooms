@@ -120,7 +120,6 @@ class GameFactory(object):
         player.state = data['state']
         player.state._set_actor(player)
         player.path = data['path']
-        player.vector = data['vector']
         player._speed = data['speed']
         player._docked_with = data['docked_with']
         player.status = data['status']
@@ -168,7 +167,6 @@ class GameFactory(object):
             game_id=actor.game_id,
             room_id=actor.room_id,
             path=actor.path,
-            vector=actor.vector,
             visible=actor.visible,
             script_name=actor.script.script_name,
             actor_type=actor.actor_type,
@@ -189,7 +187,6 @@ class GameFactory(object):
         actor.state = data['state']
         actor.state._set_actor(actor)
         actor.path = data['path']
-        actor.vector = data['vector']
         actor._speed = data['speed']
         actor._docked_with = data['docked_with']
         actor.initialized = data.get('initialized')

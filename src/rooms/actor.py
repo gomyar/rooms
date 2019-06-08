@@ -7,7 +7,7 @@ from gevent import GreenletExit
 
 from rooms.script import Script
 from rooms.position import Position
-from rooms.vector import create_vector, Vector
+from rooms.vector import create_vector, Vector, create_vector_list
 from rooms.vector import time_to_position
 from rooms.timer import Timer
 from rooms.utils import IDFactory
@@ -94,11 +94,15 @@ class Actor(object):
 
     def move_to(self, position, path=None):
         path = path or self.room.find_path(self.position, position)
+        self._kill_move_gthread()
         if path:
-            self.path = path
-            self.vector = create_vector(self.path[0], self.path[1], self._speed)
-            self._kill_move_gthread()
+            self.path = create_vector_list(path, self._speed)
+            self._set_vector(self.path[0])
             self._start_move_gthread()
+        else:
+            self.path = []
+            self._set_vector(create_vector(from_point, to_point, self._speed))
+        self._send_actor_vector_changed()
 
     def _start_move_gthread(self):
         self._move_gthread = gevent.spawn(self._move_update)
@@ -112,18 +116,19 @@ class Actor(object):
         self.move_to(position, path)
         self._move_gthread.join()
 
+    def time_to_destination(self):
+        if self.path:
+            return max(0, self.path[-1].end_time - Timer.now())
+        else:
+            return 0
+
     def _move_update(self):
-        from_point = self.path[0]
-        from_time = Timer.now()
-        while len(self.path) > 1:
-            to_point = self.path[1]
-            end_time = from_time + \
-                time_to_position(from_point, to_point, self._speed)
-            self._set_vector(create_vector(from_point, to_point, self._speed))
-            from_point = to_point
-            from_time = end_time
-            Timer.sleep_until(end_time)
-            self.path.pop(0)
+        if self.path:
+            vectors = (v for v in self.path if v.start_time >= Timer.now())
+
+            for vector in vectors:
+                self._set_vector(vector)
+                Timer.sleep_until(vector.end_time)
 
     @property
     def speed(self):
@@ -133,7 +138,10 @@ class Actor(object):
     def speed(self, s):
         self._speed = float(s)
         if self._move_gthread:
-            self.move_to(self.path[-1])
+            if self.path:
+                self.move_to(self.path[-1].end_pos)
+            else:
+                self._kill_move_gthread()
 
     def _kill_move_gthread(self):
         _safe_kill_gthread(self._move_gthread)
@@ -235,15 +243,10 @@ class Actor(object):
         else:
             return self._vector
 
-    @vector.setter
-    def vector(self, vector):
-        self._set_vector(vector)
-        self._kill_move_gthread()
-
     def _set_vector(self, vector):
-        self._vector = vector
-        self._send_actor_vector_changed()
-        self._notify_trackers()
+        if self._vector != vector:
+            self._vector = vector
+            self._notify_trackers()
 
     def _notify_trackers(self):
         self._follow_event.set()
