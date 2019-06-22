@@ -30,4 +30,4 @@ class PositionTest(unittest.TestCase):
         self.assertEquals((-1, -2, -3), (x, y, z))
 
     def testInterpolate(self):
-        self.assertEquals(Position(5, 0), Position(0, 0).interpolate(Position(10, 0), 0.5))
+        self.assertEquals(Position(5, 0), Position(0, 0).interpolate(Position(10, 0), 5))
