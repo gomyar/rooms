@@ -39,42 +39,37 @@ api_rooms.Actor.prototype._calc_d = function(start_d, end_d, start_t, end_t)
     return start_d + diff_x * inc;
 }
 
-api_rooms.Actor.prototype._fast_forward_vector = function()
+api_rooms.Actor.prototype.vector = function()
 {
+    if (this.parent_actor())
+        return this.parent_actor().vector();
     var now = api_rooms.get_now();
     for (var v in this.path) {
         var vector = this.path[v];
-        if (now >= vector.start_time && now <= vector.end_time) {
-            this.vector = vector;
-            break;
+        if (now >= vector.start_time * 1000 && now <= vector.end_time * 1000) {
+            return vector;
         }
+    }
+    if (this.path) {
+        return this.path[this.path.length-1];
     }
 }
 
 api_rooms.Actor.prototype.x = function()
 {
-    this._fast_forward_vector();
-    var vector = this.vector;
-    if (this.parent_actor())
-        vector = this.parent_actor().vector;
+    var vector = this.vector();
     return this._calc_d(vector.start_pos.x, vector.end_pos.x, vector.start_time, vector.end_time)
 }
 
 api_rooms.Actor.prototype.y = function()
 {
-    this._fast_forward_vector();
-    var vector = this.vector;
-    if (this.parent_actor())
-        vector = this.parent_actor().vector;
+    var vector = this.vector();
     return this._calc_d(vector.start_pos.y, vector.end_pos.y, vector.start_time, vector.end_time)
 }
 
 api_rooms.Actor.prototype.z = function()
 {
-    this._fast_forward_vector();
-    var vector = this.vector;
-    if (this.parent_actor())
-        vector = this.parent_actor().vector;
+    var vector = this.vector();
     return this._calc_d(vector.start_pos.z, vector.end_pos.z, vector.start_time, vector.end_time)
 }
 

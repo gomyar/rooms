@@ -35,6 +35,10 @@ def kickoff(actor):
 
 class NodeTest(unittest.TestCase):
     def setUp(self):
+        self.maxDiff = None
+        MockTimer.setup_mock()
+        MockIDFactory.setup_mock()
+
         self.dbase = MockDbase()
 
         self.container = Container(self.dbase, None)
@@ -53,9 +57,6 @@ class NodeTest(unittest.TestCase):
 
         self.container.save_room(self.room)
         self.container.save_player(self.player1)
-
-        MockTimer.setup_mock()
-        MockIDFactory.setup_mock()
 
     def tearDown(self):
         MockTimer.teardown_mock()
@@ -328,15 +329,18 @@ class NodeTest(unittest.TestCase):
                             u'exception': None,
                             u'game_id': u'game1',
                             u'parent_id': None,
+                            u'path': [{u'end_pos': {u'x': 0.0,
+                                                    u'y': 0.0,
+                                                    u'z': 0.0},
+                                       u'end_time': 0.0,
+                                       u'start_pos': {u'x': 0.0,
+                                                      u'y': 0.0,
+                                                      u'z': 0.0},
+                                       u'start_time': 0}],
                             u'script': u'rooms.node_test',
                             u'speed': 1.0,
                             u'state': {'kicked': True},
                             u'username': u'bob',
-                            u'vector': {u'end_pos': {u'x': 0.0, u'y': 0.0,
-                                                        u'z': 0.0},
-                                        u'end_time': 0.0,
-                            u'start_pos': {u'x': 0.0, u'y': 0.0, u'z': 0.0},
-                                            u'start_time': 0},
                             u'visible': True},
                        u'room_id': u'room1',
                        u'username': u'bob'}}

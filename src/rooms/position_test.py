@@ -20,11 +20,14 @@ class PositionTest(unittest.TestCase):
             self.position2.offset_position(2, math.pi / 2))
 
     def testAngleBetween(self):
-        self.assertEquals(0,
-            Position(10, 10).angle_between(Position(5, 10)))
         self.assertEquals(math.pi,
+            Position(10, 10).angle_between(Position(5, 10)))
+        self.assertEquals(0,
             Position(10, 10).angle_between(Position(15, 10)))
 
     def testPositionDifferenceCoords(self):
         x, y, z = Position(10, 10, 10).difference(Position(11, 12, 13))
         self.assertEquals((-1, -2, -3), (x, y, z))
+
+    def testInterpolate(self):
+        self.assertEquals(Position(5, 0), Position(0, 0).interpolate(Position(10, 0), 0.5))

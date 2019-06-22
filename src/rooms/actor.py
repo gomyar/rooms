@@ -54,8 +54,8 @@ class Actor(object):
         self.actor_type = actor_type
         self.state = SyncDict(state or {})
         self.state._set_actor(self)
-        self.path = []
         self._vector = create_vector(Position(0, 0), Position(0, 0))
+        self.path = [self._vector]
         self.script = script
         self._speed = 1.0
         self.username = username
@@ -100,7 +100,7 @@ class Actor(object):
             self._set_vector(self.path[0])
             self._start_move_gthread()
         else:
-            self.path = []
+            self.path = [create_vector(self.position, self.position, self._speed)]
             self._set_vector(create_vector(from_point, to_point, self._speed))
         self._send_actor_vector_changed()
 
@@ -110,7 +110,7 @@ class Actor(object):
     def stop(self):
         self._kill_move_gthread()
         self.position = self.position
-        self.path = []
+        self.path = [create_vector(self.position, self.position, self._speed)]
 
     def move_wait(self, position, path=None):
         self.move_to(position, path)
@@ -123,12 +123,11 @@ class Actor(object):
             return 0
 
     def _move_update(self):
-        if self.path:
-            vectors = (v for v in self.path if v.start_time >= Timer.now())
-
-            for vector in vectors:
-                self._set_vector(vector)
-                Timer.sleep_until(vector.end_time)
+        now = Timer.now()
+        vectors = [v for v in self.path if now < v.end_time]
+        for vector in vectors:
+            self._set_vector(vector)
+            Timer.sleep_until(vector.end_time)
 
     @property
     def speed(self):
@@ -222,7 +221,12 @@ class Actor(object):
 
     @position.setter
     def position(self, pos):
-        self._set_vector(create_vector(pos, pos))
+        if self.room:
+            pos = self.room._correct_position(pos)
+        vector = create_vector(pos, pos)
+        self._kill_move_gthread()
+        self.path = [vector]
+        self._set_vector(vector)
 
     def distance_to(self, target):
         return self.position.distance_to(target.position)
@@ -230,11 +234,6 @@ class Actor(object):
     def _send_actor_vector_changed(self):
         if self.room:
             self.room.vision.actor_vector_changed(self)
-
-    def _set_position(self, pos):
-        if self.room:
-            pos = self.room._correct_position(pos)
-        self._vector = create_vector(pos, pos)
 
     @property
     def vector(self):
@@ -247,6 +246,14 @@ class Actor(object):
         if self._vector != vector:
             self._vector = vector
             self._notify_trackers()
+
+    def _set_vector_from_path(self):
+        for vector in self.path:
+            if vector.start_time <= Timer.now() <= vector.end_time:
+                self._set_vector(vector)
+                return
+        if self.path:
+            self._set_vector(self.path[-1])
 
     def _notify_trackers(self):
         self._follow_event.set()

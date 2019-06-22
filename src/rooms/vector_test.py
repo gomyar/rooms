@@ -45,9 +45,9 @@ class VectorTest(unittest.TestCase):
         self.assertEquals(4, self.vector.z)
 
     def testAngle(self):
-        self.vector = create_vector(Position(10, 0), Position(0, 0), 2)
-        self.assertEquals(0, self.vector.yaw())
         self.vector = create_vector(Position(0, 0), Position(10, 0), 2)
+        self.assertEquals(0, self.vector.yaw())
+        self.vector = create_vector(Position(10, 0), Position(0, 0), 2)
         self.assertEquals(math.pi, self.vector.yaw())
 
     def testExtrapolate(self):

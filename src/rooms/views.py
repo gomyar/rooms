@@ -47,7 +47,7 @@ class JsonView(object):
             parent_id=actor.parent_id,
             game_id=actor.game_id,
             state=actor.state,
-            vector=actor.vector,
+            path=actor.path,
             speed=actor.speed,
             actor_type=actor.actor_type,
             username=actor.username,

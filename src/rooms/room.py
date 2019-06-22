@@ -187,7 +187,8 @@ class Room(object):
             actor.docked_with = parent
             parent.docked_actors.add(actor)
         actor.room = self
-        actor._set_position(position or actor.position)
+        if position:
+            actor.position = position
         actor.kick()
         self.vision.add_actor(actor)
 

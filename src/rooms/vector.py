@@ -14,7 +14,7 @@ def create_vector_list(path, speed):
     for i in range(len(path) - 1):
         end_time = time + time_to_position(path[i], path[i + 1], speed)
         vectors.append(Vector(path[i], time, path[i + 1], end_time))
-        time += end_time
+        time = end_time
     return vectors
 
 

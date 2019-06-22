@@ -104,10 +104,8 @@ class Container(object):
     def load_actors_for_room(self, room):
         game_id = room.game_id
         room_id = room.room_id
-        log.debug("Load actors for room: %s %s", game_id, room_id)
         actors_list = self._load_filter("actors", dict(game_id=game_id,
             room_id=room_id, docked_with=None, _loadstate=None))
-        log.debug("Found %s actors", len(actors_list))
         for actor in actors_list:
             ActorLoader(room).process_actor(actor)
 
@@ -170,7 +168,7 @@ class Container(object):
         actor.state.update(state or {})
         actor.parent_id = parent_id
         if position:
-            actor._set_position(position)
+            actor.position = position
         self.save_actor(actor)
         return actor
 

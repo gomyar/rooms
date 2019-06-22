@@ -55,7 +55,11 @@ class Position(object):
         return Position(x, y)
 
     def angle_between(self, position):
-        return math.atan2(self.y - position.y, self.x - position.x)
+        return math.atan2(position.y - self.y, position.x - self.x)
+
+    def interpolate(self, position, ratio):
+        return self.offset_position(ratio * self.distance_to(position),
+                                    self.angle_between(position))
 
     def difference(self, position):
         return self.x - position.x, self.y - position.y, self.z - position.z

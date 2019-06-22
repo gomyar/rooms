@@ -19,6 +19,9 @@ from rooms.timer import Timer
 from rooms.script import load_script
 from rooms.script import NullScript
 
+import logging
+log = logging.getLogger("rooms.game_factory")
+
 
 class GameFactory(object):
     def __init__(self, container):
@@ -120,6 +123,7 @@ class GameFactory(object):
         player.state = data['state']
         player.state._set_actor(player)
         player.path = data['path']
+        player._set_vector_from_path()
         player._speed = data['speed']
         player._docked_with = data['docked_with']
         player.status = data['status']
@@ -187,6 +191,7 @@ class GameFactory(object):
         actor.state = data['state']
         actor.state._set_actor(actor)
         actor.path = data['path']
+        actor._set_vector_from_path()
         actor._speed = data['speed']
         actor._docked_with = data['docked_with']
         actor.initialized = data.get('initialized')

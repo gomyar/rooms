@@ -400,8 +400,8 @@ gui.draw = function()
         gui.ctx.strokeStyle = "rgb(250, 250, 250)";
         var actor = api_rooms.actors[actor_id];
         gui.ctx.beginPath();
-        gui.ctx.moveTo(gui.canvas_x(api_rooms.room.position.x + actor.vector.start_pos.x), gui.canvas_y(api_rooms.room.position.y + actor.vector.start_pos.y));
-        gui.ctx.lineTo(gui.canvas_x(api_rooms.room.position.x + actor.vector.end_pos.x), gui.canvas_y(api_rooms.room.position.y + actor.vector.end_pos.y));
+        gui.ctx.moveTo(gui.canvas_x(api_rooms.room.position.x + actor.vector().start_pos.x), gui.canvas_y(api_rooms.room.position.y + actor.vector().start_pos.y));
+        gui.ctx.lineTo(gui.canvas_x(api_rooms.room.position.x + actor.vector().end_pos.x), gui.canvas_y(api_rooms.room.position.y + actor.vector().end_pos.y));
         gui.ctx.stroke();
     }
  
@@ -539,9 +539,9 @@ gui.actorRedraw = function()
     for (var i in api_rooms.actors)
     {
         var actor = api_rooms.actors[i];
-        if (actor.vector.end_time * 1000 > until_time)
+        if (actor.path[actor.path.length-1].end_time * 1000 > until_time)
         {
-            until_time = actor.vector.end_time * 1000
+            until_time = actor.path[actor.path.length-1].end_time * 1000
         }
     }
     if (until_time > api_rooms.get_now())
