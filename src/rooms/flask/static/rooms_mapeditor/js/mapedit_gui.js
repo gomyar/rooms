@@ -256,7 +256,11 @@ gui.object_at = function(object, x, y)
 {
     var room_x = rooms_mapeditor.selected_room.data.position.x;
     var room_y = rooms_mapeditor.selected_room.data.position.y;
-    return x >= room_x + (object.position.x - object.width / 2) && y >= room_y + (object.position.y - object.height / 2) && x <= room_x + (object.position.x + object.width / 2) && y <= room_y + (object.position.y + object.height / 2);
+    var left = room_x + (object.position.x - object.width / 2);
+    var top = room_y + (object.position.y - object.height / 2);
+    var right = room_x + (object.position.x + object.width / 2);
+    var bottom = room_y + (object.position.y + object.height / 2);
+    return x >= left && y >= top && x <= right && y <= bottom;
 }
 
 

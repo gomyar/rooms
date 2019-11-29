@@ -60,7 +60,6 @@ admin.switch_tab = function(tab) {
 }
 
 admin.room_connect = function(room) {
-    console.log("Connect: " + node.name + " - " + room.room_id);
     window.open('/rooms_admin/game_client/' + room.game_id + '/' + room.room_id, '_blank');
 }
 
@@ -77,6 +76,10 @@ admin.show_games = function() {
 admin.show_rooms = function() {
     admin.data.tab = 'rooms';
     admin.load_rooms();
+}
+
+admin.describe_health = function(node) {
+    return node.healthy ? 'healthy' : 'unhealthy';
 }
 
 $( document ).ready(function() {

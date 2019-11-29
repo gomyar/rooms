@@ -1,19 +1,19 @@
 <div>
-    <div data-gui-list="admin.data.nodes" data-gui-item="node">
+    <div gui-list="admin.data.nodes" gui-item="node">
         <div class="node tableheader">
             <div class="nodeinfo">
-                <div class="hostname" data-gui-text="node.name"></div>
-                <div class="hostname" data-gui-text="node.host"></div>
-                <div class="load" data-gui-text="node.load"></div>
-                <div id="healthy" data-gui-text="node.healthy ? 'healthy' : 'unhealthy'" data-gui-class="node.healthy ? 'healthy' : 'unhealthy'"></div>
-                <div class="shownode button" data-gui-click="admin.show_node_rooms(node)">Show Rooms</div>
+                <div class="hostname" gui-text="node.name"></div>
+                <div class="hostname" gui-text="node.host"></div>
+                <div class="load" gui-text="node.load"></div>
+                <div id="healthy" gui-text="admin.describe_health(node)" gui-class="admin.describe_health(node)"></div>
+                <div class="shownode button" gui-click="admin.show_node_rooms(node)">Show Rooms</div>
             </div>
             <div class="roomlist">
-                <div data-gui-list="node.rooms" data-gui-item="room">
+                <div gui-list="node.rooms" gui-item="room">
                     <div class="room_info">
-                        <div class="gameid" data-gui-text="room.game_id"></div>
-                        <div class="roomid" data-gui-text="room.room_id"></div>
-                        <div class="button" data-gui-click="admin.room_connect(room)">Connect</div>
+                        <div class="gameid" gui-text="room.game_id"></div>
+                        <div class="roomid" gui-text="room.room_id"></div>
+                        <div class="button" gui-click="admin.room_connect(room)">Connect</div>
                     </div>
                 </div>
             </div>

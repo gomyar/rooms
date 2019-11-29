@@ -32,7 +32,6 @@ def index():
     return render_template('rooms_mapeditor/mapeditor.html')
 
 
-
 @bp_mapeditor.route('/maps', methods=['GET', 'POST', 'PUT'])
 @login_required
 def maps():

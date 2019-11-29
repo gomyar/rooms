@@ -58,6 +58,17 @@ div#controls div.control:hover
     border : 1px solid white;
 }
 
+div#controls div.control.disabled
+{
+    color : grey;
+    background-color : darkgrey;
+}
+
+div#controls div.control.disabled:hover
+{
+    border : 1px solid green;
+}
+
 div#maplist
 {
     position : absolute;

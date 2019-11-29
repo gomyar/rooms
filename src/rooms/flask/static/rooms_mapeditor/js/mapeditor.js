@@ -12,15 +12,39 @@ rooms_mapeditor.grid_enabled = false;
 rooms_mapeditor.selected_room = {'data': null};
 rooms_mapeditor.selected_object = null;
 rooms_mapeditor.selected_rooms_list = [];
-rooms_mapeditor.selected_rooms_list_x = 0;
-rooms_mapeditor.selected_rooms_list_y = 0;
 rooms_mapeditor.selected_objects_list = [];
-rooms_mapeditor.selected_objects_list_x = 0;
-rooms_mapeditor.selected_objects_list_y = 0;
+
+rooms_mapeditor.editable_object = null;
+
+rooms_mapeditor.state = '';
 
 rooms_mapeditor.undo_stack = [];
 rooms_mapeditor.redo_stack = [];
 
+
+rooms_mapeditor.has_editable_position = function() {
+    return rooms_mapeditor.editable_object && 'position' in rooms_mapeditor.editable_object;
+}
+
+rooms_mapeditor.has_editable_object = function() {
+    return rooms_mapeditor.editable_object && rooms_mapeditor.selected_room && rooms_mapeditor.selected_room.data.room_objects.indexOf(rooms_mapeditor.editable_object) != -1;
+}
+
+rooms_mapeditor.has_editable_door = function() {
+    return rooms_mapeditor.editable_object && rooms_mapeditor.selected_room && rooms_mapeditor.selected_room.data.doors.indexOf(rooms_mapeditor.editable_object) != -1;
+}
+
+rooms_mapeditor.has_editable_tag = function() {
+    return rooms_mapeditor.editable_object && rooms_mapeditor.selected_room && rooms_mapeditor.selected_room.data.tags.indexOf(rooms_mapeditor.editable_object) != -1;
+}
+
+rooms_mapeditor.grid_clicked = function() {
+    rooms_mapeditor.grid = $('#txt_grid').val();
+}
+
+rooms_mapeditor.map_selected = function() {
+    rooms_mapeditor.selected_map = $('#all_maps').val();
+}
 
 rooms_mapeditor.push_undo = function() {
     rooms_mapeditor.undo_stack.push(JSON.parse(JSON.stringify(rooms_mapeditor.map_data)));
@@ -94,13 +118,6 @@ rooms_mapeditor.create_map = function() {
         }
 };
 
-
-rooms_mapeditor.map_selected = function() {
-    var map_id = $(this).val();
-    rooms_mapeditor.selected_map = map_id;
-    rooms_mapeditor.load_selected_map();
-}
-
 rooms_mapeditor.save_map = function() {
     if (confirm("Save current map data to : " + rooms_mapeditor.map_data.map_id +" ?"))
     {
@@ -115,6 +132,11 @@ rooms_mapeditor.save_map = function() {
         });
     }
 };
+
+rooms_mapeditor.position_new_room = function () {
+    rooms_mapeditor.state = 'positioning_new_room';
+    turtlegui.reload();
+}
 
 rooms_mapeditor.create_room = function() {
     console.log("Create room");
@@ -290,6 +312,13 @@ rooms_mapeditor.reload = function() {
     turtlegui.reload();
     $(':input').change(rooms_mapeditor.push_undo);
 };
+
+
+rooms_mapeditor.button_enabled = function(buttonid) {
+    if (rooms_mapeditor.state == '') return 'enabled';
+    if (buttonid == 'newroom' && rooms_mapeditor.state == 'positioning_new_room') return 'enabled';
+    return 'disabled';
+}
 
 
 $(document).ready(function() {

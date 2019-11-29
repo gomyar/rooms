@@ -2,7 +2,7 @@
 <head>
     <link rel="stylesheet" type="text/css" href="{{ url_for('mapeditor.static', filename = 'css/mapeditor.css') }}"/>
     <script src="{{ url_for('node.static', filename = 'js/jquery-1.9.1.js') }}"></script>
-    <script src="{{ url_for('node.static', filename = 'js/turtlegui.js') }}"></script>
+    <script src="https://rawgit.com/gomyar/turtlegui/v4.0.4/turtlegui.js" crossorigin="anonymous"></script>
     <script src="{{ url_for('admin.static', filename = 'js/jquery.mousewheel.js') }}"></script>
 
     <script src="{{ url_for('mapeditor.static', filename = 'js/mapeditor.js') }}"></script>
@@ -14,15 +14,15 @@
 <div id="mapeditor">
     <div id="controls">
         <div id="select" class="control">Select</div>
-        <div id="newroom" class="control" data-gui-click="rooms_mapeditor.create_room()">New Room</div>
-        <div id="newdoor" class="control" data-gui-click="rooms_mapeditor.create_door()">New Door</div>
-        <div id="newobj" class="control" data-gui-click="rooms_mapeditor.create_object()">New Object</div>
-        <div id="newtag" class="control" data-gui-click="rooms_mapeditor.create_tag()">New Tag</div>
-        <div id="delete" class="control" data-gui-click="rooms_mapeditor.delete()">Delete</div>
+        <div id="newroom" class="control" gui-class="rooms_mapeditor.button_enabled('newroom')" gui-click="rooms_mapeditor.position_new_room()">New Room</div>
+        <div id="newdoor" class="control" gui-class="rooms_mapeditor.button_enabled('newdoor')" gui-click="rooms_mapeditor.create_door()">New Door</div>
+        <div id="newobj" class="control" gui-class="rooms_mapeditor.button_enabled('newobject')" gui-click="rooms_mapeditor.create_object()">New Object</div>
+        <div id="newtag" class="control" gui-class="rooms_mapeditor.button_enabled('newtag')"  gui-click="rooms_mapeditor.create_tag()">New Tag</div>
+        <div id="delete" class="control" gui-click="rooms_mapeditor.delete()">Delete</div>
         <div id="grid">
             <label>Grid</label>
-            <input id="chk_grid_enabled" type="checkbox" data-gui-val="rooms_mapeditor.grid_enabled"></input>
-            <input id="txt_grid" type="text" data-gui-val="rooms_mapeditor.grid" data-gui-change="rooms_mapeditor.grid = $('#txt_grid').val()" value="1.0"></input>
+            <input id="chk_grid_enabled" type="checkbox" gui-val="rooms_mapeditor.grid_enabled"></input>
+            <input id="txt_grid" type="text" gui-val="rooms_mapeditor.grid" gui-change="rooms_mapeditor.grid_clicked()" value="1.0"></input>
         </div>
     </div>
 
@@ -32,94 +32,94 @@
     </div>
 
     <div id="maplist">
-        <div class="button" data-gui-click="rooms_mapeditor.create_map()">Create Map</div>
-        <select id="all_maps" data-gui-list="rooms_mapeditor.all_maps" data-gui-item="map" data-gui-change="rooms_mapeditor.selected_map = $('#all_maps').val()">
-            <option data-gui-val="map" data-gui-text="map"></option>
+        <div class="button" gui-click="rooms_mapeditor.create_map()">Create Map</div>
+        <select id="all_maps" gui-list="rooms_mapeditor.all_maps" gui-item="map" gui-change="rooms_mapeditor.map_selected()">
+            <option gui-val="map" gui-text="map"></option>
         </select>
-        <div class="button" data-gui-click="rooms_mapeditor.load_selected_map()">Load</div>
-        <div class="button" data-gui-click="rooms_mapeditor.save_map()">Save</div>
+        <div class="button" gui-click="rooms_mapeditor.load_selected_map()">Load</div>
+        <div class="button" gui-click="rooms_mapeditor.save_map()">Save</div>
     </div>
 
-    <div id="selected_rooms_list" class="selected_objects_list" data-gui-show="rooms_mapeditor.selected_rooms_list">
-        <div data-gui-list="rooms_mapeditor.selected_rooms_list" data-gui-item="room" class="selected_item">
-            <div  data-gui-click="rooms_mapeditor.select_room(room.room_id)">
-                Room: <div data-gui-text="room.room_id"></div>
+    <div id="selected_rooms_list" class="selected_objects_list" gui-show="rooms_mapeditor.selected_rooms_list">
+        <div gui-list="rooms_mapeditor.selected_rooms_list" gui-item="room" class="selected_item">
+            <div  gui-click="rooms_mapeditor.select_room(room.room_id)">
+                Room: <div gui-text="room.room_id"></div>
             </div>
         </div>
     </div>
 
-    <div id="selected_objects_list" class="selected_objects_list" data-gui-show="rooms_mapeditor.selected_objects_list" ng-style="{left: selected_objects_list_x + 20, top: selected_objects_list_y }">
-        <div data-gui-list="rooms_mapeditor.selected_objects_list" data-gui-item="obj" class="selected_item" mouseenter="highlight_object(obj)" data-gui-click="rooms_mapeditor.select_object(obj)">
-            <span data-gui-text="obj.object_type"></span>
+    <div id="selected_objects_list" class="selected_objects_list" gui-show="rooms_mapeditor.selected_objects_list" >
+        <div gui-list="rooms_mapeditor.selected_objects_list" gui-item="obj" class="selected_item" mouseenter="highlight_object(obj)" gui-click="rooms_mapeditor.select_object(obj)">
+            <span gui-text="obj.object_type"></span>
         </div>
     </div>
 
 
     <div id="selected">
-        <div class="editable" id="selectedroom" data-gui-show="rooms_mapeditor.selected_room.data">
+        <div class="editable" id="selectedroom" gui-show="rooms_mapeditor.selected_room.data">
             <div class="label">Room Details:</div>
             <div class="field">
                 <div class="name">room_id</div>
-                <input id="room_id" class="value" data-gui-val="rooms_mapeditor.selected_room.room_id"></input>
+                <input id="room_id" class="value" gui-val="rooms_mapeditor.selected_room.room_id"></input>
             </div>
-            <textarea name="objdata" data-gui-val="rooms_mapeditor.selected_room.data.info" data-gui-parse-func="JSON.parse" data-gui-format-func="rooms_mapeditor.format_json"></textarea>
+            <textarea name="objdata" gui-val="rooms_mapeditor.selected_room.data.info" gui-parse-func="JSON.parse" gui-format-func="rooms_mapeditor.format_json"></textarea>
         </div>
 
 
-        <div class="editable" data-gui-show="rooms_mapeditor.editable_object && 'position' in rooms_mapeditor.editable_object">
+        <div class="editable" gui-show="rooms_mapeditor.has_editable_position()">
             <div class="label">Position:</div>
             <div class="topleft">
                 <div class="position">
                     <label name="x">X:</label>
-                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.position.x" data-gui-parse-func="parseFloat"></input>
+                    <input type="text" gui-val="rooms_mapeditor.editable_object.position.x" gui-parse-func="parseFloat"></input>
                 </div>
                 <div class="position">
                     <label name="y">Y:</label>
-                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.position.y" data-gui-parse-func="parseFloat"></input>
+                    <input type="text" gui-val="rooms_mapeditor.editable_object.position.y" gui-parse-func="parseFloat"></input>
                 </div>
                 <div class="position">
                     <label name="width">Width:</label>
-                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.width" data-gui-parse-func="parseFloat"></input>
+                    <input type="text" gui-val="rooms_mapeditor.editable_object.width" gui-parse-func="parseFloat"></input>
                 </div>
                 <div class="position">
                     <label name="height">Height:</label>
-                    <input type="text" data-gui-val="rooms_mapeditor.editable_object.height" data-gui-parse-func="parseFloat"></input>
+                    <input type="text" gui-val="rooms_mapeditor.editable_object.height" gui-parse-func="parseFloat"></input>
                 </div>
 
             </div>
             <div class="label">(ctrl-drag object to resize)</div>
         </div>
 
-        <div class="editable" id="editable_object" data-gui-show="rooms_mapeditor.editable_object && rooms_mapeditor.selected_room && rooms_mapeditor.selected_room.data.room_objects.indexOf(rooms_mapeditor.editable_object) != -1">
+        <div class="editable" id="editable_object" gui-show="rooms_mapeditor.has_editable_object()">
             <div class="label">Object Data:</div>
             <div class="position">
                 <label name="width">Object Type:</label>
-                <input type="text" data-gui-val="rooms_mapeditor.editable_object.object_type"></input>
+                <input type="text" gui-val="rooms_mapeditor.editable_object.object_type"></input>
             </div>
-            <textarea name="objdata" data-gui-val="rooms_mapeditor.editable_object.data" data-gui-parse-func="JSON.parse" data-gui-format-func="rooms_mapeditor.format_json"></textarea>
+            <textarea name="objdata" gui-val="rooms_mapeditor.editable_object.data" gui-parse-func="JSON.parse" gui-format-func="rooms_mapeditor.format_json"></textarea>
         </div>
-        <div class="editable" id="editable_object" data-gui-show="rooms_mapeditor.editable_object && rooms_mapeditor.selected_room && rooms_mapeditor.selected_room.data.doors.indexOf(rooms_mapeditor.editable_object) != -1">
+        <div class="editable" id="editable_object" gui-show="rooms_mapeditor.has_editable_door()">
             <div class="label">Door Data:</div>
             <div class="position">
                 <label name="x">Exit X:</label>
-                <input type="text" data-gui-val="rooms_mapeditor.editable_object.exit_position.x" data-gui-parse-func="parseFloat"></input>
+                <input type="text" gui-val="rooms_mapeditor.editable_object.exit_position.x" gui-parse-func="parseFloat"></input>
             </div>
             <div class="position">
                 <label name="y">Exit Y:</label>
-                <input type="text" data-gui-val="rooms_mapeditor.editable_object.exit_position.y" data-gui-parse-func="parseFloat"></input>
+                <input type="text" gui-val="rooms_mapeditor.editable_object.exit_position.y" gui-parse-func="parseFloat"></input>
             </div>
             <div class="position">
                 <label name="width">Exit Room ID:</label>
-                <input type="text" data-gui-val="rooms_mapeditor.editable_object.exit_room_id"></input>
+                <input type="text" gui-val="rooms_mapeditor.editable_object.exit_room_id"></input>
             </div>
-            <textarea name="objdata" data-gui-val="rooms_mapeditor.editable_object.data" data-gui-parse-func="JSON.parse" data-gui-format-func="rooms_mapeditor.format_json"></textarea>
+            <textarea name="objdata" gui-val="rooms_mapeditor.editable_object.data" gui-parse-func="JSON.parse" gui-format-func="rooms_mapeditor.format_json"></textarea>
         </div>
-        <div class="editable" id="editable_tag" data-gui-show="rooms_mapeditor.editable_object && rooms_mapeditor.selected_room && rooms_mapeditor.selected_room.data.tags.indexOf(rooms_mapeditor.editable_object) != -1">
+        <div class="editable" id="editable_tag" gui-show="rooms_mapeditor.has_editable_tag()">
             <div class="position">
                 <label name="width">Tag ID:</label>
-                <input type="text" data-gui-val="rooms_mapeditor.editable_object.tag_type"></input>
+                <input type="text" gui-val="rooms_mapeditor.editable_object.tag_type"></input>
             </div>
-            <textarea name="objdata" data-gui-val="rooms_mapeditor.editable_object.data" data-gui-parse-func="JSON.parse" data-gui-format-func="rooms_mapeditor.format_json"></textarea>
+            <textarea name="objdata" gui-val="rooms_mapeditor.editable_object.data" gui-parse-func="JSON.parse" gui-format-func="rooms_mapeditor.format_json"></textarea>
         </div>
     </div>
 
