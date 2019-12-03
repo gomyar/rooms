@@ -22,7 +22,7 @@
         <div id="grid">
             <label>Grid</label>
             <input id="chk_grid_enabled" type="checkbox" gui-val="rooms_mapeditor.grid_enabled"></input>
-            <input id="txt_grid" type="text" gui-val="rooms_mapeditor.grid" gui-change="rooms_mapeditor.grid_clicked()" value="1.0"></input>
+            <input id="txt_grid" type="text" gui-val="rooms_mapeditor.grid" value="1.0"></input>
         </div>
     </div>
 
@@ -33,7 +33,7 @@
 
     <div id="maplist">
         <div class="button" gui-click="rooms_mapeditor.create_map()">Create Map</div>
-        <select id="all_maps" gui-list="rooms_mapeditor.all_maps" gui-item="map" gui-change="rooms_mapeditor.map_selected()">
+        <select id="all_maps" gui-list="rooms_mapeditor.all_maps" gui-item="map" gui-val="rooms_mapeditor.selected_map">
             <option gui-val="map" gui-text="map"></option>
         </select>
         <div class="button" gui-click="rooms_mapeditor.load_selected_map()">Load</div>

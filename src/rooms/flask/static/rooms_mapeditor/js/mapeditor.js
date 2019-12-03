@@ -38,14 +38,6 @@ rooms_mapeditor.has_editable_tag = function() {
     return rooms_mapeditor.editable_object && rooms_mapeditor.selected_room && rooms_mapeditor.selected_room.data.tags.indexOf(rooms_mapeditor.editable_object) != -1;
 }
 
-rooms_mapeditor.grid_clicked = function() {
-    rooms_mapeditor.grid = $('#txt_grid').val();
-}
-
-rooms_mapeditor.map_selected = function() {
-    rooms_mapeditor.selected_map = $('#all_maps').val();
-}
-
 rooms_mapeditor.push_undo = function() {
     rooms_mapeditor.undo_stack.push(JSON.parse(JSON.stringify(rooms_mapeditor.map_data)));
     rooms_mapeditor.redo_stack = [];
@@ -77,6 +69,9 @@ rooms_mapeditor.load_maps = function() {
         "dataType": "json",
         "success": function(data) {
             rooms_mapeditor.all_maps = data;
+            if (rooms_mapeditor.all_maps) {
+                rooms_mapeditor.selected_map = rooms_mapeditor.all_maps[0];
+            }
             console.log("Loaded maps");
             turtlegui.reload();
         }
