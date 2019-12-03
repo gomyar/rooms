@@ -69,6 +69,12 @@ class Script(object):
                 'type': 'request'}
         return methods
 
+    def __getattr__(self, name):
+        if self.has_method(name):
+            return self.get_method(name)
+        else:
+            raise Exception("No such script function: %s" % (name,))
+
 
 class NullScript(Script):
     def __init__(self):

@@ -22,3 +22,6 @@ class ScriptTest(unittest.TestCase):
         self.assertEquals({
             'script_call': {'args': ['field'], 'doc': '', 'type': 'request'}},
             self.script.inspect())
+
+    def testScriptFunctionAccess(self):
+        self.assertEquals("test argle", self.script.script_call('argle'))
