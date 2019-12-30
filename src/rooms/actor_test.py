@@ -106,6 +106,9 @@ class ActorTest(unittest.TestCase):
 
         self.assertEquals([
             ("actor_vector_changed", self.actor),
+            # need to fine grain this test
+            ("actor_state_changed", self.actor),
+            ("actor_state_changed", self.actor),
             ],
             self.vision.messages)
 
@@ -126,6 +129,8 @@ class ActorTest(unittest.TestCase):
 
         self.assertEquals([
             ("actor_vector_changed", self.actor),
+            ("actor_state_changed", self.actor),
+            ("actor_state_changed", self.actor),
             ],
             self.vision.messages)
 
@@ -133,6 +138,9 @@ class ActorTest(unittest.TestCase):
 
         self.assertEquals([
             ("actor_vector_changed", self.actor),
+            ("actor_state_changed", self.actor),
+            ("actor_state_changed", self.actor),
+            ("actor_state_changed", self.actor),
             ],
             self.vision.messages)
 
@@ -151,6 +159,9 @@ class ActorTest(unittest.TestCase):
 
         self.assertEquals([
             ("actor_vector_changed", self.actor),
+            # gotta fine grain this a little
+            ("actor_state_changed", self.actor),
+            ("actor_state_changed", self.actor),
             ],
             self.vision.messages)
 
@@ -216,7 +227,9 @@ class ActorTest(unittest.TestCase):
         MockTimer.fast_forward(1)
 
         self.assertEquals([
-            ('actor_vector_changed', self.actor)],
+            ('actor_vector_changed', self.actor),
+            ('actor_state_changed', self.actor),
+            ('actor_state_changed', self.actor)],
             self.vision.messages)
 
     def testVisible(self):

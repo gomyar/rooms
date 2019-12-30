@@ -12,12 +12,12 @@ class JsonView(object):
         self.views = dict(
             Actor=self.view_actor,
             PlayerActor=self.view_actor,
-            State=self.view_state,
             Vector=self.view_vector,
             Position=self.view_position,
             Game=self.view_game,
             SyncDict=self.view_syncdict,
             SyncList=self.view_synclist,
+            SyncState=self.view_syncdict,
             Item=self.view_item,
             OnlineNode=self.view_onlinenode,
             Room=self.view_room,
@@ -57,9 +57,6 @@ class JsonView(object):
             script=actor.script.script_name if actor.script else "",
             exception=actor._exception,
         )
-
-    def view_state(self, state):
-        return dict(state)
 
     def view_vector(self, vector):
         return dict(start_pos=vector.start_pos, start_time=vector.start_time,

@@ -116,7 +116,7 @@ class NodeTest(unittest.TestCase):
             "username": "ned",
             "docked_with": None,
             "visible": True,
-            'state': {u'__type__': u'SyncDict'},
+            'state': {u'__type__': u'SyncState'},
             "path": [], "vector": {"__type__": "Vector",
             "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
             "start_time": 0,

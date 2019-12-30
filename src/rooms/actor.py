@@ -11,7 +11,7 @@ from rooms.vector import create_vector, Vector, create_vector_list
 from rooms.vector import time_to_position
 from rooms.timer import Timer
 from rooms.utils import IDFactory
-from rooms.state import SyncDict
+from rooms.state import SyncState
 
 import logging
 log = logging.getLogger("rooms.actor")
@@ -52,8 +52,7 @@ class Actor(object):
         self._room_id = room_id
         self._game_id = game_id
         self.actor_type = actor_type
-        self.state = SyncDict(state or {})
-        self.state._set_actor(self)
+        self.state = SyncState(state or {}, self._update_public_state)
         self._vector = create_vector(Position(0, 0), Position(0, 0))
         self.path = [self._vector]
         self.script = script
@@ -70,6 +69,9 @@ class Actor(object):
         self._tracking = None
         self._exception = None
         self.initialized = False
+
+    def _update_public_state(self, action, name, value):
+        self._send_state_changed()
 
     @property
     def is_player(self):

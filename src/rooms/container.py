@@ -78,7 +78,7 @@ class Container(object):
             'actor_type': 'player',
             'visible': True,
             'parent_id': None,
-            'state': {"__type__" : "SyncDict",
+            'state': {"__type__" : "SyncState",
                       "init_kwargs": init_kwargs},
             'path': [],
             'speed': 1.0,

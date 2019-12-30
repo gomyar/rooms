@@ -98,7 +98,7 @@ class ContainerTest(unittest.TestCase):
               u'script_name': u'rooms.script',
               u'speed': 1.0,
               u'state': {},
-              u'state': {u'__type__': u'SyncDict'},
+              u'state': {u'__type__': u'SyncState'},
               u'username': u'bob',
               u'docked_with': None,
               u'visible': True,
@@ -120,7 +120,7 @@ class ContainerTest(unittest.TestCase):
             "visible": True,
             "parent_id": None,
             "docked_with": None,
-            "state": {"__type__": "SyncDict"},
+            "state": {"__type__": "SyncState"},
             "path": [],
             "speed": 1.0,
             "path": [{"__type__": "Vector",
@@ -142,7 +142,6 @@ class ContainerTest(unittest.TestCase):
 
         self.assertEquals("rooms_10", player.room_id)
         self.assertEquals("id1", player._id)
-        self.assertEquals(player, player.state._actor)
         self.assertEquals(Position(10, 10), player.position)
 
         self.assertRaises(Exception,
@@ -162,7 +161,7 @@ class ContainerTest(unittest.TestCase):
         self.dbase.dbases['rooms']['rooms_0'] = { "_id": "rooms_0",
             "__type__": "Room", "room_id": "map1.room1", "game_id": "games_0",
             "script_name": "rooms.container_test",
-            'state': {u'__type__': u'SyncDict'},
+            'state': {u'__type__': u'SyncState'},
             }
         self.dbase.dbases['actors'] = {}
         self.dbase.dbases['actors']['actor1'] = \
@@ -175,7 +174,7 @@ class ContainerTest(unittest.TestCase):
             "username": "ned",
             "docked_with": None,
             "visible": True,
-            'state': {u'__type__': u'SyncDict'},
+            'state': {u'__type__': u'SyncState'},
             "path": [], "vector": {"__type__": "Vector",
             "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
             "start_time": 0,
@@ -219,7 +218,7 @@ class ContainerTest(unittest.TestCase):
             u'speed': 1.0,
             u'docked_with': None,
             u'initialized': True,
-            u'state': {u'__type__': u'SyncDict'},
+            u'state': {u'__type__': u'SyncState'},
             u'visible': True}
         self.assertEquals(expected, actor_dict)
 
@@ -258,14 +257,14 @@ class ContainerTest(unittest.TestCase):
             u'room_id': u'rooms_0',
             u'script_name': u'rooms.container_test',
             u'speed': 1.0,
-            u'state': {u'__type__': u'SyncDict'},
+            u'state': {u'__type__': u'SyncState'},
             u'username': None,
             u'visible': True},
             self.dbase.dbases['actors']['actors_0'])
 
         actor.state.testme = "value1"
         self.container.save_actor(actor)
-        self.assertEquals({u'__type__': u'SyncDict', u'testme': u'value1'},
+        self.assertEquals({u'__type__': u'SyncState', u'testme': u'value1'},
             self.dbase.dbases['actors']['actors_0']['state'])
 
         actor.room = None
@@ -348,7 +347,7 @@ class ContainerTest(unittest.TestCase):
             "username": "ned",
             "docked_with": None,
             "visible": True,
-            'state': {u'__type__': u'SyncDict'},
+            'state': {u'__type__': u'SyncState'},
             "path": [], "vector": {"__type__": "Vector",
             "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
             "start_time": 0,
@@ -365,7 +364,7 @@ class ContainerTest(unittest.TestCase):
             "username": "ned",
             "docked_with": None,
             "visible": True,
-            'state': {u'__type__': u'SyncDict'},
+            'state': {u'__type__': u'SyncState'},
             "path": [], "vector": {"__type__": "Vector",
             "start_pos": {"__type__": "Position", "x": 0, "y": 0, "z": 0},
             "start_time": 0,

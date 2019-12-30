@@ -11,6 +11,7 @@ from rooms.script import Script
 from rooms.vector import Vector
 from rooms.state import SyncDict
 from rooms.state import SyncList
+from rooms.state import SyncState
 from rooms.online_node import OnlineNode
 from rooms.admin_token import AdminToken
 from rooms.room_map import Map
@@ -36,6 +37,7 @@ class GameFactory(object):
             Vector=self._serialize_vector,
             SyncDict=self._serialize_syncdict,
             SyncList=self._serialize_synclist,
+            SyncState=self._serialize_syncdict,
             OnlineNode=self._serialize_onlinenode,
             AdminToken=self._serialize_admintoken,
             Map=self._serialize_map,
@@ -51,6 +53,7 @@ class GameFactory(object):
             Vector=self._build_vector,
             SyncDict=self._build_syncdict,
             SyncList=self._build_synclist,
+            SyncState=self._build_syncstate,
             OnlineNode=self._build_onlinenode,
             AdminToken=self._build_admintoken,
             Map=self._build_map,
@@ -121,7 +124,7 @@ class GameFactory(object):
             room_id=data['room_id'], game_id=data['game_id'])
         player.parent_id = data['parent_id']
         player.state = data['state']
-        player.state._set_actor(player)
+        player.state._update_function = player._update_public_state
         player.path = data['path']
         player._set_vector_from_path()
         player._speed = data['speed']
@@ -189,7 +192,7 @@ class GameFactory(object):
             room_id=data['room_id'], game_id=data['game_id'])
         actor.parent_id = data['parent_id']
         actor.state = data['state']
-        actor.state._set_actor(actor)
+        actor.state._update_function = actor._update_public_state
         actor.path = data['path']
         actor._set_vector_from_path()
         actor._speed = data['speed']
@@ -219,8 +222,10 @@ class GameFactory(object):
         return dict(syncdict._data)
 
     def _build_syncdict(self, data):
-        syncdict = SyncDict()
-        syncdict._data = data
+        return data
+
+    def _build_syncstate(self, data):
+        syncdict = SyncState(data, None)
         return syncdict
 
     # SyncList
