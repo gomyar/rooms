@@ -61,13 +61,13 @@ class FlaskAppTest(unittest.TestCase):
         self.login('bob', 'pass')
         res = self.client.get('/rooms/connect/games_0')
         self.assertEquals(200, res.status_code)
-        self.assertEquals('{"wait":1}\n', res.data)
+        self.assertEquals({"wait": 1}, json.loads(res.data.decode()))
 
         app.node.load_next_pending_room()
 
         res = self.client.get('/rooms/connect/games_0')
         self.assertEquals(200, res.status_code)
-        data = json.loads(res.data)
+        data = json.loads(res.data.decode())
         self.assertTrue('actor_id' in data)
         self.assertEquals("localhost:5000", data['host'])
         self.assertEquals("http://localhost:5000/rooms/call/games_0",
@@ -86,13 +86,13 @@ class FlaskAppTest(unittest.TestCase):
         self.login('bob', 'pass')
         res = self.client.get('/rooms/connect/%s' % (game_id,))
         self.assertEquals(200, res.status_code)
-        self.assertEquals('{"wait":1}\n', res.data)
+        self.assertEquals({"wait": 1}, json.loads(res.data.decode()))
 
         app.node.load_next_pending_room()
 
         res = self.client.get('/rooms/connect/%s' % (game_id,))
         self.assertEquals(200, res.status_code)
-        data = json.loads(res.data)
+        data = json.loads(res.data.decode())
         self.assertTrue('actor_id' in data)
         self.assertEquals("node1.rooms.com", data['host'])
         self.assertEquals("http://node1.rooms.com/rooms/call/games_0",

@@ -83,7 +83,7 @@ class NodeTest(unittest.TestCase):
         room = self.node.rooms['game1', 'room1']
         self.assertTrue(room.state['testcreated'])
         self.assertEquals(1, len(room.actors))
-        self.assertEquals('test', room.actors.values()[0].actor_type)
+        self.assertEquals('test', room.actors['id1'].actor_type)
 
     def testLoadRoomAlreadyInitialized(self):
         self.dbase.dbases['rooms']['rooms_0']['state']['testcreated'] = False
@@ -135,7 +135,7 @@ class NodeTest(unittest.TestCase):
         self.assertFalse(self.room.state['testcreated'])
         self.assertEquals(1, len(self.room.actors))
         self.assertEquals('test_player',
-            self.room.actors.values()[0].actor_type)
+            self.room.actors['id1'].actor_type)
 
         MockTimer.fast_forward(1)
 
@@ -253,7 +253,7 @@ class NodeTest(unittest.TestCase):
         try:
             ws = MockWebsocket()
             self.node.player_connects(ws, 'game1', 'bob')
-        except Exception, e:
+        except Exception as e:
             self.assertEquals('No room for player: game1, bob', str(e))
 
     def testShutdownRoomsAndActorsSaved(self):

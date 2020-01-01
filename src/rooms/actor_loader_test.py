@@ -6,7 +6,7 @@ from rooms.container import Container
 from rooms.room import Room
 from rooms.position import Position
 from rooms.testutils import MockDbase
-from testutils import MockTimer
+from rooms.testutils import MockTimer
 
 
 class ActorLoaderTest(unittest.TestCase):

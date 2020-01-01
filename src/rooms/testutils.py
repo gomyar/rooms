@@ -2,6 +2,10 @@
 import gevent
 from gevent.event import Event
 from gevent.queue import Queue
+try:
+    from importlib import reload
+except:
+    pass  # py3
 import json
 
 from rooms.player import PlayerActor
@@ -233,9 +237,9 @@ class MockTimer(Timer):
     def _mock_sleep(self, seconds):
         # wait for fast_forward
         event = Event()
-        self._sleeping_gthreads.append((gevent.getcurrent(),
-            seconds + self._mock_now, event))
-        self._sleeping_gthreads.sort()
+        self._sleeping_gthreads.append((
+            seconds + self._mock_now, gevent.getcurrent(), event))
+        self._sleeping_gthreads.sort(key=lambda t: t[0])
         self._slept += seconds
         event.wait(1)
 
@@ -258,11 +262,11 @@ class MockTimer(Timer):
         self._mock_now = end_time
 
     def _processed(self, end_time):
-        for gthread, wake_time, event in list(self._sleeping_gthreads):
+        for wake_time, gthread, event in list(self._sleeping_gthreads):
             if end_time >= wake_time:
                 self._mock_now = wake_time
                 event.set()
-                self._sleeping_gthreads.remove((gthread, wake_time, event))
+                self._sleeping_gthreads.remove((wake_time, gthread, event))
                 self._old_sleep(0)
                 return True
         return False

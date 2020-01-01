@@ -97,7 +97,7 @@ class MasterTest(unittest.TestCase):
         self.assertEquals([
             {'game_id': game_id, 'status': 'active'},
             {'game_id': game_id_2, 'status': 'active'}],
-            sorted(self.master.list_players('ned')))
+            sorted(self.master.list_players('ned'), key=lambda d: d['game_id']))
 
     def testPlayerJoinsGame(self):
         game_id = self.master.create_game("bob")
@@ -141,7 +141,7 @@ class MasterTest(unittest.TestCase):
         try:
             self.master.join_game('nonexitant', "ned")
             self.fail("Should have thrown")
-        except Exception, e:
+        except Exception as e:
             self.assertEquals("No such game: nonexitant", str(e))
 
     def testAllGames(self):

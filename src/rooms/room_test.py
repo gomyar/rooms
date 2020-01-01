@@ -22,7 +22,7 @@ from rooms.testutils import MockVision
 from rooms.actor import Actor
 from rooms.node import Node
 from rooms.room import RoomObject
-from testutils import MockTimer
+from rooms.testutils import MockTimer
 
 
 def created(actor):
@@ -114,7 +114,7 @@ class RoomTest(unittest.TestCase):
         self.room.put_actor(newactor1, Position(5, 5))
 
         self.assertEquals(1, len(self.room.actors))
-        self.assertEquals("new1", self.room.actors.values()[0].actor_id)
+        self.assertTrue("new1" in self.room.actors.keys())
         self.assertEquals(Position(5, 5), self.room.actors['new1'].vector.start_pos)
         self.assertEquals(Position(5, 5), self.room.actors['new1'].vector.end_pos)
         MockTimer.fast_forward(0)
@@ -237,7 +237,7 @@ class RoomTest(unittest.TestCase):
 
         removed = self.room._remove_docked(actor1)
 
-        self.assertEquals([actor1], self.room.actors.values())
+        self.assertTrue(actor1 in self.room.actors.values())
         self.assertEquals([child1, child2], removed)
 
     @patch("gevent.spawn")

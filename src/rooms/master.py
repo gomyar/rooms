@@ -1,5 +1,4 @@
 
-from rooms.rpc import request
 from rooms.timer import Timer
 from rooms.script import NullScript
 from rooms.script import load_script

@@ -1,5 +1,5 @@
 
-import pointformatting
+from rooms.geography import pointformatting
 
 _connected_offsets = [
     (-1, -1), (0, -1), (1, -1),
@@ -115,8 +115,8 @@ class PointMap(object):
                 point.hook_up_connected(point_spacing)
 
     def __getitem__(self, key):
-        key = ((key[0] / self.point_spacing) * self.point_spacing,
-            (key[1] / self.point_spacing) * self.point_spacing)
+        key = ((key[0] // self.point_spacing) * self.point_spacing,
+            (key[1] // self.point_spacing) * self.point_spacing)
         return self._points.get(key)
 
     def __setitem__(self, key, point):

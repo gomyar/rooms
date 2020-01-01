@@ -1,9 +1,9 @@
 
 import unittest
 
-from astar import AStar
-from astar import PointMap
-from astar import Point
+from rooms.geography.astar import AStar
+from rooms.geography.astar import PointMap
+from rooms.geography.astar import Point
 
 
 class AStarTest(unittest.TestCase):
