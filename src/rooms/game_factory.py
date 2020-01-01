@@ -233,9 +233,7 @@ class GameFactory(object):
         return dict(data=list(synclist._data))
 
     def _build_synclist(self, data):
-        synclist = SyncList()
-        synclist._data = data['data']
-        return synclist
+        return data['data']
 
     # OnlineNode
     def _serialize_onlinenode(self, onlinenode):
