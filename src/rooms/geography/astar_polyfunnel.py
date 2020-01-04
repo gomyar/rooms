@@ -110,7 +110,7 @@ class AStar(object):
         # working backwards from target, using parents, to build path
         path = []
         #current = to_point
-        while current.parent and current.parent != from_point:
+        while current.parent:
             path.append(current.parent.polygon)
             current = current.parent
 
