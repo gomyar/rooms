@@ -74,15 +74,8 @@ class FunnelPolysTest(unittest.TestCase):
         queue = create_poly_queue(poly_chain)
         portals = [((q[1].x, q[1].y), (q[2].x, q[2].y)) for q in queue]
 
-#        from webpolys import WebCanvas
-#        mister = WebCanvas()
-#        polys = [[(v.position) for v in p.vertices] for p in poly_chain]
-#        mister.add_poly_list(polys)
-#        path = funnel_poly_chain(portals, from_position.coords(), to_position.coords())
-#        mister.add_line(path)
-#        mister.handle_request()
-
         self.assertEquals([
+            ((100.0, -100.0), (125.0, -125.0)),
             ((100.0, -100.0), (-125.0, -125.0)),
             ((30.0, -100.0), (-125.0, -125.0)),
             ((30.0, -85.0), (-125.0, -125.0)),
