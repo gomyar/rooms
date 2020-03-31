@@ -133,9 +133,9 @@ class Node(object):
                         ws.send(json.dumps({'command': 'redirect_to_master'}))
                 else:
                     ws.send(json.dumps(jsonview(message)))
-        except WebSocketError, wse:
+        except WebSocketError as wse:
             log.debug("Websocket socket dead: %s", str(wse))
-        except Exception, e:
+        except Exception as e:
             log.exception("Unexpected exception in player connection")
             raise
         finally:
@@ -174,9 +174,9 @@ class Node(object):
                 ws.send(json.dumps(jsonview(message)))
                 if message.get("command") in ['disconnect', 'redirect']:
                     connected = False
-        except WebSocketError, wse:
+        except WebSocketError as wse:
             log.debug("Admin Websocket socket dead: %s", str(wse))
-        except Exception, e:
+        except Exception as e:
             log.exception("Unexpected exception in player connection")
             raise
         finally:

@@ -141,7 +141,7 @@ class MasterTest(unittest.TestCase):
         try:
             self.master.join_game('nonexitant', "ned")
             self.fail("Should have thrown")
-        except Exception, e:
+        except Exception as e:
             self.assertEquals("No such game: nonexitant", str(e))
 
     def testAllGames(self):

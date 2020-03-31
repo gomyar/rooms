@@ -80,7 +80,7 @@ def start_rooms_app(app, container_type='pointmap'):
         http_server = WSGIServer((_node_host, _node_port), app,
                                  handler_class=WebSocketHandler)
         http_server.serve_forever()
-    except KeyboardInterrupt, ke:
+    except KeyboardInterrupt as ke:
         log.debug("Server interrupted")
         node.shutdown()
         master.shutdown()

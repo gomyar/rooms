@@ -2,7 +2,7 @@
 import unittest
 import math
 
-from testutils import MockTimer
+from rooms.testutils import MockTimer
 from rooms.vector import create_vector
 from rooms.vector import create_vector_list
 from rooms.position import Position

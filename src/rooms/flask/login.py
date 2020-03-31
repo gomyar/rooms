@@ -1,5 +1,8 @@
 
-from urlparse import urlparse, urljoin
+try:
+    from urllib.parse import urlparse, urljoin
+except:
+    from urlparse import urlparse, urljoin
 
 import os
 

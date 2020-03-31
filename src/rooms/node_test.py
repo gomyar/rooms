@@ -253,7 +253,7 @@ class NodeTest(unittest.TestCase):
         try:
             ws = MockWebsocket()
             self.node.player_connects(ws, 'game1', 'bob')
-        except Exception, e:
+        except Exception as e:
             self.assertEquals('No room for player: game1, bob', str(e))
 
     def testShutdownRoomsAndActorsSaved(self):

@@ -23,12 +23,12 @@ class ItemRegistry(object):
         return self.categories.get(category, {}).get(item_type)
 
     def items_by_category(self, category, **filters):
-        return filter(
+        return list(filter(
             lambda item: all(ff in item.data.items() for ff in filters.items()),
-            self.categories.get(category, {}).values())
+            self.categories.get(category, {}).values()))
 
     def get_categories(self):
-        return self.categories.keys()
+        return list(self.categories)
 
     def load_from_json(self, json_str):
         categories = _create_items(json.loads(json_str))

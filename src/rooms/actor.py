@@ -21,9 +21,9 @@ def _safe_kill_gthread(gthread):
     try:
         if gthread:
             gthread.kill()
-    except GreenletExit, ge:
+    except GreenletExit as ge:
         pass
-    except:
+    except Exception as e:
         log.exception("Exception killing script gthread")
 
 
@@ -188,9 +188,9 @@ class Actor(object):
     def _checked_action_call(self, method, *args, **kwargs):
         try:
             return method(self, *args, **kwargs)
-        except GreenletExit, ge:
+        except GreenletExit as ge:
             pass
-        except Exception, e:
+        except Exception as e:
             log.exception("Exception running action: %s(%s, %s)", method,
                 args, kwargs)
             self._handle_exception(e)
@@ -204,9 +204,9 @@ class Actor(object):
     def _checked_script_call(self, method, *args, **kwargs):
         try:
             return self.script_request(method, *args, **kwargs)
-        except GreenletExit, ge:
+        except GreenletExit as ge:
             pass
-        except Exception, e:
+        except Exception as e:
             log.exception("Exception running script: %s(%s, %s)", method,
                 args, kwargs)
             self._handle_exception(e)
