@@ -1,6 +1,5 @@
 
 from rooms.position import Position
-from rooms.state import SyncList
 
 
 def created(player_actor):
@@ -17,7 +16,7 @@ def created(player_actor):
         "syrup": 1,
         "salt": 15,
     }
-    player_actor.state.log = SyncList()
+    player_actor.state.log = []
     spawn_locations = player_actor.room.find_tags("player.spawn")
     if spawn_locations:
         player_actor.position = spawn_locations[0].position
