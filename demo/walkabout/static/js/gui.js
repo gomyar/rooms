@@ -118,14 +118,13 @@ gui.actorRedraw = function()
     for (var i in api_rooms.actors)
     {
         var actor = api_rooms.actors[i];
-        if (actor.vector.end_time * 1000 > until_time)
+        if (actor.path[actor.path.length-1].end_time * 1000 > until_time)
         {
-            until_time = actor.vector.end_time * 1000
+            until_time = actor.path[actor.path.length-1].end_time * 1000
         }
     }
     if (until_time > api_rooms.get_now())
     {
-        console.log("optionalRedraw() until " + new Date(until_time));
         gui.optionalRedraw(until_time);
     }
 }

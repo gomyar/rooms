@@ -62,8 +62,8 @@ function show_room(room_id)
 
 function api_callback(message)
 {
-    console.log("API Message:");
-    console.log(message);
+//    console.log("API Message:");
+//    console.log(message);
     gui.actorRedraw();
     if (message.command == "actor_update")
     {

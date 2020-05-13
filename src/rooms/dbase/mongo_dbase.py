@@ -85,7 +85,7 @@ class MongoDBase(object):
                 )
         except:
             log.exception("Exception updating object in %s.update_key: %s",
-                collection_name, update_obj)
+                collection_name, kwargs)
             raise
 
     def update_many_fields(self, collection_name, query, update):
@@ -97,7 +97,7 @@ class MongoDBase(object):
             )
         except:
             log.exception("Exception updating object in %s.update_key: %s",
-                collection_name, update_obj)
+                collection_name, update)
             raise
 
     def remove_object(self, collection_name, obj, remove_key):
