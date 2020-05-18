@@ -4,7 +4,7 @@
 
     <link rel="stylesheet" type="text/css" href="{{ url_for('admin.static', filename = 'css/admin.css') }}"/>
     <script src="{{ url_for('node.static', filename = 'js/jquery-1.9.1.js') }}"></script>
-    <script src="https://rawgit.com/gomyar/turtlegui/v4.0.4/turtlegui.js" crossorigin="anonymous"></script>
+    <script src="https://rawgit.com/gomyar/turtlegui/v4.0.7/turtlegui.js" crossorigin="anonymous"></script>
     <script src="{{ url_for('node.static', filename = 'js/api_rooms.js') }}"></script>
 
     <script src="{{ url_for('admin.static', filename = 'js/jquery.mousewheel.js') }}"></script>
@@ -24,18 +24,18 @@
     <div id="actor_list" gui-show="admin.actor_list.length > 0">
         <div class="title">Select Actor:</div>
         <hr></hr>
-        <div gui-list="admin.actor_list" data-gui-item="actor">
-            <div  gui-class="actor.actor_type=='player'?'player':''" class="listed_actor" data-gui-click="admin.select_actor(actor)">
-                <div gui-text="actor.actor_type"></div>:<div data-gui-text="actor.script"></div> <div data-gui-text="actor.username ? '(' + actor.username + ')' : ''"></div>
+        <div gui-list="admin.actor_list" gui-item="actor">
+            <div  gui-class="actor.actor_type" class="listed_actor" gui-click="admin.select_actor(actor)">
+                <div gui-text="actor.actor_type"></div>:<div gui-text="actor.script"></div> <div gui-text="actor.username"></div>
             </div>
         </div>
     </div>
     <div id="selected_actor" gui-show="admin.selected_actor">
-        <div class="title" gui-class="admin.selected_actor.actor_type=='player'?'player':''">Actor:  <div data-gui-text="admin.selected_actor.actor_type + admin.selected_actor.username"></div></div>
+        <div class="title" gui-class="admin.selected_actor.actor_type">Actor:  <div gui-text="admin.selected_actor.actor_type"></div></div>
         <hr></hr>
-        <div gui-list="['actor_id', 'username', 'visible', 'docked_with', 'path', 'vector', 'state']" data-gui-item="field">
+        <div gui-list="admin.actor_fields_filter()" gui-item="field">
             <div class="field">
-                <div class="name" gui-text='field'></div>:&nbsp;<pre class="value" data-gui-text="JSON.stringify(admin.selected_actor[field], null, 2);"></pre>
+                <div class="name" gui-text='field'></div>:&nbsp;<pre class="value" gui-text="admin.format_field(admin.selected_actor, field)"></pre>
             </div>
         </div>
         <div class="exception" gui-show="admin.selected_actor.exception">

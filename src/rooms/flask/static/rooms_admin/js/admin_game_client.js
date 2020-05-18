@@ -75,6 +75,15 @@ admin.game_callback = function(message) {
     }
 }
 
+admin.actor_fields_filter = function() {
+    return ['actor_id', 'username', 'visible', 'docked_with', 'path', 'state'];
+}
+
+admin.format_field = function(actor, field_name) {
+    return JSON.stringify(actor[field_name], null, 4);
+
+}
+
 
 admin.admin_connect = function(game_id, room_id)
 {
