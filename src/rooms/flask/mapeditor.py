@@ -56,6 +56,7 @@ def maps():
                     "tags": [],
                     "room_objects": [],
                     "doors": [],
+                    "passable": False,
                 }
         }}, indent=4))
         map_file.close()

@@ -5,6 +5,8 @@ from functools import wraps
 
 
 def load_script(script_name):
+    if not script_name:
+        return NullScript()
     if '.' in script_name:
         modname = script_name[:script_name.rfind('.')]
     else:

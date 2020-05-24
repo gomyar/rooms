@@ -32,12 +32,14 @@ class Tag(object):
 
 
 class RoomObject(object):
-    def __init__(self, object_type, position, width=0, height=0, depth=0):
+    def __init__(self, object_type, position, width=0, height=0, depth=0,
+                 passable=False):
         self.object_type = object_type
         self.position = position
         self.width = width
         self.height = height
         self.depth = depth
+        self.passable = passable
         self.info = dict()
 
     def __repr__(self):

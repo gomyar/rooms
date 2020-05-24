@@ -159,8 +159,12 @@ class PolygonFunnelGeography(BasicGeography):
     def setup(self, room):
         self.room = room
         self._vertices = dict()
+        self._impassible_objects = None
         self.polygons = self.polyfill()
         connect_polygons(self.polygons)
+
+    def _room_objects(self):
+        return [o for o in self.room.room_objects if not o.passable]
 
     def draw(self):
         polygons = []
@@ -226,7 +230,7 @@ class PolygonFunnelGeography(BasicGeography):
         vertices.append(br)
         vertices.append(bl)
 
-        for obj in self.room.room_objects:
+        for obj in self._room_objects():
             vs = self.get_vertices(obj)
             vertices.extend(vs)
 
@@ -250,7 +254,7 @@ class PolygonFunnelGeography(BasicGeography):
     def _is_occluded(self, vertex):
         if not self.room.position_within(vertex.position):
             return True
-        for room_object in self.room.room_objects:
+        for room_object in self._room_objects():
             if room_object.position_within(vertex.position):
                 return True
         return False
@@ -263,7 +267,7 @@ class PolygonFunnelGeography(BasicGeography):
         return sorted(edges, key=lambda v: angle(vertex, v[1]))
 
     def _edge_intersects_objects(self, edge):
-        for room_object in self.room.room_objects:
+        for room_object in self._room_objects():
             for from_p, to_p in [
                     (room_object.topleft, room_object.topright),
                     (room_object.topleft, room_object.bottomleft),
@@ -299,7 +303,7 @@ class PolygonFunnelGeography(BasicGeography):
 
     def _edge_occluded_at_midpoint(self, edge):
         midpoint = Position((edge[0].position.x + edge[1].position.x) / 2.0, (edge[0].position.y + edge[1].position.y) / 2.0)
-        for room_object in self.room.room_objects:
+        for room_object in self._room_objects():
             if room_object.position_within(midpoint):
                 return True
         return False
@@ -323,7 +327,7 @@ class PolygonFunnelGeography(BasicGeography):
         return edges
 
     def _polygon_contains_object(self, v1, v2, v3):
-        for room_object in self.room.room_objects:
+        for room_object in self._room_objects():
             from_x, from_y, to_x, to_y = room_object.position.x, room_object.position.y, room_object.position.x, -1000
             int1 = intersect(from_x, from_y, to_x, to_y, v1.position.x, v1.position.y, v2.position.x, v2.position.y)
             int2 = intersect(from_x, from_y, to_x, to_y, v2.position.x, v2.position.y, v3.position.x, v3.position.y)

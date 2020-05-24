@@ -1,8 +1,8 @@
-
-bugs:
- - login with ray, go to room3, register, then login with bob, ray sees bob in room1 (from room3) - possibly due to admin flag? - think I fixed this
-   - joining a new game as bob when ray is already in the next room repros also
  
+bugs:
+ - when server is killed, rooms are left in a active: true and requested: true state and will not load
+ - add a time based recovery to room load
+ - add indicator of stale rooms to admin
 
 todos:
  - fix path broadcast (just broadcast entire path)
@@ -13,7 +13,8 @@ todos:
 fancy debug:
  - pause gevent for actor from admin
  - update state for actor from admin
- - view running code (traceback?) for actor from admin - done
+ - view running code (function / traceback?) for actor from admin - done
+ - view message log ("chat" etc) from admin - highlight actor when message sent
 
 
 idiosyncratic behaviour:

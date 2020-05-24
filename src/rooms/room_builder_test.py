@@ -33,6 +33,7 @@ class RoomBuilderTest(unittest.TestCase):
         self.assertEquals(0, room.room_objects[0].topleft.x)
         self.assertEquals(0, room.room_objects[0].topleft.y)
         self.assertEquals(90, room.room_objects[0].facing)
+        self.assertEquals(False, room.room_objects[0].passable)
 
     def testCreateRoom2(self):
         room = self.factory.create("game1", "map1.room2")

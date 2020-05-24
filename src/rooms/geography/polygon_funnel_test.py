@@ -20,6 +20,8 @@ from rooms.geography.polygon_funnel import create_poly_queue
 
 
 class PolygonFunnelTest(unittest.TestCase):
+    maxDiff = None
+
     def setUp(self):
         self.room = Room("game1", "room1", MockNode())
         self.room.coords(-50, -50, 50, 50)
@@ -123,6 +125,26 @@ class PolygonFunnelTest(unittest.TestCase):
             Polygon(Vertex(None, P(50.0,-50.0)), Vertex(None, P(10.0,10.0)), Vertex(None, P(10.0,-10.0))),
             Polygon(Vertex(None, P(50.0,50.0)), Vertex(None, P(-50.0,50.0)), Vertex(None, P(-10.0,10.0))),
             Polygon(Vertex(None, P(50.0,50.0)), Vertex(None, P(-10.0,10.0)), Vertex(None, P(10.0,10.0)))],
+            self.geography.polyfill())
+
+    def test_polyfill_empty_room(self):
+        self.geography.setup(self.room)
+        self.room.geog = self.geography
+
+        self.assertEquals([
+            Polygon(Vertex(None, P(-50.0, -50.0)), Vertex(None, P(50.0, -50.0)), Vertex(None, P(50.0, 50.0))),
+            Polygon(Vertex(None, P(-50.0, -50.0)), Vertex(None, P(50.0, 50.0)), Vertex(None, P(-50.0, 50.0)))],
+            self.geography.polyfill())
+
+    def test_polyfill_passable_object(self):
+        self.geography.setup(self.room)
+        self.room.geog = self.geography
+
+        self.room.room_objects.append(RoomObject("test", P(0, 0), 20, 20, passable=True))
+
+        self.assertEquals([
+            Polygon(Vertex(None, P(-50.0, -50.0)), Vertex(None, P(50.0, -50.0)), Vertex(None, P(50.0, 50.0))),
+            Polygon(Vertex(None, P(-50.0, -50.0)), Vertex(None, P(50.0, 50.0)), Vertex(None, P(-50.0, 50.0)))],
             self.geography.polyfill())
 
     def test_polygon_midpoint(self):
