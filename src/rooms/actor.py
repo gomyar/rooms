@@ -115,8 +115,12 @@ class Actor(object):
         self.path = [create_vector(self.position, self.position, self._speed)]
 
     def move_wait(self, position, path=None):
+        ''' Moves towards the position. Returns True if actor reaches
+            destination, None if the gthread is interrupted enroute
+        '''
         self.move_to(position, path)
         self._move_gthread.join()
+        return self._move_gthread.value if self._move_gthread is not None else None
 
     def time_to_destination(self):
         if self.path:
@@ -130,6 +134,7 @@ class Actor(object):
         for vector in vectors:
             self._set_vector(vector)
             Timer.sleep_until(vector.end_time)
+        return True
 
     @property
     def speed(self):
@@ -243,6 +248,13 @@ class Actor(object):
             return self.docked_with.vector
         else:
             return self._vector
+
+    @vector.setter
+    def vector(self, vector):
+        self._kill_move_gthread()
+        self.path = [vector]
+        self._set_vector(vector)
+        self._send_actor_vector_changed()
 
     def _set_vector(self, vector):
         if self._vector != vector:

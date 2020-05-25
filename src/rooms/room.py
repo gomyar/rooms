@@ -263,8 +263,13 @@ class Room(object):
         actor.room = None
         self.vision.actor_removed(actor)
 
-    def find_tags(self, tag_id):
-        return [tag for tag in self.tags if tag.tag_type.startswith(tag_id)]
+    def find_tags(self, tag_id, **kwargs):
+        return [tag for tag in self.tags if tag.tag_type.startswith(tag_id) and
+                all(item in tag.data.items() for item in kwargs.items())]
+
+    def get_tag(self, tag_id, **kwargs):
+        tags = self.find_tags(tag_id, **kwargs)
+        return tags[0] if tags else None
 
     def find_one_tag(self, tag_id):
         tags = self.find_tags(tag_id)

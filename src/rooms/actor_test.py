@@ -168,7 +168,7 @@ class ActorTest(unittest.TestCase):
     def testMoveWait(self):
         self.assertEquals(Position(0, 0), self.actor.position)
 
-        self.actor.move_wait(Position(10, 0))
+        self.assertTrue(self.actor.move_wait(Position(10, 0)))
 
         self.assertEquals([
             Vector(Position(0, 0), 0, Position(10, 0), 10.0),
