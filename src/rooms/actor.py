@@ -120,7 +120,9 @@ class Actor(object):
         '''
         self.move_to(position, path)
         self._move_gthread.join()
-        return self._move_gthread.value if self._move_gthread is not None else None
+        # value may be GreenletExit if _move_gthread was killed
+        # gthread evaluate to False under some conditions hence "is not None"
+        return self._move_gthread.value is True if self._move_gthread is not None else None
 
     def time_to_destination(self):
         if self.path:
