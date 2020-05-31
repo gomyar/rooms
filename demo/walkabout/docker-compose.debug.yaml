@@ -1,0 +1,13 @@
+version: "3"
+services:
+  
+  # when used as an "override" compose file, will merge with docker-compose.yml
+  walkabout:
+    stdin_open: true
+    tty: true
+    volumes:
+      - '${PWD}:/app/'
+    environment:
+      - 'FLASK_DEBUG=1'
+    user: "${UID}:${GID}"
+#    command: python -m ipdb server.py

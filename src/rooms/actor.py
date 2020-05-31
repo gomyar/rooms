@@ -146,10 +146,8 @@ class Actor(object):
     def speed(self, s):
         self._speed = float(s)
         if self._move_gthread:
-            if self.path:
-                self.move_to(self.path[-1].end_pos)
-            else:
-                self._kill_move_gthread()
+            self._kill_move_gthread()
+            self._start_move_gthread()
 
     def _kill_move_gthread(self):
         _safe_kill_gthread(self._move_gthread)
