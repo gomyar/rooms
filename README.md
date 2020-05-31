@@ -9,3 +9,13 @@ Rooms is meant to handle the loading and scaling of "rooms" for a game, and allo
 The service is stateful, with all of the game state running on the server. Updates are pushed to clients over websockets.
 It uses an admin interface for real time viewing of ongoing games, and a mapeditor for the simple map structure the game uses.
 Pluggable geographies may be used for pathfinding, including grid based and polygon funnel (over A*).
+
+
+Quickest way to get running demo.
+
+In the demo/walkabout dir
+ - run ./build.sh (just builds the docker image)
+ - run ./debug.sh (runs a debug version using docker-compose)
+ - navigate to localhost:5000/register 
+ - add a user
+ - navigate to localhost:5000
