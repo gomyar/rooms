@@ -19,3 +19,6 @@ In the demo/walkabout dir
  - navigate to localhost:5000/register 
  - add a user
  - navigate to localhost:5000
+ - create a new game, join, click about etc.
+ - then go here: localhost:5000/rooms_admin
+ - then go here: localhost:5000/rooms_mapeditor
