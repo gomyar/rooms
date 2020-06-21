@@ -191,8 +191,13 @@ class Room(object):
         actor.room = self
         if position:
             actor.position = position
-        actor.kick()
+        self._kick_actor_and_docked(actor)
         self.vision.add_actor(actor)
+
+    def _kick_actor_and_docked(self, actor):
+        actor.kick()
+        for docked_actor in actor.docked_actors:
+            self._kick_actor_and_docked(docked_actor)
 
     def _correct_position(self, position):
         x, y, z = position.x, position.y, position.z

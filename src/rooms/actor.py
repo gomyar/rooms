@@ -356,8 +356,8 @@ class Actor(object):
             search_actor_test(a, actor_type, state, visible)]
 
     def log(self, msg, *args):
-        log.debug("Actor log: %s %s - " + str(msg), self.username,
-            self.actor_id, *args)
+        log.debug("Actor log: %s %s %s - " + str(msg), self.actor_type,
+            self.username, self.actor_id, *args)
 
     def _get_state_val(self, pathitems, current=None):
         if not current:
