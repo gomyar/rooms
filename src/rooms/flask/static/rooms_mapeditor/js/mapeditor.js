@@ -88,7 +88,8 @@ rooms_mapeditor.load_selected_map = function() {
             gui.center_view(data);
             rooms_mapeditor.reload();
             rooms_mapeditor.push_undo();
-        }
+        },
+        cache: false
     });
 };
 

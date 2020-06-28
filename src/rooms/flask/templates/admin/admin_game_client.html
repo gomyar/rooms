@@ -48,6 +48,12 @@
         <div class="actor_controls">
             <hr></hr>
             <button gui-click="admin.kick_actor(admin.selected_actor.actor_id)">Kick</button>
+            <div class="state_update">
+                <label>Update State (key + JSON):</label>
+                <input type=text gui-val="admin.update_state_key"></input>
+                <input type=text gui-val="admin.update_state_json"></input>
+                <button gui-click="admin.submit_state_update()"></button>
+            </div>
         </div>
     </div>
 </div>

@@ -350,3 +350,23 @@ div.exception div.traceback
 {
     white-space: pre-line;
 }
+
+div.actor_controls
+{
+}
+
+div.actor_controls div.state_update {
+    display : inline-block;
+}
+
+div.actor_controls div.state_update label {
+    width : 50px;
+}
+
+div.actor_controls div.state_update input {
+    width : 50px;
+}
+
+div.actor_controls div.state_update button {
+    width : 50px;
+}

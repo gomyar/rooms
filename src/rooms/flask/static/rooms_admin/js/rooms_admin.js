@@ -6,6 +6,9 @@ admin.data = {
     nodes: []
 };
 
+admin.update_state_key = null;
+admin.update_state_json = null;
+
 
 admin.load_nodes = function() {
     $.get('/rooms_admin/nodes', function(data, status) {
