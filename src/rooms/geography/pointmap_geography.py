@@ -1,6 +1,6 @@
 
-from astar import PointMap
-from astar import AStar
+from .astar import PointMap
+from .astar import AStar
 from rooms.position import Position
 
 
