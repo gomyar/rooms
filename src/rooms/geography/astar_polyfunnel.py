@@ -1,5 +1,5 @@
 
-import pointformatting
+from rooms.geography import pointformatting
 
 _connected_offsets = [
     (-1, -1), (0, -1), (1, -1),
