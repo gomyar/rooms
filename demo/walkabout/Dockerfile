@@ -3,12 +3,13 @@
 FROM alpine
 
 RUN apk add --update \
-    python \
-    python-dev \
-    py-pip \
+    python3 \
+    python3-dev \
+    py3-pip \
     build-base \
     git \
     openssh-client \
+    libffi-dev \
   && pip install virtualenv \
   && rm -rf /var/cache/apk/*
 
@@ -29,4 +30,4 @@ COPY maps/ /app/maps/
 
 EXPOSE 5000
 WORKDIR /app
-CMD cd /app && /app/server.py
+ENTRYPOINT ["python3", "/app/server.py"]
