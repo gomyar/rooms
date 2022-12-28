@@ -2,6 +2,7 @@
 
 import sys
 import socket
+import gevent
 from gevent import monkey
 monkey.patch_all()
 
@@ -12,6 +13,8 @@ from flask import jsonify
 from flask import request
 from flask import send_from_directory
 
+from flask_socketio import SocketIO, emit
+
 from rooms.flask.login import init_login
 from rooms.flask.login import bp_login
 from rooms.flask.master import bp_master
@@ -21,11 +24,19 @@ from rooms.flask.mapeditor import bp_mapeditor
 
 from rooms.flask.app import master
 from rooms.flask.app import node
-from rooms.flask.app import start_rooms_app
 from rooms.flask.app import mapdir
+from rooms.flask.app import GEOGRAPHIES
+from rooms.flask.app import container
+from rooms.flask.app import _node_host
+from rooms.flask.app import _node_port
+
+from rooms.node import SocketConnection
 
 from flask_login import login_required
 import flask_login
+
+import logging
+log = logging.getLogger(__name__)
 
 
 def create_app():
@@ -41,6 +52,36 @@ def create_app():
 
 
 app = create_app()
+socketio = SocketIO(app, async_mode='gevent')
+
+
+socket_map = {}
+
+
+@login_required
+@socketio.on('connect')
+def on_connect():
+    log.debug("Connected %s %s", flask_login.current_user.username, request.sid)
+
+
+@login_required
+@socketio.on('join_game')
+def join_game(data):
+    log.debug("Joining game %s %s %s", data['game_id'], flask_login.current_user.username, request.sid)
+    connection = SocketConnection(node, data['game_id'], flask_login.current_user.username, socketio, request.sid)
+
+    gthread = gevent.spawn(connection.connect_socket)
+
+    socket_map[request.sid] = {"connection": connection, "gthread": gthread}
+
+
+@login_required
+@socketio.on('disconnect')
+def on_disconnect():
+    log.debug('Client disconnected %s', flask_login.current_user.username)
+    connection = socket_map.pop(request.sid)
+    connection['connection'].connected = False
+    connection['connection'].queue.put({'command': 'disconnected_from_socket'})
 
 
 @app.route("/")
@@ -79,10 +120,30 @@ def get_map(path):
     return send_from_directory(mapdir, path)
 
 
+def start_rooms_app(app, container_type='pointmap'):
+    try:
+        container.geography = GEOGRAPHIES[container_type]
+        container.start_container()
+
+        socketio.run(
+            app,
+            host=_node_host,
+            port=_node_port)
+
+    except KeyboardInterrupt as ke:
+        log.debug("Server interrupted")
+        node.shutdown()
+        master.shutdown()
+        container.stop_container()
+    except:
+        log.exception("Exception starting server")
+
+
 if __name__ == '__main__':
     init_login(app)
 
     master.load_scripts('scripts.game_script')
+    print(" --- Loading scripts into node at: %s", id(node))
     node.load_scripts('./scripts')
     node.start()
 

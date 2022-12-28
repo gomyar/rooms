@@ -46,6 +46,7 @@ def play(game_id):
 @bp_node.route("/connect/<game_id>", methods=['GET', 'POST'])
 @login_required
 def connect(game_id):
+    log.debug("Connect %s to %s", flask_login.current_user.get_id(), game_id)
     try:
         # get player for game_id / user_id
         player = app.container.get_player(
@@ -55,12 +56,15 @@ def connect(game_id):
                             flask_login.current_user.get_id(), game_id))
         # redirect to / request associated node
         room = app.container.request_create_room(game_id, player['room_id'])
+        log.debug("Connect found room: %s", room)
         if room.get('node_name'):
             node_host = app.container.load_node(room['node_name']).host
+            log.debug("Connect node_host: %s", node_host)
             return jsonify({
                 'host': node_host,
                 'connect': "ws://%s/rooms/play/%s" % (node_host, game_id),
                 'call': "http://%s/rooms/call/%s" % (node_host, game_id),
+                'game_id': game_id,
                 'actor_id': player['actor_id']})
         else:
             return jsonify({'wait': 1})

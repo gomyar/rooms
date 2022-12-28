@@ -5,6 +5,9 @@ from rooms.views import jsonview
 from rooms.player_connection import command_update
 from rooms.player_connection import command_remove
 
+import logging
+log = logging.getLogger(__name__)
+
 
 class Vision(object):
     def __init__(self, room):
@@ -77,12 +80,14 @@ class Vision(object):
         return self.actor_map.get(actor.actor_id, NullArea)
 
     def connect_vision_queue(self, actor_id):
+        log.debug("Connecting vision queue for %s", actor_id)
         queue = Queue()
         if actor_id not in self.actor_queues:
             self.actor_queues[actor_id] = []
         self.actor_queues[actor_id].append(queue)
         if actor_id in self.room.actors:
             actor = self.room.actors[actor_id]
+            log.debug("Sending sync to %s", actor_id)
             self._send_sync_to_queue(actor, queue)
         return queue
 

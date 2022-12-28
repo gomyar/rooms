@@ -3,6 +3,8 @@ import gevent
 import json
 from geventwebsocket import WebSocketError
 
+from flask_socketio import emit
+
 from rooms.actor import Actor
 from rooms.scriptset import ScriptSet
 from rooms.room_loader import RoomLoader
@@ -38,6 +40,59 @@ class Room(object):
         self.active_state = True
         self.pending_state = True
         self.deactivating_state = False
+
+
+class SocketConnection(object):
+    def __init__(self, node, game_id, username, socketio, sid):
+        self.node = node
+        self.game_id = game_id
+        self.username = username
+        self.socketio = socketio
+        self.sid = sid
+        self.connected = True
+        self.queue = None
+
+    def connect_socket(self):
+        log.info("Connecting for %s in %s", self.username, self.game_id)
+        if (self.game_id, self.username) not in self.node.players:
+            log.warning("connect_socket: No room for player: %s, %s",
+                self.game_id, self.username)
+            log.debug(" -- no room at node: %s", id(self.node))
+            return
+
+        room_id, actor_id = self.node.players[self.game_id, self.username]
+        room = self.node.rooms[self.game_id, room_id]
+        self.queue = room.vision.connect_vision_queue(actor_id)
+
+        try:
+            while self.connected:
+                message = self.queue.get()
+                if message.get("command") == 'disconnect':
+                    self.connected = False
+                    self.socketio.emit('disconnect', json.dumps(jsonview(message)), room=self.sid)
+                elif message.get('command') == 'disconnected_from_socket':
+                    return
+                elif message.get("command") == 'move_room':
+                    log.debug("Moving room for %s to %s", self.username,
+                        message['room_id'])
+                    room.vision.disconnect_vision_queue(actor_id, self.queue)
+                    if (self.game_id, message['room_id']) in self.node.rooms:
+                        log.debug("Room already managed: %s",
+                            message['room_id'])
+                        self.socketio.emit('move_room', json.dumps(jsonview(message)), room=self.sid)
+                        room = self.node.rooms[self.game_id, message['room_id']]
+                        self.queue = room.vision.connect_vision_queue(
+                            actor_id)
+                    else:
+                        log.debug("Redirecting to master")
+                        self.socketio.emit('redirect_to_master', json.dumps({'command': 'redirect_to_master'}), room=self.sid)
+                else:
+                    self.socketio.emit(message['command'], json.dumps(jsonview(message)), room=self.sid)
+        except Exception as e:
+            log.exception("Unexpected exception in player connection")
+            raise
+        finally:
+            room.vision.disconnect_vision_queue(actor_id, self.queue)
 
 
 class Node(object):
@@ -82,11 +137,14 @@ class Node(object):
         if room:
             room.node = self
             self.rooms[room.game_id, room.room_id] = room
+            log.debug("Loaded pending room: %s", room)
             if not room.initialized:
+                log.debug("Initializaing room: %s", room)
                 room.script.call("room_created", room)
                 room.initialized = True
                 self.container.update_room(room, initialized=True)
             else:
+                log.debug("Loading actors for room: %s", room)
                 self.container.load_actors_for_room(room)
             room.start()
 
@@ -184,9 +242,9 @@ class Node(object):
 
     def actor_call(self, game_id, username, actor_id, method, **kwargs):
         if (game_id, username) not in self.players:
-            log.warning("No room for player: %s, %s",
+            log.warning("actor_call: No room for player: %s, %s",
                 game_id, username)
-            raise Exception("No room for player: %s, %s" % (
+            raise Exception("actor_call: No room for player: %s, %s" % (
                 game_id, username))
 
         room_id, actor_id = self.players[game_id, username]

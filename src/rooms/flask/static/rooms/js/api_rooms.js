@@ -10,7 +10,7 @@ api_rooms.player_actor = {"actor_id": "admin"};
 api_rooms.actors = {};
 api_rooms.socket = null;
 
-api_rooms.connect_url = null;
+api_rooms.game_id = null;
 api_rooms.node_host = location.hostname;
 
 api_rooms.conn_retries = 0;
@@ -146,11 +146,7 @@ api_rooms.onopen = function()
 
 api_rooms.onclose = function()
 {
-    console.log("Connection lost");
-    if (api_rooms.conn_retries < api_rooms.max_retries) {
-        api_rooms.conn_retries += 1;
-        setTimeout(api_rooms.connect_node, 1000);
-    }
+    console.log("Connection closed");
 }
 
 api_rooms.onerror = function()
@@ -158,9 +154,10 @@ api_rooms.onerror = function()
     console.log("Connection error");
 }
 
-api_rooms.connect = function(connect_url, callback)
+api_rooms.connect = function(game_id, callback)
 {
-    api_rooms.connect_url = connect_url;
+    api_rooms.connect_url = "/rooms/connect/" + game_id;
+    api_rooms.game_id = game_id;
     api_rooms.game_callback = callback;
 
     api_rooms.request_connection();
@@ -170,11 +167,11 @@ api_rooms.request_connection = function()
 {
     console.log("Requesting connection");
     api_rooms.connecting = true;
-    api_rooms.game_callback({'command': 'notify_connecting'});
+    //api_rooms.game_callback({'command': 'notify_connecting'});
 
     api_rooms.service_call(api_rooms.connect_url, {},
             function(data) {
-				if ('wait' in data) {
+                if ('wait' in data) {
                     if (api_rooms.conn_retries < api_rooms.max_retries) {
                         console.log("Waiting 1 second for room ready");
                         setTimeout(api_rooms.request_connection, 1000);
@@ -196,15 +193,29 @@ api_rooms.request_connection = function()
 api_rooms.connect_node = function()
 {
     console.log("Connecting to Node " + api_rooms.node_host);
-    api_rooms.socket = new WebSocket(api_rooms.websocket_url);
-    api_rooms.socket.onmessage = api_rooms.message_callback;
-    api_rooms.socket.onopen = api_rooms.onopen;
-    api_rooms.socket.onclose = api_rooms.onclose;
-    api_rooms.socket.onerror = api_rooms.onerror;
+
+    api_rooms.socket = io(location.host, {transports: ["websocket", "polling"]});
+
+    api_rooms.socket.on('connect', () => {
+        console.log('Connected');
+        api_rooms.socket.emit('join_game', {'game_id': api_rooms.game_id});
+    });
+    api_rooms.socket.on('disconnect', () => {
+        console.log('Disconnected');
+    });
+
+    api_rooms.socket.on("sync", api_rooms.command_sync);
+    api_rooms.socket.on("actor_update", api_rooms.command_actor_update);
+    api_rooms.socket.on("remove_actor", api_rooms.command_remove_actor);
+    api_rooms.socket.on("redirect_to_master", api_rooms.request_connection);
+
+    api_rooms.game_callback();
 }
 
 api_rooms.command_sync = function(message)
 {
+    message = JSON.parse(message);
+    console.log('Sync: ', message);
     api_rooms.actors = {};
     api_rooms.set_now(message.data.now);
     api_rooms.username = message.data.username;
@@ -218,6 +229,8 @@ api_rooms.command_sync = function(message)
 
 api_rooms.command_actor_update = function(message)
 {
+    message = JSON.parse(message);
+    console.log('Actor update: ', message);
     if (message.actor_id == api_rooms.player_actor.actor_id)
     {
         for (var f in message.data)
@@ -234,6 +247,7 @@ api_rooms.command_actor_update = function(message)
 
 api_rooms.command_remove_actor = function(message)
 {
+    message = JSON.parse(message);
     delete api_rooms.actors[message.actor_id];
 }
 
@@ -248,15 +262,15 @@ api_rooms.message_callback = function(msgevent)
 {
     // Resetting retries as the open() function gets called anyway
     api_rooms.conn_retries = 0;
-    if (api_rooms.connecting) {
-        api_rooms.game_callback({'command': 'notify_connected'});
-    }
+//    if (api_rooms.connecting) {
+//        api_rooms.game_callback({'command': 'notify_connected'});
+//    }
 
     var message = jQuery.parseJSON(msgevent.data);
     if (message.command in api_rooms.commands)
         api_rooms.commands[message.command](message);
-    if (api_rooms.game_callback)
-        api_rooms.game_callback(message);
+//    if (api_rooms.game_callback)
+//        api_rooms.game_callback(message);
 }
 
 

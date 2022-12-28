@@ -90,6 +90,7 @@ class Actor(object):
         return self.room.game_id if self.room else self._game_id
 
     def kick(self):
+        log.debug("Kicking actor: %s", self)
         self._kill_script_gthread()
         self._script_gthread = gevent.spawn(self._checked_script_call,
             'kickoff', self)

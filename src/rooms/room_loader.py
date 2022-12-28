@@ -22,9 +22,12 @@ class RoomLoader(object):
             self._gthread.join()
 
     def load_loop(self):
-        while self.running:
-            self._load_rooms()
-            Timer.sleep(1)
+        try:
+            while self.running:
+                self._load_rooms()
+                Timer.sleep(1)
+        except Exception as e:
+            log.exception("Exception loading room")
 
     def _load_rooms(self):
         self.node.load_next_pending_room()

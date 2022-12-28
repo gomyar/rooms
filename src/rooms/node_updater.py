@@ -19,9 +19,12 @@ class NodeUpdater(object):
             self._gthread.join()
 
     def update_loop(self):
-        while self.running:
-            self.send_onlinenode_update()
-            Timer.sleep(1)
+        try:
+            while self.running:
+                self.send_onlinenode_update()
+                Timer.sleep(1)
+        except Exception as e:
+            log.exception("Exception updating node")
 
     def send_onlinenode_update(self):
         self.node.container.onlinenode_update(self.node.name, self.node.host,

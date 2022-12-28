@@ -64,8 +64,10 @@ function api_callback(message)
 {
 //    console.log("API Message:");
 //    console.log(message);
-    gui.actorRedraw();
-    if (message.command == "actor_update")
+
+    api_rooms.socket.on("sync", game_sync);
+    api_rooms.socket.on("actor_update", game_actor_update);
+/*    if (message.command == "actor_update")
     {
         gui.requestRedraw();
     }
@@ -74,7 +76,23 @@ function api_callback(message)
         api_rooms.actors = {};
         load_room(message.data.room_id);
         gui.requestRedraw();
-    }
+    }*/
+}
+
+function game_sync(message) {
+    message = JSON.parse(message);
+    console.log('game sync', message);
+
+    api_rooms.actors = {};
+    load_room(message.data.room_id);
+    gui.requestRedraw();
+
+}
+
+function game_actor_update(message) {
+    console.log('game update');
+    gui.requestRedraw();
+    gui.actorRedraw();
 }
 
 function init_game(game_id)
@@ -88,7 +106,7 @@ function init_game(game_id)
 
     $("#screen").click(canvas_clicked);
     $("#screen").mousemove(canvas_mousemove);
-    api_rooms.connect("/rooms/connect/" + game_id, api_callback); 
+    api_rooms.connect(game_id, api_callback); 
 
     $(window).bind('beforeunload', function(){
         api_rooms.socket.close();

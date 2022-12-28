@@ -22,9 +22,12 @@ class ActorLoader(object):
             self._gthread.join()
 
     def load_loop(self):
-        while self.running:
-            self._load_actors()
-            Timer.sleep(1)
+        try:
+            while self.running:
+                self._load_actors()
+                Timer.sleep(1)
+        except Exception as e:
+            log.exception("Exception loading actors")
 
     def _load_actors(self):
         game_id = self.room.game_id
@@ -52,6 +55,7 @@ class ActorLoader(object):
                 actor.room.room_id, actor.actor_id)
             log.debug("Added player %s, %s as %s, %s at %s",
                 actor.game_id, actor.username, actor.room.room_id, actor.actor_id, actor.position)
+            log.debug(" -- Adding to node at: %s", id(actor.room.node))
 
     def _load_docked(self, game_id, actor):
         docked = self.room.node.container.load_docked_actors(game_id,
