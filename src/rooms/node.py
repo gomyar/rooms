@@ -12,6 +12,8 @@ from rooms.node_updater import NodeUpdater
 from rooms.views import jsonview
 from rooms.player_connection import command_redirect
 from rooms.player_connection import AdminConnection
+from rooms.player_connection import command_update
+from rooms.timer import Timer
 
 from rooms.rpc import request
 from rooms.rpc import websocket
@@ -43,16 +45,24 @@ class Room(object):
 
 
 class SocketConnection(object):
-    def __init__(self, node, game_id, username, socketio, sid):
+    def __init__(self, node, game_id, username, socketio, sid, connect_as_admin, room_id=None):
         self.node = node
         self.game_id = game_id
         self.username = username
         self.socketio = socketio
         self.sid = sid
+        self.connect_as_admin = connect_as_admin
+        self.room_id = room_id
         self.connected = True
         self.queue = None
 
     def connect_socket(self):
+        if self.connect_as_admin:
+            self.admin_connect()
+        else:
+            self.connect_as_player()
+
+    def connect_as_player(self):
         log.info("Connecting for %s in %s", self.username, self.game_id)
         if (self.game_id, self.username) not in self.node.players:
             log.warning("connect_socket: No room for player: %s, %s",
@@ -93,6 +103,39 @@ class SocketConnection(object):
             raise
         finally:
             room.vision.disconnect_vision_queue(actor_id, self.queue)
+
+    def _sync_message(self, room):
+        sync_msg = {"command": "sync", "data": {"now": Timer.now(),
+             "username": "admin", "room_id": room.room_id},
+             "geography": room.geography.draw()}
+        sync_msg['map_url'] = "http://mapurl"
+        return sync_msg
+
+    def admin_connect(self):
+        log.debug("Connecting Admin: %s %s", self.game_id, self.room_id)
+        room = self.node.rooms[self.game_id, self.room_id]
+        self.queue = room.vision.connect_admin_queue()
+        admin_conn = AdminConnection(self.game_id, self.room_id, None)
+#        admin_conn.send_sync_to_websocket(ws, room, "admin")
+
+        self.socketio.emit('sync', json.dumps(self._sync_message(room)))
+        for actor in room.actors.values():
+            self.socketio.emit('actor_update', json.dumps(command_update(actor)))
+
+        try:
+            connected = True
+            while connected:
+                message = self.queue.get()
+                self.socketio.emit(message['command'], json.dumps(jsonview(message)))
+                if message.get("command") in ['disconnect', 'redirect']:
+                    connected = False
+        except WebSocketError as wse:
+            log.debug("Admin Websocket socket dead: %s", str(wse))
+        except Exception as e:
+            log.exception("Unexpected exception in player connection")
+            raise
+        finally:
+            room.vision.disconnect_admin_queue(self.queue)
 
 
 class Node(object):

@@ -50,29 +50,30 @@ admin.kick_actor = function(actor_id) {
 admin.game_callback = function(message) {
     console.log("Callback:");
     console.log(message);
-    gui.actorRedraw();
-    if (message.command == "actor_update")
-    {
-        gui.requestRedraw(api_rooms.actors[message.data.actor_id].vector.end_time * 1000);
-        turtlegui.reload();
-    }
-    if (message.command == "remove_actor")
-    {
-        gui.requestRedraw();
-        turtlegui.reload();
-    }
-    if (message.command == "message")
-    {
-        console.log(message);
-    }
-    if (message.command == "sync")
-    {
+
+    api_rooms.socket.on("sync", (msg) => {
+        var message = JSON.parse(msg);
         gui.init($('#screen')[0]);
         admin.load_room(message.data.room_id);
         admin.geography = message.geography;
         gui.zoom = 1.0;
         turtlegui.reload();
-    }
+    });
+    api_rooms.socket.on("actor_update", (msg) => {
+        var message = JSON.parse(msg);
+        gui.requestRedraw(api_rooms.actors[message.data.actor_id].vector.end_time * 1000);
+        gui.actorRedraw();
+        turtlegui.reload();
+    });
+    api_rooms.socket.on("remove_actor", (msg) => {
+        gui.requestRedraw();
+        gui.actorRedraw();
+        turtlegui.reload();
+    });
+    api_rooms.socket.on("message", (msg) => {
+        var message = JSON.parse(msg);
+        console.log(message);
+    });
 }
 
 admin.actor_fields_filter = function() {
@@ -87,7 +88,13 @@ admin.format_field = function(actor, field_name) {
 
 admin.admin_connect = function(game_id, room_id)
 {
-    api_rooms.connect('/rooms_admin/connect/'+game_id + "/" + room_id, admin.game_callback);
+    api_rooms.connect_url = "/rooms_admin/connect/" + game_id + "/" + room_id;
+    api_rooms.room_id = room_id;
+    api_rooms.game_id = game_id;
+    api_rooms.game_callback = admin.game_callback;
+    api_rooms.connect_as_admin = true;
+
+    api_rooms.request_connection();
 }
 
 

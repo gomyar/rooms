@@ -332,6 +332,7 @@ gui.draw = function()
         gui.ctx.strokeRect(gui.canvas_x(x1), gui.canvas_y(y1), room.width / gui.zoom, room.height / gui.zoom)
     }
 
+    if (admin.geography) {
     for (var p in admin.geography.polygons) {
         var polygon = admin.geography.polygons[p];
         gui.ctx.beginPath();
@@ -347,6 +348,7 @@ gui.draw = function()
 
         gui.ctx.strokeStyle = "rgb(15, 15, 205)";
         gui.ctx.stroke();
+    }
     }
 
     // Draw current room

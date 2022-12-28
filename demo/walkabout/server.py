@@ -67,8 +67,8 @@ def on_connect():
 @login_required
 @socketio.on('join_game')
 def join_game(data):
-    log.debug("Joining game %s %s %s", data['game_id'], flask_login.current_user.username, request.sid)
-    connection = SocketConnection(node, data['game_id'], flask_login.current_user.username, socketio, request.sid)
+    log.debug("Joining game %s %s %s", data['game_id'], flask_login.current_user.username, request.sid, data['connect_as_admin'], data.get('room_id'))
+    connection = SocketConnection(node, data['game_id'], flask_login.current_user.username, socketio, request.sid, data['connect_as_admin'], data.get('room_id'))
 
     gthread = gevent.spawn(connection.connect_socket)
 

@@ -158,7 +158,9 @@ api_rooms.connect = function(game_id, callback)
 {
     api_rooms.connect_url = "/rooms/connect/" + game_id;
     api_rooms.game_id = game_id;
+    api_rooms.room_id = null;
     api_rooms.game_callback = callback;
+    api_rooms.connect_as_admin = false;
 
     api_rooms.request_connection();
 }
@@ -198,7 +200,7 @@ api_rooms.connect_node = function()
 
     api_rooms.socket.on('connect', () => {
         console.log('Connected');
-        api_rooms.socket.emit('join_game', {'game_id': api_rooms.game_id});
+        api_rooms.socket.emit('join_game', {'game_id': api_rooms.game_id, 'connect_as_admin': api_rooms.connect_as_admin, 'room_id': api_rooms.room_id});
     });
     api_rooms.socket.on('disconnect', () => {
         console.log('Disconnected');
