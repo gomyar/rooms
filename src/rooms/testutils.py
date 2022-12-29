@@ -3,6 +3,7 @@ import gevent
 from gevent.event import Event
 from gevent.queue import Queue
 import json
+import imp
 
 from rooms.player import PlayerActor
 from rooms.room import Room
@@ -210,7 +211,7 @@ class MockGeog(object):
 class MockTimer(Timer):
     @staticmethod
     def setup_mock():
-        reload(gevent)
+        imp.reload(gevent)
         mock_timer = MockTimer()
         mock_timer._old_sleep = gevent.sleep
         mock_timer._mock_now = 0
@@ -222,7 +223,7 @@ class MockTimer(Timer):
     @staticmethod
     def teardown_mock():
         Timer._instance = None
-        reload(gevent)
+        imp.reload(gevent)
 
     def _sleep(self, seconds):
         self._mock_sleep(seconds)
@@ -235,7 +236,7 @@ class MockTimer(Timer):
         event = Event()
         self._sleeping_gthreads.append((gevent.getcurrent(),
             seconds + self._mock_now, event))
-        self._sleeping_gthreads.sort()
+        self._sleeping_gthreads.sort(key=lambda g: g[1])
         self._slept += seconds
         event.wait(1)
 
