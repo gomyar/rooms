@@ -11,7 +11,6 @@ RUN apk add --update \
     musl-dev \
     gcc \
     libevent-dev \
-  && pip install virtualenv \
   && rm -rf /var/cache/apk/*
 
 
