@@ -115,6 +115,6 @@ class AStar(object):
             current = current.parent
 
         path.reverse()
-        #path.insert(0, from_point.polygon)
+        path.insert(0, from_point.polygon)
         path.append(to_point.polygon)
         return path
