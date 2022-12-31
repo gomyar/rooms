@@ -150,7 +150,9 @@ def create_poly_queue(chain):
     current_poly = chain[0]
     for poly in chain[1:]:
         connection = current_poly.connection_for(poly)
-        queue.append((current_poly, connection.left_vertex.position, connection.right_vertex.position))
+        if connection:
+            # both polys may be the same
+            queue.append((current_poly, connection.left_vertex.position, connection.right_vertex.position))
         current_poly = poly
     return queue
 

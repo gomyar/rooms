@@ -1,7 +1,7 @@
 
 import unittest
 
-from linearopen_geography import LinearOpenGeography
+from .linearopen_geography import LinearOpenGeography
 from rooms.room import Room
 from rooms.position import Position
 from rooms.testutils import MockNode

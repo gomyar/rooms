@@ -1,7 +1,7 @@
 
 import unittest
 
-from pointmap_geography import PointmapGeography
+from .pointmap_geography import PointmapGeography
 from rooms.room import Room
 from rooms.room import RoomObject
 from rooms.position import Position

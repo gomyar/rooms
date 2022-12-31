@@ -22,7 +22,7 @@ from rooms.testutils import MockVision
 from rooms.actor import Actor
 from rooms.node import Node
 from rooms.room import RoomObject
-from testutils import MockTimer
+from .testutils import MockTimer
 
 
 def created(actor):

@@ -65,7 +65,6 @@ class SystemTest():#unittest.TestCase):
 
     # script function
     def ping(self, actor):
-        print "PING"
         for i in range(10):
             actor.state.count = i
             actor.sleep(1)
