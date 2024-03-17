@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.0.0-experimental
 
-FROM alpine
+FROM alpine:3.13
 
 RUN apk add --update \
     python3 \
@@ -10,25 +10,23 @@ RUN apk add --update \
     libffi-dev \
     musl-dev \
     gcc \
-    libevent-dev \
-  && pip install virtualenv \
-  && rm -rf /var/cache/apk/*
-
-
-RUN addgroup -S rooms
-RUN adduser -H -D -S rooms
+    libevent-dev
 
 COPY src/ /src/
 COPY bin/ /bin/
 COPY requirements.txt /
-
-ENV PYTHONPATH=.:/src
 
 RUN pip install -r requirements.txt
 
 EXPOSE 5000
 
 WORKDIR /src
+
+ENV PYTHONPATH=/src/
+
+RUN addgroup -S rooms
+RUN adduser -H -D -S rooms
+
 USER rooms:rooms
 
-ENTRYPOINT ["python3", "/app/server.py"]
+ENTRYPOINT ["python3", "server.py"]
